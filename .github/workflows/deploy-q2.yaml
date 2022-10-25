@@ -27,8 +27,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Gradle wrapper validation
-        uses: gradle/wrapper-validation-actions@v1
       - name: Setup gradle dependency cache
         uses: actions/cache@v2
         with:
