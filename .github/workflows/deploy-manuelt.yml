@@ -64,15 +64,13 @@ jobs:
           password: ${{ secrets.READER_TOKEN }}
       - name: Build and test
         run: ./gradlew test build
-      - uses: actions/upload-artifact@v3
-        with:
-          name: melosys-fakturering-app
-          path: |
-            Dockerfile
-            nais.yml
-            app/target/melosys-fakturering.jar
-            docker-init-scripts/vault-systembruker-env.sh
-          retention-days: 1
+      - name: Build and publish Docker image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker build --tag ${IMAGE} .
+          docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
+          docker push ${IMAGE}
 
   docker:
     runs-on: ubuntu-latest
