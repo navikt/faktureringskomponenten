@@ -1,0 +1,7 @@
+{
+  "namespace": "teammelosys",
+  "app_name": "melosys-fakturering-q1",
+  "ingress":"https://melosys-fakturering-q1.dev.intern.nav.no",
+  "tenant":"trygdeetaten.no",
+  "cluster": "dev-gcp"
+}

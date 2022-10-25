@@ -1,0 +1,52 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: {{app_name}}
+  namespace: {{namespace}}
+  labels:
+    team: teammelosys
+spec:
+  gcp:
+    sqlInstances:
+      - type: POSTGRES_12
+        diskAutoresize: true
+        databases:
+          - name: melosys-fakturering-db
+            envVarPrefix: DB
+  image: {{image}}
+  port: 8080
+  replicas:
+    min: 1
+    max: 2
+  liveness:
+    path: /actuator/health
+    initialDelay: 100
+    timeout: 10
+  readiness:
+    path: /actuator/health
+    initialDelay: 100
+    timeout: 10
+  azure:
+    application:
+      enabled: true
+      tenant: {{tenant}}
+      claims:
+        allowAllUsers: true
+  accessPolicy:
+    inbound:
+      rules:
+        - application: melosys-api
+          namespace: teammelosys
+          cluster: {{cluster}}
+  prometheus:
+    enabled: false
+    path: /actuator/prometheus
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1024Mi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  ingresses:
+    - {{ingress}}

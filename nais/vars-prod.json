@@ -1,0 +1,7 @@
+{
+  "namespace": "teammelosys",
+  "app_name": "melosys-fakturering",
+  "ingress": "https://melosys-fakturering.intern.nav.no",
+  "tenant": "nav.no",
+  "cluster": "prod-gcp"
+}
