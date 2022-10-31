@@ -10,6 +10,8 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}/melosys-fakturering:${{ github.sha }}
   IMAGE_MANIFEST: https://ghcr.io/v2/${{ github.repository }}/melosys-fakturering/manifests/${{ github.sha }}
 
+# fakturaoppdrag
+
 jobs:
   check_docker_image_exists:
     name: Check if docker image exists in registry
@@ -62,12 +64,14 @@ jobs:
           password: ${{ secrets.READER_TOKEN }}
       - name: Build and test
         run: ./gradlew test build
-      - name: Build and publish Docker image
+      - name: GitHub Package Registry login
+        run: |
+          echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_REPOSITORY} --password-stdin ghcr.io
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish Docker image
         run: |
-          docker build --tag ${IMAGE} .
-          docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
+          docker build -t ${IMAGE} .
           docker push ${IMAGE}
 
   docker:
@@ -89,7 +93,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [build, docker]
+    needs: [ build, docker ]
     if: always() && (needs.docker.result == 'success' || needs.docker.result == 'skipped')
     steps:
       - uses: actions/checkout@v3
