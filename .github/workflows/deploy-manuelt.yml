@@ -79,6 +79,14 @@ jobs:
     needs: build
     if: always() && (needs.build.result == 'success' || needs.build.result == 'skipped')
     steps:
+      - name: Deploy to dev-gcp
+        if: github.event.inputs.environment != 'prod'
+        run: |
+          echo "CLUSTER=dev-gcp" >> $GITHUB_ENV
+      - name: Deploy to prod-gcp
+        if: github.event.inputs.environment == 'prod'
+        run: |
+          echo "CLUSTER=prod-gcp" >> $GITHUB_ENV
       - uses: actions/checkout@v3
       - uses: nais/deploy/actions/deploy@v1
         if: ${{ env.CLUSTER != '' }}
