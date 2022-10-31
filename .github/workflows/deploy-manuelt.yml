@@ -14,7 +14,7 @@ env:
 
 jobs:
   check_docker_image_exists:
-    name: Check if docker image exists in registry
+    name: Sjekk hvis Docker-image eksisterer i registry
     runs-on: ubuntu-latest
     steps:
       - run: |
@@ -62,14 +62,14 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.READER_TOKEN }}
-      - name: Build and test
-        run: ./gradlew build --info
+      - name: Bygg og test
+        run: ./gradlew shadowJar --info
       - name: GitHub Package Registry login
         run: |
           echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_REPOSITORY} --password-stdin ghcr.io
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and publish Docker image
+      - name: Bygg og publiser Docker-image
         run: |
           docker build -t ${IMAGE} .
           docker push ${IMAGE}
