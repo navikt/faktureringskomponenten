@@ -93,7 +93,7 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ env.CLUSTER }}
-          RESOURCE: nais.yml
+          RESOURCE: nais/nais.yml
           VARS: nais/vars-${{github.event.inputs.environment}}.json
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
