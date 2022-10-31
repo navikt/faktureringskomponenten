@@ -3,5 +3,6 @@
   "namespace": "teammelosys",
   "ingress":"https://melosys-fakturering-q1.dev.intern.nav.no",
   "tenant":"trygdeetaten.no",
-  "cluster": "dev-gcp"
+  "cluster": "dev-gcp",
+  "kafka_pool": "nav-dev"
 }
