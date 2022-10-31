@@ -63,7 +63,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.READER_TOKEN }}
       - name: Bygg og test
-        run: ./gradlew shadowJar --info
+        run: ./gradlew clean build
       - name: GitHub Package Registry login
         run: |
           echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_REPOSITORY} --password-stdin ghcr.io

@@ -1,5 +1,3 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -8,7 +6,6 @@ plugins {
     kotlin("jvm") version "1.6.21"
     kotlin("plugin.spring") version "1.6.21"
     kotlin("plugin.jpa") version "1.6.21"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "no.nav"
@@ -48,15 +45,8 @@ tasks {
         useJUnitPlatform()
     }
 
-    withType<Jar> {
-        manifest.attributes["Main-Class"] = "no.nav.melosysfakturering.MelosysFaktureringApplicationKt"
-    }
-
-    withType<ShadowJar> {
-        transform(ServiceFileTransformer::class.java) {
-            setPath("META-INF/cxf")
-            include("bus-extensions.txt")
-        }
+    getByName<Jar>("jar") {
+        enabled = false
     }
 }
 
