@@ -64,15 +64,6 @@ jobs:
           password: ${{ secrets.READER_TOKEN }}
       - name: Bygg og test
         run: ./gradlew shadowJar --info
-      - name: GitHub Package Registry login
-        run: |
-          echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_REPOSITORY} --password-stdin ghcr.io
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Bygg og publiser Docker-image
-        run: |
-          docker build -t ${IMAGE} .
-          docker push ${IMAGE}
 
   docker:
     runs-on: ubuntu-latest
@@ -86,7 +77,7 @@ jobs:
           echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_REPOSITORY} --password-stdin ghcr.io
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Docker build
+      - name: Bygg og publiser Docker-image
         run: |
           docker build -t ${IMAGE} .
           docker push ${IMAGE}
