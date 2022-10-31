@@ -49,7 +49,7 @@ tasks {
     }
 
     withType<Jar> {
-        manifest.attributes["Main-Class"] = "no.nav.melosysfakturering.MelosysFaktureringApplication"
+        manifest.attributes["Main-Class"] = "no.nav.melosysfakturering.MelosysFaktureringApplicationKt"
     }
 
     withType<ShadowJar> {
