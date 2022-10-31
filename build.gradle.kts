@@ -48,6 +48,10 @@ tasks {
         useJUnitPlatform()
     }
 
+    withType<Jar> {
+        manifest.attributes["Main-Class"] = "no.nav.melosysfakturering.MelosysFaktureringApplication"
+    }
+
     withType<ShadowJar> {
         transform(ServiceFileTransformer::class.java) {
             setPath("META-INF/cxf")
