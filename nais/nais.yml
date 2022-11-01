@@ -20,7 +20,7 @@ spec:
     max: 2
   liveness:
     path: /actuator/health
-    initialDelay: 35
+    initialDelay: 40
     timeout: 5
   readiness:
     path: /actuator/health
