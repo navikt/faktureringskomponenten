@@ -7,3 +7,15 @@ spring:
     show-sql: false
   flyway:
     locations: classpath:db/migration
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+

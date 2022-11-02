@@ -42,15 +42,10 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.READER_TOKEN }}
-      - name: Build and test
-        run: ./gradlew test build
-      - name: Build and publish Docker image
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          docker build --tag ${IMAGE} .
-          docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
-          docker push ${IMAGE}
+      - name: Run tests
+        run: ./gradlew test
+      - name: Build
+        run: ./gradlew clean build -x test
 
   deploy:
     runs-on: ubuntu-latest
@@ -75,12 +70,8 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
-          RESOURCE: nais.yml
-          VARS: /nais/vars-q2.json
-      - name: Checkout latest code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+          RESOURCE: nais/nais.yml
+          VARS: nais/vars-q2.json
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
       - name: Slack Notification
@@ -89,7 +80,7 @@ jobs:
           SLACK_COLOR: "${{ job.status == 'success' && 'good' || 'danger' }}"
           SLACK_USERNAME: Github Actions
           SLACK_ICON: https://github.com/github.png?size=48
-          SLACK_TITLE: "melosys-api ${{ job.status == 'success' && 'ble deployet' || 'kunne ikke deployes' }} til dev"
+          SLACK_TITLE: "melosys-fakturering ${{ job.status == 'success' && 'ble deployet' || 'kunne ikke deployes' }} til dev-gcp (Q2)"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: ${{ env.COMMIT_MSG }}
       - name: post-deploy
