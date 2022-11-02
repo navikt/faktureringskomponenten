@@ -50,3 +50,5 @@ spec:
       memory: 512Mi
   ingresses:
     - {{ingress}}
+  kafka:
+    pool: {{kafka_pool}}
