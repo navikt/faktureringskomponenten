@@ -20,12 +20,12 @@ spec:
     max: 2
   liveness:
     path: /actuator/health
-    initialDelay: 100
-    timeout: 10
+    initialDelay: 40
+    timeout: 5
   readiness:
     path: /actuator/health
-    initialDelay: 100
-    timeout: 10
+    initialDelay: 35
+    timeout: 5
   azure:
     application:
       enabled: true
