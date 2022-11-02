@@ -10,8 +10,6 @@ env:
   IMAGE: ghcr.io/${{ github.repository }}/melosys-fakturering:${{ github.sha }}
   IMAGE_MANIFEST: https://ghcr.io/v2/${{ github.repository }}/melosys-fakturering/manifests/${{ github.sha }}
 
-# fakturaoppdrag
-
 jobs:
   check_docker_image_exists:
     name: Sjekk hvis Docker-image eksisterer i registry
@@ -39,6 +37,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PASSWORD: ${{ secrets.READER_TOKEN }}
       REGISTRY: ghcr.io
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -62,14 +61,16 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.READER_TOKEN }}
-      - name: Bygg og test
-        run: ./gradlew clean build
+      - name: Run tests
+        run: ./gradlew test
+      - name: Build
+        run: ./gradlew clean build -x test
       - name: GitHub Package Registry login
         run: |
           echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_REPOSITORY} --password-stdin ghcr.io
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Bygg og publiser Docker-image
+      - name: Build and publish Docker image
         run: |
           docker build -t ${IMAGE} .
           docker push ${IMAGE}
@@ -89,7 +90,6 @@ jobs:
           echo "CLUSTER=prod-gcp" >> $GITHUB_ENV
       - uses: actions/checkout@v3
       - uses: nais/deploy/actions/deploy@v1
-        if: ${{ env.CLUSTER != '' }}
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ env.CLUSTER }}
@@ -98,7 +98,6 @@ jobs:
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
       - name: Slack Notification
-        if: ${{ env.CLUSTER != '' }}
         uses: rtCamp/action-slack-notify@v2
         env:
           SLACK_COLOR: "${{ job.status == 'success' && 'good' || 'danger' }}"
