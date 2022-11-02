@@ -1,4 +1,4 @@
-name: Maven Test
+name: Gradle Test
 
 on: pull_request
 
