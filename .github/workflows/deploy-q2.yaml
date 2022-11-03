@@ -9,7 +9,7 @@ on:
     branches:
       - master
 env:
-  docker_image: ghcr.io/${{ github.repository }}/melosys-fakturering:${{ github.sha }}
+  image: ghcr.io/${{ github.repository }}/melosys-fakturering:${{ github.sha }}
 jobs:
   build:
     name: Build
@@ -46,6 +46,13 @@ jobs:
         run: ./gradlew test
       - name: Build
         run: ./gradlew clean build -x test
+      - name: Build and publish Docker image
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          docker build --tag ${image} .
+          docker login ghcr.io -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
+          docker push ${image}
 
   deploy:
     runs-on: ubuntu-latest
@@ -55,16 +62,6 @@ jobs:
         uses: navikt/digihot-deploy/actions/pre-deploy@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/download-artifact@v3
-        with:
-          name: melosys-fakturering
-      - name: Build and publish Docker image
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          docker build --tag ${docker_image} .
-          docker login ghcr.io -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
-          docker push ${docker_image}
       - name: Deploy til dev (Q2)
         uses: nais/deploy/actions/deploy@v1
         env:
