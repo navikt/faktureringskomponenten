@@ -1,7 +1,7 @@
 {
-  "app_name": "melosys-fakturering-q1",
+  "app_name": "faktureringskomponenten-q1",
   "namespace": "teammelosys",
-  "ingress":"https://melosys-fakturering-q1.dev.intern.nav.no",
+  "ingress":"https://faktureringskomponenten-q1.dev.intern.nav.no",
   "tenant":"trygdeetaten.no",
   "cluster": "dev-gcp",
   "kafka_pool": "nav-dev"

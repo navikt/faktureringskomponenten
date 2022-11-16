@@ -1,7 +1,7 @@
 {
   "namespace": "teammelosys",
-  "app_name": "melosys-fakturering",
-  "ingress": "https://melosys-fakturering.intern.nav.no",
+  "app_name": "faktureringskomponenten",
+  "ingress": "https://faktureringskomponenten.intern.nav.no",
   "tenant": "nav.no",
   "cluster": "prod-gcp",
   "kafka_pool": "nav-prod"

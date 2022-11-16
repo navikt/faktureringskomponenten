@@ -9,7 +9,7 @@ on:
     branches:
       - master
 env:
-  image: ghcr.io/${{ github.repository }}/melosys-fakturering:${{ github.sha }}
+  image: ghcr.io/${{ github.repository }}/faktureringskomponenten:${{ github.sha }}
 jobs:
   build:
     name: Build
@@ -80,7 +80,7 @@ jobs:
           SLACK_COLOR: "${{ job.status == 'success' && 'good' || 'danger' }}"
           SLACK_USERNAME: Github Actions
           SLACK_ICON: https://github.com/github.png?size=48
-          SLACK_TITLE: "melosys-fakturering ${{ job.status == 'success' && 'ble deployet' || 'kunne ikke deployes' }} til dev-gcp (Q2)"
+          SLACK_TITLE: "faktureringskomponenten ${{ job.status == 'success' && 'ble deployet' || 'kunne ikke deployes' }} til dev-gcp (Q2)"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: ${{ env.COMMIT_MSG }}
       - name: post-deploy

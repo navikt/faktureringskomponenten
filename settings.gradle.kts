@@ -1,1 +1,1 @@
-rootProject.name = "melosys-fakturering"
+rootProject.name = "faktureringskomponenten"
