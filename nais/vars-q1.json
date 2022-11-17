@@ -1,5 +1,6 @@
 {
   "app_name": "faktureringskomponenten-q1",
+  "database_name": "faktureringskomponenten-db-q1",
   "namespace": "teammelosys",
   "ingress":"https://faktureringskomponenten-q1.dev.intern.nav.no",
   "tenant":"trygdeetaten.no",

@@ -11,7 +11,7 @@ spec:
       - type: POSTGRES_12
         diskAutoresize: true
         databases:
-          - name: faktureringskomponenten-db
+          - name: {{database_name}}
             envVarPrefix: DB
   image: {{image}}
   port: 8080

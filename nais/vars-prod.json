@@ -1,6 +1,7 @@
 {
   "namespace": "teammelosys",
   "app_name": "faktureringskomponenten",
+  "database_name": "faktureringskomponenten-db",
   "ingress": "https://faktureringskomponenten.intern.nav.no",
   "tenant": "nav.no",
   "cluster": "prod-gcp",
