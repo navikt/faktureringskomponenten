@@ -1,11 +1,11 @@
-package no.nav.melosysfakturering
+package no.nav.faktureringskomponenten
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class MelosysFaktureringApplication
+class FaktureringskomponentenApplication
 
 fun main(args: Array<String>) {
-	runApplication<MelosysFaktureringApplication>(*args)
+	runApplication<FaktureringskomponentenApplication>(*args)
 }

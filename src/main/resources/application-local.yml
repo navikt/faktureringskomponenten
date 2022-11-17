@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres?schema=melosys-fakturering
+    url: jdbc:postgresql://localhost:5432/postgres?schema=faktureringskomponenten
     username: postgres
     password: mysecretpassword
   flyway:

@@ -1,4 +1,4 @@
-package no.nav.melosysfakturering
+package no.nav.faktureringskomponenten
 
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.PostMapping
