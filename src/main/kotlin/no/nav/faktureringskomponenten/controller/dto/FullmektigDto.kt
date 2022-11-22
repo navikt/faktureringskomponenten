@@ -1,6 +1,6 @@
 package no.nav.faktureringskomponenten.controller.dto
 
-data class FakturaserieFullmektigDto(
+data class FullmektigDto(
     val fodselsnummer: String?,
     val organisasjonsnummer: String?,
     val kontaktperson: String?,

@@ -4,12 +4,12 @@ import javax.validation.ConstraintValidator
 import javax.validation.ConstraintValidatorContext
 
 
-class FodselsnummerValidator  : ConstraintValidator<ErFodselsnummer?, String?>    {
+class FodselsnummerValidator  : ConstraintValidator<ErFodselsnummer?, String>    {
     override fun initialize(constraintAnnotation: ErFodselsnummer?) {}
     override fun isValid(
-        fodselsnummer: String?,
+        fodselsnummer: String,
         cxt: ConstraintValidatorContext
     ): Boolean {
-        return fodselsnummer != null && fodselsnummer.matches(Regex("[0-9]+")) && fodselsnummer.length == 11
+        return fodselsnummer.matches(Regex("[0-9]+")) && fodselsnummer.length == 11
     }
 }

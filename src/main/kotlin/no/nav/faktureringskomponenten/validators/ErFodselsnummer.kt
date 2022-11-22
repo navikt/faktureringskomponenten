@@ -8,7 +8,7 @@ import kotlin.reflect.KClass
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ErFodselsnummer(
-    val message: String = "Invalid phone number",
+    val message: String = "Fødselsnummeret er ikke gyldig",
     val groups: Array<KClass<*>> = [],
     val payload: Array<KClass<out Any>> = []
 )
