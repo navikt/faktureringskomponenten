@@ -6,11 +6,8 @@ spring:
   flyway:
     locations: classpath:db/migration
 
-no.nav.security.jwt:
-  issuer:
-    aad:
-      discovery-url: https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration
-      accepted_audience: b34f4417-4b03-47f7-aa3b-93912952a02d
+server:
+  port: 8084
 
 spring.jpa.hibernate.ddl-auto: create
 spring.jpa.generate-ddl: true
