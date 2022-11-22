@@ -16,11 +16,18 @@ repositories {
     mavenCentral()
 }
 
+object TestContainersDependencies {
+    const val version = "1.17.6"
+
+    const val postgresTestContainers = "org.testcontainers:postgresql:$version"
+    const val junitJupiterTestContainers = "org.testcontainers:junit-jupiter:$version"
+}
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-jersey")
-    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -28,9 +35,11 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webflux")
     testImplementation("org.springframework.kafka:spring-kafka-test")
-    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("com.h2database:h2")
+    testImplementation(TestContainersDependencies.postgresTestContainers)
+    testImplementation(TestContainersDependencies.junitJupiterTestContainers)
 }
 
 tasks {
