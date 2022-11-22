@@ -37,7 +37,7 @@ spec:
       rules:
         - application: melosys-api
           namespace: teammelosys
-          cluster: {{cluster}}
+          cluster: {{melosys-api-cluster}}
   prometheus:
     enabled: false
     path: /actuator/prometheus
