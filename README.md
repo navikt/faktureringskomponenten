@@ -1,9 +1,52 @@
 # Faktureringskomponenten
+```json5
+{
+    "vedtaksnummer": "MEL-103-123",
+    "fodselsnummer": "1234578911",
+    "referanseBruker": "ASD",
+    "fullmektig": {
+        "orgNr": "123456789",
+        "kontaktperson": "Ole Brumm"
+    },
+    "intervall": ["KVARTAL", "MÅNEDLIG"],
+    "periode": [
+        {
+            "enhetspris_per_maned": 10900, // 10*10900+((16/30)*10900)
+            "fra": "01.01.2022",
+            "til": "30.04.2022",
+            "beskrivelse": "Inntekt: 50.000, Dekning: Pensjonsdel, Sats: 21.8 %"
+        },
+        {
+            "enhetspris_per_maned": 3400,
+            "fra": "01.05.2022",
+            "til": "31.03.2023",
+            "beskrivelse": "Inntekt: 50.000, Dekning: Helsedel med rett til syke-/foreldrepenger, Sats: 6.8 %"
+        }
+    ]
+} 
+```
+
+```mermaid
+sequenceDiagram
+    participant api as Melosys-API
+    participant faktura as Faktureringskomponenten
+    participant oebs as OEBS
+    
+    Note over api,faktura,oebs: Heiasd asd as
+    api->>+faktura: Logg inn
+    
+    alt Credentials not found
+        account->>web: Invalid credentials
+    else Credentials found
+        account->>-web: Successfully logged in
+    end
+```
 
 ```mermaid
 flowchart TB
     melosys-api --> melosys-trygdeavgift
     melosys-api --Send fakturaperioder over REST --> faktureringskomponenten
+    melosys-api --Kanseller faktura over REST --> faktureringskomponenten
     melosys-web -- evt: Hent fakturainfo --> faktureringskomponenten
     faktureringskomponenten -. kafka-ny-faktura -.- oebs-ny-app
     oebs-ny-app -. kafka-faktura-status-endret -.- faktureringskomponenten
@@ -20,7 +63,7 @@ class fakturaserie {
     id INT
     vedtaksnummer VARCHAR
     opprettet_dato DATE
-    beskrivelse VARCHAR 240
+    faktura_gjelder VARCHAR 240
     start_dato DATE
     slutt_dato DATE
     intervall VARCHAR
@@ -37,6 +80,7 @@ class faktura {
     dato_sendt DATE
     status VARCHAR
     dato_betalt DATE
+    beskrivelse VARCHAR
     (PK) id
     (FK) FK_faktura_id
     (FK) FK_status
@@ -54,7 +98,7 @@ class faktura_linje {
 class fakturaserie_status {
     <<enum>>
     OPPRETTET
-    DELVIS_SENDT
+    UNDER_BESTILLING
     FERDIG
 } 
 
@@ -67,9 +111,8 @@ class fakturaserie_intervall {
 class faktura_status {
     <<enum>>
     OPPRETTET
-    SENDT
-    PURRET
-    BETALT
+    BESTILT
+    KANSELLERT
 }
 
 fakturaserie "1" -->  "1..*" faktura
