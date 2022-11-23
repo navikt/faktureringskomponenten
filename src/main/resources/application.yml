@@ -3,6 +3,13 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_DATABASE}
+  flyway:
+    locations: classpath:db/migration
+    enabled: true
+  jpa:
+    properties:
+      hibernate:
+        ddl-auto: none
 
 no.nav.security.jwt:
   issuer:
