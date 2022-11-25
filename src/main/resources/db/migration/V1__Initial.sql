@@ -4,17 +4,21 @@ CREATE TYPE fakturaserie_status AS ENUM (
     'KANSELLERT',
     'FERDIG'
 );
+CREATE CAST (character varying as fakturaserie_status) WITH INOUT AS IMPLICIT;
 
 CREATE TYPE fakturaserie_intervall AS ENUM (
     'MANEDLIG',
     'KVARTAL'
 );
+CREATE CAST (character varying as fakturaserie_intervall) WITH INOUT AS IMPLICIT;
+
 
 CREATE TYPE faktura_status AS ENUM (
     'OPPRETTET',
     'BESTILLT',
     'KANSELLERT'
 );
+CREATE CAST (character varying as faktura_status) WITH INOUT AS IMPLICIT;
 
 CREATE TABLE fakturaserie
 (
@@ -37,17 +41,16 @@ CREATE TABLE fakturaserie
 CREATE TABLE faktura
 (
     id              SERIAL PRIMARY KEY,
-    fakturaserie_id INT,
+    fakturaserie_id INT NOT NULL,
     dato_bestilt    DATE,
     status          faktura_status,
-    beskrivelse     VARCHAR(240) NOT NULL,
     CONSTRAINT fk_fakturaserie FOREIGN KEY (fakturaserie_id) REFERENCES fakturaserie (id)
 );
 
 CREATE TABLE faktura_linje
 (
     id          SERIAL PRIMARY KEY,
-    faktura_id  INT,
+    faktura_id  INT NOT NULL,
     periode_fra DATE,
     periode_til DATE,
     beskrivelse VARCHAR(240) NOT NULL,
