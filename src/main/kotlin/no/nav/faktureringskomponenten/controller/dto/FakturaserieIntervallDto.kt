@@ -1,6 +1,6 @@
 package no.nav.faktureringskomponenten.controller.dto
 
-enum class FaktureringsIntervall {
+enum class FakturaserieIntervallDto {
     KVARTAL,
     MANEDLIG
 }
