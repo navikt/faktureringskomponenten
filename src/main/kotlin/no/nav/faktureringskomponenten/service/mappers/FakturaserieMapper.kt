@@ -40,7 +40,7 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
     private fun mapFullmektig(fullmektigDto: FullmektigDto?): Fullmektig? {
         if (fullmektigDto != null) {
             return Fullmektig(
-                fodselsnummer = BigDecimal(fullmektigDto.fodselsnummer),
+                fodselsnummer = if (fullmektigDto.fodselsnummer != null) BigDecimal(fullmektigDto.fodselsnummer) else null,
                 organisasjonsnummer = fullmektigDto.organisasjonsnummer,
                 kontaktperson = fullmektigDto.kontaktperson
             )
