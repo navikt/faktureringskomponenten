@@ -4,6 +4,7 @@
   "namespace": "teammelosys",
   "ingress":"https://faktureringskomponenten-q1.dev.intern.nav.no",
   "tenant":"trygdeetaten.no",
-  "melosys-api-cluster": "dev-gcp",
-  "kafka_pool": "nav-dev"
+  "kafka_pool": "nav-dev",
+  "cluster_name_melosys_api": "dev-fss",
+  "app_name_melosys_api": "melosys-q1"
 }

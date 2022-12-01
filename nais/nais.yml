@@ -35,9 +35,9 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: melosys-api
+        - application: {{app_name_melosys_api}}
           namespace: teammelosys
-          cluster: {{melosys-api-cluster}}
+          cluster: {{cluster_name_melosys_api}}
   prometheus:
     enabled: false
     path: /actuator/prometheus
