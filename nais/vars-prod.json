@@ -4,7 +4,6 @@
   "database_name": "faktureringskomponenten-db",
   "ingress": "https://faktureringskomponenten.intern.nav.no",
   "tenant": "nav.no",
-  "melosys-api-cluster": "prod-gcp",
   "kafka_pool": "nav-prod",
   "cluster_name_melosys_api": "prod-fss",
   "app_name_melosys_api": "melosys"
