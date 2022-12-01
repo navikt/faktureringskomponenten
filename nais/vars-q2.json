@@ -4,6 +4,7 @@
   "database_name": "faktureringskomponenten-db-q2",
   "ingress":"https://faktureringskomponenten-q2.dev.intern.nav.no",
   "tenant":"trygdeetaten.no",
-  "cluster": "dev-gcp",
-  "kafka_pool": "nav-dev"
+  "kafka_pool": "nav-dev",
+  "cluster_name_melosys_api": "dev-fss",
+  "app_name_melosys_api": "melosys"
 }
