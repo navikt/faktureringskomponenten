@@ -37,7 +37,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
     testImplementation("org.springframework.kafka:spring-kafka-test")
-    testImplementation("com.h2database:h2")
     testImplementation(TestContainersDependencies.postgresTestContainers)
     testImplementation(TestContainersDependencies.junitJupiterTestContainers)
 }

@@ -9,21 +9,16 @@ data class Faktura(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long,
+    val id: Long?,
 
-    @JoinColumn(name="fakturaserie_id", nullable = false)
-    @ManyToOne
-    val fakturaserie: Fakturaserie,
-
-    @Column(name = "dato_bestillt", nullable = false)
+    @Column(name = "dato_bestilt", nullable = false)
     val datoBestilt: LocalDate,
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     val status: FakturaStatus = FakturaStatus.OPPRETTET,
 
-    @Column(name = "dato_betalt", nullable = false)
-    val beskrivelse: String,
-
-    @OneToMany(mappedBy = "faktura", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name="faktura_id", nullable = false)
     val fakturaLinje: List<FakturaLinje>
 )
