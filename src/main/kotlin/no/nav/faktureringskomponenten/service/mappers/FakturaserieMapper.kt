@@ -14,7 +14,7 @@ import java.time.LocalDate
 @Component
 class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
 
-    fun tilEntitet(fakturaserieDto: FakturaserieDto): Fakturaserie {
+    fun tilFakturaserie(fakturaserieDto: FakturaserieDto): Fakturaserie {
         val startDatoForHelePerioden = mapStartdato(fakturaserieDto.perioder)
         val sluttDatoForHelePerioden = mapSluttdato(fakturaserieDto.perioder)
         return Fakturaserie(

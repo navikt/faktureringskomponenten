@@ -16,11 +16,14 @@ repositories {
     mavenCentral()
 }
 
-object TestContainersDependencies {
-    const val version = "1.17.6"
+object dependencyVersions {
+    const val zalandoProblemVersion = "0.27.0"
+    const val testContainerVersion = "1.17.6"
+}
 
-    const val postgresTestContainers = "org.testcontainers:postgresql:$version"
-    const val junitJupiterTestContainers = "org.testcontainers:junit-jupiter:$version"
+object TestContainersDependencies {
+    const val postgresTestContainers = "org.testcontainers:postgresql:${dependencyVersions.testContainerVersion}"
+    const val junitJupiterTestContainers = "org.testcontainers:junit-jupiter:${dependencyVersions.testContainerVersion}"
 }
 
 dependencies {
@@ -29,6 +32,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("org.zalando:problem-spring-web-starter:${dependencyVersions.zalandoProblemVersion}")
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
