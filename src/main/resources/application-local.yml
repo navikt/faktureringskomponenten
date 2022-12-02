@@ -5,6 +5,11 @@ spring:
     password: mysecretpassword
   flyway:
     locations: classpath:db/migration
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
 
 server:
   port: 8084
