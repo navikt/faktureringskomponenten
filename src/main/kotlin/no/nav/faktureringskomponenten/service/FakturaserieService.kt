@@ -14,12 +14,13 @@ class FakturaserieService(
 ) {
 
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto): Fakturaserie {
-        fakturaserieRepository.findByVedtaksId(fakturaserieDto.vedtaksId)
-            .ifPresent { throw IllegalArgumentException("Kan ikke opprette fakturaserie når vedtaksId allerede finnes") }
-
-        val fakturaserie = fakturaserieMapper.tilEntitet(fakturaserieDto)
+        val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
 
         return fakturaserie
+    }
+
+    fun finnesVedtaksId(vedtaksId: String): Boolean {
+        return fakturaserieRepository.findByVedtaksId(vedtaksId).isPresent
     }
 }
