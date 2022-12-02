@@ -10,9 +10,12 @@ data class FakturaserieDto(
 
     @field:IkkeDuplikatVedtaksId
     val vedtaksId: String,
+
     @field:ErFodselsnummer
     val fodselsnummer: String,
+
     val fullmektig: FullmektigDto?,
+
     val referanseBruker: String?,
 
     @field:NotBlank(message = "Du må oppgi referanseNAV")
@@ -20,8 +23,10 @@ data class FakturaserieDto(
 
     @field:NotBlank(message = "Du må oppgi fakturaGjelder")
     val fakturaGjelder: String,
+
     val intervall: FakturaserieIntervallDto = FakturaserieIntervallDto.MANEDLIG,
-    @field:NotEmpty(message="Du må oppgi minst én periode.")
+
+    @field:NotEmpty(message = "Du må oppgi minst én periode")
     @field:ErIkkeOverlappendePerioder
     val perioder: List<FakturaseriePeriodeDto>
 )

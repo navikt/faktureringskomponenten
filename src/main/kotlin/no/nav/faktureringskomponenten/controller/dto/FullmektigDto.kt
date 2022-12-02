@@ -6,6 +6,8 @@ data class FullmektigDto(
 
     @field:ErFodselsnummer
     val fodselsnummer: String?,
+
     val organisasjonsnummer: String?,
+
     val kontaktperson: String?,
 )
