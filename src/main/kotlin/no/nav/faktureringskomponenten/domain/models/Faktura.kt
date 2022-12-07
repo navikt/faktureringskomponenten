@@ -16,9 +16,18 @@ data class Faktura(
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    val status: FakturaStatus = FakturaStatus.OPPRETTET,
+    var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name="faktura_id", nullable = false)
     val fakturaLinje: List<FakturaLinje>
-)
+) {
+
+    fun getPeriodeFra(): LocalDate {
+        return fakturaLinje.minOf { it.periodeFra }
+    }
+
+    fun getPeriodeTil(): LocalDate {
+        return fakturaLinje.maxOf { it.periodeTil }
+    }
+}

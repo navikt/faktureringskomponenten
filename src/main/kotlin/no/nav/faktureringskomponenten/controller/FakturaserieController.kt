@@ -16,7 +16,20 @@ class FakturaserieController @Autowired constructor(
 ) {
 
     @PostMapping
-    fun lagNyFakturaserie(@RequestBody @Valid fakturaserie: FakturaserieDto): Fakturaserie {
-        return faktureringService.lagNyFakturaserie(fakturaserie)
+    fun lagNyFakturaserie(@RequestBody @Valid fakturaserieDto: FakturaserieDto): Fakturaserie {
+        return faktureringService.lagNyFakturaserie(fakturaserieDto)
+    }
+
+    @PutMapping("/{vedtaksId}")
+    fun endreFakturaserie(
+        @PathVariable("vedtaksId") vedtaksId: String,
+        @RequestBody @Valid fakturaserieDto: FakturaserieDto
+    ): Fakturaserie? {
+        return faktureringService.endreFakturaserie(vedtaksId, fakturaserieDto)
+    }
+
+    @GetMapping("/{vedtaksId}")
+    fun hentFakturaserie(@PathVariable("vedtaksId") vedtaksId: String): Fakturaserie {
+        return faktureringService.hentFakturaserie(vedtaksId)
     }
 }

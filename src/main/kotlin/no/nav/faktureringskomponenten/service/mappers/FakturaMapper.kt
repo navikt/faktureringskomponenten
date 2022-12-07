@@ -23,7 +23,7 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
         sluttDatoForHelePerioden: LocalDate,
         intervall: FakturaserieIntervallDto
     ): List<Faktura> {
-        var forsteDagAvPeriode = hentForsteDagAvPeriode(startDatoForHelePerioden, intervall)
+        var forsteDagAvPeriode = startDatoForHelePerioden
         var sisteDagAvPeriode = hentSisteDagAvPeriode(startDatoForHelePerioden, intervall)
         val fakturaLinjer = mutableListOf<FakturaLinje>()
         val fakturaListe = mutableListOf<Faktura>()
@@ -56,12 +56,6 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
             sisteDagAvPeriode = hentSisteDagAvPeriode(forsteDagAvPeriode, intervall)
         }
         return fakturaListe
-    }
-
-    private fun hentForsteDagAvPeriode(dato: LocalDate, intervall: FakturaserieIntervallDto): LocalDate {
-        if (intervall == FakturaserieIntervallDto.MANEDLIG)
-            return dato.withDayOfMonth(1)
-        return dato.withMonth(dato[IsoFields.QUARTER_OF_YEAR] * 3 - 2).with(TemporalAdjusters.firstDayOfMonth())
     }
 
     private fun hentSisteDagAvPeriode(dato: LocalDate, intervall: FakturaserieIntervallDto): LocalDate {

@@ -39,7 +39,7 @@ data class Fakturaserie(
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    val status: FakturaserieStatus = FakturaserieStatus.OPPRETTET,
+    var status: FakturaserieStatus = FakturaserieStatus.OPPRETTET,
 
     @Column(name = "intervall", nullable = false)
     @Enumerated(EnumType.STRING)
