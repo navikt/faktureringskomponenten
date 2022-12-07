@@ -1,0 +1,64 @@
+PUT http://localhost:8084/fakturaserie/MEL-32
+Content-Type: application/json
+Accept: application/json
+
+{
+  "vedtaksId": "MEL-33",
+  "fodselsnummer": "12345678911",
+  "referanseBruker": "Referanse for bruker",
+  "referanseNAV": "Referanse for NAV",
+  "fakturaGjelder": "Trygdeavgift",
+  "intervall": "KVARTAL",
+  "fullmektig": {
+    "fodselsnummer": "12345678911",
+    "orgNr": "123456789",
+    "kontaktperson": "Ole Brumm"
+  },
+  "perioder": [
+    {
+      "enhetsprisPerManed": 10000,
+      "startDato": "2023-01-01",
+      "sluttDato": "2023-05-15",
+      "beskrivelse": "Inntekt: 50.000, Dekning: Pensjonsdel, Sats: 21.8 %"
+    },
+    {
+      "enhetsprisPerManed": 10000,
+      "startDato": "2023-05-16",
+      "sluttDato": "2023-06-30",
+      "beskrivelse": "Inntekt: 50.000, Dekning: Helse, Sats: 21.8 %"
+    },
+    {
+      "enhetsprisPerManed": 10000,
+      "startDato": "2023-07-01",
+      "sluttDato": "2023-12-31",
+      "beskrivelse": "Inntekt: 50.000, Dekning: Pensjonsdel, Sats: 21.8 %"
+    }
+  ]
+}
+
+<> 2022-11-29T112553.200.json
+<> 2022-11-29T112531.400.json
+<> 2022-11-29T112308.400.json
+<> 2022-11-29T111857.400.json
+<> 2022-11-28T143052.400.json
+<> 2022-11-28T143025.400.json
+<> 2022-11-28T143003.200.json
+<> 2022-11-28T142954.400.json
+<> 2022-11-28T142221.400.json
+<> 2022-11-28T142207.200.json
+<> 2022-11-28T142145.500.json
+<> 2022-11-28T142104.400.json
+<> 2022-11-28T142042.200.json
+<> 2022-11-28T142005.400.json
+<> 2022-11-28T141856.400.json
+<> 2022-11-28T141845.200.json
+<> 2022-11-28T141348.500.json
+<> 2022-11-28T141220.500.json
+<> 2022-11-28T141115.400.json
+<> 2022-11-28T141026.200.json
+<> 2022-11-28T141011.500.json
+<> 2022-11-28T140547.200.json
+<> 2022-11-28T140540.500.json
+<> 2022-11-28T140502.200.json
+<> 2022-11-28T140441.200.json
+<> 2022-11-28T140356.400.json

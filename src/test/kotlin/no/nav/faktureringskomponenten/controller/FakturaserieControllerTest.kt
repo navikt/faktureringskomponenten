@@ -4,14 +4,20 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
+import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
+import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import org.assertj.core.internal.bytebuddy.utility.RandomString
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.Arguments.*
+import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
@@ -21,6 +27,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.transaction.annotation.Isolation
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -31,7 +40,9 @@ import java.time.LocalDate
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class FakturaserieControllerTest(
-    @Autowired val webClient: WebTestClient
+    @Autowired val webClient: WebTestClient,
+    @Autowired val fakturaserieRepository: FakturaserieRepository,
+    @Autowired val fakturaService: FakturaService
 ) : PostgresTestContainerBase() {
 
     private val requestHeaders: MutableMap<String, String> = mutableMapOf()
@@ -42,13 +53,60 @@ class FakturaserieControllerTest(
     }
 
     @Test
+    fun `endre fakturaserie`() {
+        val vedtaksId = "id-1"
+        val nyVedtaksId = "id-2"
+
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            vedtaksnummer = vedtaksId, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal.valueOf(123),
+                    LocalDate.now().minusMonths(4),
+                    LocalDate.now().plusMonths(8),
+                    "Beskrivelse"
+                )
+            )
+        )
+
+        val nyFakturaserieDto = lagFakturaserieDto(
+            vedtaksnummer = nyVedtaksId, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal.valueOf(123),
+                    LocalDate.now().minusMonths(3),
+                    LocalDate.now().plusMonths(7),
+                    "Beskrivelse"
+                )
+            )
+        )
+
+        postLagNyFakturaserieRequest(opprinneligFakturaserieDto)
+        val opprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
+        val bestillingsKlareFaktura = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
+        fakturaService.bestillFaktura(bestillingsKlareFaktura[0].id!!)
+
+        putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId)
+        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).get()
+        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
+
+        val bestillingsKlareFaktura2 = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
+
+        opprinneligFakturaserie.faktura.get(0).status = FakturaStatus.KANSELLERT
+
+        assert(oppdatertOpprinneligFakturaserie.status == FakturaserieStatus.KANSELLERT)
+        assert(nyFakturaserie.faktura.size == 4)
+        assert(nyFakturaserie.faktura[0].getPeriodeFra() == LocalDate.now().plusDays(1))
+
+
+    }
+
+    @Test
     fun `lagNyFaktura validerer duplikate vedtaksId`() {
         val duplikatNokkel = "id-1"
 
         lagFakturaserieDto(vedtaksnummer = duplikatNokkel)
-        postLagNyFakturaRequest(lagFakturaserieDto(vedtaksnummer = duplikatNokkel)).expectStatus().isOk
+        postLagNyFakturaserieRequest(lagFakturaserieDto(vedtaksnummer = duplikatNokkel)).expectStatus().isOk
 
-        postLagNyFakturaRequest(lagFakturaserieDto(vedtaksnummer = duplikatNokkel))
+        postLagNyFakturaserieRequest(lagFakturaserieDto(vedtaksnummer = duplikatNokkel))
             .expectStatus()
             .isEqualTo(HttpStatus.BAD_REQUEST)
             .expectBody()
@@ -67,7 +125,7 @@ class FakturaserieControllerTest(
         validertFelt: String,
         feilmelding: String
     ) {
-        postLagNyFakturaRequest(fakturaserieDto)
+        postLagNyFakturaserieRequest(fakturaserieDto)
             .expectStatus().isBadRequest
             .expectBody().json(
                 """
@@ -92,7 +150,7 @@ class FakturaserieControllerTest(
         testbeskrivelse: String,
         fakturaserieDto: FakturaserieDto,
     ) {
-        postLagNyFakturaRequest(fakturaserieDto)
+        postLagNyFakturaserieRequest(fakturaserieDto)
             .expectStatus().isBadRequest
             .expectBody()
             .jsonPath("$.violations.size()").isEqualTo(1)
@@ -289,8 +347,8 @@ class FakturaserieControllerTest(
         fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
             FakturaseriePeriodeDto(
                 BigDecimal.valueOf(123),
-                LocalDate.now(),
-                LocalDate.now(),
+                LocalDate.of(2022, 1, 1),
+                LocalDate.of(2022, 11, 30),
                 "Beskrivelse"
             )
         ),
@@ -315,9 +373,22 @@ class FakturaserieControllerTest(
         }.toList()
     }
 
-    private fun postLagNyFakturaRequest(fakturaserieDto: FakturaserieDto): WebTestClient.ResponseSpec {
+    private fun postLagNyFakturaserieRequest(fakturaserieDto: FakturaserieDto): WebTestClient.ResponseSpec {
         return webClient.post()
             .uri("/fakturaserie")
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(fakturaserieDto)
+            .headers(this::httpHeaders)
+            .exchange()
+    }
+
+    private fun putEndreFakturaserieRequest(
+        fakturaserieDto: FakturaserieDto,
+        gammelVedtaksId: String
+    ): WebTestClient.ResponseSpec {
+        return webClient.put()
+            .uri("/fakturaserie/$gammelVedtaksId")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(fakturaserieDto)
