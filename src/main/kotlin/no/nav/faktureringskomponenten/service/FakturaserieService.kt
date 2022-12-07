@@ -9,6 +9,7 @@ import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import no.nav.faktureringskomponenten.validators.RessursIkkeFunnetException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 
 @Component
@@ -16,14 +17,6 @@ class FakturaserieService(
     @Autowired val fakturaserieRepository: FakturaserieRepository,
     @Autowired val fakturaserieMapper: FakturaserieMapper
 ) {
-
-    fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto): Fakturaserie {
-        val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
-        fakturaserieRepository.save(fakturaserie)
-
-        return fakturaserie
-    }
-
     fun hentFakturaserie(vedtaksId: String): Fakturaserie {
         val fakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
 
@@ -37,6 +30,15 @@ class FakturaserieService(
         return fakturaserie.get()
     }
 
+    @Transactional
+    fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto): Fakturaserie {
+        val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
+        fakturaserieRepository.save(fakturaserie)
+
+        return fakturaserie
+    }
+
+    @Transactional
     fun endreFakturaserie(opprinneligVedtaksId: String, fakturaserieDto: FakturaserieDto): Fakturaserie? {
         val opprinneligFakturaserieOptional = fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
 
