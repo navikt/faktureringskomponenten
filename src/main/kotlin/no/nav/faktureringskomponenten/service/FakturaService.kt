@@ -13,12 +13,16 @@ class FakturaService(
     @Autowired val fakturaRepository: FakturaRepository,
 ) {
     fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> {
-        return fakturaRepository.findAllByDatoBestiltIsLessThanEqual(bestillingsDato)
+        return fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIs(bestillingsDato)
     }
 
-    fun bestillFaktura(id: Long) {
-        val faktura = fakturaRepository.findById(id)
+    fun bestillFaktura(fakturaId: Long) {
+        val faktura = fakturaRepository.findById(fakturaId)
         faktura.status = FakturaStatus.BESTILLT
         fakturaRepository.save(faktura)
     }
+
+//    fun hentFakturaForFakturaserie(fakturaserieId: Long): List<Faktura> {
+//        return fakturaRepository.findAllByFakturaserieId(fakturaserieId)
+//    }
 }

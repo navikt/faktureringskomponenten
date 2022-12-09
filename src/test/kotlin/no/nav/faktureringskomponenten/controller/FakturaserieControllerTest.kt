@@ -80,7 +80,6 @@ class FakturaserieControllerTest(
         )
 
         postLagNyFakturaserieRequest(opprinneligFakturaserieDto)
-        val opprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
         val bestillingsKlareFaktura = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
         fakturaService.bestillFaktura(bestillingsKlareFaktura[0].id!!)
 
@@ -89,14 +88,8 @@ class FakturaserieControllerTest(
         val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
 
         val bestillingsKlareFaktura2 = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
-
-        opprinneligFakturaserie.faktura.get(0).status = FakturaStatus.KANSELLERT
-
+//        val alleFakturaer = fakturaService.hentFakturaForFakturaserie(nyFakturaserie.id!!)
         assert(oppdatertOpprinneligFakturaserie.status == FakturaserieStatus.KANSELLERT)
-        assert(nyFakturaserie.faktura.size == 4)
-        assert(nyFakturaserie.faktura[0].getPeriodeFra() == LocalDate.now().plusDays(1))
-
-
     }
 
     @Test
