@@ -1,20 +1,19 @@
 package no.nav.faktureringskomponenten.controller
 
+import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
-import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.FakturaService
+import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import org.assertj.core.internal.bytebuddy.utility.RandomString
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
@@ -27,9 +26,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.transaction.annotation.Isolation
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -42,6 +38,7 @@ import java.time.LocalDate
 class FakturaserieControllerTest(
     @Autowired val webClient: WebTestClient,
     @Autowired val fakturaserieRepository: FakturaserieRepository,
+    @Autowired val fakturaserieService: FakturaserieService,
     @Autowired val fakturaService: FakturaService
 ) : PostgresTestContainerBase() {
 
@@ -52,17 +49,67 @@ class FakturaserieControllerTest(
         requestHeaders.clear()
     }
 
+
     @Test
-    fun `endre fakturaserie`() {
-        val vedtaksId = "id-1"
-        val nyVedtaksId = "id-2"
+    fun `endre fakturaserie lager ikke kopi av bestilte fakturaer`() {
+        val vedtaksId = "id-100"
+        val startDatoOpprinnelig = LocalDate.now().minusMonths(4)
+        val sluttDatoOpprinnelig = LocalDate.now().plusMonths(8)
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             vedtaksnummer = vedtaksId, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(
                     BigDecimal.valueOf(123),
-                    LocalDate.now().minusMonths(4),
-                    LocalDate.now().plusMonths(8),
+                    startDatoOpprinnelig,
+                    sluttDatoOpprinnelig,
+                    "Beskrivelse"
+                )
+            )
+        )
+
+        val nyVedtaksId = "id-101"
+        val nyStartDato = LocalDate.now().minusMonths(3)
+        val nySluttDato = LocalDate.now().plusMonths(7)
+        val nyFakturaserieDto = lagFakturaserieDto(
+            vedtaksnummer = nyVedtaksId, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal.valueOf(123),
+                    nyStartDato,
+                    nySluttDato,
+                    "Beskrivelse"
+                )
+            )
+        )
+
+        postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk
+
+        fakturaserieService.bestillFakturaserie(vedtaksId, LocalDate.now().plusDays(10))
+
+        putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId).expectStatus().isOk
+
+        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).get()
+        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
+
+        oppdatertOpprinneligFakturaserie.status.shouldBe(FakturaserieStatus.KANSELLERT)
+        nyFakturaserie.status.shouldBe(FakturaserieStatus.OPPRETTET)
+        nyFakturaserie.startdato.shouldBe(LocalDate.now().plusMonths(1).withDayOfMonth(1))
+        nyFakturaserie.sluttdato.shouldBe(nySluttDato)
+    }
+
+    @Test
+    fun `endre fakturaserie setter første faktura til å bli utsendt dagen etterpå`() {
+        val vedtaksId = "id-3"
+        val nyVedtaksId = "id-4"
+        val startDatoOpprinnelig = LocalDate.now().minusMonths(3)
+        val sluttDatoOpprinnelig = LocalDate.now().plusMonths(9)
+        val startDatoNy = LocalDate.now().minusMonths(2)
+        val sluttDatoNy = LocalDate.now().plusMonths(8)
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            vedtaksnummer = vedtaksId, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal.valueOf(123),
+                    startDatoOpprinnelig,
+                    sluttDatoOpprinnelig,
                     "Beskrivelse"
                 )
             )
@@ -72,8 +119,8 @@ class FakturaserieControllerTest(
             vedtaksnummer = nyVedtaksId, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(
                     BigDecimal.valueOf(123),
-                    LocalDate.now().minusMonths(3),
-                    LocalDate.now().plusMonths(7),
+                    startDatoNy,
+                    sluttDatoNy,
                     "Beskrivelse"
                 )
             )
@@ -81,15 +128,19 @@ class FakturaserieControllerTest(
 
         postLagNyFakturaserieRequest(opprinneligFakturaserieDto)
         val bestillingsKlareFaktura = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
-        fakturaService.bestillFaktura(bestillingsKlareFaktura[0].id!!)
+        bestillingsKlareFaktura.size.shouldBe(1)
 
         putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId)
+
         val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).get()
         val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
+        val bestillingsKlareFakturaNy = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
 
-        val bestillingsKlareFaktura2 = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
-//        val alleFakturaer = fakturaService.hentFakturaForFakturaserie(nyFakturaserie.id!!)
-        assert(oppdatertOpprinneligFakturaserie.status == FakturaserieStatus.KANSELLERT)
+        oppdatertOpprinneligFakturaserie.status.shouldBe(FakturaserieStatus.KANSELLERT)
+//        nyFakturaserie.status.shouldBe(FakturaserieStatus.OPPRETTET)
+        bestillingsKlareFakturaNy.size.shouldBe(1)
+        nyFakturaserie.startdato.shouldBe(startDatoNy)
+        nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
     }
 
     @Test

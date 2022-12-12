@@ -10,12 +10,14 @@ import no.nav.faktureringskomponenten.validators.RessursIkkeFunnetException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 
 @Component
 class FakturaserieService(
     @Autowired val fakturaserieRepository: FakturaserieRepository,
-    @Autowired val fakturaserieMapper: FakturaserieMapper
+    @Autowired val fakturaserieMapper: FakturaserieMapper,
+    @Autowired val fakturaService: FakturaService
 ) {
     fun hentFakturaserie(vedtaksId: String): Fakturaserie {
         val fakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
@@ -50,13 +52,20 @@ class FakturaserieService(
         }
 
         val opprinneligFakturaserie = opprinneligFakturaserieOptional.get()
-        val fakturaSomIkkeErSendt = opprinneligFakturaserie.faktura.filter { it.status == FakturaStatus.OPPRETTET }
 
+        val opprinneligFakturaserieErUnderBestilling =
+            opprinneligFakturaserie.status == FakturaserieStatus.UNDER_BESTILLING
+
+        val fakturaSomIkkeErSendt = opprinneligFakturaserie.faktura.filter { it.status == FakturaStatus.OPPRETTET }
         val fakturaSomIkkeErSendtPeriodeFra =
             fakturaSomIkkeErSendt.sortedBy { it.getPeriodeFra() }.get(0).getPeriodeFra()
 
+
         val nyFakturaserie =
-            fakturaserieMapper.tilFakturaserie(fakturaserieDto, fakturaSomIkkeErSendtPeriodeFra)
+            fakturaserieMapper.tilFakturaserie(
+                fakturaserieDto,
+                if (opprinneligFakturaserieErUnderBestilling) fakturaSomIkkeErSendtPeriodeFra else null
+            )
 
         opprinneligFakturaserie.status = FakturaserieStatus.KANSELLERT
         fakturaSomIkkeErSendt.forEach { it.status = FakturaStatus.KANSELLERT }
@@ -65,6 +74,20 @@ class FakturaserieService(
         fakturaserieRepository.save(nyFakturaserie)
 
         return nyFakturaserie
+    }
+
+    @Transactional
+    fun bestillFakturaserie(vedtaksId: String, bestillingsDato: LocalDate? = LocalDate.now()) {
+        val fakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
+        fakturaserie.apply { status = FakturaserieStatus.UNDER_BESTILLING }
+
+        fakturaserie.faktura
+            .filter { it.datoBestilt <= bestillingsDato && it.status == FakturaStatus.OPPRETTET }
+            .forEach {
+                it.id?.let { fakturaId -> fakturaService.bestillFaktura(fakturaId) }
+            }
+
+        fakturaserieRepository.save(fakturaserie)
     }
 
     fun finnesVedtaksId(vedtaksId: String): Boolean {

@@ -12,7 +12,7 @@ import javax.validation.Valid
 @RestController
 @RequestMapping("/fakturaserie")
 class FakturaserieController @Autowired constructor(
-    val faktureringService: FakturaserieService
+    val faktureringService: FakturaserieService,
 ) {
 
     @PostMapping
