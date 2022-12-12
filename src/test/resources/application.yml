@@ -1,6 +1,14 @@
 spring:
   flyway:
     locations: classpath:db/migration
+    enabled: true
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        ddl-auto: none
+    show-sql: false
+
 
 management:
   endpoint:
@@ -12,4 +20,6 @@ management:
       enabled: true
     readinessState:
       enabled: true
+
+
 
