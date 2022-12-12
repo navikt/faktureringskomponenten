@@ -137,7 +137,6 @@ class FakturaserieControllerTest(
         val bestillingsKlareFakturaNy = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
 
         oppdatertOpprinneligFakturaserie.status.shouldBe(FakturaserieStatus.KANSELLERT)
-//        nyFakturaserie.status.shouldBe(FakturaserieStatus.OPPRETTET)
         bestillingsKlareFakturaNy.size.shouldBe(1)
         nyFakturaserie.startdato.shouldBe(startDatoNy)
         nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
