@@ -9,7 +9,6 @@ spring:
         ddl-auto: none
     show-sql: false
 
-
 management:
   endpoint:
     health:
@@ -20,6 +19,12 @@ management:
       enabled: true
     readinessState:
       enabled: true
-
-
-
+kafka:
+  aiven:
+    brokers: "dummy"
+    keystorePath: "dummy"
+    truststorePath: "dummy"
+    credstorePassword: "dummy"
+  topics:
+    producer:
+      faktura-bestilt: "faktura-bestilt.v1"
