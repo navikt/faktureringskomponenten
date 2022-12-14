@@ -21,3 +21,13 @@ no.nav.security.jwt:
     aad:
       discoveryurl: ${AZURE_APP_WELL_KNOWN_URL}
       accepted_audience: ${AZURE_APP_CLIENT_ID}
+
+kafka:
+  aiven:
+    brokers: ${KAFKA_BROKERS}
+    keystorePath: ${KAFKA_KEYSTORE_PATH:/dev/zero}
+    truststorePath: ${KAFKA_KEYSTORE_PATH:/dev/zero}
+    credstorePassword: ${KAFKA_CREDSTORE_PASSWORD:pwd}
+  topics:
+    producer:
+      faktura-bestilt: ${KAFKA_TOPIC_NAME_FAKTURA_BESTILT}

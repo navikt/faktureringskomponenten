@@ -6,5 +6,6 @@
   "tenant": "nav.no",
   "kafka_pool": "nav-prod",
   "cluster_name_melosys_api": "prod-fss",
-  "app_name_melosys_api": "melosys"
+  "app_name_melosys_api": "melosys",
+  "kafka_topic_name_faktura_bestilt": "faktura-bestilt.v1"
 }

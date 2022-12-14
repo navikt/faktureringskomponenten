@@ -13,3 +13,13 @@ spring:
 
 server:
   port: 8084
+
+kafka:
+  aiven:
+    brokers: "localhost:29092"
+    keystorePath: "/dev/zero"
+    truststorePath: "/dev/zero"
+    credstorePassword: "pwd"
+  topics:
+    producer:
+      faktura-bestilt: "faktura-bestilt.v1"
