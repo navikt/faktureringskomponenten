@@ -2,15 +2,13 @@ package no.nav.faktureringskomponenten.controller
 
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.service.FakturaserieService
+import no.nav.faktureringskomponenten.testutils.FakturaSerieUtil.Companion.lagFakturaserieDto
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
-import org.assertj.core.internal.bytebuddy.utility.RandomString
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -378,35 +376,6 @@ class FakturaserieControllerTest(
         )
     }
     //endregion
-
-    private fun lagFakturaserieDto(
-        vedtaksnummer: String = "VEDTAK-1" + RandomString.make(3),
-        fodselsnummer: String = "12345678911",
-        fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
-        referanseBruker: String = "Nasse Nøff",
-        referanseNav: String = "NAV referanse",
-        fakturaGjelder: String = "Trygdeavgift",
-        intervall: FakturaserieIntervallDto = FakturaserieIntervallDto.KVARTAL,
-        fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
-            FakturaseriePeriodeDto(
-                BigDecimal.valueOf(123),
-                LocalDate.of(2022, 1, 1),
-                LocalDate.of(2022, 11, 30),
-                "Beskrivelse"
-            )
-        ),
-    ): FakturaserieDto {
-        return FakturaserieDto(
-            vedtaksnummer,
-            fodselsnummer,
-            fullmektig,
-            referanseBruker,
-            referanseNav,
-            fakturaGjelder,
-            intervall,
-            fakturaseriePeriode
-        )
-    }
 
     private fun lagOverlappendePerioder(vararg datoer: Pair<LocalDate, LocalDate>): List<FakturaseriePeriodeDto> {
         return datoer.map {

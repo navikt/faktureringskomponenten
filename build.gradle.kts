@@ -48,6 +48,7 @@ dependencies {
     testImplementation("io.kotest:kotest-runner-junit5:${dependencyVersions.kotestVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
     testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("io.mockk:mockk:${dependencyVersions.mockkVersion}")
     testImplementation(TestContainersDependencies.postgresTestContainers)
     testImplementation(TestContainersDependencies.junitJupiterTestContainers)
 }
