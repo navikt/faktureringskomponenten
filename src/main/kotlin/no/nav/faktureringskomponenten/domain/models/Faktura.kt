@@ -28,9 +28,9 @@ data class Faktura(
     val fakturaLinje: List<FakturaLinje>,
 ) {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "fakturaserie_id", nullable = false, insertable = false, updatable = false)
-    lateinit var fakturaserie: Fakturaserie
+    var fakturaserie: Fakturaserie? = null
 
     fun getPeriodeFra(): LocalDate {
         return fakturaLinje.minOf { it.periodeFra }

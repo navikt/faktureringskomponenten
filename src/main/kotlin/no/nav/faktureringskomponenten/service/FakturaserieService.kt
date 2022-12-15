@@ -84,7 +84,7 @@ class FakturaserieService(
         fakturaserie.faktura
             .filter { it.datoBestilt <= bestillingsDato && it.status == FakturaStatus.OPPRETTET }
             .forEach {
-                it.id?.let { fakturaId -> fakturaService.bestillFaktura(fakturaId) }
+                it.id?.let { fakturaId -> fakturaService.bestillFaktura_gammel(fakturaId) }
             }
 
         fakturaserieRepository.save(fakturaserie)

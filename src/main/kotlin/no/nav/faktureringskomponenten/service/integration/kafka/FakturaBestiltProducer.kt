@@ -25,15 +25,15 @@ class FakturaBestiltProducer(
             val sendeResultat = future.get(15L, TimeUnit.SECONDS)
             log.info(
                 "Melding sendt på topic $topicName " +
-                        "for vedtaksnummer ${fakturaBestiltDto.vedtaksnummer}. " +
+                        "for vedtaksId ${fakturaBestiltDto.vedtaksId}. " +
                         "Offset: ${sendeResultat.recordMetadata.offset()} "
             )
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
-            throw RuntimeException("Avbrutt ved sending av melding om faktura bestilt for vedtaksnummer ${fakturaBestiltDto.vedtaksnummer}")
+            throw RuntimeException("Avbrutt ved sending av melding om faktura bestilt for vedtaksId ${fakturaBestiltDto.vedtaksId}")
         } catch (e: Exception) {
             throw RuntimeException(
-                "Kunne ikke sende melding om faktura bestilt for vedtaksnummer ${fakturaBestiltDto.vedtaksnummer}", e
+                "Kunne ikke sende melding om faktura bestilt for vedtaksId ${fakturaBestiltDto.vedtaksId}", e
             )
 
         }

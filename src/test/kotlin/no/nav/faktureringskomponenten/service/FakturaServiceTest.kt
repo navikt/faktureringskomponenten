@@ -34,7 +34,7 @@ class FakturaServiceTest : FunSpec({
 
         every {
             fakturaserieRepository.save(any())
-        } returns faktura.fakturaserie
+        } returns faktura.fakturaserie!!
 
         every {
             fakturaRepository.save(any())
@@ -47,7 +47,7 @@ class FakturaServiceTest : FunSpec({
         verifySequence {
             fakturaRepository.findById(1)
             fakturaBestiltProducer.produserBestillingsmelding(any())
-            fakturaserieRepository.save(faktura.fakturaserie)
+            fakturaserieRepository.save(faktura.fakturaserie!!)
             fakturaRepository.save(faktura)
         }
     }
@@ -62,7 +62,7 @@ class FakturaServiceTest : FunSpec({
 
         every {
             fakturaserieRepository.save(any())
-        } returns faktura.fakturaserie
+        } returns faktura.fakturaserie!!
 
         every {
             fakturaRepository.save(any())
@@ -76,7 +76,7 @@ class FakturaServiceTest : FunSpec({
                     fodselsnummer = BigDecimal(12345678911),
                     fullmektigOrgnr = "",
                     fullmektigFnr = BigDecimal(12129012345),
-                    vedtaksnummer = "MEL-1",
+                    vedtaksId = "MEL-1",
                     fakturaReferanseNr = "",
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",

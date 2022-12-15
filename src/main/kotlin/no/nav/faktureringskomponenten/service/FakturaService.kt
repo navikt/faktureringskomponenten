@@ -27,9 +27,17 @@ class FakturaService(
     }
 
     @Transactional
+    fun bestillFaktura_gammel(fakturaId: Long) {
+        val faktura = fakturaRepository.findById(fakturaId)
+        faktura.status = FakturaStatus.BESTILLT
+
+        fakturaRepository.save(faktura)
+    }
+
+    @Transactional
     fun bestillFaktura(fakturaId: Long) {
         val faktura = fakturaRepository.findById(fakturaId)
-        val fakturaserie = faktura.fakturaserie
+        val fakturaserie = faktura.fakturaserie!!
         faktura.status = FakturaStatus.BESTILLT
         fakturaserie.status = FakturaserieStatus.UNDER_BESTILLING
 
@@ -37,12 +45,13 @@ class FakturaService(
             fodselsnummer = fakturaserie.fodselsnummer,
             fullmektigOrgnr = fakturaserie.fullmektig?.organisasjonsnummer,
             fullmektigFnr = fakturaserie.fullmektig?.fodselsnummer,
-            vedtaksnummer = fakturaserie.vedtaksId,
+            vedtaksId = fakturaserie.vedtaksId,
             fakturaReferanseNr = "",
             kreditReferanseNr = "",
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
             beskrivelse = fakturaserie.fakturaGjelder,
+            faktureringsDato = faktura.datoBestilt,
             fakturaLinjer = faktura.fakturaLinje.map {
                 val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
                 val periodeFraFormatert = it.periodeFra.format(formatter)
@@ -55,7 +64,6 @@ class FakturaService(
                     belop = it.belop
                 )
             },
-            faktureringsDato = faktura.datoBestilt
         )
 
         fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)

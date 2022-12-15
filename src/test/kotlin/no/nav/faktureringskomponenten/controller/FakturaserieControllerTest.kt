@@ -6,12 +6,14 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
+import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import org.assertj.core.internal.bytebuddy.utility.RandomString
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -38,6 +40,7 @@ import java.time.LocalDate
 class FakturaserieControllerTest(
     @Autowired val webClient: WebTestClient,
     @Autowired val fakturaserieRepository: FakturaserieRepository,
+    @Autowired val fakturaRepository: FakturaRepository,
     @Autowired val fakturaserieService: FakturaserieService,
     @Autowired val fakturaService: FakturaService
 ) : PostgresTestContainerBase() {
@@ -49,7 +52,7 @@ class FakturaserieControllerTest(
         requestHeaders.clear()
     }
 
-
+    @Disabled()
     @Test
     fun `endre fakturaserie lager ikke kopi av bestilte fakturaer`() {
         val vedtaksId = "id-100"
@@ -57,7 +60,7 @@ class FakturaserieControllerTest(
         val sluttDatoOpprinnelig = LocalDate.now().plusMonths(8)
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
-            vedtaksnummer = vedtaksId, fakturaseriePeriode = listOf(
+            vedtaksId = vedtaksId, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(
                     BigDecimal.valueOf(123),
                     startDatoOpprinnelig,
@@ -71,7 +74,7 @@ class FakturaserieControllerTest(
         val nyStartDato = LocalDate.now().minusMonths(3)
         val nySluttDato = LocalDate.now().plusMonths(7)
         val nyFakturaserieDto = lagFakturaserieDto(
-            vedtaksnummer = nyVedtaksId, fakturaseriePeriode = listOf(
+            vedtaksId = nyVedtaksId, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(
                     BigDecimal.valueOf(123),
                     nyStartDato,
@@ -105,7 +108,7 @@ class FakturaserieControllerTest(
         val startDatoNy = LocalDate.now().minusMonths(2)
         val sluttDatoNy = LocalDate.now().plusMonths(8)
         val opprinneligFakturaserieDto = lagFakturaserieDto(
-            vedtaksnummer = vedtaksId, fakturaseriePeriode = listOf(
+            vedtaksId = vedtaksId, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(
                     BigDecimal.valueOf(123),
                     startDatoOpprinnelig,
@@ -116,7 +119,7 @@ class FakturaserieControllerTest(
         )
 
         val nyFakturaserieDto = lagFakturaserieDto(
-            vedtaksnummer = nyVedtaksId, fakturaseriePeriode = listOf(
+            vedtaksId = nyVedtaksId, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(
                     BigDecimal.valueOf(123),
                     startDatoNy,
@@ -146,10 +149,10 @@ class FakturaserieControllerTest(
     fun `lagNyFaktura validerer duplikate vedtaksId`() {
         val duplikatNokkel = "id-1"
 
-        lagFakturaserieDto(vedtaksnummer = duplikatNokkel)
-        postLagNyFakturaserieRequest(lagFakturaserieDto(vedtaksnummer = duplikatNokkel)).expectStatus().isOk
+        lagFakturaserieDto(vedtaksId = duplikatNokkel)
+        postLagNyFakturaserieRequest(lagFakturaserieDto(vedtaksId = duplikatNokkel)).expectStatus().isOk
 
-        postLagNyFakturaserieRequest(lagFakturaserieDto(vedtaksnummer = duplikatNokkel))
+        postLagNyFakturaserieRequest(lagFakturaserieDto(vedtaksId = duplikatNokkel))
             .expectStatus()
             .isEqualTo(HttpStatus.BAD_REQUEST)
             .expectBody()
@@ -381,7 +384,7 @@ class FakturaserieControllerTest(
 
 
     fun lagFakturaserieDto(
-        vedtaksnummer: String = "VEDTAK-1" + RandomString.make(3),
+        vedtaksId: String = "VEDTAK-1" + RandomString.make(3),
         fodselsnummer: String = "12345678911",
         fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
@@ -398,7 +401,7 @@ class FakturaserieControllerTest(
         ),
     ): FakturaserieDto {
         return FakturaserieDto(
-            vedtaksnummer,
+            vedtaksId,
             fodselsnummer,
             fullmektig,
             referanseBruker,
