@@ -87,7 +87,7 @@ class FakturaServiceTest : FunSpec({
                         FakturaBestiltLinjeDto(
                             beskrivelse = "Periode: 01.01.2023 - 01.05.2023, En beskrivelse",
                             antall = 1.0,
-                            enhetspris = BigDecimal(90000),
+                            enhetspris = BigDecimal(18000),
                             belop = BigDecimal(90000)
                         )
                     )

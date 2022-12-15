@@ -57,5 +57,5 @@ data class Fakturaserie(
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "fakturaserie_id", nullable = false)
-    var faktura: List<Faktura>
+    val faktura: List<Faktura>
 )
