@@ -31,7 +31,7 @@ data class Fakturaserie(
     val fullmektig: Fullmektig?,
 
     @Column(name = "referanse_bruker", nullable = false)
-    val referanseBruker: String?,
+    val referanseBruker: String,
 
     @Column(name = "referanse_nav", nullable = false)
     val referanseNAV: String,

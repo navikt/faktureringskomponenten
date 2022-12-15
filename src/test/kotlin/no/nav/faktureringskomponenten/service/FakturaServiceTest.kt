@@ -8,12 +8,12 @@ import io.mockk.slot
 import io.mockk.verifySequence
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
-import no.nav.faktureringskomponenten.testutils.FakturaUtil
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -25,8 +25,8 @@ class FakturaServiceTest : FunSpec({
 
     val fakturaService = FakturaService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
 
-    test("Bestiller bestillingsklare faktura") {
-        val faktura = FakturaUtil.lagFaktura(1)
+    test("Bestiller bestillingsklare faktura og lagrer i databasen") {
+        val faktura = lagFaktura(1)
 
         every {
             fakturaRepository.findById(1)
@@ -52,8 +52,8 @@ class FakturaServiceTest : FunSpec({
         }
     }
 
-    test("verifiser bestillingsmelding får riktig data") {
-        val faktura = FakturaUtil.lagFaktura(1)
+    test("Bestiller bestillingsklare faktura med riktig data") {
+        val faktura = lagFaktura(1)
         val fakturaBestiltDtoCapturingSlot = slot<FakturaBestiltDto>()
 
         every {
@@ -99,4 +99,41 @@ class FakturaServiceTest : FunSpec({
             fakturaService.bestillFaktura(1)
         }
     }
+
+
 })
+
+fun lagFaktura(id: Long? = 1): Faktura {
+    return Faktura(
+        id,
+        LocalDate.of(2022, 5, 1),
+        FakturaStatus.OPPRETTET,
+        fakturaLinje = listOf(
+            FakturaLinje(
+                100,
+                LocalDate.of(2023, 1, 1),
+                LocalDate.of(2023, 5, 1),
+                beskrivelse = "En beskrivelse",
+                belop = BigDecimal(90000)
+            ),
+        )
+    ).apply {
+        fakturaserie = Fakturaserie(
+            100, vedtaksId = "MEL-1",
+            fakturaGjelder = "FTRL",
+            referanseBruker = "Referanse bruker",
+            referanseNAV = "Referanse NAV",
+            startdato = LocalDate.of(2022, 1, 1),
+            sluttdato = LocalDate.of(2023, 5, 1),
+            status = FakturaserieStatus.OPPRETTET,
+            intervall = FakturaserieIntervall.KVARTAL,
+            faktura = listOf(),
+            fullmektig = Fullmektig(
+                fodselsnummer = BigDecimal(12129012345),
+                kontaktperson = "Test",
+                organisasjonsnummer = ""
+            ),
+            fodselsnummer = BigDecimal(12345678911)
+        )
+    }
+}

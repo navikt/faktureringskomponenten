@@ -35,12 +35,12 @@ class FakturaService(
 
         val fakturaBestiltDto = FakturaBestiltDto(
             fodselsnummer = fakturaserie.fodselsnummer,
-            fullmektigOrgnr = fakturaserie.fullmektig?.organisasjonsnummer ?: "",
+            fullmektigOrgnr = fakturaserie.fullmektig?.organisasjonsnummer,
             fullmektigFnr = fakturaserie.fullmektig?.fodselsnummer,
             vedtaksnummer = fakturaserie.vedtaksId,
             fakturaReferanseNr = "",
             kreditReferanseNr = "",
-            referanseBruker = fakturaserie.referanseBruker ?: "",
+            referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
             beskrivelse = fakturaserie.fakturaGjelder,
             fakturaLinjer = faktura.fakturaLinje.map {
