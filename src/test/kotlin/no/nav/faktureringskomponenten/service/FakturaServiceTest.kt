@@ -45,6 +45,7 @@ class FakturaServiceTest : FunSpec({
         }
 
         verifySequence {
+            fakturaRepository.findById(1)
             fakturaBestiltProducer.produserBestillingsmelding(any())
             fakturaserieRepository.save(faktura.fakturaserie)
             fakturaRepository.save(faktura)
