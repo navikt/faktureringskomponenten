@@ -16,7 +16,8 @@ data class FakturaserieDto(
 
     val fullmektig: FullmektigDto?,
 
-    val referanseBruker: String?,
+    @field:NotBlank(message = "Du må oppgi referanseBruker")
+    val referanseBruker: String,
 
     @field:NotBlank(message = "Du må oppgi referanseNAV")
     val referanseNAV: String,

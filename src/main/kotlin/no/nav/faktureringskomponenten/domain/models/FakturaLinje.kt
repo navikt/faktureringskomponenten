@@ -22,5 +22,8 @@ data class FakturaLinje(
     val beskrivelse: String,
 
     @Column(name = "belop", nullable = false)
-    val belop: BigDecimal
+    val belop: BigDecimal,
+
+    @Column(name = "enhetspris_per_maned", nullable= false)
+    val enhetsprisPerManed: BigDecimal
 )

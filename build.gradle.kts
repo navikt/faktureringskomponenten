@@ -20,6 +20,9 @@ object dependencyVersions {
     const val zalandoProblemVersion = "0.27.0"
     const val testContainerVersion = "1.17.6"
     const val kotestVersion = "5.5.4"
+    const val shedlockVersion = "4.4.0"
+    const val shedlockProvicerJdbcVersion = "4.43.0"
+    const val mockkVersion = "1.13.3"
 }
 
 object TestContainersDependencies {
@@ -38,11 +41,14 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.springframework.kafka:spring-kafka")
+    implementation("net.javacrumbs.shedlock:shedlock-spring:${dependencyVersions.shedlockVersion}")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockProvicerJdbcVersion}")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.kotest:kotest-runner-junit5:${dependencyVersions.kotestVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
     testImplementation("org.springframework.kafka:spring-kafka-test")
+    testImplementation("io.mockk:mockk:${dependencyVersions.mockkVersion}")
     testImplementation(TestContainersDependencies.postgresTestContainers)
     testImplementation(TestContainersDependencies.junitJupiterTestContainers)
 }

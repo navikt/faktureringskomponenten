@@ -26,7 +26,8 @@ class FakturalinjeMapper {
                 periodeFra = fakturaLinjerPeriodeFra,
                 periodeTil = fakturaLinjerPeriodeTil,
                 belop = hentBelopForPeriode(it.enhetsprisPerManed, fakturaLinjerPeriodeFra, fakturaLinjerPeriodeTil),
-                beskrivelse = it.beskrivelse
+                beskrivelse = it.beskrivelse,
+                enhetsprisPerManed = it.enhetsprisPerManed
             )
         }.toList()
     }

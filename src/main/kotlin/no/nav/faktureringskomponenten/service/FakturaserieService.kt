@@ -76,20 +76,6 @@ class FakturaserieService(
         return nyFakturaserie
     }
 
-    @Transactional
-    fun bestillFakturaserie(vedtaksId: String, bestillingsDato: LocalDate? = LocalDate.now()) {
-        val fakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
-        fakturaserie.apply { status = FakturaserieStatus.UNDER_BESTILLING }
-
-        fakturaserie.faktura
-            .filter { it.datoBestilt <= bestillingsDato && it.status == FakturaStatus.OPPRETTET }
-            .forEach {
-                it.id?.let { fakturaId -> fakturaService.bestillFaktura(fakturaId) }
-            }
-
-        fakturaserieRepository.save(fakturaserie)
-    }
-
     fun finnesVedtaksId(vedtaksId: String): Boolean {
         return fakturaserieRepository.findByVedtaksId(vedtaksId).isPresent
     }

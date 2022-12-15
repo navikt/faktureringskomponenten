@@ -24,9 +24,13 @@ data class Faktura(
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
-    @JoinColumn(name="faktura_id", nullable = false)
-    val fakturaLinje: List<FakturaLinje>
+    @JoinColumn(name = "faktura_id", nullable = false)
+    val fakturaLinje: List<FakturaLinje>,
 ) {
+
+    @ManyToOne
+    @JoinColumn(name = "fakturaserie_id", nullable = false, insertable = false, updatable = false)
+    var fakturaserie: Fakturaserie? = null
 
     fun getPeriodeFra(): LocalDate {
         return fakturaLinje.minOf { it.periodeFra }
