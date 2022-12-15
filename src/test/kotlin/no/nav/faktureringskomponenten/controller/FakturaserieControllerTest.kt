@@ -6,14 +6,11 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
-import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.FakturaService
-import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import org.assertj.core.internal.bytebuddy.utility.RandomString
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -40,8 +37,6 @@ import java.time.LocalDate
 class FakturaserieControllerTest(
     @Autowired val webClient: WebTestClient,
     @Autowired val fakturaserieRepository: FakturaserieRepository,
-    @Autowired val fakturaRepository: FakturaRepository,
-    @Autowired val fakturaserieService: FakturaserieService,
     @Autowired val fakturaService: FakturaService
 ) : PostgresTestContainerBase() {
 
@@ -50,53 +45,6 @@ class FakturaserieControllerTest(
     @AfterEach
     fun afterEach() {
         requestHeaders.clear()
-    }
-
-    @Disabled()
-    @Test
-    fun `endre fakturaserie lager ikke kopi av bestilte fakturaer`() {
-        val vedtaksId = "id-100"
-        val startDatoOpprinnelig = LocalDate.now().minusMonths(4)
-        val sluttDatoOpprinnelig = LocalDate.now().plusMonths(8)
-
-        val opprinneligFakturaserieDto = lagFakturaserieDto(
-            vedtaksId = vedtaksId, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal.valueOf(123),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Beskrivelse"
-                )
-            )
-        )
-
-        val nyVedtaksId = "id-101"
-        val nyStartDato = LocalDate.now().minusMonths(3)
-        val nySluttDato = LocalDate.now().plusMonths(7)
-        val nyFakturaserieDto = lagFakturaserieDto(
-            vedtaksId = nyVedtaksId, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal.valueOf(123),
-                    nyStartDato,
-                    nySluttDato,
-                    "Beskrivelse"
-                )
-            )
-        )
-
-        postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk
-
-        fakturaserieService.bestillFakturaserie(vedtaksId, LocalDate.now().plusDays(10))
-
-        putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId).expectStatus().isOk
-
-        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).get()
-        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
-
-        oppdatertOpprinneligFakturaserie.status.shouldBe(FakturaserieStatus.KANSELLERT)
-        nyFakturaserie.status.shouldBe(FakturaserieStatus.OPPRETTET)
-        nyFakturaserie.startdato.shouldBe(LocalDate.now().plusMonths(1).withDayOfMonth(1))
-        nyFakturaserie.sluttdato.shouldBe(nySluttDato)
     }
 
     @Test

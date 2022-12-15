@@ -114,7 +114,8 @@ fun lagFaktura(id: Long? = 1): Faktura {
                 LocalDate.of(2023, 1, 1),
                 LocalDate.of(2023, 5, 1),
                 beskrivelse = "En beskrivelse",
-                belop = BigDecimal(90000)
+                belop = BigDecimal(90000),
+                enhetsprisPerManed = BigDecimal(18000)
             ),
         )
     ).apply {

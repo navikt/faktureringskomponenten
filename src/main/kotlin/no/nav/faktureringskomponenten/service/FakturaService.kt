@@ -26,13 +26,6 @@ class FakturaService(
         return fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIs(bestillingsDato)
     }
 
-    @Transactional
-    fun bestillFaktura_gammel(fakturaId: Long) {
-        val faktura = fakturaRepository.findById(fakturaId)
-        faktura.status = FakturaStatus.BESTILLT
-
-        fakturaRepository.save(faktura)
-    }
 
     @Transactional
     fun bestillFaktura(fakturaId: Long) {
@@ -46,7 +39,7 @@ class FakturaService(
             fullmektigOrgnr = fakturaserie.fullmektig?.organisasjonsnummer,
             fullmektigFnr = fakturaserie.fullmektig?.fodselsnummer,
             vedtaksId = fakturaserie.vedtaksId,
-            fakturaReferanseNr = "",
+            fakturaReferanseNr = "", // TODO: Avklares hva som skal være her med fag og OEBS først
             kreditReferanseNr = "",
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
@@ -60,7 +53,7 @@ class FakturaService(
                 FakturaBestiltLinjeDto(
                     beskrivelse = "Periode: $periodeFraFormatert - ${periodeTilFormatert}, ${it.beskrivelse}",
                     antall = 1.0,
-                    enhetspris = it.belop,
+                    enhetspris = it.enhetsprisPerManed,
                     belop = it.belop
                 )
             },
