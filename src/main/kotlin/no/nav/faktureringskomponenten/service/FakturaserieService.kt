@@ -57,8 +57,10 @@ class FakturaserieService(
             opprinneligFakturaserie.status == FakturaserieStatus.UNDER_BESTILLING
 
         val fakturaSomIkkeErSendt = opprinneligFakturaserie.faktura.filter { it.status == FakturaStatus.OPPRETTET }
+            .sortedBy { it.getPeriodeFra() }
+
         val fakturaSomIkkeErSendtPeriodeFra =
-            fakturaSomIkkeErSendt.sortedBy { it.getPeriodeFra() }.get(0).getPeriodeFra()
+            if (fakturaSomIkkeErSendt.isNotEmpty()) fakturaSomIkkeErSendt[0].getPeriodeFra() else null
 
 
         val nyFakturaserie =
