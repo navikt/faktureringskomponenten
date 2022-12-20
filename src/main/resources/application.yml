@@ -16,11 +16,10 @@ spring:
     resources:
       add-mappings: false
 
-no.nav.security.jwt:
-  issuer:
-    aad:
-      discoveryurl: ${AZURE_APP_WELL_KNOWN_URL}
-      accepted_audience: ${AZURE_APP_CLIENT_ID}
+no.nav.security.jwt.issuer.aad:
+  discovery-url: ${OPENIDCONNECT_URL}/oauth2/.well-known/openid-configuration
+  accepted-audience: ${ACCEPTED_AUDIENCE}
+  cookie-name: ID_token
 
 kafka:
   aiven:

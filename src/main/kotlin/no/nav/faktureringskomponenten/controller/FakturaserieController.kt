@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.service.FakturaserieService
+import no.nav.security.token.support.core.api.Protected
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -18,7 +19,7 @@ import javax.validation.Valid
 class FakturaserieController @Autowired constructor(
     val faktureringService: FakturaserieService,
 ) {
-
+    @Protected
     @Operation(summary = "Lager en ny fakturaserie")
     @ApiResponses(
         value = [
@@ -31,6 +32,7 @@ class FakturaserieController @Autowired constructor(
         return faktureringService.lagNyFakturaserie(fakturaserieDto)
     }
 
+    @Protected
     @Operation(summary = "Kansellerer eksisterende fakturaserie og fremtidlige planlagte fakturaer som ikke er bestilt. " +
             "Oppretter så ny fakturaserie med fakturaer som erstatter kansellerte", description = "vedtaksId i parameter må være identifikator for fakturaserie som skal oppdateres")
     @ApiResponses(

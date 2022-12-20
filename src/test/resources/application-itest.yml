@@ -1,0 +1,35 @@
+spring:
+  flyway:
+    locations: classpath:db/migration
+    enabled: true
+  jpa:
+    properties:
+      hibernate:
+        format_sql: true
+        ddl-auto: none
+    show-sql: false
+
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+kafka:
+  aiven:
+    brokers: "dummy"
+    keystorePath: "dummy"
+    truststorePath: "dummy"
+    credstorePassword: "dummy"
+  topics:
+    producer:
+      faktura-bestilt: "faktura-bestilt.v1"
+
+no.nav.security.jwt.issuer.aad:
+  discovery-url: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
+  accepted-audience: melosys-localhost
+  cookie-name: ID_token

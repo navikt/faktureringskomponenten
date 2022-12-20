@@ -23,3 +23,8 @@ kafka:
   topics:
     producer:
       faktura-bestilt: "faktura-bestilt.v1"
+
+no.nav.security.jwt.issuer.aad:
+  discovery-url: http://host.docker.internal:8082/aad/.well-known/openid-configuration
+  accepted-audience: melosys-localhost
+  cookie-name: ID_token
