@@ -16,12 +16,6 @@ spring:
     resources:
       add-mappings: false
 
-no.nav.security.jwt:
-  issuer:
-    aad:
-      discoveryurl: ${AZURE_APP_WELL_KNOWN_URL}
-      accepted_audience: ${AZURE_APP_CLIENT_ID}
-
 kafka:
   aiven:
     brokers: ${KAFKA_BROKERS}
@@ -31,3 +25,19 @@ kafka:
   topics:
     producer:
       faktura-bestilt: ${KAFKA_TOPIC_NAME_FAKTURA_BESTILT}
+
+#Token-validering
+no.nav.security.jwt.issuer:
+  reststs:
+    discovery-url: ${RESTSTS_URL}/.well-known/openid-configuration
+    accepted-audience: srvmelosys
+  restststoken:
+    discovery-url: ${RESTSTSTOKEN_URL}/.well-known/openid-configuration
+    accepted-audience: srvmelosys
+    validation:
+      optional-claims: aud
+  aad:
+    discovery-url: ${OPENIDCONNECT_URL}/oauth2/.well-known/openid-configuration
+    accepted-audience: ${ACCEPTED_AUDIENCE}
+    cookie-name: ID_token
+

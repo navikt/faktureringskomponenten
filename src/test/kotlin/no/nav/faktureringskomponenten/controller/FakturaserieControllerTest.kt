@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.controller
 
+import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
@@ -7,10 +8,13 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.AAD
 import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
+import no.nav.security.mock.oauth2.MockOAuth2Server
+import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
+import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.assertj.core.internal.bytebuddy.utility.RandomString
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -30,22 +34,17 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @Testcontainers
-@ActiveProfiles("test")
+@ActiveProfiles("itest")
 @AutoConfigureWebTestClient
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@EnableMockOAuth2Server
 class FakturaserieControllerTest(
     @Autowired val webClient: WebTestClient,
+    @Autowired val server: MockOAuth2Server,
     @Autowired val fakturaserieRepository: FakturaserieRepository,
     @Autowired val fakturaService: FakturaService
 ) : PostgresTestContainerBase() {
-
-    private val requestHeaders: MutableMap<String, String> = mutableMapOf()
-
-    @AfterEach
-    fun afterEach() {
-        requestHeaders.clear()
-    }
 
     @Test
     fun `endre fakturaserie setter første faktura til å bli utsendt dagen etterpå`() {
@@ -78,17 +77,13 @@ class FakturaserieControllerTest(
         )
 
         postLagNyFakturaserieRequest(opprinneligFakturaserieDto)
-        val bestillingsKlareFaktura = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
-        bestillingsKlareFaktura.size.shouldBe(1)
 
         putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId)
 
         val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).get()
         val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
-        val bestillingsKlareFakturaNy = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
 
         oppdatertOpprinneligFakturaserie.status.shouldBe(FakturaserieStatus.KANSELLERT)
-        bestillingsKlareFakturaNy.size.shouldBe(1)
         nyFakturaserie.startdato.shouldBe(startDatoNy)
         nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
     }
@@ -368,15 +363,17 @@ class FakturaserieControllerTest(
         }.toList()
     }
 
-    private fun postLagNyFakturaserieRequest(fakturaserieDto: FakturaserieDto): WebTestClient.ResponseSpec {
-        return webClient.post()
+    private fun postLagNyFakturaserieRequest(fakturaserieDto: FakturaserieDto): WebTestClient.ResponseSpec =
+        webClient.post()
             .uri("/fakturaserie")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(fakturaserieDto)
-            .headers(this::httpHeaders)
+            .headers {
+                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
             .exchange()
-    }
 
     private fun putEndreFakturaserieRequest(
         fakturaserieDto: FakturaserieDto,
@@ -387,13 +384,24 @@ class FakturaserieControllerTest(
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(fakturaserieDto)
-            .headers(this::httpHeaders)
+            .headers {
+                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
             .exchange()
     }
 
-    private fun httpHeaders(httpHeaders: HttpHeaders) {
-        requestHeaders.forEach {
-            httpHeaders.add(it.key, it.value)
-        }
-    }
+    private fun token(subject: String = "melosys-localhost"): String? =
+        server.issueToken(
+            AAD,
+            "melosys-localhost",
+            DefaultOAuth2TokenCallback(
+                AAD,
+                subject,
+                JOSEObjectType.JWT.type,
+                listOf("melosys-localhost"),
+                mapOf(),
+                3600
+            )
+        ).serialize()
 }

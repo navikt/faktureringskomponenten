@@ -24,6 +24,7 @@ object dependencyVersions {
     const val shedlockProvicerJdbcVersion = "4.43.0"
     const val mockkVersion = "1.13.3"
     const val openapiVersion = "1.6.0"
+    const val tokenSupportVersion = "2.0.20"
 }
 
 object TestContainersDependencies {
@@ -40,6 +41,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("no.nav.security:token-validation-spring:${dependencyVersions.tokenSupportVersion}")
     implementation("org.zalando:problem-spring-web-starter:${dependencyVersions.zalandoProblemVersion}")
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -48,6 +50,7 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-spring:${dependencyVersions.shedlockVersion}")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockProvicerJdbcVersion}")
     runtimeOnly("org.postgresql:postgresql")
+    testImplementation("no.nav.security:token-validation-spring-test:${dependencyVersions.tokenSupportVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.kotest:kotest-runner-junit5:${dependencyVersions.kotestVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
