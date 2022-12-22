@@ -24,7 +24,16 @@ kafka:
     producer:
       faktura-bestilt: "faktura-bestilt.v1"
 
-no.nav.security.jwt.issuer.aad:
-  discovery-url: http://host.docker.internal:8082/aad/.well-known/openid-configuration
-  accepted-audience: melosys-localhost
-  cookie-name: ID_token
+no.nav.security.jwt.issuer:
+  reststs:
+    discovery-url: ${RESTSTS_URL}/.well-known/openid-configuration
+    accepted-audience: srvmelosys
+  restststoken:
+    discovery-url: ${RESTSTSTOKEN_URL}/.well-known/openid-configuration
+    accepted-audience: srvmelosys
+    validation:
+      optional-claims: aud
+  aad:
+    discovery-url: http://host.docker.internal:8082/aad/.well-known/openid-configuration
+    accepted-audience: melosys-localhost
+    cookie-name: ID_token

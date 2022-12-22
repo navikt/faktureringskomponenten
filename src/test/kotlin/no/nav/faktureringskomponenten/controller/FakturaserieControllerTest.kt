@@ -77,17 +77,13 @@ class FakturaserieControllerTest(
         )
 
         postLagNyFakturaserieRequest(opprinneligFakturaserieDto)
-        val bestillingsKlareFaktura = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
-        bestillingsKlareFaktura.size.shouldBe(1)
 
         putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId)
 
         val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).get()
         val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
-        val bestillingsKlareFakturaNy = fakturaService.hentBestillingsklareFaktura(LocalDate.now().plusDays(10))
 
         oppdatertOpprinneligFakturaserie.status.shouldBe(FakturaserieStatus.KANSELLERT)
-        bestillingsKlareFakturaNy.size.shouldBe(1)
         nyFakturaserie.startdato.shouldBe(startDatoNy)
         nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
     }
@@ -367,8 +363,8 @@ class FakturaserieControllerTest(
         }.toList()
     }
 
-    private fun postLagNyFakturaserieRequest(fakturaserieDto: FakturaserieDto): WebTestClient.ResponseSpec {
-        return webClient.post()
+    private fun postLagNyFakturaserieRequest(fakturaserieDto: FakturaserieDto): WebTestClient.ResponseSpec =
+        webClient.post()
             .uri("/fakturaserie")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -378,7 +374,6 @@ class FakturaserieControllerTest(
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
             }
             .exchange()
-    }
 
     private fun putEndreFakturaserieRequest(
         fakturaserieDto: FakturaserieDto,

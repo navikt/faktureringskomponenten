@@ -8,9 +8,11 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.security.token.support.core.api.Protected
+import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import java.net.http.HttpHeaders
 import javax.validation.Valid
 
 @Validated
@@ -28,7 +30,7 @@ class FakturaserieController @Autowired constructor(
         ]
     )
     @PostMapping
-    fun lagNyFakturaserie(@RequestBody @Valid fakturaserieDto: FakturaserieDto): Fakturaserie {
+    fun lagNyFakturaserie(@RequestBody @Valid fakturaserieDto: FakturaserieDto, @RequestHeader(value="Authorization") authorizationHeader: String): Fakturaserie {
         return faktureringService.lagNyFakturaserie(fakturaserieDto)
     }
 
@@ -49,6 +51,7 @@ class FakturaserieController @Autowired constructor(
         return faktureringService.endreFakturaserie(vedtaksId, fakturaserieDto)
     }
 
+    @Unprotected
     @Operation(summary = "Henter fakturaserie på vedtaksId")
     @ApiResponses(
         value = [

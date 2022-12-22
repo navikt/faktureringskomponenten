@@ -24,7 +24,7 @@ object dependencyVersions {
     const val shedlockProvicerJdbcVersion = "4.43.0"
     const val mockkVersion = "1.13.3"
     const val openapiVersion = "1.6.0"
-    const val tokenSupportVersion = "2.0.15"
+    const val tokenSupportVersion = "2.0.20"
 }
 
 object TestContainersDependencies {
