@@ -16,6 +16,28 @@ spring:
     resources:
       add-mappings: false
 
+management:
+  metrics:
+    web:
+      server:
+        auto-time-requests: true
+    enable:
+      jvm:
+        threads.peak: false
+        threads.deamon: false
+        classes.loaded: false
+        classes.unloaded: false
+      process.start.time: false
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+
 kafka:
   aiven:
     brokers: ${KAFKA_BROKERS}
@@ -29,5 +51,5 @@ kafka:
 #Token-validering
 no.nav.security.jwt.issuer:
   aad:
-    discovery-url: https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration
-    accepted-audience: srvmelosys
+    discovery-url: ${openidconnect-url}
+    accepted-audience: ${accepted-audience}
