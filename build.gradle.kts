@@ -26,7 +26,6 @@ object dependencyVersions {
     const val openapiVersion = "1.6.0"
     const val tokenSupportVersion = "2.0.20"
     const val micrometerJvmExtrasVersion = "0.2.2"
-    const val micrometerVersion = "1.7.10"
 }
 
 object TestContainersDependencies {
@@ -51,7 +50,7 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     implementation("net.javacrumbs.shedlock:shedlock-spring:${dependencyVersions.shedlockVersion}")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockProvicerJdbcVersion}")
-    implementation("io.micrometer:micrometer-registry-prometheus:${dependencyVersions.micrometerVersion}")
+    implementation("io.micrometer:micrometer-registry-prometheus:latest.release")
     implementation("io.github.mweirauch:micrometer-jvm-extras:${dependencyVersions.micrometerJvmExtrasVersion}")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("no.nav.security:token-validation-spring-test:${dependencyVersions.tokenSupportVersion}")
