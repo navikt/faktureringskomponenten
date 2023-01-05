@@ -1,9 +1,8 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.persistence.*
 import java.math.BigDecimal
-import javax.persistence.Column
-import javax.persistence.Embeddable
 
 @Schema(
     description = "Fullmektig som mottar faktura"

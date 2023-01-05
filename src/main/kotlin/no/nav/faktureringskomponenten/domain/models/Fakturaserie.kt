@@ -1,19 +1,18 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.persistence.*
 import no.nav.faktureringskomponenten.domain.type.EnumTypePostgreSql
 import org.hibernate.annotations.Type
-import org.hibernate.annotations.TypeDef
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import javax.persistence.*
 
 
 @Schema(
     description = "Model for fakturaserie, inneholder informasjon for alle bestilte og planlagte fakturaer"
 )
-@TypeDef(name = "enumType", typeClass = EnumTypePostgreSql::class)
+//@TypeDef(name = "enumType", typeClass = EnumTypePostgreSql::class)
 @Entity
 @Table(name = "fakturaserie")
 data class Fakturaserie(
@@ -78,13 +77,13 @@ data class Fakturaserie(
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    @Type(type = "enumType")
+//    @Type(type = "enumType")
     var status: FakturaserieStatus = FakturaserieStatus.OPPRETTET,
 
 
     @Column(name = "intervall", nullable = false)
     @Enumerated(EnumType.STRING)
-    @Type(type = "enumType")
+//    @Type(type = "enumType")
     val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
 
 

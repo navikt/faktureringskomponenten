@@ -1,18 +1,13 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
-import no.nav.faktureringskomponenten.domain.type.EnumTypePostgreSql
-import org.hibernate.annotations.Type
-import org.hibernate.annotations.TypeDef
+import jakarta.persistence.*
+import org.hibernate.annotations.Table
 import java.time.LocalDate
-import javax.persistence.*
 
-@Schema(
-    description = "Model for en faktura i fakturaserien"
-)
-@TypeDef(name = "enumType", typeClass = EnumTypePostgreSql::class)
+@Schema(description = "Model for en faktura i fakturaserien")
 @Entity
-@Table(name = "faktura")
+@Table(appliesTo = "faktura")
 data class Faktura(
 
     @Id
@@ -29,7 +24,7 @@ data class Faktura(
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    @Type(type = "enumType")
+//    @JavaType(FakturaStatus::class)
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
 
@@ -38,7 +33,7 @@ data class Faktura(
     )
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "faktura_id", nullable = false)
-    val fakturaLinje: List<FakturaLinje>,
+    val fakturaLinje: List<FakturaLinje>
 ) {
 
     @ManyToOne

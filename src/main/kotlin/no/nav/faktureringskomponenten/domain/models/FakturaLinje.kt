@@ -1,9 +1,9 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
-import javax.persistence.*
 
 @Schema(
     description = "Model for en linje i fakturaen. Liste av linjer gir grunnlag for hele fakturabeløpet"
@@ -50,4 +50,5 @@ data class FakturaLinje(
     )
     @Column(name = "enhetspris_per_maned", nullable= false)
     val enhetsprisPerManed: BigDecimal
-)
+) {
+}

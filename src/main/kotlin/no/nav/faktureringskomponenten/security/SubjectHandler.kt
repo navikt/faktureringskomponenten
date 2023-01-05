@@ -8,18 +8,12 @@ import org.springframework.web.context.request.RequestContextHolder
 
 class SubjectHandler(private val contextHolder: SpringTokenValidationContextHolder) {
 
-    val userID: String?
-        get() = if (hasValidToken()) issoToken().subject else null
-    val oidcTokenString: String?
-        get() = if (hasValidToken()) issoToken().tokenAsString else null
-
-
     private fun hasValidToken(): Boolean {
         contextHolder.tokenValidationContext
         return RequestContextHolder.getRequestAttributes() != null && context().hasTokenFor(AAD)
     }
 
-    private fun issoToken(): JwtToken {
+    private fun jwtToken(): JwtToken {
         return context().getJwtToken(AAD)
     }
 

@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("org.springframework.boot") version "2.7.4"
+    id("org.springframework.boot") version "3.0.1"
     id("io.spring.dependency-management") version "1.0.14.RELEASE"
     kotlin("jvm") version "1.6.21"
     kotlin("plugin.spring") version "1.6.21"
@@ -24,7 +24,7 @@ object dependencyVersions {
     const val shedlockProvicerJdbcVersion = "4.43.0"
     const val mockkVersion = "1.13.3"
     const val openapiVersion = "1.6.0"
-    const val tokenSupportVersion = "2.0.20"
+    const val tokenSupportVersion = "3.0.2"
 }
 
 object TestContainersDependencies {
