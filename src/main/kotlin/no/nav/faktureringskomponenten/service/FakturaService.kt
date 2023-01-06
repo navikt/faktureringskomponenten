@@ -1,8 +1,5 @@
 package no.nav.faktureringskomponenten.service
 
-import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Metrics
-import no.nav.faktureringskomponenten.config.metrics.MetrikkerNavn
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
@@ -24,8 +21,6 @@ class FakturaService(
     @Autowired val fakturaserieRepository: FakturaserieRepository,
     @Autowired val fakturaBestiltProducer: FakturaBestiltProducer,
 ) {
-
-    private val fakturaSendtTilOEBS: Counter = Metrics.counter(MetrikkerNavn.FAKTURA_SENDT)
 
     fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> {
         return fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIs(bestillingsDato)
@@ -65,7 +60,7 @@ class FakturaService(
         )
 
         fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
-        fakturaSendtTilOEBS.increment()
+
         fakturaserieRepository.save(fakturaserie)
         fakturaRepository.save(faktura)
     }
