@@ -2,10 +2,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     id("org.springframework.boot") version "3.0.1"
-    id("io.spring.dependency-management") version "1.0.14.RELEASE"
-    kotlin("jvm") version "1.6.21"
-    kotlin("plugin.spring") version "1.6.21"
-    kotlin("plugin.jpa") version "1.6.21"
+    id("io.spring.dependency-management") version "1.1.0"
+    kotlin("jvm") version "1.8.0"
+    kotlin("plugin.spring") version "1.8.0"
+    kotlin("plugin.jpa") version "1.8.0"
+    id("org.jetbrains.kotlin.plugin.allopen") version "1.8.0"
 }
 
 group = "no.nav"
@@ -14,6 +15,12 @@ java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
     mavenCentral()
+}
+
+allOpen {
+    annotation("jakarta.persistence.Entity")
+    annotation("jakarta.persistence.Embeddable")
+    annotation("jakarta.persistence.MappedSuperclass")
 }
 
 object dependencyVersions {

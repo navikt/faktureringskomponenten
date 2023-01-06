@@ -1,20 +1,18 @@
 package no.nav.faktureringskomponenten.controller
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.service.FakturaserieService
-import no.nav.security.token.support.core.api.Protected
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import javax.validation.Valid
 
-@Protected
+@Unprotected
 @Validated
 @RestController
 @RequestMapping("/fakturaserie")
@@ -30,7 +28,7 @@ class FakturaserieController @Autowired constructor(
         ]
     )
     @PostMapping
-    fun lagNyFakturaserie(@RequestBody @Valid fakturaserieDto: FakturaserieDto, @RequestHeader(value="Authorization") authorizationHeader: String): Fakturaserie {
+    fun lagNyFakturaserie(@RequestBody @Valid fakturaserieDto: FakturaserieDto): Fakturaserie {
         return faktureringService.lagNyFakturaserie(fakturaserieDto)
     }
 

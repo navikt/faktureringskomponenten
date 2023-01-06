@@ -2,12 +2,12 @@ package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
-import org.hibernate.annotations.Table
 import java.time.LocalDate
+import kotlin.jvm.Transient
 
 @Schema(description = "Model for en faktura i fakturaserien")
 @Entity
-@Table(appliesTo = "faktura")
+@Table(name = "faktura")
 data class Faktura(
 
     @Id
@@ -38,6 +38,7 @@ data class Faktura(
 
     @ManyToOne
     @JoinColumn(name = "fakturaserie_id", nullable = false, insertable = false, updatable = false)
+    @Transient
     var fakturaserie: Fakturaserie? = null
 
 

@@ -26,13 +26,8 @@ kafka:
 
 no.nav.security.jwt.issuer:
   reststs:
-    discovery-url: https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration
+    discovery-url: http://localhost:8086/reststs/.well-known/openid-configuration
     accepted-audience: srvmelosys
-  restststoken:
-    discovery-url: https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration
-    accepted-audience: srvmelosys
-    validation:
-      optional-claims: aud
   aad:
     discovery-url: http://host.docker.internal:8082/aad/.well-known/openid-configuration
     accepted-audience: melosys-localhost
