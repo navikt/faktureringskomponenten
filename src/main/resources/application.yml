@@ -16,12 +16,6 @@ spring:
     resources:
       add-mappings: false
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
-
 kafka:
   aiven:
     brokers: ${KAFKA_BROKERS}
@@ -35,5 +29,8 @@ kafka:
 #Token-validering
 no.nav.security.jwt.issuer:
   aad:
-    discovery-url: https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration
-    accepted-audience: srvmelosys
+    discovery-url: ${AZURE_APP_WELL_KNOWN_URL}
+    accepted-audience: ${AZURE_APP_CLIENT_ID}
+  sts:
+    discovery-url: ${RESTSTS_URL}/.well-known/openid-configuration
+    accepted-audience: srvfaktureringskomponenten

@@ -29,6 +29,10 @@ kafka:
     producer:
       faktura-bestilt: "faktura-bestilt.v1"
 
-no.nav.security.jwt.issuer.aad:
-  discovery-url: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
-  accepted-audience: melosys-localhost
+no.nav.security.jwt.issuer:
+  aad:
+    discovery-url: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
+    accepted-audience: faktureringskomponenten-localhost
+  sts:
+    discovery-url: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
+    accepted-audience: srvfaktureringskomponenten-localhost
