@@ -2,7 +2,7 @@ package no.nav.faktureringskomponenten.service
 
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
-import no.nav.faktureringskomponenten.config.metrics.MetrikkerNavn
+import no.nav.faktureringskomponenten.config.metrics.MetricsNavn
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
@@ -13,16 +13,14 @@ import no.nav.faktureringskomponenten.validators.RessursIkkeFunnetException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 
 
 @Component
 class FakturaserieService(
     @Autowired val fakturaserieRepository: FakturaserieRepository,
-    @Autowired val fakturaserieMapper: FakturaserieMapper,
-    @Autowired val fakturaService: FakturaService
+    @Autowired val fakturaserieMapper: FakturaserieMapper
 ) {
-    private val fakturaserieOpprettet: Counter = Metrics.counter(MetrikkerNavn.FAKTURASERIER_OPPRETTET)
+    private val fakturaserieOpprettetTeller: Counter = Metrics.counter(MetricsNavn.FAKTURASERIE_OPPRETTET)
 
     fun hentFakturaserie(vedtaksId: String): Fakturaserie {
         val fakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
@@ -41,7 +39,7 @@ class FakturaserieService(
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto): Fakturaserie {
         val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
-        fakturaserieOpprettet.increment()
+        fakturaserieOpprettetTeller.increment()
         return fakturaserie
     }
 

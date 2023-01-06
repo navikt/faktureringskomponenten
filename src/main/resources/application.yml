@@ -16,6 +16,12 @@ spring:
     resources:
       add-mappings: false
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+
 kafka:
   aiven:
     brokers: ${KAFKA_BROKERS}

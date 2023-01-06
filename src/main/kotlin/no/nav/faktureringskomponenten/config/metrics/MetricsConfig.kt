@@ -11,11 +11,12 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class MetricsConfig {
+
     @Bean
     fun metricsCommonTags(): MeterRegistryCustomizer<MeterRegistry> {
         return MeterRegistryCustomizer { registry: MeterRegistry ->
             registry.config().meterFilter(PrometheusRenameFilter())
-                .commonTags("app", "melosys", "team", "teammelosys")
+                .commonTags("app", "faktureringskomponenten", "team", "teammelosys")
         }
     }
 
