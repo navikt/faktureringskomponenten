@@ -1,11 +1,11 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import no.nav.faktureringskomponenten.validators.ErFodselsnummer
 import no.nav.faktureringskomponenten.validators.ErIkkeOverlappendePerioder
 import no.nav.faktureringskomponenten.validators.IkkeDuplikatVedtaksId
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotEmpty
 
 @Schema(description = "DTO for fullstendig informasjon om alle planlagte fakturaer")
 data class FakturaserieDto(

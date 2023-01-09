@@ -24,7 +24,6 @@ data class Faktura(
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-//    @JavaType(FakturaStatus::class)
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
 
