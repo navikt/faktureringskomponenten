@@ -48,7 +48,15 @@ data class FakturaLinje(
     @Schema(
         description = "Enhetspris per måned"
     )
-    @Column(name = "enhetspris_per_maned", nullable= false)
+    @Column(name = "enhetspris_per_maned", nullable = false)
     val enhetsprisPerManed: BigDecimal
 ) {
+    constructor() : this(
+        id = null,
+        periodeFra = LocalDate.now(),
+        periodeTil = LocalDate.now(),
+        beskrivelse = "",
+        belop = BigDecimal(0),
+        enhetsprisPerManed = BigDecimal(0)
+    )
 }

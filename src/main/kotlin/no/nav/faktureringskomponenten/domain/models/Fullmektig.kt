@@ -30,4 +30,6 @@ data class Fullmektig(
     )
     @Column(name = "fullmektig_kontaktperson", nullable = true)
     val kontaktperson: String?
-)
+){
+    constructor() : this(null, null, null)
+}

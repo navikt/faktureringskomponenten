@@ -31,7 +31,7 @@ kafka:
 
 no.nav.security.jwt.issuer:
   aad:
-    discovery-url: http://view-localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
+    discovery-url: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
     accepted-audience: faktureringskomponenten-localhost
   sts:
     discovery-url: http://localhost:${mock-oauth2-server.port}/sts/.well-known/openid-configuration

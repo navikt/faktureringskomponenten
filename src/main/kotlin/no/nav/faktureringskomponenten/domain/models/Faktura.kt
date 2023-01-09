@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
+import org.springframework.cglib.core.Local
 import java.time.LocalDate
 import kotlin.jvm.Transient
 
@@ -55,4 +56,11 @@ data class Faktura(
     fun getPeriodeTil(): LocalDate {
         return fakturaLinje.maxOf { it.periodeTil }
     }
+
+    constructor() : this(
+        id = null,
+        datoBestilt = LocalDate.now(),
+        status = FakturaStatus.OPPRETTET,
+        fakturaLinje = listOf()
+    )
 }
