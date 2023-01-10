@@ -31,6 +31,3 @@ no.nav.security.jwt.issuer:
   aad:
     discovery-url: ${AZURE_APP_WELL_KNOWN_URL}
     accepted-audience: ${AZURE_APP_CLIENT_ID}
-  sts:
-    discovery-url: ${RESTSTS_URL}/.well-known/openid-configuration
-    accepted-audience: srvfaktureringskomponenten

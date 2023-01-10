@@ -38,6 +38,9 @@ spec:
         - application: {{app_name_melosys_api}}
           namespace: teammelosys
           cluster: {{cluster_name_melosys_api}}
+    outbound:
+      external:
+        - host: https://security-token-service.dev.adeo.no
   prometheus:
     enabled: false
     path: /actuator/prometheus
