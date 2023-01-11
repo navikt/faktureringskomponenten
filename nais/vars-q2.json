@@ -6,6 +6,6 @@
   "tenant": "trygdeetaten.no",
   "kafka_pool": "nav-dev",
   "cluster_name_melosys_api": "dev-fss",
-  "app_name_melosys_api": "melosys-q2",
+  "app_name_melosys_api": "melosys",
   "kafka_topic_name_faktura_bestilt": "faktura-bestilt.v1-q2"
 }
