@@ -59,4 +59,9 @@ data class FakturaserieDto(
     @field:NotEmpty(message = "Du må oppgi minst én periode")
     @field:ErIkkeOverlappendePerioder
     val perioder: List<FakturaseriePeriodeDto>
-)
+) {
+    @Override
+    override fun toString(): String {
+        return "vedtaksId: $vedtaksId, intervall: $intervall, perioder: $perioder"
+    }
+}

@@ -96,6 +96,16 @@ data class Fakturaserie(
     @JoinColumn(name = "fakturaserie_id", nullable = false)
     val faktura: List<Faktura>
 ) {
+    @Override
+    override fun toString(): String {
+        return "vedtaksId: $vedtaksId, " +
+                "fakturaGjelder: $fakturaGjelder, " +
+                "referanseNAV: $referanseNAV, " +
+                "startdato: $startdato, " +
+                "sluttDato: $sluttdato, " +
+                "faktura: $faktura"
+    }
+
     constructor() : this(
         id = null,
         vedtaksId = "",

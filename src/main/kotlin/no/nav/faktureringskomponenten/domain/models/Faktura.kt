@@ -57,6 +57,11 @@ data class Faktura(
         return fakturaLinje.maxOf { it.periodeTil }
     }
 
+    @Override
+    override fun toString(): String {
+        return "datoBestilt: $datoBestilt, status: $status, fakturaLinje: $fakturaLinje"
+    }
+
     constructor() : this(
         id = null,
         datoBestilt = LocalDate.now(),

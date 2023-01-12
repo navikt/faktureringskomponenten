@@ -51,6 +51,12 @@ data class FakturaLinje(
     @Column(name = "enhetspris_per_maned", nullable = false)
     val enhetsprisPerManed: BigDecimal
 ) {
+
+    @Override
+    override fun toString(): String {
+        return "beskrivelse: $beskrivelse, belop: $belop"
+    }
+
     constructor() : this(
         id = null,
         periodeFra = LocalDate.now(),
