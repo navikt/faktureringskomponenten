@@ -28,3 +28,7 @@ kafka:
   topics:
     producer:
       faktura-bestilt: "faktura-bestilt.v1"
+
+logging:
+  level:
+    root: INFO

@@ -1,9 +1,12 @@
 package no.nav.faktureringskomponenten.service
 
 import io.kotest.core.spec.style.FunSpec
-import io.mockk.*
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.bytebuddy.utility.RandomString
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
@@ -14,7 +17,6 @@ import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
-import org.assertj.core.internal.bytebuddy.utility.RandomString
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*

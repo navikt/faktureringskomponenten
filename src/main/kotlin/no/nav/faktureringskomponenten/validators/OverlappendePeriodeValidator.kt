@@ -1,8 +1,8 @@
 package no.nav.faktureringskomponenten.validators
 
+import jakarta.validation.ConstraintValidator
+import jakarta.validation.ConstraintValidatorContext
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import javax.validation.ConstraintValidator
-import javax.validation.ConstraintValidatorContext
 
 
 class OverlappendePeriodeValidator : ConstraintValidator<ErIkkeOverlappendePerioder?, List<FakturaseriePeriodeDto>> {

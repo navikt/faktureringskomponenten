@@ -1,6 +1,6 @@
 package no.nav.faktureringskomponenten.validators
 
-import javax.validation.Constraint
+import jakarta.validation.Constraint
 import kotlin.reflect.KClass
 
 @MustBeDocumented

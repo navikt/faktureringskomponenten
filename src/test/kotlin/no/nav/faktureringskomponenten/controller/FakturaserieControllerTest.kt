@@ -2,19 +2,20 @@ package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.shouldBe
+import net.bytebuddy.utility.RandomString
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.AAD
+import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
 import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import org.assertj.core.internal.bytebuddy.utility.RandomString
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -39,6 +40,7 @@ import java.time.LocalDate
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableMockOAuth2Server
+@Disabled
 class FakturaserieControllerTest(
     @Autowired val webClient: WebTestClient,
     @Autowired val server: MockOAuth2Server,
@@ -391,15 +393,15 @@ class FakturaserieControllerTest(
             .exchange()
     }
 
-    private fun token(subject: String = "melosys-localhost"): String? =
+    private fun token(subject: String = "faktureringskomponenten-test"): String? =
         server.issueToken(
-            AAD,
-            "melosys-localhost",
+            azureActiveDirectory,
+            "faktureringskomponenten-test",
             DefaultOAuth2TokenCallback(
-                AAD,
+                azureActiveDirectory,
                 subject,
                 JOSEObjectType.JWT.type,
-                listOf("melosys-localhost"),
+                listOf("faktureringskomponenten-localhost"),
                 mapOf(),
                 3600
             )

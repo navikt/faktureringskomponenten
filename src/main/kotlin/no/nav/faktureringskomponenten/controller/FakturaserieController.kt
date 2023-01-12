@@ -1,27 +1,25 @@
 package no.nav.faktureringskomponenten.controller
 
-import io.swagger.v3.oas.annotations.OpenAPIDefinition
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import jakarta.validation.Valid
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.security.token.support.core.api.Protected
-import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import java.net.http.HttpHeaders
-import javax.validation.Valid
 
+@Protected
 @Validated
 @RestController
 @RequestMapping("/fakturaserie")
 class FakturaserieController @Autowired constructor(
     val faktureringService: FakturaserieService,
 ) {
-    @Protected
+
     @Operation(summary = "Lager en ny fakturaserie")
     @ApiResponses(
         value = [
@@ -30,11 +28,10 @@ class FakturaserieController @Autowired constructor(
         ]
     )
     @PostMapping
-    fun lagNyFakturaserie(@RequestBody @Valid fakturaserieDto: FakturaserieDto, @RequestHeader(value="Authorization") authorizationHeader: String): Fakturaserie {
+    fun lagNyFakturaserie(@RequestBody @Valid fakturaserieDto: FakturaserieDto): Fakturaserie {
         return faktureringService.lagNyFakturaserie(fakturaserieDto)
     }
 
-    @Protected
     @Operation(summary = "Kansellerer eksisterende fakturaserie og fremtidlige planlagte fakturaer som ikke er bestilt. " +
             "Oppretter så ny fakturaserie med fakturaer som erstatter kansellerte", description = "vedtaksId i parameter må være identifikator for fakturaserie som skal oppdateres")
     @ApiResponses(
@@ -51,7 +48,6 @@ class FakturaserieController @Autowired constructor(
         return faktureringService.endreFakturaserie(vedtaksId, fakturaserieDto)
     }
 
-    @Unprotected
     @Operation(summary = "Henter fakturaserie på vedtaksId")
     @ApiResponses(
         value = [

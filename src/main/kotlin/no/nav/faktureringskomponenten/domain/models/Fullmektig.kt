@@ -1,9 +1,9 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
 import java.math.BigDecimal
-import javax.persistence.Column
-import javax.persistence.Embeddable
 
 @Schema(
     description = "Fullmektig som mottar faktura"
@@ -30,4 +30,6 @@ data class Fullmektig(
     )
     @Column(name = "fullmektig_kontaktperson", nullable = true)
     val kontaktperson: String?
-)
+){
+    constructor() : this(null, null, null)
+}

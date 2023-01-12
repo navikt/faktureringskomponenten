@@ -1,16 +1,12 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
-import no.nav.faktureringskomponenten.domain.type.EnumTypePostgreSql
-import org.hibernate.annotations.Type
-import org.hibernate.annotations.TypeDef
+import jakarta.persistence.*
+import org.springframework.cglib.core.Local
 import java.time.LocalDate
-import javax.persistence.*
+import kotlin.jvm.Transient
 
-@Schema(
-    description = "Model for en faktura i fakturaserien"
-)
-@TypeDef(name = "enumType", typeClass = EnumTypePostgreSql::class)
+@Schema(description = "Model for en faktura i fakturaserien")
 @Entity
 @Table(name = "faktura")
 data class Faktura(
@@ -29,7 +25,6 @@ data class Faktura(
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    @Type(type = "enumType")
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
 
@@ -38,11 +33,12 @@ data class Faktura(
     )
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "faktura_id", nullable = false)
-    val fakturaLinje: List<FakturaLinje>,
+    val fakturaLinje: List<FakturaLinje>
 ) {
 
     @ManyToOne
     @JoinColumn(name = "fakturaserie_id", nullable = false, insertable = false, updatable = false)
+    @Transient
     var fakturaserie: Fakturaserie? = null
 
 
@@ -60,4 +56,11 @@ data class Faktura(
     fun getPeriodeTil(): LocalDate {
         return fakturaLinje.maxOf { it.periodeTil }
     }
+
+    constructor() : this(
+        id = null,
+        datoBestilt = LocalDate.now(),
+        status = FakturaStatus.OPPRETTET,
+        fakturaLinje = listOf()
+    )
 }

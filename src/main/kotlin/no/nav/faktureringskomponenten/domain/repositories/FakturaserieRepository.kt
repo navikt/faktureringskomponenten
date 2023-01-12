@@ -5,5 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 import java.util.*
 
 interface FakturaserieRepository : JpaRepository<Fakturaserie, String> {
+
     fun findByVedtaksId(vedtaksId: String): Optional<Fakturaserie>
 }

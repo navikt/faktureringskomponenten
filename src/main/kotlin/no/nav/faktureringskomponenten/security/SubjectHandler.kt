@@ -5,22 +5,19 @@ import no.nav.security.token.support.core.jwt.JwtToken
 import no.nav.security.token.support.spring.SpringTokenValidationContextHolder
 import org.springframework.web.context.request.RequestContextHolder
 
-
 class SubjectHandler(private val contextHolder: SpringTokenValidationContextHolder) {
 
     val userID: String?
-        get() = if (hasValidToken()) issoToken().subject else null
-    val oidcTokenString: String?
-        get() = if (hasValidToken()) issoToken().tokenAsString else null
-
+        get() = if (hasValidToken()) azureActiveDirectoryToken().getJwtTokenClaims().get(JWT_TOKEN_CLAIM_NAVIDENT)
+            .toString() else null
 
     private fun hasValidToken(): Boolean {
         contextHolder.tokenValidationContext
-        return RequestContextHolder.getRequestAttributes() != null && context().hasTokenFor(AAD)
+        return RequestContextHolder.getRequestAttributes() != null && context().hasTokenFor(azureActiveDirectory)
     }
 
-    private fun issoToken(): JwtToken {
-        return context().getJwtToken(AAD)
+    private fun azureActiveDirectoryToken(): JwtToken {
+        return context().getJwtToken(azureActiveDirectory)
     }
 
     private fun context(): TokenValidationContext {
@@ -28,7 +25,8 @@ class SubjectHandler(private val contextHolder: SpringTokenValidationContextHold
     }
 
     companion object {
-        const val AAD = "aad"
+        const val azureActiveDirectory = "aad"
+        const val JWT_TOKEN_CLAIM_NAVIDENT = "NAVident"
         val SUBJECT_HANDLER = SubjectHandler(SpringTokenValidationContextHolder())
 
         fun getInstance(): SubjectHandler {

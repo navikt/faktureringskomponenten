@@ -1,14 +1,15 @@
 package no.nav.faktureringskomponenten.validators
 
+import jakarta.validation.ConstraintValidator
+import jakarta.validation.ConstraintValidatorContext
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import javax.validation.ConstraintValidator
-import javax.validation.ConstraintValidatorContext
 
 @Component
 class DuplikatVedtaksIdValidator(@Autowired val fakturaserieService: FakturaserieService) :
-    ConstraintValidator<IkkeDuplikatVedtaksId?, String> {
+
+ConstraintValidator<IkkeDuplikatVedtaksId?, String> {
     override fun initialize(constraintAnnotation: IkkeDuplikatVedtaksId?) {}
     override fun isValid(
         vedtaksId: String,

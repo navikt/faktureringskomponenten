@@ -26,7 +26,6 @@ class FakturaService(
         return fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIs(bestillingsDato)
     }
 
-
     @Transactional
     fun bestillFaktura(fakturaId: Long) {
         val faktura = fakturaRepository.findById(fakturaId)

@@ -1,19 +1,15 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
-import no.nav.faktureringskomponenten.domain.type.EnumTypePostgreSql
-import org.hibernate.annotations.Type
-import org.hibernate.annotations.TypeDef
+import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import javax.persistence.*
 
 
 @Schema(
     description = "Model for fakturaserie, inneholder informasjon for alle bestilte og planlagte fakturaer"
 )
-@TypeDef(name = "enumType", typeClass = EnumTypePostgreSql::class)
 @Entity
 @Table(name = "fakturaserie")
 data class Fakturaserie(
@@ -78,13 +74,11 @@ data class Fakturaserie(
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    @Type(type = "enumType")
     var status: FakturaserieStatus = FakturaserieStatus.OPPRETTET,
 
 
     @Column(name = "intervall", nullable = false)
     @Enumerated(EnumType.STRING)
-    @Type(type = "enumType")
     val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
 
 
@@ -101,4 +95,20 @@ data class Fakturaserie(
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "fakturaserie_id", nullable = false)
     val faktura: List<Faktura>
-)
+) {
+    constructor() : this(
+        id = null,
+        vedtaksId = "",
+        fakturaGjelder = "",
+        fodselsnummer = BigDecimal(0),
+        fullmektig = null,
+        referanseBruker = "",
+        referanseNAV = "",
+        startdato = LocalDate.now(),
+        sluttdato = LocalDate.now(),
+        status = FakturaserieStatus.UNDER_BESTILLING,
+        intervall = FakturaserieIntervall.MANEDLIG,
+        opprettetTidspunkt = LocalDateTime.now(),
+        faktura = listOf()
+    )
+}
