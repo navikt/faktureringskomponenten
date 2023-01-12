@@ -5,8 +5,11 @@ import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import no.nav.faktureringskomponenten.validators.RessursIkkeFunnetException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +21,9 @@ class FakturaserieService(
     @Autowired val fakturaserieMapper: FakturaserieMapper,
     @Autowired val fakturaService: FakturaService
 ) {
+
+    private val log: Logger = LoggerFactory.getLogger(FakturaserieService::class.java)
+
     fun hentFakturaserie(vedtaksId: String): Fakturaserie {
         val fakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
 
@@ -34,8 +40,10 @@ class FakturaserieService(
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto): Fakturaserie {
         val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
-        fakturaserieRepository.save(fakturaserie)
+        log.info("Mottatt $fakturaserieDto")
 
+        fakturaserieRepository.save(fakturaserie)
+        log.info("Lagret fakturaserie: $fakturaserie")
         return fakturaserie
     }
 
