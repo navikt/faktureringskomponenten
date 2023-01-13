@@ -24,10 +24,5 @@ kafka:
     producer:
       faktura-bestilt: "faktura-bestilt.v1"
 
-no.nav.security.jwt.issuer:
-  sts:
-    discovery-url: http://localhost:8086/reststs/.well-known/openid-configuration
-    accepted-audience: srvfaktureringskomponenten-localhost
-  aad:
-    discovery-url: http://host.docker.internal:8082/aad/.well-known/openid-configuration
-    accepted-audience: faktureringskomponenten-localhost
+AZURE_APP_WELL_KNOWN_URL: http://host.docker.internal:8082/isso/.well-known/openid-configuration
+AZURE_APP_CLIENT_ID: melosys-localhost
