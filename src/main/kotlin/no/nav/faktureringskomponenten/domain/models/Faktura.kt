@@ -2,9 +2,17 @@ package no.nav.faktureringskomponenten.domain.models
 
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
+import no.nav.faktureringskomponenten.domain.converter.FakturaStatusConverter
+import no.nav.faktureringskomponenten.domain.type.EnumTypePostgreSql
+import org.hibernate.annotations.JdbcType
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.annotations.Type
+import org.hibernate.type.NumericBooleanConverter
+import org.hibernate.type.descriptor.jdbc.VarcharJdbcType
 import org.springframework.cglib.core.Local
 import java.time.LocalDate
 import kotlin.jvm.Transient
+import kotlin.reflect.typeOf
 
 @Schema(description = "Model for en faktura i fakturaserien")
 @Entity
@@ -23,7 +31,7 @@ data class Faktura(
     val datoBestilt: LocalDate,
 
 
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
