@@ -34,7 +34,7 @@ class FakturaServiceTest : FunSpec({
 
         every {
             fakturaserieRepository.save(any())
-        } returns faktura.fakturaserie!!
+        } returns faktura.getFakturaserie()!!
 
         every {
             fakturaRepository.save(any())
@@ -47,7 +47,7 @@ class FakturaServiceTest : FunSpec({
         verifySequence {
             fakturaRepository.findById(1)
             fakturaBestiltProducer.produserBestillingsmelding(any())
-            fakturaserieRepository.save(faktura.fakturaserie!!)
+            fakturaserieRepository.save(faktura.getFakturaserie()!!)
             fakturaRepository.save(faktura)
         }
     }
@@ -62,7 +62,7 @@ class FakturaServiceTest : FunSpec({
 
         every {
             fakturaserieRepository.save(any())
-        } returns faktura.fakturaserie!!
+        } returns faktura.getFakturaserie()!!
 
         every {
             fakturaRepository.save(any())
@@ -119,7 +119,7 @@ fun lagFaktura(id: Long? = 1): Faktura {
             ),
         )
     ).apply {
-        fakturaserie = Fakturaserie(
+        Fakturaserie(
             100, vedtaksId = "MEL-1",
             fakturaGjelder = "FTRL",
             referanseBruker = "Referanse bruker",
