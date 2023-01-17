@@ -5,12 +5,11 @@ import jakarta.persistence.Converter
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 
 @Converter(autoApply = true)
-class FakturaStatusConverter : AttributeConverter<FakturaStatus?, String?> {
-    override fun convertToDatabaseColumn(fakturaStatus: FakturaStatus?): String? {
-        return fakturaStatus?.toString()
+class FakturaStatusConverter: AttributeConverter<FakturaStatus, String> {
+    override fun convertToDatabaseColumn(fakturaStatus: FakturaStatus): String {
+        return fakturaStatus.name
     }
-
-    override fun convertToEntityAttribute(code: String?): FakturaStatus? {
-        return if (code != null) FakturaStatus.valueOf(code) else null
+    override fun convertToEntityAttribute(fakturaStatus: String): FakturaStatus {
+        return FakturaStatus.values().first { r -> r == FakturaStatus.valueOf(fakturaStatus) }
     }
 }

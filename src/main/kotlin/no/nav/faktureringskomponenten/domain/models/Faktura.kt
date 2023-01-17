@@ -4,6 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
+import no.nav.faktureringskomponenten.domain.converter.FakturaStatusConverter
+import org.hibernate.annotations.JdbcType
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
+import org.springframework.messaging.converter.StringMessageConverter
 import java.time.LocalDate
 
 @Schema(description = "Model for en faktura i fakturaserien")
@@ -23,8 +28,9 @@ data class Faktura(
     val datoBestilt: LocalDate,
 
 
-    @Column(name = "status", nullable = false)
+    @Column(name = "status", nullable = false, columnDefinition = "enum('OPPRETTET','BESTILLT','KANSELLERT')")
     @Enumerated(EnumType.STRING)
+    @Convert(converter = FakturaStatusConverter::class)
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
 

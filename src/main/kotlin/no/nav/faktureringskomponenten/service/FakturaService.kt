@@ -24,7 +24,7 @@ class FakturaService(
 ) {
 
     fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> {
-        val a = fakturaRepository.findAllByDatoBestiltIsLessThanEqual(bestillingsDato)
+        val a = fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIs(bestillingsDato)
         return a
     }
 
