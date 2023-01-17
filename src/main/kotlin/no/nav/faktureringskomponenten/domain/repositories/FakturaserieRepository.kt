@@ -7,4 +7,6 @@ import java.util.*
 interface FakturaserieRepository : JpaRepository<Fakturaserie, String> {
 
     fun findByVedtaksId(vedtaksId: String): Optional<Fakturaserie>
+
+    fun findById(id: Long): Optional<Fakturaserie>
 }

@@ -1,18 +1,10 @@
 package no.nav.faktureringskomponenten.domain.models
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
-import no.nav.faktureringskomponenten.domain.converter.FakturaStatusConverter
-import no.nav.faktureringskomponenten.domain.type.EnumTypePostgreSql
-import org.hibernate.annotations.JdbcType
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.annotations.Type
-import org.hibernate.type.NumericBooleanConverter
-import org.hibernate.type.descriptor.jdbc.VarcharJdbcType
-import org.springframework.cglib.core.Local
 import java.time.LocalDate
-import kotlin.jvm.Transient
-import kotlin.reflect.typeOf
 
 @Schema(description = "Model for en faktura i fakturaserien")
 @Entity
@@ -46,8 +38,7 @@ data class Faktura(
 
     @ManyToOne
     @JoinColumn(name = "fakturaserie_id", nullable = false, insertable = false, updatable = false)
-    @Transient
-    var fakturaserie: Fakturaserie? = null
+    private var fakturaserie: Fakturaserie? = null
 
 
     @Schema(
@@ -63,6 +54,16 @@ data class Faktura(
     )
     fun getPeriodeTil(): LocalDate {
         return fakturaLinje.maxOf { it.periodeTil }
+    }
+
+    @JsonIgnore
+    @JsonProperty(value = "fakturaserie")
+    fun getFakturaserie(): Fakturaserie?{
+        return fakturaserie
+    }
+
+    fun getFakturaserieId(): Long?{
+        return fakturaserie?.id
     }
 
     @Override
