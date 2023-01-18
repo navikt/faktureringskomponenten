@@ -105,20 +105,4 @@ data class Fakturaserie(
                 "sluttDato: $sluttdato, " +
                 "faktura: $faktura"
     }
-
-//    constructor(faktura: List<Faktura> = listOf()) : this(
-//        id = null,
-//        vedtaksId = "",
-//        fakturaGjelder = "",
-//        fodselsnummer = BigDecimal(0),
-//        fullmektig = null,
-//        referanseBruker = "",
-//        referanseNAV = "",
-//        startdato = LocalDate.now(),
-//        sluttdato = LocalDate.now(),
-//        status = FakturaserieStatus.UNDER_BESTILLING,
-//        intervall = FakturaserieIntervall.MANEDLIG,
-//        opprettetTidspunkt = LocalDateTime.now(),
-//        faktura = faktura
-//    )
 }
