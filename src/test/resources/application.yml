@@ -25,14 +25,13 @@ kafka:
     keystorePath: ${KAFKA_KEYSTORE_PATH:/dev/zero}
     truststorePath: ${KAFKA_TRUSTSTORE_PATH:/dev/zero}
     credstorePassword: ${KAFKA_CREDSTORE_PASSWORD:pwd}
-  topics:
-    producer:
-      faktura-bestilt: "faktura-bestilt.v1"
-    consumer:
-      oebs:
-        groupid: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_GROUPID:her-fikk-du-default-groupid}
-        topic: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_TOPIC:her-fikk-du-default-topic}
-        faktura-bestilt: "faktura-mottatt.v1"
+  producer:
+    faktura-bestilt: "faktura-bestilt.v1"
+  consumer:
+    oebs:
+      groupid: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_GROUPID:her-fikk-du-default-groupid}
+      topic: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_TOPIC:her-fikk-du-default-topic}
+      faktura-bestilt: "faktura-mottatt.v1"
 
 logging:
   level:
