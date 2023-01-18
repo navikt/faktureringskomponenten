@@ -4,7 +4,7 @@ on:
       environment:
         description: 'Miljø (q1, q2 eller prod)'
         required: true
-        default: 'q1'
+        default: 'q2'
 
 env:
   IMAGE: ghcr.io/${{ github.repository }}/faktureringskomponenten:${{ github.sha }}
