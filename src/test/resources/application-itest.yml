@@ -1,4 +1,8 @@
 spring:
+  datasource:
+    username: postgres
+    password: mysecretpassword
+    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=faktureringskomponenten
   flyway:
     locations: classpath:db/migration
     enabled: true

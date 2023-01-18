@@ -11,6 +11,9 @@ open class PostgresTestContainerBase {
         @DynamicPropertySource
         @JvmStatic
         fun postgresProperties(registry: DynamicPropertyRegistry) {
+            val env: String? = System.getenv("USE-LOCAL-DB")
+            if (env?.lowercase() == "true") return
+
             registry.add("spring.datasource.url") { dbContainer.jdbcUrl }
             registry.add("spring.datasource.password") { dbContainer.password }
             registry.add("spring.datasource.username") { dbContainer.username }

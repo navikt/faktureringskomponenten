@@ -8,6 +8,7 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
+import no.nav.faktureringskomponenten.validators.RessursIkkeFunnetException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -22,14 +23,18 @@ class FakturaService(
     @Autowired val fakturaBestiltProducer: FakturaBestiltProducer,
 ) {
 
-    fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> {
-        return fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIs(bestillingsDato)
-    }
+    fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> =
+        fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
 
     @Transactional
     fun bestillFaktura(fakturaId: Long) {
         val faktura = fakturaRepository.findById(fakturaId)
-        val fakturaserie = faktura.fakturaserie!!
+
+        val fakturaserieId = faktura.getFakturaserieId()
+            ?: throw RessursIkkeFunnetException("fakturaId", "Finner ikke fakturaserie med faktura id ${faktura.id}")
+
+        val fakturaserie = fakturaserieRepository.findById(fakturaserieId).get()
+
         faktura.status = FakturaStatus.BESTILLT
         fakturaserie.status = FakturaserieStatus.UNDER_BESTILLING
 
