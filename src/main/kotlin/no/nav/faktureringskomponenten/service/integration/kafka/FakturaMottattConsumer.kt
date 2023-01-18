@@ -21,12 +21,12 @@ class FakturaMottattConsumer(
         log.info("--- groupID:{$groupID}")
     }
 
-//    @KafkaListener(
-//        clientIdPrefix = "melosys-faktureringskomponenten-fakturaMottatt",
-//        topics = ["\${kafka.consumer.oebs.topic}"],
-//        containerFactory = "sedHendelseListenerContainerFactory",
-//        groupId = "\${kafka.consumer.oebs.groupid}"
-//    )
+    @KafkaListener(
+        clientIdPrefix = "melosys-faktureringskomponenten-fakturaMottatt",
+        topics = ["\${kafka.consumer.oebs.topic}"],
+        containerFactory = "faktarMottattHendelseListenerContainerFactory",
+        groupId = "\${kafka.consumer.oebs.groupid}"
+    )
     fun fakturaMottatt(consumerRecord: ConsumerRecord<String, FakturaMottattDto>) {
         log.info("Mottatt melding {}", consumerRecord)
     }

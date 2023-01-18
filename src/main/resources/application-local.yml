@@ -14,19 +14,14 @@ spring:
 server:
   port: 8084
 
-kafka:
-  aiven:
-    brokers: "localhost:29092"
-    keystorePath: "/dev/zero"
-    truststorePath: "/dev/zero"
-    credstorePassword: "pwd"
-  producer:
-    faktura-bestilt: "faktura-bestilt.v1"
-  consumer:
-    oebs:
-      groupid: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_GROUPID:her-fikk-du-default-groupid}
-      topic: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_TOPIC:her-fikk-du-default-topic}
-      faktura-bestilt: "faktura-mottatt.v1"
+
+KAFKA_BROKERS: "localhost:29092"
+KAFKA_KEYSTORE_PATH: "/dev/zero"
+KAFKA_TRUSTSTORE_PATH: "/dev/zero"
+KAFKA_CREDSTORE_PASSWORD: "pwd"
+KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_GROUPID: local-groupid
+KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_TOPIC: local-topic
+KAFKA_TOPIC_NAME_FAKTURA_BESTILT: ""
 
 AZURE_APP_WELL_KNOWN_URL: http://host.docker.internal:8082/isso/.well-known/openid-configuration
 AZURE_APP_CLIENT_ID: melosys-localhost
