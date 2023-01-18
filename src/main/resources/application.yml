@@ -28,7 +28,6 @@ kafka:
     oebs:
       groupid: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_GROUPID:her-fikk-du-default-groupid}
       topic: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_TOPIC:her-fikk-du-default-topic}
-      faktura-bestilt: "faktura-mottatt.v1"
 
 
 #Token-validering
