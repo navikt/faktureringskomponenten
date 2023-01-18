@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
-import no.nav.faktureringskomponenten.domain.converter.FakturaStatusConverter
 import java.time.LocalDate
 
 @Schema(description = "Model for en faktura i fakturaserien")
@@ -26,7 +25,6 @@ data class Faktura(
 
     @Column(name = "status", nullable = false, columnDefinition = "enum('OPPRETTET','BESTILLT','KANSELLERT')")
     @Enumerated(EnumType.STRING)
-    @Convert(converter = FakturaStatusConverter::class)
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
 
@@ -58,10 +56,15 @@ data class Faktura(
         return fakturaLinje.maxOf { it.periodeTil }
     }
 
+    // TODO: Lag DTO
     @JsonIgnore
     @JsonProperty(value = "fakturaserie")
     fun getFakturaserie(): Fakturaserie?{
         return fakturaserie
+    }
+
+    fun setFakturaserie(fakturaserie: Fakturaserie) {
+        this.fakturaserie = fakturaserie
     }
 
     fun getFakturaserieId(): Long?{

@@ -16,6 +16,7 @@ import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBesti
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.*
 
 class FakturaServiceTest : FunSpec({
 
@@ -40,12 +41,17 @@ class FakturaServiceTest : FunSpec({
             fakturaRepository.save(any())
         } returns faktura
 
+        every {
+            fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
+        } returns Optional.of(faktura.getFakturaserie()!!)
+
         withContext(Dispatchers.IO) {
             fakturaService.bestillFaktura(1)
         }
 
         verifySequence {
             fakturaRepository.findById(1)
+            fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
             fakturaBestiltProducer.produserBestillingsmelding(any())
             fakturaserieRepository.save(faktura.getFakturaserie()!!)
             fakturaRepository.save(faktura)
@@ -63,6 +69,10 @@ class FakturaServiceTest : FunSpec({
         every {
             fakturaserieRepository.save(any())
         } returns faktura.getFakturaserie()!!
+
+        every {
+            fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
+        } returns Optional.of(faktura.getFakturaserie()!!)
 
         every {
             fakturaRepository.save(any())
@@ -119,7 +129,7 @@ fun lagFaktura(id: Long? = 1): Faktura {
             ),
         )
     ).apply {
-        Fakturaserie(
+        setFakturaserie(Fakturaserie(
             100, vedtaksId = "MEL-1",
             fakturaGjelder = "FTRL",
             referanseBruker = "Referanse bruker",
@@ -135,6 +145,6 @@ fun lagFaktura(id: Long? = 1): Faktura {
                 organisasjonsnummer = ""
             ),
             fodselsnummer = BigDecimal(12345678911)
-        )
+        ))
     }
 }
