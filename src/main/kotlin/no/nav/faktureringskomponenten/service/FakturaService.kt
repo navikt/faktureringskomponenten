@@ -23,10 +23,8 @@ class FakturaService(
     @Autowired val fakturaBestiltProducer: FakturaBestiltProducer,
 ) {
 
-    fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> {
-        val a = fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIs(bestillingsDato)
-        return a
-    }
+    fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> =
+        fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
 
     @Transactional
     fun bestillFaktura(fakturaId: Long) {

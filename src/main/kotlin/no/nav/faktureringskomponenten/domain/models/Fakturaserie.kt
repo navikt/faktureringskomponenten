@@ -16,60 +16,60 @@ data class Fakturaserie(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long?,
+    val id: Long? = null,
 
 
     @Schema(
         description = "Unik identifikator som saksbehandlingssystemet kjenner igjen",
     )
     @Column(nullable = false, unique = true)
-    val vedtaksId: String,
+    val vedtaksId: String = "",
 
 
     @Schema(
         description = "Informasjon om hva bruker betaler",
     )
     @Column(name = "faktura_gjelder", nullable = false)
-    val fakturaGjelder: String,
+    val fakturaGjelder: String = "",
 
 
     @Schema(
         description = "Fødselsnummer for fakturamottaker, 11 siffer",
     )
     @Column(name = "fodselsnummer", nullable = false)
-    val fodselsnummer: BigDecimal,
+    val fodselsnummer: BigDecimal = BigDecimal(0),
 
 
     @Embedded
-    val fullmektig: Fullmektig?,
+    val fullmektig: Fullmektig? = null,
 
 
     @Schema(
         description = "Referanse for bruker/mottaker",
     )
     @Column(name = "referanse_bruker", nullable = false)
-    val referanseBruker: String,
+    val referanseBruker: String  = "",
 
 
     @Schema(
         description = "Referanse for NAV",
     )
     @Column(name = "referanse_nav", nullable = false)
-    val referanseNAV: String,
+    val referanseNAV: String = "",
 
 
     @Schema(
         description = "Startdato for fakturaserie",
     )
     @Column(nullable = false)
-    val startdato: LocalDate,
+    val startdato: LocalDate = LocalDate.now(),
 
 
     @Schema(
         description = "Sluttdato for fakturaserie",
     )
     @Column(nullable = false)
-    val sluttdato: LocalDate,
+    val sluttdato: LocalDate = LocalDate.now(),
 
 
     @Column(name = "status", nullable = false)
@@ -94,7 +94,7 @@ data class Fakturaserie(
     )
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "fakturaserie_id", nullable = false)
-    val faktura: List<Faktura>
+    val faktura: List<Faktura> = listOf()
 ) {
     @Override
     override fun toString(): String {
@@ -106,19 +106,19 @@ data class Fakturaserie(
                 "faktura: $faktura"
     }
 
-    constructor() : this(
-        id = null,
-        vedtaksId = "",
-        fakturaGjelder = "",
-        fodselsnummer = BigDecimal(0),
-        fullmektig = null,
-        referanseBruker = "",
-        referanseNAV = "",
-        startdato = LocalDate.now(),
-        sluttdato = LocalDate.now(),
-        status = FakturaserieStatus.UNDER_BESTILLING,
-        intervall = FakturaserieIntervall.MANEDLIG,
-        opprettetTidspunkt = LocalDateTime.now(),
-        faktura = listOf()
-    )
+//    constructor(faktura: List<Faktura> = listOf()) : this(
+//        id = null,
+//        vedtaksId = "",
+//        fakturaGjelder = "",
+//        fodselsnummer = BigDecimal(0),
+//        fullmektig = null,
+//        referanseBruker = "",
+//        referanseNAV = "",
+//        startdato = LocalDate.now(),
+//        sluttdato = LocalDate.now(),
+//        status = FakturaserieStatus.UNDER_BESTILLING,
+//        intervall = FakturaserieIntervall.MANEDLIG,
+//        opprettetTidspunkt = LocalDateTime.now(),
+//        faktura = faktura
+//    )
 }

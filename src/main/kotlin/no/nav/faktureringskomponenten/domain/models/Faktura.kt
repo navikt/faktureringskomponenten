@@ -5,10 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.persistence.*
 import no.nav.faktureringskomponenten.domain.converter.FakturaStatusConverter
-import org.hibernate.annotations.JdbcType
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.type.SqlTypes
-import org.springframework.messaging.converter.StringMessageConverter
 import java.time.LocalDate
 
 @Schema(description = "Model for en faktura i fakturaserien")
@@ -18,14 +14,14 @@ data class Faktura(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long?,
+    val id: Long? = null,
 
 
     @Schema(
         description = "Dato for når faktura bestilles til OEBS"
     )
     @Column(name = "dato_bestilt", nullable = false)
-    val datoBestilt: LocalDate,
+    val datoBestilt: LocalDate = LocalDate.now(),
 
 
     @Column(name = "status", nullable = false, columnDefinition = "enum('OPPRETTET','BESTILLT','KANSELLERT')")
@@ -39,7 +35,7 @@ data class Faktura(
     )
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "faktura_id", nullable = false)
-    val fakturaLinje: List<FakturaLinje>
+    val fakturaLinje: List<FakturaLinje> = listOf()
 ) {
 
     @ManyToOne
@@ -74,13 +70,16 @@ data class Faktura(
 
     @Override
     override fun toString(): String {
-        return "datoBestilt: $datoBestilt, status: $status, fakturaLinje: $fakturaLinje"
+        return "$id: datoBestilt: $datoBestilt, status: $status, fakturaLinje: $fakturaLinje"
     }
 
-    constructor() : this(
-        id = null,
-        datoBestilt = LocalDate.now(),
-        status = FakturaStatus.OPPRETTET,
-        fakturaLinje = listOf()
-    )
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as Faktura
+        return id == other.id
+    }
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
 }
