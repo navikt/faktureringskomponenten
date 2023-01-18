@@ -1,10 +1,8 @@
-package no.nav.faktureringskomponenten.domain.repoistories
+package no.nav.faktureringskomponenten.domain.repositories
 
 import io.kotest.matchers.collections.shouldHaveSize
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
-import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
