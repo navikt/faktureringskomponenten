@@ -39,7 +39,7 @@ class KafkaConfig(
 
     @Bean
     fun producerFactory(): ProducerFactory<String, FakturaBestiltDto> {
-        return DefaultKafkaProducerFactory(commonProps())
+        return DefaultKafkaProducerFactory(producerProps())
     }
 
     @Bean
@@ -48,72 +48,66 @@ class KafkaConfig(
         return KafkaTemplate(producerFactory())
     }
 
+    private fun producerProps(): Map<String, Any> = mutableMapOf<String, Any>(
+        CommonClientConfigs.CLIENT_ID_CONFIG to "melosys-producer",
+        ProducerConfig.ACKS_CONFIG to "all",
+        ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to brokersUrl,
+        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to FakturaBestiltSerializer::class.java
+    ) + securityConfig()
+
     @Bean
     fun faktarMottattHendelseListenerContainerFactory(
         kafkaProperties: KafkaProperties
-    ): KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String?, FakturaMottattDto?>?>? {
+    ): KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String, FakturaMottattDto>> {
         return fakturaMottattListenerContainerFactory(kafkaProperties)
     }
 
-    private fun fakturaMottattListenerContainerFactory(kafkaProperties: KafkaProperties): ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>? {
-        val props = kafkaProperties.buildConsumerProperties()
-        props.putAll(consumerConfig())
+    private fun fakturaMottattListenerContainerFactory(
+        kafkaProperties: KafkaProperties
+    ): ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto> {
+        val props = kafkaProperties.buildConsumerProperties() + consumerConfig()
         val defaultKafkaConsumerFactory = DefaultKafkaConsumerFactory<String, FakturaMottattDto>(
-            props, StringDeserializer(), valueDeserializer(FakturaMottattDto::class.java)
+            props, StringDeserializer(),
+            ErrorHandlingDeserializer(JsonDeserializer(FakturaMottattDto::class.java, false))
         )
-        val factory: ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto> =
-            ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>()
-        factory.setConsumerFactory(defaultKafkaConsumerFactory)
-        factory.containerProperties.ackMode = ContainerProperties.AckMode.RECORD
-        return factory
+
+        return ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>().apply {
+            consumerFactory = defaultKafkaConsumerFactory
+            containerProperties.ackMode = ContainerProperties.AckMode.RECORD
+        }
     }
 
     private fun consumerConfig(): Map<String, Any> {
-        val props: MutableMap<String, Any> = HashMap()
-        props[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = brokersUrl
-        props[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = false
-        props[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
-        props[ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG] = 15000
-        props[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        props[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = JsonDeserializer::class.java
-        props[ConsumerConfig.MAX_POLL_RECORDS_CONFIG] = 1
-        if (!isLocal) {
-            props.putAll(securityConfig())
-        }
-        return props
+        return mapOf<String, Any>(
+            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to brokersUrl,
+            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
+            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
+            ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG to 15000,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
+            ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1
+
+        ) + securityConfig()
     }
 
-    private fun securityConfig(props: MutableMap<String, Any> = HashMap()): Map<String, Any> {
-        props[CommonClientConfigs.SECURITY_PROTOCOL_CONFIG] = "SSL"
-        props[SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG] = truststorePath
-        props[SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG] = credstorePassword
-        props[SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG] = "JKS"
-        props[SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG] = keystorePath
-        props[SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG] = credstorePassword
-        props[SslConfigs.SSL_KEY_PASSWORD_CONFIG] = credstorePassword
-        props[SslConfigs.SSL_KEYSTORE_TYPE_CONFIG] = "PKCS12"
-        return props
-    }
+    private fun securityConfig(): Map<String, Any> {
+        if (isLocal) return mapOf()
 
-    private fun <T> valueDeserializer(targetType: Class<T>): ErrorHandlingDeserializer<T>? {
-        return ErrorHandlingDeserializer(JsonDeserializer(targetType, false))
-    }
-
-    private fun commonProps(): Map<String, Any> {
-        val props: MutableMap<String, Any> = HashMap()
-        props[CommonClientConfigs.CLIENT_ID_CONFIG] = "melosys-producer"
-        props[ProducerConfig.ACKS_CONFIG] = "all"
-        props[ProducerConfig.BOOTSTRAP_SERVERS_CONFIG] = brokersUrl
-        props[ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG] = StringSerializer::class.java
-        props[ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG] = FakturaBestiltSerializer::class.java
-        if (!isLocal) {
-            securityConfig(props)
-        }
-        return props
+        return mapOf<String, Any>(
+            CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to "SSL",
+            SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG to truststorePath,
+            SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePassword,
+            SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG to "JKS",
+            SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
+            SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePassword,
+            SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePassword,
+            SslConfigs.SSL_KEYSTORE_TYPE_CONFIG to "PKCS12"
+        )
     }
 
     private val isLocal: Boolean
-        get() = Arrays.stream(env.activeProfiles).anyMatch { profile: String ->
+        get() = env.activeProfiles.any { profile: String ->
             profile.equals("local", ignoreCase = true)
         }
 }
