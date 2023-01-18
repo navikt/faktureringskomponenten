@@ -4,19 +4,29 @@ import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMotta
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 
 @Component
-class FakturaMottattConsumer {
+class FakturaMottattConsumer(
+    @Value("\${kafka.consumer.oebs.topic}") private val topic: String,
+    @Value("\${kafka.consumer.oebs.groupid}") private val groupID: String,
+) {
     private val log: Logger = LoggerFactory.getLogger(FakturaMottattConsumer::class.java)
 
-    @KafkaListener(
-        clientIdPrefix = "melosys-faktureringskomponenten-fakturaMottatt",
-        topics = ["\${kafka.topics.consumer.oebs.topic}"],
-        containerFactory = "sedHendelseListenerContainerFactory",
-        groupId = "\${kafka.topics.consumer.oebs.groupid}"
-    )
+
+    init {
+        log.info("--- topic:{$topic}")
+        log.info("--- groupID:{$groupID}")
+    }
+
+//    @KafkaListener(
+//        clientIdPrefix = "melosys-faktureringskomponenten-fakturaMottatt",
+//        topics = ["\${kafka.consumer.oebs.topic}"],
+//        containerFactory = "sedHendelseListenerContainerFactory",
+//        groupId = "\${kafka.consumer.oebs.groupid}"
+//    )
     fun fakturaMottatt(consumerRecord: ConsumerRecord<String, FakturaMottattDto>) {
         log.info("Mottatt melding {}", consumerRecord)
     }
