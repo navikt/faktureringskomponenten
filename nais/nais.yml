@@ -61,3 +61,5 @@ spec:
   env:
     - name: KAFKA_TOPIC_NAME_FAKTURA_BESTILT
       value: {{kafka_topic_name_faktura_bestilt}}
+  envFrom:
+    - secret: faktureringskomponenten
