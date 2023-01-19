@@ -5,9 +5,8 @@ import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
-import no.nav.faktureringskomponenten.validators.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,8 +28,8 @@ class FakturaserieService(
 
         if (!fakturaserie.isPresent) {
             throw RessursIkkeFunnetException(
-                "vedtaksId",
-                "Fant ikke fakturaserie på: $vedtaksId"
+                felt = "vedtaksId",
+                melding = "Fant ikke fakturaserie på: $vedtaksId"
             )
         }
 
@@ -53,8 +52,8 @@ class FakturaserieService(
 
         if (!opprinneligFakturaserieOptional.isPresent) {
             throw RessursIkkeFunnetException(
-                "vedtaksId",
-                "Fant ikke opprinnelig fakturaserie med vedtaksId $opprinneligVedtaksId"
+                felt = "vedtaksId",
+                melding = "Fant ikke opprinnelig fakturaserie med vedtaksId $opprinneligVedtaksId"
             )
         }
 

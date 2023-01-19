@@ -40,15 +40,14 @@ import java.time.LocalDate
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableMockOAuth2Server
-@Disabled
 class FakturaserieControllerTest(
     @Autowired val webClient: WebTestClient,
     @Autowired val server: MockOAuth2Server,
     @Autowired val fakturaserieRepository: FakturaserieRepository,
-    @Autowired val fakturaService: FakturaService
 ) : PostgresTestContainerBase() {
 
     @Test
+    @Disabled("Skal ikke støtte endring av fakturaserie i denne versjonen")
     fun `endre fakturaserie setter første faktura til å bli utsendt dagen etterpå`() {
         val vedtaksId = "id-3"
         val nyVedtaksId = "id-4"
@@ -94,10 +93,10 @@ class FakturaserieControllerTest(
     fun `lagNyFaktura validerer duplikate vedtaksId`() {
         val duplikatNokkel = "id-1"
 
-        lagFakturaserieDto(vedtaksId = duplikatNokkel)
-        postLagNyFakturaserieRequest(lagFakturaserieDto(vedtaksId = duplikatNokkel)).expectStatus().isOk
+        val fakturaSerieDto = lagFakturaserieDto(vedtaksId = duplikatNokkel)
+        postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk
 
-        postLagNyFakturaserieRequest(lagFakturaserieDto(vedtaksId = duplikatNokkel))
+        postLagNyFakturaserieRequest(fakturaSerieDto)
             .expectStatus()
             .isEqualTo(HttpStatus.BAD_REQUEST)
             .expectBody()
@@ -121,7 +120,6 @@ class FakturaserieControllerTest(
             .expectBody().json(
                 """
                 {
-                    "type": "https://zalando.github.io/problem/constraint-violation",
                     "status": 400,
                     "violations": [
                       {

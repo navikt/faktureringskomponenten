@@ -13,7 +13,7 @@ data class FakturaserieDto(
     @field:Schema(
         description = "Unik identifikator som saksbehandlingssystemet kjenner igjen",
     )
-    @field:IkkeDuplikatVedtaksId
+    @IkkeDuplikatVedtaksId
     val vedtaksId: String,
 
     @field:Schema(
