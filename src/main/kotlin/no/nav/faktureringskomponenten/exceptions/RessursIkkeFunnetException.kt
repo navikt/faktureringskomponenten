@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.ResponseStatus
 @ResponseStatus(HttpStatus.NOT_FOUND)
 class RessursIkkeFunnetException: RuntimeException {
 
-    var tittel: String = ""
-    var felt: String = ""
+    var title: String = ""
+    var field: String = ""
 
-    constructor(tittel: String = "Fant ikke ressurs", felt: String, melding: String): super(melding) {
-        this.tittel = tittel
-        this.felt = felt
+    constructor(title: String = "Fant ikke ressurs", field: String, message: String): super(message) {
+        this.title = title
+        this.field = field
     }
 }

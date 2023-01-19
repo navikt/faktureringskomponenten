@@ -32,8 +32,8 @@ class FakturaService(
 
         val fakturaserieId = faktura.getFakturaserieId()
             ?: throw RessursIkkeFunnetException(
-                felt = "fakturaId",
-                melding = "Finner ikke fakturaserie med faktura id ${faktura.id}")
+                field = "fakturaId",
+                message = "Finner ikke fakturaserie med faktura id ${faktura.id}")
 
         val fakturaserie = fakturaserieRepository.findById(fakturaserieId).get()
 

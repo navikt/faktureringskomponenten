@@ -28,8 +28,8 @@ class FakturaserieService(
 
         if (!fakturaserie.isPresent) {
             throw RessursIkkeFunnetException(
-                felt = "vedtaksId",
-                melding = "Fant ikke fakturaserie på: $vedtaksId"
+                field = "vedtaksId",
+                message = "Fant ikke fakturaserie på: $vedtaksId"
             )
         }
 
@@ -52,8 +52,8 @@ class FakturaserieService(
 
         if (!opprinneligFakturaserieOptional.isPresent) {
             throw RessursIkkeFunnetException(
-                felt = "vedtaksId",
-                melding = "Fant ikke opprinnelig fakturaserie med vedtaksId $opprinneligVedtaksId"
+                field = "vedtaksId",
+                message = "Fant ikke opprinnelig fakturaserie med vedtaksId $opprinneligVedtaksId"
             )
         }
 
