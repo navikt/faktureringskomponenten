@@ -22,9 +22,13 @@ kafka:
     keystorePath: ${KAFKA_KEYSTORE_PATH:/dev/zero}
     truststorePath: ${KAFKA_KEYSTORE_PATH:/dev/zero}
     credstorePassword: ${KAFKA_CREDSTORE_PASSWORD:pwd}
-  topics:
-    producer:
-      faktura-bestilt: ${KAFKA_TOPIC_NAME_FAKTURA_BESTILT}
+  producer:
+    faktura-bestilt: ${KAFKA_TOPIC_NAME_FAKTURA_BESTILT}
+  consumer:
+    oebs:
+      groupid: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_GROUPID}
+      topic: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_TOPIC}
+
 
 #Token-validering
 no.nav.security.jwt.issuer:

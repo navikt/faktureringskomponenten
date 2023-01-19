@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 
 @Component
 class FakturaBestiltProducer(
-    @Value("\${kafka.topics.producer.faktura-bestilt}") private val topicName: String,
+    @Value("\${kafka.producer.faktura-bestilt}") private val topicName: String,
     @Qualifier("fakturaBestilt") @Autowired
     private val kafkaTemplate: KafkaTemplate<String, FakturaBestiltDto>
 ) {
