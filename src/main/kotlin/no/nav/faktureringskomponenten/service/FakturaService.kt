@@ -8,7 +8,7 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
-import no.nav.faktureringskomponenten.validators.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -31,7 +31,9 @@ class FakturaService(
         val faktura = fakturaRepository.findById(fakturaId)
 
         val fakturaserieId = faktura.getFakturaserieId()
-            ?: throw RessursIkkeFunnetException("fakturaId", "Finner ikke fakturaserie med faktura id ${faktura.id}")
+            ?: throw RessursIkkeFunnetException(
+                field = "fakturaId",
+                message = "Finner ikke fakturaserie med faktura id ${faktura.id}")
 
         val fakturaserie = fakturaserieRepository.findById(fakturaserieId).get()
 

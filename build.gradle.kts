@@ -26,7 +26,6 @@ allOpen {
 }
 
 object dependencyVersions {
-    const val zalandoProblemVersion = "0.27.0"
     const val testContainerVersion = "1.17.6"
     const val kotestVersion = "5.5.4"
     const val shedlockVersion = "4.4.0"
@@ -51,7 +50,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("no.nav.security:token-validation-spring:${dependencyVersions.tokenSupportVersion}")
-    implementation("org.zalando:problem-spring-web-starter:${dependencyVersions.zalandoProblemVersion}")
     implementation("org.flywaydb:flyway-core")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")

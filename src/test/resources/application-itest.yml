@@ -25,13 +25,16 @@ management:
       enabled: true
 kafka:
   aiven:
-    brokers: "dummy"
-    keystorePath: "dummy"
-    truststorePath: "dummy"
-    credstorePassword: "dummy"
-  topics:
-    producer:
-      faktura-bestilt: "faktura-bestilt.v1"
+    brokers: "localhost:29092"
+    keystorePath: "/dev/zero"
+    truststorePath: "/dev/zero"
+    credstorePassword: "/dev/zero"
+  producer:
+    faktura-bestilt: "faktura-bestilt.v1"
+  consumer:
+    oebs:
+      groupid: "faktura-mottatt-groupid"
+      topic: "faktura-mottatt-topic"
 
 no.nav.security.jwt.issuer:
   aad:

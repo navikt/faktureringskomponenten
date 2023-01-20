@@ -88,6 +88,6 @@ class KafkaConfig(
 
     private val isLocal: Boolean
         get() = env.activeProfiles.any { profile: String ->
-            profile.equals("local", ignoreCase = true)
+            profile.equals("local", ignoreCase = true) || profile.equals("itest", ignoreCase = true)
         }
 }
