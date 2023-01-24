@@ -54,13 +54,13 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
 
             forsteDagAvPeriode = sisteDagAvPeriode.plusDays(1)
             sisteDagAvPeriode = hentSisteDagAvPeriode(forsteDagAvPeriode, intervall)
+        }
 
-            if (!erEldreFaktura(dagensDato, sisteDagAvPeriode) && fakturaLinjer.isNotEmpty()) {
-                fakturaListe.add(
-                    tilFaktura(forsteDagAvPeriode, fakturaLinjer.toList())
-                )
-                fakturaLinjer.clear()
-            }
+        if (fakturaLinjer.isNotEmpty()) {
+            fakturaListe.add(
+                tilFaktura(forsteDagAvPeriode, fakturaLinjer.toList())
+            )
+            fakturaLinjer.clear()
         }
         return fakturaListe
     }
