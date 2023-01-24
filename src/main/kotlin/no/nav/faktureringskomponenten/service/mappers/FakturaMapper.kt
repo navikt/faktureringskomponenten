@@ -27,8 +27,7 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
         var sisteDagAvPeriode = hentSisteDagAvPeriode(startDatoForHelePerioden, intervall)
         val fakturaLinjer = mutableListOf<FakturaLinje>()
         val fakturaListe = mutableListOf<Faktura>()
-        val dagensDato = LocalDate.now()
-        while (erEldreFaktura(sluttDatoForHelePerioden, forsteDagAvPeriode)) {
+        while (sluttDatoForHelePerioden >= forsteDagAvPeriode) {
             val fakturaLinjerForPeriode = fakturalinjeMapper.tilFakturaLinjer(
                 periodeListeDto,
                 forsteDagAvPeriode,
@@ -36,7 +35,7 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
             )
 
             // Sørger for å samle foregående faktura i én større første faktura
-            if (erEldreFaktura(dagensDato, sisteDagAvPeriode)) {
+            if (LocalDate.now() > sisteDagAvPeriode) {
                 fakturaLinjer.addAll(fakturaLinjerForPeriode)
             } else {
                 if (fakturaLinjer.isNotEmpty()) {

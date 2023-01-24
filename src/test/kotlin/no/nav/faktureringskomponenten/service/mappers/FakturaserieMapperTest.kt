@@ -11,8 +11,8 @@ import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.Arguments.arguments
+import org.junit.jupiter.params.provider.MethodSource
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -94,8 +94,8 @@ class FakturaserieMapperTest {
             perioder = listOf(
                 FakturaseriePeriodeDto(
                     enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2022, 6, 1),
-                    sluttDato = LocalDate.of(2023, 6, 1),
+                    startDato = LocalDate.of(2022, 12, 1),
+                    sluttDato = LocalDate.of(2023, 2, 1),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             )
