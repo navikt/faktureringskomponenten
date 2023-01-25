@@ -36,7 +36,7 @@ class FakturaserieMapperTest {
     private fun data() = listOf(
         arguments(
             "Før dagens data",
-            LocalDate.now(),
+            LocalDate.of(2023, 1, 20),
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
                 FakturaseriePeriodeDto(
@@ -68,7 +68,7 @@ class FakturaserieMapperTest {
         ),
         arguments(
             "Før og etter dagens dato",
-            LocalDate.now(),
+            LocalDate.of(2023, 1, 20),
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
                 FakturaseriePeriodeDto(
@@ -109,20 +109,20 @@ class FakturaserieMapperTest {
         ),
         arguments(
             "2 faktura serier - lager 2 faktura med linjer",
-            LocalDate.now(),
+            LocalDate.of(2023, 1, 22),
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2023, 1, 23),
-                    sluttDato = LocalDate.of(2023, 2, 1),
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
                 FakturaseriePeriodeDto(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2022, 12, 1),
                     sluttDato = LocalDate.of(2023, 1, 22),
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                ),
+                FakturaseriePeriodeDto(
+                    enhetsprisPerManed = BigDecimal(25470),
+                    startDato = LocalDate.of(2023, 1, 23),
+                    sluttDato = LocalDate.of(2023, 2, 1),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
             FakturaData(
@@ -136,26 +136,25 @@ class FakturaserieMapperTest {
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2023-01-23", "2023-01-31", 7394,
-                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                            ),
-                            Linje(
                                 "2023-01-01", "2023-01-22", 18075,
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-01-23", "2023-01-31", 7394,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
                     ),
                     FakturaMedLinjer(
                         fra = "2023-02-01", til = "2023-02-01",
                         listOf(
-                            Linje(
-                                "2023-02-01",
-                                "2023-02-01",
-                                909,
-                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                            ),
                             Linje( // TODO: dette virker feil. Må muligens mocke dagens dato
-                                "2023-02-01", "2023-01-22", -8304, "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                                "2023-02-01", "2023-01-22", -8304,
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-02-01", "2023-02-01", 909,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
                     ),
@@ -170,15 +169,15 @@ class FakturaserieMapperTest {
             listOf(
                 FakturaseriePeriodeDto(
                     enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2023, 1, 19),
-                    sluttDato = LocalDate.of(2023, 5, 1),
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-                FakturaseriePeriodeDto(
-                    enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2022, 1, 1),
                     sluttDato = LocalDate.of(2023, 5, 18),
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                ),
+                FakturaseriePeriodeDto(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2023, 1, 19),
+                    sluttDato = LocalDate.of(2023, 5, 1),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
             FakturaData(
@@ -236,12 +235,12 @@ class FakturaserieMapperTest {
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2023-01-19", "2023-01-31", 4193,
-                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                            ),
-                            Linje(
                                 "2023-01-01", "2023-01-31", 10000,
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-01-19", "2023-01-31", 4193,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
                     ),
@@ -250,11 +249,11 @@ class FakturaserieMapperTest {
                         listOf(
                             Linje(
                                 "2023-02-01", "2023-02-28", 10000,
-                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
                                 "2023-02-01", "2023-02-28", 10000,
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
                     ),
@@ -263,11 +262,11 @@ class FakturaserieMapperTest {
                         listOf(
                             Linje(
                                 "2023-03-01", "2023-03-31", 10000,
-                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
                                 "2023-03-01", "2023-03-31", 10000,
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
                     ),
@@ -276,11 +275,11 @@ class FakturaserieMapperTest {
                         listOf(
                             Linje(
                                 "2023-04-01", "2023-04-30", 10000,
-                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
                                 "2023-04-01", "2023-04-30", 10000,
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
                     ),
