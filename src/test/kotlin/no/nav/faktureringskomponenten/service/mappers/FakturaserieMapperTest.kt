@@ -7,6 +7,7 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
@@ -148,7 +149,7 @@ class FakturaserieMapperTest {
                     FakturaMedLinjer(
                         fra = "2023-02-01", til = "2023-02-01",
                         listOf(
-                            Linje( // TODO: dette virker feil. Må muligens mocke dagens dato
+                            Linje( // TODO: dette er feil.
                                 "2023-02-01", "2023-01-22", -8304,
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
@@ -295,8 +296,132 @@ class FakturaserieMapperTest {
                 )
             )
         )
-
     )
+
+
+    @Test
+    fun `feil at periode er fra=2023-02-01 til=2023-01-22 og dermed vi får -8304 på PENSJONSDEL`() {
+        val perioder = listOf(
+            FakturaseriePeriodeDto(
+                enhetsprisPerManed = BigDecimal(25470),
+                startDato = LocalDate.of(2023, 1, 1),
+                sluttDato = LocalDate.of(2023, 1, 22),
+                beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+            ),
+            FakturaseriePeriodeDto(
+                enhetsprisPerManed = BigDecimal(25470),
+                startDato = LocalDate.of(2023, 1, 23),
+                sluttDato = LocalDate.of(2023, 2, 1),
+                beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+            )
+        )
+        val fakturaserie = lagFakturaserie(
+            LocalDate.of(2023, 1, 22), FakturaserieIntervallDto.MANEDLIG,
+            perioder
+        )
+        val result = FakturaData(fakturaserie.faktura)
+
+        print(result.toString())
+
+        result.shouldBeEqualToComparingFields(
+            FakturaData(
+                2,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2023-01-01", til = "2023-01-31",
+                        listOf(
+                            Linje(
+                                "2023-01-01", "2023-01-22", 18075,
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-01-23", "2023-01-31", 7394,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
+                        )
+                    ),
+                    FakturaMedLinjer(
+                        fra = "2023-02-01", til = "2023-02-01",
+                        listOf(
+                            Linje(
+                                "2023-02-01", "2023-01-22", -8304,
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-02-01", "2023-02-01", 909,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
+                        )
+                    ),
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `feil at periode er fra=2023-02-01 til=2023-01-24 og dermed vi får -6660 på PENSJONSDEL`() {
+        // Test data fra lokal kjøring
+        val perioder = listOf(
+            FakturaseriePeriodeDto(
+                enhetsprisPerManed = BigDecimal(25470),
+                startDato = LocalDate.of(2022, 12, 1),
+                sluttDato = LocalDate.of(2023, 1, 24),
+                beskrivelse = "Inntekt: 80000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+            ),
+            FakturaseriePeriodeDto(
+                enhetsprisPerManed = BigDecimal(25470),
+                startDato = LocalDate.of(2023, 1, 25),
+                sluttDato = LocalDate.of(2023, 2, 1),
+                beskrivelse = "Inntekt: 80000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+            )
+        )
+        val fakturaserie = lagFakturaserie(
+            LocalDate.of(2023, 1, 25), FakturaserieIntervallDto.MANEDLIG,
+            perioder
+        )
+        val result = FakturaData(fakturaserie.faktura)
+
+        print(result.toString())
+
+        result.shouldBeEqualToComparingFields(
+            FakturaData(
+                2,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2022-12-01", til = "2023-01-31",
+                        listOf(
+                            Linje(
+                                "2022-12-01", "2022-12-31", 25470,
+                                "Inntekt: 80000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-01-01", "2023-01-24", 19718,
+                                "Inntekt: 80000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-01-25", "2023-01-31", 5751,
+                                "Inntekt: 80000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
+                        )
+                    ),
+                    FakturaMedLinjer(
+                        fra = "2023-02-01", til = "2023-02-01",
+                        listOf(
+                            Linje(
+                                "2023-02-01", "2023-01-24", -6660,
+                                "Inntekt: 80000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-02-01", "2023-02-01", 909,
+                                "Inntekt: 80000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
+                        )
+                    ),
+                )
+            )
+        )
+    }
+
 
     private fun lagFakturaserie(
         dagensDato: LocalDate = LocalDate.now(),
