@@ -20,18 +20,18 @@ import java.time.LocalDate
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 class FakturaserieMapperTest {
 
-    @ParameterizedTest(name ="[{index}] {0}")
+    @ParameterizedTest(name = "[{index}] {0}")
     @MethodSource("data")
     fun testFakturaLinjer(
         intervall: FakturaserieIntervallDto,
         perioder: List<FakturaseriePeriodeDto>,
-        expected: Expected.ExpectedData
+        expected: Expected.FakturaData
     ) {
         val fakturaserie = lagFakturaserie(intervall, perioder)
+        val result = Expected.FakturaData(fakturaserie.faktura)
+        print("result=$result")
 
-        Expected.ExpectedData(fakturaserie.faktura).apply {
-//            printResult()
-        }.shouldBeEqualToComparingFields(expected)
+        result.shouldBeEqualToComparingFields(expected)
     }
 
     private fun data() = listOf(
@@ -45,7 +45,7 @@ class FakturaserieMapperTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            Expected.ExpectedData(
+            Expected.FakturaData(
                 1,
                 listOf(
                     Expected.FakturaMedLinjer(
@@ -75,7 +75,7 @@ class FakturaserieMapperTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            Expected.ExpectedData(
+            Expected.FakturaData(
                 2,
                 listOf(
                     Expected.FakturaMedLinjer(
@@ -194,28 +194,8 @@ class FakturaserieMapperTest {
     }
 
     class Expected {
-        data class Linje(
-            val fra: LocalDate,
-            val til: LocalDate,
-            val belop: Int,
-            val beskrivelse: String,
-        ) {
-            constructor(fra: String, til: String, belop: Int, beskrivelse: String)
-                    : this(LocalDate.parse(fra), LocalDate.parse(til), belop, beskrivelse)
-        }
-
-        data class FakturaMedLinjer(
-            val fra: LocalDate,
-            val til: LocalDate,
-            val fakturaLinjer: List<Linje>
-        ) {
-            constructor(fra: String, til: String, fakturaLinjer: List<Linje>) :
-                    this(LocalDate.parse(fra), LocalDate.parse(til), fakturaLinjer)
-        }
-
-
         //        println(fakturaserie)
-        data class ExpectedData(
+        data class FakturaData(
             val size: Int,
             val fakturaMedLinjer: List<FakturaMedLinjer>
 
@@ -237,16 +217,31 @@ class FakturaserieMapperTest {
                             )
                         })
 
-            fun printResult() {
-                fakturaMedLinjer.forEach { f ->
-                    println("======================================================")
-                    println("faktura.periode fra: ${f.fra}, til: ${f.til}, fakturaLinje.size: ${f.fakturaLinjer.size}")
-                    println("------------------------------------------------------")
-                    f.fakturaLinjer.forEach { fi ->
-                        println("fakturaLinje.periodeFra: ${fi.fra},  fakturaLinje.periodeTil:${fi.til}, beløp: ${fi.belop}, beskrivelse:${fi.beskrivelse}")
-                    }
-                }
-            }
+            override fun toString() = "size=$size fakturaListe=$fakturaMedLinjer\n"
+        }
+
+        data class FakturaMedLinjer(
+            val fra: LocalDate,
+            val til: LocalDate,
+            val fakturaLinjer: List<Linje>
+        ) {
+            constructor(fra: String, til: String, fakturaLinjer: List<Linje>) :
+                    this(LocalDate.parse(fra), LocalDate.parse(til), fakturaLinjer)
+
+            override fun toString() = "\n  fra:$fra, til:$til fakturaLinjer:$fakturaLinjer\n"
+        }
+
+        data class Linje(
+            val fra: LocalDate,
+            val til: LocalDate,
+            val belop: Int,
+            val beskrivelse: String,
+        ) {
+
+            constructor(fra: String, til: String, belop: Int, beskrivelse: String)
+                    : this(LocalDate.parse(fra), LocalDate.parse(til), belop, beskrivelse)
+
+            override fun toString() = "\n    fra=$fra, til:$til, beløp:$belop, $beskrivelse"
         }
     }
 }
