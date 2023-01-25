@@ -2,11 +2,12 @@ package no.nav.faktureringskomponenten.service.mappers
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
+import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -19,74 +20,93 @@ import java.time.LocalDate
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 class FakturaserieMapperTest {
 
-    @ParameterizedTest(name = "{0} - {2}")
+    @ParameterizedTest(name ="[{index}] {0}")
     @MethodSource("data")
     fun testFakturaLinjer(
         intervall: FakturaserieIntervallDto,
         perioder: List<FakturaseriePeriodeDto>,
-        expected: Expected
+        expected: Expected.ExpectedData
     ) {
         val fakturaserie = lagFakturaserie(intervall, perioder)
 
-
-        fakturaserie.faktura
-            .shouldHaveSize(expected.fakturaAntall)
-//            .map { Triple(it.fakturaLinje)  }
-//            .first().fakturaLinje
-//            .map { it.periodeFra }
-//            .shouldBe(expectedPeriodeFra)
+        Expected.ExpectedData(fakturaserie.faktura).apply {
+//            printResult()
+        }.shouldBeEqualToComparingFields(expected)
     }
 
-    class Expected(
-        val fakturaAntall: Int,
-        triple: List<Triple<LocalDate, LocalDate, String>>
-    )
-
-
     private fun data() = listOf(
-//        arguments(
-//            FakturaserieIntervallDto.MANEDLIG,
-//            listOf(
-//                FakturaseriePeriodeDto(
-//                    enhetsprisPerManed = BigDecimal(25470),
-//                    startDato = LocalDate.of(2022, 12, 1),
-//                    sluttDato = LocalDate.of(2023, 1, 1),
-//                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-//                )
-//            ),
-//            listOf(LocalDate.of(2022, 12, 1))
-//        ),
         arguments(
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
                 FakturaseriePeriodeDto(
                     enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2022, 1, 19),
-                    sluttDato = LocalDate.of(2023, 5, 1),
+                    startDato = LocalDate.of(2022, 12, 1),
+                    sluttDato = LocalDate.of(2023, 1, 1),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
+                )
+            ),
+            Expected.ExpectedData(
+                1,
+                listOf(
+                    Expected.FakturaMedLinjer(
+                        fra = "2022-12-01", til = "2023-01-01",
+                        listOf(
+                            Expected.Linje(
+                                "2022-12-01", "2022-12-31", 25470,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
+                            Expected.Linje(
+                                "2023-01-01", "2023-01-01", 821,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
+                        )
+                    )
+                )
+            )
+
+        ),
+        arguments(
+            FakturaserieIntervallDto.MANEDLIG,
+            listOf(
                 FakturaseriePeriodeDto(
                     enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2022, 1, 1),
-                    sluttDato = LocalDate.of(2023, 5, 18),
-                    beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                    startDato = LocalDate.of(2022, 12, 1),
+                    sluttDato = LocalDate.of(2023, 2, 1),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
-
             ),
-            Expected(
-                5,
-                listOf(Triple<LocalDate, LocalDate, String>(
-                    LocalDate.of(2022, 1, 19),
-                    LocalDate.of(2022, 1, 31),
-                    "Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ))
+            Expected.ExpectedData(
+                2,
+                listOf(
+                    Expected.FakturaMedLinjer(
+                        fra = "2022-12-01", til = "2023-01-31",
+                        listOf(
+                            Expected.Linje(
+                                "2022-12-01", "2022-12-31", 25470,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
+                            Expected.Linje(
+                                "2023-01-01", "2023-01-31", 25470,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
 
+                            )
+                    ),
+                    Expected.FakturaMedLinjer(
+                        fra = "2023-02-01", til = "2023-02-01",
+                        listOf(
+                            Expected.Linje(
+                                "2023-02-01", "2023-02-01", 909,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            )
+                        )
+                    )
+                )
             )
         )
-
     )
 
-    @Test
+    @Test // Fjerne denne etter at ting er flyttet til test over
     fun test() {
 
         val fakturaserie: Fakturaserie = lagFakturaserie(
@@ -99,7 +119,6 @@ class FakturaserieMapperTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             )
-
 
 //            perioder = listOf(
 //                FakturaseriePeriodeDto(
@@ -131,7 +150,7 @@ class FakturaserieMapperTest {
 //            )
         )
 
-//        println(fakturaserie)
+
 
         println("fakturaserie.faktura.size ${fakturaserie.faktura.size}")
         fakturaserie.faktura.forEach { f ->
@@ -172,5 +191,62 @@ class FakturaserieMapperTest {
                 perioder = perioder
             )
         )
+    }
+
+    class Expected {
+        data class Linje(
+            val fra: LocalDate,
+            val til: LocalDate,
+            val belop: Int,
+            val beskrivelse: String,
+        ) {
+            constructor(fra: String, til: String, belop: Int, beskrivelse: String)
+                    : this(LocalDate.parse(fra), LocalDate.parse(til), belop, beskrivelse)
+        }
+
+        data class FakturaMedLinjer(
+            val fra: LocalDate,
+            val til: LocalDate,
+            val fakturaLinjer: List<Linje>
+        ) {
+            constructor(fra: String, til: String, fakturaLinjer: List<Linje>) :
+                    this(LocalDate.parse(fra), LocalDate.parse(til), fakturaLinjer)
+        }
+
+
+        //        println(fakturaserie)
+        data class ExpectedData(
+            val size: Int,
+            val fakturaMedLinjer: List<FakturaMedLinjer>
+
+        ) {
+            constructor(fakturaListe: List<Faktura>) :
+                    this(fakturaListe.size,
+                        fakturaListe.map { f ->
+                            FakturaMedLinjer(
+                                f.getPeriodeFra(),
+                                f.getPeriodeTil(),
+                                f.fakturaLinje.map { fl ->
+                                    Linje(
+                                        fl.periodeFra,
+                                        fl.periodeTil,
+                                        fl.belop.toInt(),
+                                        fl.beskrivelse
+                                    )
+                                }
+                            )
+                        })
+
+            fun printResult() {
+                fakturaMedLinjer.forEach { f ->
+                    println("======================================================")
+                    println("faktura.periode fra: ${f.fra}, til: ${f.til}, fakturaLinje.size: ${f.fakturaLinjer.size}")
+                    println("------------------------------------------------------")
+                    f.fakturaLinjer.forEach { fi ->
+                        println("fakturaLinje.periodeFra: ${fi.fra},  fakturaLinje.periodeTil:${fi.til}, beløp: ${fi.belop}, beskrivelse:${fi.beskrivelse}")
+                    }
+                }
+            }
+        }
     }
 }
