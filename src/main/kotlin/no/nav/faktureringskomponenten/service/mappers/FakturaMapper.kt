@@ -13,10 +13,6 @@ import java.time.temporal.TemporalAdjusters
 @Component
 class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
 
-    companion object {
-        val BESTILT_DATO_FORSINKES_MED_DAGER = 1L
-    }
-
     fun tilListeAvFaktura(
         periodeListeDto: List<FakturaseriePeriodeDto>,
         startDatoForHelePerioden: LocalDate,
@@ -35,7 +31,7 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
             )
 
             // Sørger for å samle foregående faktura i én større første faktura
-            if (LocalDate.now() > sisteDagAvPeriode) {
+            if (dagensDato() > sisteDagAvPeriode) {
                 fakturaLinjer.addAll(fakturaLinjerForPeriode)
             } else {
                 if (fakturaLinjer.isNotEmpty()) {
@@ -64,10 +60,6 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
         return fakturaListe
     }
 
-    private fun erEldreFaktura(sluttDatoForHelePerioden: LocalDate, forsteDagAvPeriode: LocalDate) =
-        sluttDatoForHelePerioden > forsteDagAvPeriode
-
-
     private fun hentSisteDagAvPeriode(dato: LocalDate, intervall: FakturaserieIntervallDto): LocalDate {
         if (intervall == FakturaserieIntervallDto.MANEDLIG)
             return dato.withDayOfMonth(dato.lengthOfMonth())
@@ -75,8 +67,14 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
     }
 
     fun tilFaktura(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
-        val korrigertDatoBestilt = if (datoBestilt <= LocalDate.now()) LocalDate.now()
+        val korrigertDatoBestilt = if (datoBestilt <= dagensDato()) dagensDato()
             .plusDays(BESTILT_DATO_FORSINKES_MED_DAGER) else datoBestilt
         return Faktura(null, korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
+    }
+
+    protected fun dagensDato(): LocalDate = LocalDate.now()
+
+    companion object {
+        const val BESTILT_DATO_FORSINKES_MED_DAGER = 1L
     }
 }

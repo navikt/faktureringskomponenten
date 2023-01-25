@@ -21,11 +21,12 @@ class FakturaserieMapperTest {
     @MethodSource("data")
     fun testFakturaLinjer(
         beskrivelse: String,
+        dagensDato: LocalDate,
         intervall: FakturaserieIntervallDto,
         perioder: List<FakturaseriePeriodeDto>,
         expected: FakturaData
     ) {
-        val fakturaserie = lagFakturaserie(intervall, perioder)
+        val fakturaserie = lagFakturaserie(dagensDato, intervall, perioder)
         val result = FakturaData(fakturaserie.faktura)
         print(result.toString())
 
@@ -35,6 +36,7 @@ class FakturaserieMapperTest {
     private fun data() = listOf(
         arguments(
             "Før dagens data",
+            LocalDate.now(),
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
                 FakturaseriePeriodeDto(
@@ -66,6 +68,7 @@ class FakturaserieMapperTest {
         ),
         arguments(
             "Før og etter dagens dato",
+            LocalDate.now(),
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
                 FakturaseriePeriodeDto(
@@ -106,6 +109,7 @@ class FakturaserieMapperTest {
         ),
         arguments(
             "2 faktura serier - lager 2 faktura med linjer",
+            LocalDate.now(),
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
                 FakturaseriePeriodeDto(
@@ -128,14 +132,16 @@ class FakturaserieMapperTest {
                         fra = "2022-12-01", til = "2023-01-31",
                         listOf(
                             Linje(
-                                "2022-12-01", "2022-12-31", 25470, "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                                "2022-12-01", "2022-12-31", 25470,
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
                                 "2023-01-23", "2023-01-31", 7394,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                             Linje(
-                                "2023-01-01", "2023-01-22", 18075, "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                                "2023-01-01", "2023-01-22", 18075,
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                         )
                     ),
@@ -159,6 +165,7 @@ class FakturaserieMapperTest {
 
         arguments(
             "2 faktura serier - lager 5 faktura med linjer",
+            LocalDate.now(),
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
                 FakturaseriePeriodeDto(
@@ -293,11 +300,11 @@ class FakturaserieMapperTest {
     )
 
     private fun lagFakturaserie(
+        dagensDato: LocalDate = LocalDate.now(),
         intervall: FakturaserieIntervallDto = FakturaserieIntervallDto.MANEDLIG,
         perioder: List<FakturaseriePeriodeDto> = listOf()
     ): Fakturaserie {
-        val fakturalinjeMapper = FakturalinjeMapper()
-        val fakturaMapper = FakturaMapper(fakturalinjeMapper)
+        val fakturaMapper = FakturaMapperForTest(dagensDato)
         return FakturaserieMapper(fakturaMapper).tilFakturaserie(
             FakturaserieDto(
                 vedtaksId = "MEL-105-145",
@@ -314,6 +321,10 @@ class FakturaserieMapperTest {
                 perioder = perioder
             )
         )
+    }
+
+    class FakturaMapperForTest(private val dagensDato: LocalDate) : FakturaMapper(FakturalinjeMapper()) {
+        override fun dagensDato(): LocalDate = dagensDato
     }
 
     //        println(fakturaserie)
