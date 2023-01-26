@@ -35,6 +35,7 @@ class FakturalinjeMapperTest {
             .first().apply {
                 periodeFra.shouldBe(fra)
                 periodeTil.shouldBe(til)
+                beskrivelse.shouldBe("Inntekt: 80000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %")
                 belop.toInt().shouldBe(909)
             }
     }
