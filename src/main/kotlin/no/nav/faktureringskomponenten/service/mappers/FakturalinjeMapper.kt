@@ -16,10 +16,15 @@ class FakturalinjeMapper {
         periodeTil: LocalDate
     ): List<FakturaLinje> {
         return perioder.filter {
-            !(it.sluttDato <= periodeFra || it.startDato >= periodeTil)
+            it.sluttDato >= periodeFra
+        }.filter {
+            !(it.sluttDato <= periodeFra || it.startDato >= periodeTil) || periodeFra == periodeTil
         }.map {
             val fakturaLinjerPeriodeFra = if (it.startDato < periodeFra) periodeFra else it.startDato
             val fakturaLinjerPeriodeTil = if (it.sluttDato >= periodeTil) periodeTil else it.sluttDato
+
+            if (fakturaLinjerPeriodeFra > fakturaLinjerPeriodeTil)
+                throw IllegalStateException("fakturaLinjerPeriodeFra($fakturaLinjerPeriodeFra) > periodeFra($fakturaLinjerPeriodeTil)")
 
             FakturaLinje(
                 id = null,

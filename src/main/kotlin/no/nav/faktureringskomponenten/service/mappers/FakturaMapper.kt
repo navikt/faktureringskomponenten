@@ -13,10 +13,6 @@ import java.time.temporal.TemporalAdjusters
 @Component
 class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
 
-    companion object {
-        val BESTILT_DATO_FORSINKES_MED_DAGER = 1L
-    }
-
     fun tilListeAvFaktura(
         periodeListeDto: List<FakturaseriePeriodeDto>,
         startDatoForHelePerioden: LocalDate,
@@ -27,8 +23,7 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
         var sisteDagAvPeriode = hentSisteDagAvPeriode(startDatoForHelePerioden, intervall)
         val fakturaLinjer = mutableListOf<FakturaLinje>()
         val fakturaListe = mutableListOf<Faktura>()
-
-        while (sluttDatoForHelePerioden > forsteDagAvPeriode) {
+        while (sluttDatoForHelePerioden >= forsteDagAvPeriode) {
             val fakturaLinjerForPeriode = fakturalinjeMapper.tilFakturaLinjer(
                 periodeListeDto,
                 forsteDagAvPeriode,
@@ -36,7 +31,7 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
             )
 
             // Sørger for å samle foregående faktura i én større første faktura
-            if (LocalDate.now() > sisteDagAvPeriode) {
+            if (dagensDato() > sisteDagAvPeriode) {
                 fakturaLinjer.addAll(fakturaLinjerForPeriode)
             } else {
                 if (fakturaLinjer.isNotEmpty()) {
@@ -55,6 +50,13 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
             forsteDagAvPeriode = sisteDagAvPeriode.plusDays(1)
             sisteDagAvPeriode = hentSisteDagAvPeriode(forsteDagAvPeriode, intervall)
         }
+
+        if (fakturaLinjer.isNotEmpty()) {
+            fakturaListe.add(
+                tilFaktura(forsteDagAvPeriode, fakturaLinjer.toList())
+            )
+            fakturaLinjer.clear()
+        }
         return fakturaListe
     }
 
@@ -65,8 +67,14 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
     }
 
     fun tilFaktura(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
-        val korrigertDatoBestilt = if (datoBestilt <= LocalDate.now()) LocalDate.now()
+        val korrigertDatoBestilt = if (datoBestilt <= dagensDato()) dagensDato()
             .plusDays(BESTILT_DATO_FORSINKES_MED_DAGER) else datoBestilt
         return Faktura(null, korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
+    }
+
+    protected fun dagensDato(): LocalDate = LocalDate.now()
+
+    companion object {
+        const val BESTILT_DATO_FORSINKES_MED_DAGER = 1L
     }
 }
