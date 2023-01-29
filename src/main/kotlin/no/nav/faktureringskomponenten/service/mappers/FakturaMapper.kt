@@ -20,45 +20,29 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
         intervall: FakturaserieIntervallDto
     ): List<Faktura> {
         var forsteDagAvPeriode = startDatoForHelePerioden
-        var sisteDagAvPeriode = hentSisteDagAvPeriode(startDatoForHelePerioden, intervall)
         val fakturaLinjer = mutableListOf<FakturaLinje>()
         val fakturaListe = mutableListOf<Faktura>()
-        while (sluttDatoForHelePerioden >= forsteDagAvPeriode) {
+        while (sluttDatoForHelePerioden >= forsteDagAvPeriode || fakturaLinjer.isNotEmpty()) {
+            val sisteDagAvPeriode = hentSisteDagAvPeriode(forsteDagAvPeriode, intervall)
             val fakturaLinjerForPeriode = fakturalinjeMapper.tilFakturaLinjer(
-                periodeListeDto,
-                forsteDagAvPeriode,
-                if (sluttDatoForHelePerioden < sisteDagAvPeriode) sluttDatoForHelePerioden else sisteDagAvPeriode
+                perioder = periodeListeDto,
+                periodeFra = forsteDagAvPeriode,
+                periodeTil = finnSluttDato(sluttDatoForHelePerioden, sisteDagAvPeriode)
             )
 
-            // Sørger for å samle foregående faktura i én større første faktura
-            if (dagensDato() > sisteDagAvPeriode) {
-                fakturaLinjer.addAll(fakturaLinjerForPeriode)
-            } else {
-                if (fakturaLinjer.isNotEmpty()) {
-                    fakturaLinjer.addAll(fakturaLinjerForPeriode)
-                }
-
-                fakturaListe.add(
-                    tilFaktura(
-                        forsteDagAvPeriode,
-                        if (fakturaLinjer.isNotEmpty()) fakturaLinjer.toList() else fakturaLinjerForPeriode
-                    )
-                )
+            fakturaLinjer.addAll(fakturaLinjerForPeriode)
+            if (dagensDato() <= sisteDagAvPeriode) {
+                fakturaListe.add(tilFaktura(forsteDagAvPeriode, fakturaLinjer.toList()))
                 fakturaLinjer.clear()
             }
 
             forsteDagAvPeriode = sisteDagAvPeriode.plusDays(1)
-            sisteDagAvPeriode = hentSisteDagAvPeriode(forsteDagAvPeriode, intervall)
-        }
-
-        if (fakturaLinjer.isNotEmpty()) {
-            fakturaListe.add(
-                tilFaktura(forsteDagAvPeriode, fakturaLinjer.toList())
-            )
-            fakturaLinjer.clear()
         }
         return fakturaListe
     }
+
+    private fun finnSluttDato(sluttDatoForHelePerioden: LocalDate, sisteDagAvPeriode: LocalDate) =
+        if (sluttDatoForHelePerioden < sisteDagAvPeriode) sluttDatoForHelePerioden else sisteDagAvPeriode
 
     private fun hentSisteDagAvPeriode(dato: LocalDate, intervall: FakturaserieIntervallDto): LocalDate {
         if (intervall == FakturaserieIntervallDto.MANEDLIG)
