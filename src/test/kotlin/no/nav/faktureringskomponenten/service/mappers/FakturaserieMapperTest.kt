@@ -34,7 +34,7 @@ class FakturaserieMapperTest {
 
     private fun data() = listOf(
         arguments(
-            "Før dagens dato",
+            "Går 1 dag inn i nest måned",
             LocalDate.of(2023, 1, 13),
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
@@ -64,6 +64,39 @@ class FakturaserieMapperTest {
                 )
             )
         ),
+
+        arguments(
+            "Slutt dato er før dagens dato",
+            LocalDate.of(2023, 4, 1),
+            FakturaserieIntervallDto.MANEDLIG,
+            listOf(
+                FakturaseriePeriodeDto(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2023, 1, 1),
+                    sluttDato = LocalDate.of(2023, 2, 1),
+                    beskrivelse = "periode - 1"
+                )
+            ),
+            FakturaData(
+                1,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2023-01-01", til = "2023-02-01",
+                        listOf(
+                            Linje(
+                                "2023-01-01", til = "2023-01-31", 10000,
+                                "periode - 1"
+                            ),
+                            Linje(
+                                "2023-02-01", "2023-02-01", 357,
+                                "periode - 1"
+                            ),
+                        )
+                    )
+                )
+            )
+        ),
+
         arguments(
             "Dagens dato er lik slutt dato",
             LocalDate.of(2023, 1, 31),

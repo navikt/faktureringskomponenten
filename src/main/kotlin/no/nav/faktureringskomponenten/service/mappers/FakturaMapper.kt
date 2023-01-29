@@ -22,7 +22,7 @@ class FakturaMapper(@Autowired private val fakturalinjeMapper: FakturalinjeMappe
         var forsteDagAvPeriode = startDatoForHelePerioden
         val fakturaLinjer = mutableListOf<FakturaLinje>()
         val fakturaListe = mutableListOf<Faktura>()
-        while (sluttDatoForHelePerioden >= forsteDagAvPeriode) {
+        while (sluttDatoForHelePerioden >= forsteDagAvPeriode || fakturaLinjer.isNotEmpty()) {
             val sisteDagAvPeriode = hentSisteDagAvPeriode(forsteDagAvPeriode, intervall)
             val fakturaLinjerForPeriode = fakturalinjeMapper.tilFakturaLinjer(
                 perioder = periodeListeDto,
