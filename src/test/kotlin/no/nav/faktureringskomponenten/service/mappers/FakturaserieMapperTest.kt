@@ -64,6 +64,37 @@ class FakturaserieMapperTest {
                 )
             )
         ),
+        arguments(
+            "Dagens dato er lik slutt dato",
+            LocalDate.of(2023, 1, 31),
+            FakturaserieIntervallDto.MANEDLIG,
+            listOf(
+                FakturaseriePeriodeDto(
+                    enhetsprisPerManed = BigDecimal(25470),
+                    startDato = LocalDate.of(2022, 12, 1),
+                    sluttDato = LocalDate.of(2023, 1, 31),
+                    beskrivelse = "periode 1"
+                )
+            ),
+            FakturaData(
+                1,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2022-12-01", til = "2023-01-31",
+                        listOf(
+                            Linje(
+                                "2022-12-01", "2022-12-31", 25470,
+                                "periode 1"
+                            ),
+                            Linje(
+                                "2023-01-01", "2023-01-31", 25470,
+                                "periode 1"
+                            ),
+                        )
+                    )
+                )
+            )
+        ),
 
         arguments(
             "Før og etter dagens dato",
