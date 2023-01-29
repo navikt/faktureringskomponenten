@@ -11,7 +11,7 @@ import java.time.temporal.IsoFields
 import java.time.temporal.TemporalAdjusters
 
 @Component
-class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
+class FakturaMapper(@Autowired private val fakturalinjeMapper: FakturalinjeMapper) {
 
     fun tilListeAvFaktura(
         periodeListeDto: List<FakturaseriePeriodeDto>,
@@ -22,7 +22,7 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
         var forsteDagAvPeriode = startDatoForHelePerioden
         val fakturaLinjer = mutableListOf<FakturaLinje>()
         val fakturaListe = mutableListOf<Faktura>()
-        while (sluttDatoForHelePerioden >= forsteDagAvPeriode || fakturaLinjer.isNotEmpty()) {
+        while (sluttDatoForHelePerioden >= forsteDagAvPeriode) {
             val sisteDagAvPeriode = hentSisteDagAvPeriode(forsteDagAvPeriode, intervall)
             val fakturaLinjerForPeriode = fakturalinjeMapper.tilFakturaLinjer(
                 perioder = periodeListeDto,
@@ -50,7 +50,7 @@ class FakturaMapper(@Autowired val fakturalinjeMapper: FakturalinjeMapper) {
         return dato.withMonth(dato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
     }
 
-    fun tilFaktura(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
+    private fun tilFaktura(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
         val korrigertDatoBestilt = if (datoBestilt <= dagensDato()) dagensDato()
             .plusDays(BESTILT_DATO_FORSINKES_MED_DAGER) else datoBestilt
         return Faktura(null, korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
