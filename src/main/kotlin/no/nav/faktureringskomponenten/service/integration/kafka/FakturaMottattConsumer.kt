@@ -4,10 +4,12 @@ import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMotta
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
 
 @Component
+@Profile("ikke bruk før topic er på plass")
 class FakturaMottattConsumer {
     private val log: Logger = LoggerFactory.getLogger(FakturaMottattConsumer::class.java)
 

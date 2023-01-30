@@ -8,5 +8,5 @@
   "cluster_name": "dev-fss",
   "app_name_melosys_api": "melosys-q1",
   "app_name_melosys_web": "melosys-web-q1",
-  "kafka_topic_name_faktura_bestilt": "faktura-bestilt.v1-q1"
+  "kafka_topic_name_faktura_bestilt": "teammelosys.faktura-bestilt.v1-q1"
 }

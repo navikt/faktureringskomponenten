@@ -20,7 +20,7 @@ kafka:
   aiven:
     brokers: ${KAFKA_BROKERS}
     keystorePath: ${KAFKA_KEYSTORE_PATH:/dev/zero}
-    truststorePath: ${KAFKA_KEYSTORE_PATH:/dev/zero}
+    truststorePath: ${KAFKA_TRUSTSTORE_PATH:/dev/zero}
     credstorePassword: ${KAFKA_CREDSTORE_PASSWORD:pwd}
   producer:
     faktura-bestilt: ${KAFKA_TOPIC_NAME_FAKTURA_BESTILT}
