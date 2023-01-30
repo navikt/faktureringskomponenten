@@ -1,32 +1,31 @@
 package no.nav.faktureringskomponenten.service.cronjob
 
-import io.kotest.core.spec.style.FunSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.service.FakturaService
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class FakturaBestillCronjobTest : FunSpec({
+class FakturaBestillCronjobTest {
 
-    val fakturaService = mockk<FakturaService>(relaxed = true)
-    val fakturaBestillCronJob = FakturaBestillCronjob(fakturaService)
+    private val fakturaService = mockk<FakturaService>(relaxed = true)
+    private val fakturaBestillCronJob = FakturaBestillCronjob(fakturaService)
 
-    context("bestillFaktura") {
-        test("bestillFaktura henter faktura og bestiller") {
-            val listeAvFaktura = listOf(
-                Faktura(id = 1, datoBestilt = LocalDate.now(), fakturaLinje = listOf()),
-                Faktura(id = 2, datoBestilt = LocalDate.now(), fakturaLinje = listOf())
-            )
-            every { fakturaService.hentBestillingsklareFaktura(any()) } returns listeAvFaktura
+    @Test
+    fun `bestillFaktura henter faktura og bestiller`() {
+        val listeAvFaktura = listOf(
+            Faktura(id = 1, datoBestilt = LocalDate.now(), fakturaLinje = listOf()),
+            Faktura(id = 2, datoBestilt = LocalDate.now(), fakturaLinje = listOf())
+        )
+        every { fakturaService.hentBestillingsklareFaktura(any()) } returns listeAvFaktura
 
-            fakturaBestillCronJob.bestillFaktura()
+        fakturaBestillCronJob.bestillFaktura()
 
-            verify {
-                fakturaService.bestillFaktura(1)
-                fakturaService.bestillFaktura(2)
-            }
+        verify {
+            fakturaService.bestillFaktura(1)
+            fakturaService.bestillFaktura(2)
         }
     }
-})
+}
