@@ -14,7 +14,7 @@ class FakturaBestillCronjob(
 ) {
     private val log: Logger = LoggerFactory.getLogger(FakturaBestillCronjob::class.java)
 
-    @Scheduled(cron = "0 0 4 * * *")
+    @Scheduled(cron = "1 * * * * *")
     @SchedulerLock(name = "bestill faktura", lockAtMostFor = "PT5M")
     fun bestillFaktura() {
         val alleFaktura = fakturaService.hentBestillingsklareFaktura()
