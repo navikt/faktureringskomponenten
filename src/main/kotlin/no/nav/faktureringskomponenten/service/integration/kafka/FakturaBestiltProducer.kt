@@ -1,7 +1,6 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,14 +19,7 @@ class FakturaBestiltProducer(
     private val log: Logger = LoggerFactory.getLogger(FakturaBestiltProducer::class.java)
 
     fun produserBestillingsmelding(fakturaBestiltDto: FakturaBestiltDto) {
-
-        val producerRecord: ProducerRecord<String, FakturaBestiltDto> =
-            ProducerRecord<String, FakturaBestiltDto>(topicName, fakturaBestiltDto)
-
-        log.info("Prøver å sende melding sendt på topic $topicName \n$producerRecord")
-
-        val future = kafkaTemplate.send(producerRecord)
-
+        val future = kafkaTemplate.send(topicName, fakturaBestiltDto)
 
         try {
             val sendeResultat = future.get(15L, TimeUnit.SECONDS)
