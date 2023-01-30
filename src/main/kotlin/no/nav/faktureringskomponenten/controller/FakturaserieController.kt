@@ -5,9 +5,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
 import no.nav.faktureringskomponenten.service.FakturaserieService
+import no.nav.faktureringskomponenten.service.mappers.tilResponseDto
 import no.nav.security.token.support.core.api.Protected
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -38,7 +40,7 @@ class FakturaserieController @Autowired constructor(
         bindingResult: BindingResult
     ): ResponseEntity<ProblemDetail>? {
         val responseEntity = ProblemDetailValidator.validerBindingResult(bindingResult)
-        if(responseEntity?.statusCode == HttpStatus.OK) {
+        if(responseEntity.statusCode == HttpStatus.OK) {
             faktureringService.lagNyFakturaserie(fakturaserieDto)
         }
         return responseEntity
@@ -70,7 +72,7 @@ class FakturaserieController @Autowired constructor(
         ]
     )
     @GetMapping("/{vedtaksId}")
-    fun hentFakturaserie(@PathVariable("vedtaksId") vedtaksId: String): Fakturaserie {
-        return faktureringService.hentFakturaserie(vedtaksId)
+    fun hentFakturaserie(@PathVariable("vedtaksId") vedtaksId: String): FakturaserieResponseDto {
+        return faktureringService.hentFakturaserie(vedtaksId).tilResponseDto
     }
 }

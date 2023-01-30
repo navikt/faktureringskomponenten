@@ -1,8 +1,6 @@
 package no.nav.faktureringskomponenten.service.mappers
 
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
+import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
@@ -56,3 +54,41 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
         return perioder.maxByOrNull { it.sluttDato }!!.sluttDato
     }
 }
+
+val Fakturaserie.tilResponseDto: FakturaserieResponseDto
+    get() {
+        return FakturaserieResponseDto(
+            vedtaksId = this.vedtaksId,
+            fakturaGjelder = this.fakturaGjelder,
+            fodselsnummer = this.fodselsnummer,
+            fullmektig = this.fullmektig.let {
+                FullmektigDto(
+                    fodselsnummer = it?.fodselsnummer.toString(),
+                    organisasjonsnummer = it?.organisasjonsnummer,
+                    kontaktperson = it?.kontaktperson
+                )
+            },
+            referanseBruker = this.referanseBruker,
+            referanseNAV = this.referanseNAV,
+            startdato = this.startdato,
+            sluttdato = this.sluttdato,
+            status = this.status,
+            intervall = FakturaserieIntervallDto.valueOf(this.intervall.name),
+            opprettetTidspunkt = this.opprettetTidspunkt,
+            faktura = this.faktura.map { FakturaResponseDto(
+                id = it.id,
+                datoBestilt = it.datoBestilt,
+                status = it.status,
+                fakturaLinje = it.fakturaLinje.map { fi -> FakturaLinjeResponseDto(
+                    id = fi.id,
+                    periodeFra = fi.periodeFra,
+                    periodeTil = fi.periodeTil,
+                    beskrivelse = fi.beskrivelse,
+                    belop = fi.belop,
+                    enhetsprisPerManed = fi.enhetsprisPerManed
+                ) },
+                fakturaserieId = it.getFakturaserieId()
+            ) }
+        )
+    }
+
