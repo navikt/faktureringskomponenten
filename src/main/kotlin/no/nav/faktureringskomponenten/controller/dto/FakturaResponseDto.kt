@@ -14,7 +14,6 @@ data class FakturaResponseDto(
     )
     val datoBestilt: LocalDate,
 
-
     var status: FakturaStatus,
 
     @Schema(
@@ -22,26 +21,15 @@ data class FakturaResponseDto(
     )
     val fakturaLinje: List<FakturaLinjeResponseDto>,
 
-    val fakturaserieId: Long?
-
-) {
+    val fakturaserieId: Long?,
 
     @Schema(
         description = "Startdato for perioden"
     )
-    fun getPeriodeFra(): LocalDate {
-        return fakturaLinje.minOf { it.periodeFra }
-    }
+    val periodeFra: LocalDate,
 
     @Schema(
         description = "Sluttdato for perioden"
     )
-    fun getPeriodeTil(): LocalDate {
-        return fakturaLinje.maxOf { it.periodeTil }
-    }
-
-    @Override
-    override fun toString(): String {
-        return "$id: datoBestilt: $datoBestilt, status: $status, fakturaLinje: $fakturaLinje"
-    }
-}
+    val periodeTil: LocalDate,
+)

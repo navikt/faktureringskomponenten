@@ -58,6 +58,7 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
 val Fakturaserie.tilResponseDto: FakturaserieResponseDto
     get() {
         return FakturaserieResponseDto(
+            id = this.id,
             vedtaksId = this.vedtaksId,
             fakturaGjelder = this.fakturaGjelder,
             fodselsnummer = this.fodselsnummer,
@@ -87,7 +88,9 @@ val Fakturaserie.tilResponseDto: FakturaserieResponseDto
                     belop = fi.belop,
                     enhetsprisPerManed = fi.enhetsprisPerManed
                 ) },
-                fakturaserieId = it.getFakturaserieId()
+                fakturaserieId = it.getFakturaserieId(),
+                periodeFra = it.getPeriodeFra(),
+                periodeTil = it.getPeriodeTil()
             ) }
         )
     }

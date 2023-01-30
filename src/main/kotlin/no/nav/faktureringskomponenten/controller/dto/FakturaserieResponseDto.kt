@@ -10,49 +10,39 @@ import java.time.LocalDateTime
 @Schema(description = "Model for fakturaserie, inneholder informasjon for alle bestilte og planlagte fakturaer")
 data class FakturaserieResponseDto(
 
-    val id: Long? = null,
+    val id: Long?,
 
     @Schema(description = "Unik identifikator som saksbehandlingssystemet kjenner igjen")
-    val vedtaksId: String = "",
+    val vedtaksId: String,
 
     @Schema(description = "Informasjon om hva bruker betaler")
-    val fakturaGjelder: String = "",
+    val fakturaGjelder: String,
 
     @Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
-    val fodselsnummer: BigDecimal = BigDecimal(0),
+    val fodselsnummer: BigDecimal,
 
     @Embedded
-    val fullmektig: FullmektigDto? = null,
+    val fullmektig: FullmektigDto?,
 
     @Schema(description = "Referanse for bruker/mottaker")
-    val referanseBruker: String = "",
+    val referanseBruker: String,
 
     @Schema(description = "Referanse for NAV")
-    val referanseNAV: String = "",
+    val referanseNAV: String,
 
     @Schema(description = "Startdato for fakturaserie")
-    val startdato: LocalDate = LocalDate.now(),
+    val startdato: LocalDate,
 
     @Schema(description = "Sluttdato for fakturaserie")
-    val sluttdato: LocalDate = LocalDate.now(),
+    val sluttdato: LocalDate,
 
-    var status: FakturaserieStatus = FakturaserieStatus.OPPRETTET,
+    val status: FakturaserieStatus,
 
-    val intervall: FakturaserieIntervallDto = FakturaserieIntervallDto.MANEDLIG,
+    val intervall: FakturaserieIntervallDto,
 
     @Schema(description = "Tidspunkt for opprettelse av fakturaserien")
-    val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
+    val opprettetTidspunkt: LocalDateTime,
 
     @Schema(description = "Liste over planlagte fakturaer")
-    val faktura: List<FakturaResponseDto> = listOf()
-) {
-    @Override
-    override fun toString(): String {
-        return "vedtaksId: $vedtaksId, " +
-                "fakturaGjelder: $fakturaGjelder, " +
-                "referanseNAV: $referanseNAV, " +
-                "startdato: $startdato, " +
-                "sluttDato: $sluttdato, " +
-                "faktura: $faktura"
-    }
-}
+    val faktura: List<FakturaResponseDto>
+)
