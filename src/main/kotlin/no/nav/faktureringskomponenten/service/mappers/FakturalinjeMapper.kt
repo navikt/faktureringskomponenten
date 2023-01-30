@@ -16,9 +16,7 @@ class FakturalinjeMapper {
         periodeTil: LocalDate
     ): List<FakturaLinje> {
         return perioder.filter {
-            it.sluttDato >= periodeFra
-        }.filter {
-            !(it.sluttDato <= periodeFra || it.startDato >= periodeTil) || periodeFra == periodeTil
+            it.startDato <= periodeTil && it.sluttDato >= periodeFra
         }.map {
             val fakturaLinjerPeriodeFra = if (it.startDato < periodeFra) periodeFra else it.startDato
             val fakturaLinjerPeriodeTil = if (it.sluttDato >= periodeTil) periodeTil else it.sluttDato

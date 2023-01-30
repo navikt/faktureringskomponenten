@@ -34,7 +34,7 @@ class FakturaserieMapperTest {
 
     private fun data() = listOf(
         arguments(
-            "Før dagens dato",
+            "Går 1 dag inn i nest måned",
             LocalDate.of(2023, 1, 13),
             FakturaserieIntervallDto.MANEDLIG,
             listOf(
@@ -63,8 +63,72 @@ class FakturaserieMapperTest {
                     )
                 )
             )
-
         ),
+
+        arguments(
+            "Slutt dato er før dagens dato",
+            LocalDate.of(2023, 4, 1),
+            FakturaserieIntervallDto.MANEDLIG,
+            listOf(
+                FakturaseriePeriodeDto(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2023, 1, 1),
+                    sluttDato = LocalDate.of(2023, 2, 1),
+                    beskrivelse = "periode - 1"
+                )
+            ),
+            FakturaData(
+                1,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2023-01-01", til = "2023-02-01",
+                        listOf(
+                            Linje(
+                                "2023-01-01", til = "2023-01-31", 10000,
+                                "periode - 1"
+                            ),
+                            Linje(
+                                "2023-02-01", "2023-02-01", 357,
+                                "periode - 1"
+                            ),
+                        )
+                    )
+                )
+            )
+        ),
+
+        arguments(
+            "Dagens dato er lik slutt dato",
+            LocalDate.of(2023, 1, 31),
+            FakturaserieIntervallDto.MANEDLIG,
+            listOf(
+                FakturaseriePeriodeDto(
+                    enhetsprisPerManed = BigDecimal(25470),
+                    startDato = LocalDate.of(2022, 12, 1),
+                    sluttDato = LocalDate.of(2023, 1, 31),
+                    beskrivelse = "periode 1"
+                )
+            ),
+            FakturaData(
+                1,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2022-12-01", til = "2023-01-31",
+                        listOf(
+                            Linje(
+                                "2022-12-01", "2022-12-31", 25470,
+                                "periode 1"
+                            ),
+                            Linje(
+                                "2023-01-01", "2023-01-31", 25470,
+                                "periode 1"
+                            ),
+                        )
+                    )
+                )
+            )
+        ),
+
         arguments(
             "Før og etter dagens dato",
             LocalDate.of(2023, 1, 13),
@@ -106,6 +170,7 @@ class FakturaserieMapperTest {
                 )
             )
         ),
+
         arguments(
             "2 faktura perioder - kun 1 dag i siste måned",
             LocalDate.of(2023, 1, 23),
@@ -260,6 +325,65 @@ class FakturaserieMapperTest {
                         listOf(
                             Linje(
                                 "2023-06-01", "2023-06-01", 333,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
+                        )
+                    ),
+                )
+            )
+        ),
+
+        arguments(
+            "2 perioder - lag 2 faktura med linjer",
+            LocalDate.of(2023, 1, 26),
+            FakturaserieIntervallDto.KVARTAL,
+            listOf(
+                FakturaseriePeriodeDto(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2022, 6, 1),
+                    sluttDato = LocalDate.of(2023, 1, 24),
+                    beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                ),
+                FakturaseriePeriodeDto(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2023, 1, 25),
+                    sluttDato = LocalDate.of(2023, 6, 1),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                )
+            ),
+            FakturaData(
+                2,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2022-06-01", til = "2023-03-31",
+                        listOf(
+                            Linje(
+                                "2022-06-01", "2022-06-30", 10000,
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2022-07-01", "2022-09-30", 29677,
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2022-10-01", "2022-12-31", 29677,
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-01-01", "2023-01-24", 7741,
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2023-01-25", "2023-03-31", 21935,
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            ),
+                        )
+                    ),
+                    FakturaMedLinjer(
+                        fra = "2023-04-01", til = "2023-06-01",
+                        listOf(
+                            Linje(
+                                "2023-04-01", "2023-06-01", 20000,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
