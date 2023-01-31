@@ -9,7 +9,6 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
 import no.nav.faktureringskomponenten.service.FakturaserieService
-import no.nav.faktureringskomponenten.service.mappers.tilResponseDto
 import no.nav.security.token.support.core.api.Protected
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
