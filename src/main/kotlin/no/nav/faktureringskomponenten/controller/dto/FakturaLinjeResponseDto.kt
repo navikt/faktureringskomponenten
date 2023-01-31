@@ -9,8 +9,6 @@ import java.time.LocalDate
 )
 data class FakturaLinjeResponseDto(
 
-    val id: Long?,
-
     @Schema(
         description = "Startdato for perioden"
     )

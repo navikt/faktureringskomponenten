@@ -9,8 +9,6 @@ import java.time.LocalDateTime
 @Schema(description = "Model for fakturaserie, inneholder informasjon for alle bestilte og planlagte fakturaer")
 data class FakturaserieResponseDto(
 
-    val id: Long?,
-
     @Schema(description = "Unik identifikator som saksbehandlingssystemet kjenner igjen")
     val vedtaksId: String,
 
