@@ -13,19 +13,19 @@ data class FakturaLinje(
     val id: Long? = null,
 
     @Column(name = "periode_fra", nullable = false)
-    val periodeFra: LocalDate = LocalDate.now(),
+    val periodeFra: LocalDate,
 
     @Column(name = "periode_til", nullable = false)
-    val periodeTil: LocalDate = LocalDate.now(),
+    val periodeTil: LocalDate,
 
     @Column(name = "beskrivelse", nullable = false)
-    val beskrivelse: String = "",
+    val beskrivelse: String,
 
     @Column(name = "belop", nullable = false)
-    val belop: BigDecimal = BigDecimal(0),
+    val belop: BigDecimal,
 
     @Column(name = "enhetspris_per_maned", nullable = false)
-    val enhetsprisPerManed: BigDecimal= BigDecimal(0)
+    val enhetsprisPerManed: BigDecimal
 ) {
     @Override
     override fun toString(): String {
