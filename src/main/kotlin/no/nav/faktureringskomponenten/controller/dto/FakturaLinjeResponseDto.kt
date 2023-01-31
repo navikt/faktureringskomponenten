@@ -1,7 +1,6 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -10,7 +9,6 @@ import java.time.LocalDate
 )
 data class FakturaLinjeResponseDto(
 
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long?,
 
     @Schema(
