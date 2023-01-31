@@ -1,7 +1,6 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.persistence.*
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -21,7 +20,6 @@ data class FakturaserieResponseDto(
     @Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
     val fodselsnummer: BigDecimal,
 
-    @Embedded
     val fullmektig: FullmektigDto?,
 
     @Schema(description = "Referanse for bruker/mottaker")
