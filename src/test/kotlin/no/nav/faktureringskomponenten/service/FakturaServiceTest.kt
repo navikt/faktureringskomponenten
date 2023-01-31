@@ -34,7 +34,7 @@ class FakturaServiceTest {
 
         every {
             fakturaserieRepository.save(any())
-        } returns faktura.getFakturaserie()!!
+        } returns faktura.fakturaserie!!
 
         every {
             fakturaRepository.save(any())
@@ -42,7 +42,7 @@ class FakturaServiceTest {
 
         every {
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
-        } returns Optional.of(faktura.getFakturaserie()!!)
+        } returns Optional.of(faktura.fakturaserie!!)
 
         fakturaService.bestillFaktura(1)
 
@@ -50,7 +50,7 @@ class FakturaServiceTest {
             fakturaRepository.findById(1)
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
             fakturaBestiltProducer.produserBestillingsmelding(any())
-            fakturaserieRepository.save(faktura.getFakturaserie()!!)
+            fakturaserieRepository.save(faktura.fakturaserie!!)
             fakturaRepository.save(faktura)
         }
     }
@@ -66,11 +66,11 @@ class FakturaServiceTest {
 
         every {
             fakturaserieRepository.save(any())
-        } returns faktura.getFakturaserie()!!
+        } returns faktura.fakturaserie!!
 
         every {
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
-        } returns Optional.of(faktura.getFakturaserie()!!)
+        } returns Optional.of(faktura.fakturaserie!!)
 
         every {
             fakturaRepository.save(any())
@@ -122,7 +122,7 @@ class FakturaServiceTest {
                 ),
             )
         ).apply {
-            setFakturaserie(
+            fakturaserie =
                 Fakturaserie(
                     100, vedtaksId = "MEL-1",
                     fakturaGjelder = "FTRL",
@@ -140,7 +140,6 @@ class FakturaServiceTest {
                     ),
                     fodselsnummer = BigDecimal(12345678911)
                 )
-            )
         }
     }
 }
