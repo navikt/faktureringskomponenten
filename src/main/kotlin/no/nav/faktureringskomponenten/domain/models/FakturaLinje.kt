@@ -10,34 +10,25 @@ data class FakturaLinje(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long?,
+    val id: Long? = null,
 
     @Column(name = "periode_fra", nullable = false)
-    val periodeFra: LocalDate,
+    val periodeFra: LocalDate = LocalDate.now(),
 
     @Column(name = "periode_til", nullable = false)
-    val periodeTil: LocalDate,
+    val periodeTil: LocalDate = LocalDate.now(),
 
     @Column(name = "beskrivelse", nullable = false)
-    val beskrivelse: String,
+    val beskrivelse: String = "",
 
     @Column(name = "belop", nullable = false)
-    val belop: BigDecimal,
+    val belop: BigDecimal = BigDecimal(0),
 
     @Column(name = "enhetspris_per_maned", nullable = false)
-    val enhetsprisPerManed: BigDecimal
+    val enhetsprisPerManed: BigDecimal= BigDecimal(0)
 ) {
     @Override
     override fun toString(): String {
         return "beskrivelse: $beskrivelse, belop: $belop"
     }
-
-    constructor() : this(
-        id = null,
-        periodeFra = LocalDate.now(),
-        periodeTil = LocalDate.now(),
-        beskrivelse = "",
-        belop = BigDecimal(0),
-        enhetsprisPerManed = BigDecimal(0)
-    )
 }
