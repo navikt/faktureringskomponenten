@@ -5,7 +5,7 @@ import java.time.LocalDate
 
 @Entity
 @Table(name = "faktura")
-data class Faktura(
+class Faktura(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,15 +42,5 @@ data class Faktura(
     @Override
     override fun toString(): String {
         return "$id: datoBestilt: $datoBestilt, status: $status, fakturaLinje: $fakturaLinje"
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        other as Faktura
-        return id == other.id
-    }
-    override fun hashCode(): Int {
-        return id.hashCode()
     }
 }

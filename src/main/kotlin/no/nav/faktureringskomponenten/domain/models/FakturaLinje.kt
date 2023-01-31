@@ -6,7 +6,7 @@ import java.time.LocalDate
 
 @Entity
 @Table(name = "faktura_linje")
-data class FakturaLinje(
+class FakturaLinje(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

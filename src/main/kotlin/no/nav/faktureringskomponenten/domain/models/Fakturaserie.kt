@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "fakturaserie")
-data class Fakturaserie(
+class Fakturaserie(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
