@@ -31,6 +31,7 @@ private val Fullmektig.tilDto
 
 private val Faktura.tilResponseDto: FakturaResponseDto
     get() = FakturaResponseDto(
+        id = this.id,
         datoBestilt = this.datoBestilt,
         status = this.status,
         fakturaLinje = this.fakturaLinje.map { it.tilResponseDto },
