@@ -7,6 +7,8 @@ import java.time.LocalDate
 @Schema(description = "Model for en faktura i fakturaserien")
 data class FakturaResponseDto(
 
+    val id: Long?,
+
     @Schema(
         description = "Dato for når faktura bestilles til OEBS"
     )
