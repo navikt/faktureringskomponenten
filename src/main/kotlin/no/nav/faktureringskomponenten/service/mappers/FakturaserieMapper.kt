@@ -1,8 +1,6 @@
 package no.nav.faktureringskomponenten.service.mappers
 
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
+import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.Fullmektig

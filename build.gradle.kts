@@ -31,7 +31,8 @@ object dependencyVersions {
     const val shedlockVersion = "4.4.0"
     const val shedlockProvicerJdbcVersion = "4.43.0"
     const val mockkVersion = "1.13.3"
-    const val openapiVersion = "1.6.0"
+    const val openapiVersion = "1.6.14"
+    const val springdocOpenapiStarter = "2.0.2"
     const val logstashLogbackEncoder = "7.2"
     const val tokenSupportVersion = "3.0.2"
 }
@@ -42,9 +43,9 @@ object TestContainersDependencies {
 }
 
 dependencies {
-    implementation("org.springdoc:springdoc-openapi-data-rest:${dependencyVersions.openapiVersion}")
-    implementation("org.springdoc:springdoc-openapi-ui:${dependencyVersions.openapiVersion}")
     implementation("org.springdoc:springdoc-openapi-kotlin:${dependencyVersions.openapiVersion}")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${dependencyVersions.springdocOpenapiStarter}")
+    implementation("org.springdoc:springdoc-openapi-starter-common:${dependencyVersions.springdocOpenapiStarter}")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-web")
