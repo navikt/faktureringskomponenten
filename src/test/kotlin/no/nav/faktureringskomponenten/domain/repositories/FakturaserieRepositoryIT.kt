@@ -1,8 +1,9 @@
 package no.nav.faktureringskomponenten.domain.repositories
 
 import io.kotest.matchers.collections.shouldHaveSize
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,8 +33,29 @@ class FakturaserieRepositoryIT(
         val fakturaList =
             fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(LocalDate.now())
 
-        fakturaList.forEach { println(it) }
-
         fakturaList.shouldHaveSize(1)
     }
+
+    @Test
+    fun `lag fødselsnummer med 11 char og last igjen`() {
+        val fakturaserie = fakturaserieRepository.save(
+            Fakturaserie(
+                fodselsnummer = "01234567890",
+                fullmektig = Fullmektig(
+                    fodselsnummer = "-123456789-"
+                ),
+                faktura = listOf()
+            )
+        )
+
+        fakturaserieRepository.findById(
+            fakturaserie.id.shouldNotBeNull()
+        ).get()
+            .apply {
+                fodselsnummer.shouldBe("01234567890")
+                fullmektig.shouldNotBeNull()
+                    .fodselsnummer.shouldBe("-123456789-")
+            }
+    }
+
 }

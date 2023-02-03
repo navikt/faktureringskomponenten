@@ -2,7 +2,6 @@ package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -16,7 +15,7 @@ data class FakturaserieResponseDto(
     val fakturaGjelder: String,
 
     @Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
-    val fodselsnummer: BigDecimal,
+    val fodselsnummer: String,
 
     val fullmektig: FullmektigDto?,
 

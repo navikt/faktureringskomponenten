@@ -1,13 +1,12 @@
 package no.nav.faktureringskomponenten.service.integration.kafka.dto
 
-import java.math.BigDecimal
 import java.time.LocalDate
 
 data class FakturaBestiltDto(
 
-    val fodselsnummer: BigDecimal,
+    val fodselsnummer: String,
     val fullmektigOrgnr: String?,
-    val fullmektigFnr: BigDecimal?,
+    val fullmektigFnr: String?,
     val vedtaksId: String,
     val fakturaReferanseNr: String,
     val kreditReferanseNr: String?,

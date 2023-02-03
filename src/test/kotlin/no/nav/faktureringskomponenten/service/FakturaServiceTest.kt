@@ -81,9 +81,9 @@ class FakturaServiceTest {
         } answers {
             fakturaBestiltDtoCapturingSlot.captured.shouldBeEqualToComparingFields(
                 FakturaBestiltDto(
-                    fodselsnummer = BigDecimal(12345678911),
+                    fodselsnummer = "12345678911",
                     fullmektigOrgnr = "",
-                    fullmektigFnr = BigDecimal(12129012345),
+                    fullmektigFnr = "12129012345",
                     vedtaksId = "MEL-1",
                     fakturaReferanseNr = "",
                     kreditReferanseNr = "",
@@ -134,11 +134,11 @@ class FakturaServiceTest {
                     intervall = FakturaserieIntervall.KVARTAL,
                     faktura = listOf(),
                     fullmektig = Fullmektig(
-                        fodselsnummer = BigDecimal(12129012345),
+                        fodselsnummer = "12129012345",
                         kontaktperson = "Test",
                         organisasjonsnummer = ""
                     ),
-                    fodselsnummer = BigDecimal(12345678911)
+                    fodselsnummer = "12345678911"
                 )
         }
     }
