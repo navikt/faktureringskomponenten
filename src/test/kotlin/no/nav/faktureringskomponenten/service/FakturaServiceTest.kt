@@ -85,7 +85,7 @@ class FakturaServiceTest {
                     fullmektigOrgnr = "",
                     fullmektigFnr = "12129012345",
                     vedtaksId = "MEL-1",
-                    fakturaReferanseNr = "",
+                    fakturaReferanseNr = "1",
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
