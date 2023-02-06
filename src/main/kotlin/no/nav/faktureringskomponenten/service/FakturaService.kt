@@ -31,12 +31,10 @@ class FakturaService(
         fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
 
     fun lagreFakturaMottattMelding(fakturaMottattDto: FakturaMottattDto) {
-        val faktura = fakturaRepository.findById(fakturaMottattDto.fakturaReferanseNr.toLong()).orElseThrow {
-            throw RessursIkkeFunnetException(
-                field = "fakturaId",
-                message = "Finner ikke faktura med faktura id ${fakturaMottattDto.fakturaReferanseNr}"
-            )
-        }
+        val faktura = fakturaRepository.findById(fakturaMottattDto.fakturaReferanseNr.toLong()) ?: throw RessursIkkeFunnetException(
+            field = "fakturaId",
+            message = "Finner ikke faktura med faktura id $fakturaMottattDto.fakturaReferanseNr"
+        )
 
         if (faktura.status == FakturaStatus.BESTILLT) {
             faktura.apply {
@@ -51,12 +49,10 @@ class FakturaService(
 
     @Transactional
     fun bestillFaktura(fakturaId: Long) {
-        val faktura = fakturaRepository.findById(fakturaId).orElseThrow {
-            throw RessursIkkeFunnetException(
-                field = "fakturaId",
-                message = "Finner ikke faktura med faktura id ${fakturaId}"
-            )
-        }
+        val faktura = fakturaRepository.findById(fakturaId) ?: throw RessursIkkeFunnetException(
+            field = "fakturaId",
+            message = "Finner ikke faktura med faktura id $fakturaId"
+        )
 
         val fakturaserieId = faktura.getFakturaserieId()
             ?: throw RessursIkkeFunnetException(

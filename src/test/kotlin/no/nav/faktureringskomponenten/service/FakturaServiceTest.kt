@@ -30,7 +30,7 @@ class FakturaServiceTest {
 
         every {
             fakturaRepository.findById(1)
-        } returns Optional.of(faktura)
+        } returns faktura
 
         every {
             fakturaserieRepository.save(any())
@@ -62,7 +62,7 @@ class FakturaServiceTest {
 
         every {
             fakturaRepository.findById(1)
-        } returns Optional.of(faktura)
+        } returns faktura
 
         every {
             fakturaserieRepository.save(any())

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class FakturaMottattConsumer(
-    @Autowired val fakturaService: FakturaService
+    private val fakturaService: FakturaService
 ) {
     private val log: Logger = LoggerFactory.getLogger(FakturaMottattConsumer::class.java)
 
