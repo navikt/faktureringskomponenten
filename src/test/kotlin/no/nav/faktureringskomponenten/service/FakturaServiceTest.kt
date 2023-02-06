@@ -14,7 +14,6 @@ import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBesti
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 class FakturaServiceTest {
 
@@ -42,7 +41,7 @@ class FakturaServiceTest {
 
         every {
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
-        } returns Optional.of(faktura.fakturaserie!!)
+        } returns faktura.fakturaserie!!
 
         fakturaService.bestillFaktura(1)
 
@@ -70,7 +69,7 @@ class FakturaServiceTest {
 
         every {
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
-        } returns Optional.of(faktura.fakturaserie!!)
+        } returns faktura.fakturaserie!!
 
         every {
             fakturaRepository.save(any())
