@@ -16,8 +16,8 @@ import java.time.LocalDate
 @DataJpaTest(showSql = false)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class FakturaserieRepositoryIT(
-    @Autowired val fakturaRepository: FakturaRepository,
-    @Autowired val fakturaserieRepository: FakturaserieRepository,
+    @Autowired private val fakturaRepository: FakturaRepository,
+    @Autowired private val fakturaserieRepository: FakturaserieRepository,
 ) : PostgresTestContainerBase() {
 
     @Test
@@ -50,7 +50,7 @@ class FakturaserieRepositoryIT(
 
         fakturaserieRepository.findById(
             fakturaserie.id.shouldNotBeNull()
-        ).get()
+        ).shouldNotBeNull()
             .apply {
                 fodselsnummer.shouldBe("01234567890")
                 fullmektig.shouldNotBeNull()

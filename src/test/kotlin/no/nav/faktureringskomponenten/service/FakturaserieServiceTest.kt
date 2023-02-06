@@ -18,14 +18,12 @@ import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
-    private val fakturaService = mockk<FakturaService>(relaxed = true)
     private val fakturaserieMapper = mockk<FakturaserieMapper>(relaxed = true)
 
-    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieMapper, fakturaService)
+    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieMapper)
 
     @Test
     fun `Endrer fakturaserie, kansellerer opprinnelig og lager ny`() {
@@ -37,7 +35,7 @@ class FakturaserieServiceTest {
 
         every {
             fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
-        } returns Optional.of(opprinneligFakturaserie)
+        } returns opprinneligFakturaserie
 
         every {
             fakturaserieMapper.tilFakturaserie(nyFakturaserieDto, any())
@@ -55,7 +53,7 @@ class FakturaserieServiceTest {
 
         val oppdatertOpprinneligFakturaserie =
             fakturaserieRepository.findByVedtaksId(vedtaksId = opprinneligVedtaksId)
-        oppdatertOpprinneligFakturaserie.get().status
+        oppdatertOpprinneligFakturaserie?.status
             .shouldBe(FakturaserieStatus.KANSELLERT)
 
         verify(exactly = 2) {

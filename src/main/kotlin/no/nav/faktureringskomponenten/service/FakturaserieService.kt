@@ -9,32 +9,23 @@ import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
 
 @Component
 class FakturaserieService(
-    @Autowired val fakturaserieRepository: FakturaserieRepository,
-    @Autowired val fakturaserieMapper: FakturaserieMapper,
-    @Autowired val fakturaService: FakturaService
+    private val fakturaserieRepository: FakturaserieRepository,
+    private val fakturaserieMapper: FakturaserieMapper,
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(FakturaserieService::class.java)
 
-    fun hentFakturaserie(vedtaksId: String): Fakturaserie {
-        val fakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
-
-        if (!fakturaserie.isPresent) {
-            throw RessursIkkeFunnetException(
-                field = "vedtaksId",
-                message = "Fant ikke fakturaserie på: $vedtaksId"
-            )
-        }
-
-        return fakturaserie.get()
-    }
+    fun hentFakturaserie(vedtaksId: String): Fakturaserie =
+        fakturaserieRepository.findByVedtaksId(vedtaksId) ?: throw RessursIkkeFunnetException(
+            field = "vedtaksId",
+            message = "Fant ikke fakturaserie på: $vedtaksId"
+        )
 
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto): Fakturaserie {
@@ -48,16 +39,11 @@ class FakturaserieService(
 
     @Transactional
     fun endreFakturaserie(opprinneligVedtaksId: String, fakturaserieDto: FakturaserieDto): Fakturaserie? {
-        val opprinneligFakturaserieOptional = fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
-
-        if (!opprinneligFakturaserieOptional.isPresent) {
-            throw RessursIkkeFunnetException(
+        val opprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
+            ?: throw RessursIkkeFunnetException(
                 field = "vedtaksId",
                 message = "Fant ikke opprinnelig fakturaserie med vedtaksId $opprinneligVedtaksId"
             )
-        }
-
-        val opprinneligFakturaserie = opprinneligFakturaserieOptional.get()
 
         val opprinneligFakturaserieErUnderBestilling =
             opprinneligFakturaserie.status == FakturaserieStatus.UNDER_BESTILLING
@@ -85,6 +71,6 @@ class FakturaserieService(
     }
 
     fun finnesVedtaksId(vedtaksId: String): Boolean {
-        return fakturaserieRepository.findByVedtaksId(vedtaksId).isPresent
+        return fakturaserieRepository.findByVedtaksId(vedtaksId) != null
     }
 }

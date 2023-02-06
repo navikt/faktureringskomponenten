@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import net.bytebuddy.utility.RandomString
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
@@ -80,10 +81,11 @@ class FakturaserieControllerTest(
 
         putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId)
 
-        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).get()
-        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId).get()
+        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).shouldNotBeNull()
+        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
 
-        oppdatertOpprinneligFakturaserie.status.shouldBe(FakturaserieStatus.KANSELLERT)
+        oppdatertOpprinneligFakturaserie.shouldNotBeNull()
+            .status.shouldBe(FakturaserieStatus.KANSELLERT)
         nyFakturaserie.startdato.shouldBe(startDatoNy)
         nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
     }
