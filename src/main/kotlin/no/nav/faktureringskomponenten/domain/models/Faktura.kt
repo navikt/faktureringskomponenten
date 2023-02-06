@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import jakarta.persistence.*
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Entity
@@ -14,9 +15,12 @@ class Faktura(
     @Column(name = "dato_bestilt", nullable = false)
     val datoBestilt: LocalDate = LocalDate.now(),
 
-    @Column(name = "status", nullable = false, columnDefinition = "enum('OPPRETTET','BESTILLT','KANSELLERT')")
+    @Column(name = "status", nullable = false, columnDefinition = "enum('OPPRETTET','BESTILLT','KANSELLERT', 'BETALT', 'DELVIS BETALT')")
     @Enumerated(EnumType.STRING)
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
+
+    @Column(name = "innbetalt_belop", nullable = false)
+    var innbetaltBelop: BigDecimal = BigDecimal(0.0),
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "faktura_id", nullable = false)

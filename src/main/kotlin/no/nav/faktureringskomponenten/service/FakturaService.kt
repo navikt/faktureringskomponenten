@@ -9,6 +9,9 @@ import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltPr
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -22,18 +25,44 @@ class FakturaService(
     @Autowired val fakturaserieRepository: FakturaserieRepository,
     @Autowired val fakturaBestiltProducer: FakturaBestiltProducer,
 ) {
+    private val log: Logger = LoggerFactory.getLogger(FakturaService::class.java)
 
     fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> =
         fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
 
+    fun lagreFakturaMottattMelding(fakturaMottattDto: FakturaMottattDto) {
+        val faktura = fakturaRepository.findById(fakturaMottattDto.fakturaReferanseNr.toLong()).orElseThrow {
+            throw RessursIkkeFunnetException(
+                field = "fakturaId",
+                message = "Finner ikke faktura med faktura id ${fakturaMottattDto.fakturaReferanseNr}"
+            )
+        }
+
+        if (faktura.status == FakturaStatus.BESTILLT) {
+            faktura.apply {
+                status = fakturaMottattDto.status
+                innbetaltBelop = fakturaMottattDto.belop
+            }
+
+            fakturaRepository.save(faktura)
+            log.info("Faktura {} er endret til {}", faktura.id, faktura)
+        }
+    }
+
     @Transactional
     fun bestillFaktura(fakturaId: Long) {
-        val faktura = fakturaRepository.findById(fakturaId)
+        val faktura = fakturaRepository.findById(fakturaId).orElseThrow {
+            throw RessursIkkeFunnetException(
+                field = "fakturaId",
+                message = "Finner ikke faktura med faktura id ${fakturaId}"
+            )
+        }
 
         val fakturaserieId = faktura.getFakturaserieId()
             ?: throw RessursIkkeFunnetException(
-                field = "fakturaId",
-                message = "Finner ikke fakturaserie med faktura id ${faktura.id}")
+                field = "fakturaserieId",
+                message = "Finner ikke fakturaserie med faktura id ${faktura.id}"
+            )
 
         val fakturaserie = fakturaserieRepository.findById(fakturaserieId).get()
 
@@ -45,7 +74,7 @@ class FakturaService(
             fullmektigOrgnr = fakturaserie.fullmektig?.organisasjonsnummer,
             fullmektigFnr = fakturaserie.fullmektig?.fodselsnummer,
             vedtaksId = fakturaserie.vedtaksId,
-            fakturaReferanseNr = "", // TODO: Avklares hva som skal være her med fag og OEBS først
+            fakturaReferanseNr = "${faktura.id}",
             kreditReferanseNr = "",
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,

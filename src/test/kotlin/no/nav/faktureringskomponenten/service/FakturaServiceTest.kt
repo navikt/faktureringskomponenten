@@ -30,7 +30,7 @@ class FakturaServiceTest {
 
         every {
             fakturaRepository.findById(1)
-        } returns faktura
+        } returns Optional.of(faktura)
 
         every {
             fakturaserieRepository.save(any())
@@ -62,7 +62,7 @@ class FakturaServiceTest {
 
         every {
             fakturaRepository.findById(1)
-        } returns faktura
+        } returns Optional.of(faktura)
 
         every {
             fakturaserieRepository.save(any())
@@ -85,7 +85,7 @@ class FakturaServiceTest {
                     fullmektigOrgnr = "",
                     fullmektigFnr = "12129012345",
                     vedtaksId = "MEL-1",
-                    fakturaReferanseNr = "",
+                    fakturaReferanseNr = "1",
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
