@@ -79,9 +79,9 @@ class FakturaserieServiceTest {
             status = FakturaserieStatus.OPPRETTET,
             intervall = FakturaserieIntervall.KVARTAL,
             faktura = listOf(),
-            fodselsnummer = BigDecimal(12345678911),
+            fodselsnummer = "12345678911",
             fullmektig = Fullmektig(
-                fodselsnummer = BigDecimal(12129012345),
+                fodselsnummer = "12129012345",
                 kontaktperson = "Test",
                 organisasjonsnummer = ""
             ),

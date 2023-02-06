@@ -1,7 +1,6 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import jakarta.persistence.*
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -20,7 +19,7 @@ class Fakturaserie(
     val fakturaGjelder: String = "",
 
     @Column(name = "fodselsnummer", nullable = false)
-    val fodselsnummer: BigDecimal = BigDecimal(0),
+    val fodselsnummer: String = "",
 
     @Embedded
     val fullmektig: Fullmektig? = null,

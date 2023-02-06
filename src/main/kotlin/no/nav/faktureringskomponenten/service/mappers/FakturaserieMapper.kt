@@ -6,7 +6,6 @@ import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import java.math.BigDecimal
 import java.time.LocalDate
 
 @Component
@@ -19,7 +18,7 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
             id = null,
             vedtaksId = fakturaserieDto.vedtaksId,
             fakturaGjelder = fakturaserieDto.fakturaGjelder,
-            fodselsnummer = BigDecimal(fakturaserieDto.fodselsnummer),
+            fodselsnummer = fakturaserieDto.fodselsnummer,
             fullmektig = mapFullmektig(fakturaserieDto.fullmektig),
             referanseBruker = fakturaserieDto.referanseBruker,
             referanseNAV = fakturaserieDto.referanseNAV,
@@ -38,7 +37,7 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
     private fun mapFullmektig(fullmektigDto: FullmektigDto?): Fullmektig? {
         if (fullmektigDto != null) {
             return Fullmektig(
-                fodselsnummer = if (fullmektigDto.fodselsnummer != null) BigDecimal(fullmektigDto.fodselsnummer) else null,
+                fodselsnummer = fullmektigDto.fodselsnummer,
                 organisasjonsnummer = fullmektigDto.organisasjonsnummer,
                 kontaktperson = fullmektigDto.kontaktperson
             )
