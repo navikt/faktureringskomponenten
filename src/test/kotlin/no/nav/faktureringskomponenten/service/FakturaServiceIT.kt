@@ -13,9 +13,11 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
+import no.nav.faktureringskomponenten.testutils.DBVerify
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
@@ -36,8 +38,11 @@ import java.time.LocalDate
 class FakturaServiceIT(
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
-    @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob
-) : PostgresTestContainerBase() {
+    @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
+    @Autowired private val dbVerify: DBVerify
+) : PostgresTestContainerBase(dbVerify) {
+
+    private var fakturaId: Long? = null
 
     private object TestQueue {
         val fakturaBestiltMeldinger = mutableListOf<FakturaBestiltDto>()
@@ -65,12 +70,18 @@ class FakturaServiceIT(
     fun cleanup() {
         TestQueue.fakturaBestiltMeldinger.clear()
         TestQueue.kastException = false
+        slettFakturaSerie(fakturaId!!)
     }
 
-    private fun lagFakturaSerie(vedtaksId: String): Long =
+    @BeforeEach
+    fun before() {
+        fakturaId = lagFakturaSerie()
+    }
+
+    private fun lagFakturaSerie(): Long =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
-                vedtaksId = vedtaksId,
+                vedtaksId = "MEL-1-1",
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(
                     Faktura(
@@ -87,28 +98,30 @@ class FakturaServiceIT(
             ).apply { faktura.forEach { it.fakturaserie = this } }
         ).faktura.first().id!!
 
+    private fun slettFakturaSerie(fakturaId: Long) {
+        val faktura: Faktura = fakturaRepository.findById(fakturaId)!!
+        fakturaserieRepository.delete(faktura.fakturaserie!!)
+    }
+
     @Test
     fun `test at melding blir sent på kø`() {
-        val fakturaId = lagFakturaSerie("MEL-100-1")
         fakturaBestillCronjob.bestillFaktura()
 
         TestQueue.fakturaBestiltMeldinger.shouldHaveSize(1)
-
-        fakturaRepository.findById(fakturaId)?.status
+        fakturaRepository.findById(fakturaId!!)?.status
             .shouldBe(FakturaStatus.BESTILLT)
     }
 
     @Test
     fun `database oppdatering må rulles tilbake om det feiler når man sender melding på kø`() {
-        val fakturaId = lagFakturaSerie("MEL-100-2")
         TestQueue.kastException = true
+
         shouldThrow<IllegalStateException> {
             fakturaBestillCronjob.bestillFaktura()
         }.message.shouldBe("Klarte ikke å legge melding på kø")
 
-        fakturaRepository.findById(fakturaId)?.status
+        fakturaRepository.findById(fakturaId!!)!!.status
             .shouldBe(FakturaStatus.OPPRETTET)
-
         TestQueue.fakturaBestiltMeldinger.shouldBeEmpty()
     }
 }

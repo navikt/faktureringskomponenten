@@ -11,6 +11,7 @@ import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
+import no.nav.faktureringskomponenten.testutils.DBVerify
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
@@ -41,10 +42,11 @@ import java.time.LocalDate
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableMockOAuth2Server
 class FakturaserieControllerTest(
-    @Autowired val webClient: WebTestClient,
-    @Autowired val server: MockOAuth2Server,
-    @Autowired val fakturaserieRepository: FakturaserieRepository,
-) : PostgresTestContainerBase() {
+    @Autowired private val webClient: WebTestClient,
+    @Autowired private val server: MockOAuth2Server,
+    @Autowired private val fakturaserieRepository: FakturaserieRepository,
+    @Autowired private val dbVerify: DBVerify
+) : PostgresTestContainerBase(dbVerify) {
 
     @Test
     @Disabled("Skal ikke støtte endring av fakturaserie i denne versjonen")
@@ -106,6 +108,9 @@ class FakturaserieControllerTest(
             .jsonPath("$.violations[0].message").isEqualTo(
                 "Kan ikke opprette fakturaserie når vedtaksId allerede finnes"
             )
+
+        val fakturaserie = fakturaserieRepository.findByVedtaksId(duplikatNokkel)
+        fakturaserieRepository.delete(fakturaserie!!)
     }
 
     @ParameterizedTest(name = "{0} gir feilmelding \"{3}\"")
