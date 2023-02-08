@@ -5,10 +5,10 @@ import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -90,12 +90,12 @@ class FakturaService(
                     enhetspris = it.enhetsprisPerManed,
                     belop = it.belop
                 )
-            },
+            }
         )
-
-        fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
 
         fakturaserieRepository.save(fakturaserie)
         fakturaRepository.save(faktura)
+
+        fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
     }
 }

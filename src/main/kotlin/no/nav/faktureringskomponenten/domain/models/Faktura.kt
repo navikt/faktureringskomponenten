@@ -24,7 +24,7 @@ class Faktura(
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "faktura_id", nullable = false)
-    val fakturaLinje: List<FakturaLinje> = listOf(),
+    val fakturaLinje: List<FakturaLinje> = mutableListOf(),
 
     @ManyToOne
     @JoinColumn(name = "fakturaserie_id", nullable = false, insertable = false, updatable = false)
