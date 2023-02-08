@@ -48,9 +48,9 @@ class FakturaServiceTest {
         verifySequence {
             fakturaRepository.findById(1)
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
-            fakturaBestiltProducer.produserBestillingsmelding(any())
             fakturaserieRepository.save(faktura.fakturaserie!!)
             fakturaRepository.save(faktura)
+            fakturaBestiltProducer.produserBestillingsmelding(any())
         }
     }
 
