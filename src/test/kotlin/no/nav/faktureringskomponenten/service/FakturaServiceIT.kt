@@ -15,6 +15,7 @@ import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltPr
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,9 +65,18 @@ class FakturaServiceIT(
     @BeforeEach
     fun setup() {
         TestQueue.kastException = false
+    }
+
+
+    @AfterEach
+    fun cleanup() {
+        TestQueue.fakturaBestiltMeldinger.clear()
+    }
+
+    private fun lagFakturaSerie(vedtaksId: String): Long =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
-                vedtaksId = "MEL-1-9",
+                vedtaksId = vedtaksId,
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(
                     Faktura(
@@ -81,27 +91,28 @@ class FakturaServiceIT(
                     )
                 )
             ).apply { faktura.forEach { it.fakturaserie = this } }
-        )
-    }
+        ).faktura.first().id!!
 
     @Test
     fun `test at melding blir sent på kø`() {
+        val fakturaId = lagFakturaSerie("MEL-100-1")
         fakturaBestillCronjob.bestillFaktura()
 
         TestQueue.fakturaBestiltMeldinger.shouldHaveSize(1)
 
-        fakturaRepository.findById(1L)?.status
+        fakturaRepository.findById(fakturaId)?.status
             .shouldBe(FakturaStatus.BESTILLT)
     }
 
     @Test
     fun `database oppdatering må rulles tilbake om det feiler når man sender melding på kø`() {
+        val fakturaId = lagFakturaSerie("MEL-100-2")
         TestQueue.kastException = true
         shouldThrow<IllegalStateException> {
             fakturaBestillCronjob.bestillFaktura()
         }.message.shouldBe("Klarte ikke å legge melding på kø")
 
-        fakturaRepository.findById(1L)?.status
+        fakturaRepository.findById(fakturaId)?.status
             .shouldBe(FakturaStatus.OPPRETTET)
 
         TestQueue.fakturaBestiltMeldinger.shouldBeEmpty()
