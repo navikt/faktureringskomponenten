@@ -16,7 +16,6 @@ import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBesti
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
@@ -29,7 +28,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @ActiveProfiles("itest")
-//@DataJpaTest(showSql = false) // Vil helst få dette til å funke med mindre @DataJpaTest
+//@DataJpaTest(showSql = false) // Mangler bare å hindre at ting puttes i Transactional for at vi kan bruke dette
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SpringBootTest
 //@Import(FakturaBestillCronjob::class)
@@ -62,15 +61,10 @@ class FakturaServiceIT(
         }
     }
 
-    @BeforeEach
-    fun setup() {
-        TestQueue.kastException = false
-    }
-
-
     @AfterEach
     fun cleanup() {
         TestQueue.fakturaBestiltMeldinger.clear()
+        TestQueue.kastException = false
     }
 
     private fun lagFakturaSerie(vedtaksId: String): Long =
