@@ -49,7 +49,7 @@ class Fakturaserie(
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "fakturaserie_id", nullable = false)
-    val faktura: List<Faktura> = listOf()
+    val faktura: List<Faktura> = mutableListOf()
 ) {
     @Override
     override fun toString(): String {
