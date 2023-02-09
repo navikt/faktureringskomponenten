@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.testutils.DBVerify
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,11 +19,12 @@ import java.time.LocalDate
 class FakturaserieRepositoryIT(
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
-) : PostgresTestContainerBase() {
+    @Autowired private val dbVerify: DBVerify
+) : PostgresTestContainerBase(dbVerify) {
 
     @Test
     fun test_findAllByDatoBestiltIsLessThanEqualAndStatusIs() {
-        fakturaserieRepository.save(
+        val fakturaserie = fakturaserieRepository.save(
             Fakturaserie(
                 faktura = listOf(
                     Faktura(datoBestilt = LocalDate.now().plusDays(-1))
@@ -34,6 +36,8 @@ class FakturaserieRepositoryIT(
             fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(LocalDate.now())
 
         fakturaList.shouldHaveSize(1)
+
+        fakturaserieRepository.delete(fakturaserie)
     }
 
     @Test
@@ -56,6 +60,8 @@ class FakturaserieRepositoryIT(
                 fullmektig.shouldNotBeNull()
                     .fodselsnummer.shouldBe("-123456789-")
             }
+
+        fakturaserieRepository.delete(fakturaserie)
     }
 
 }
