@@ -16,6 +16,7 @@ open class PostgresTestContainerBase {
 
     companion object {
         var dbContainer = PostgreSQLContainer("postgres:12.11")
+        private const val useContainer = true // easy way to switch to run against local docker
 
         @DynamicPropertySource
         @JvmStatic
@@ -30,7 +31,7 @@ open class PostgresTestContainerBase {
         }
 
         private fun useTestContainer(): Boolean =
-            System.getenv("USE-LOCAL-DB")?.lowercase() != "true"
+            System.getenv("USE-LOCAL-DB")?.lowercase() != "true" && useContainer
     }
 
     private fun checkThatDatabaseIsEmpty() {
