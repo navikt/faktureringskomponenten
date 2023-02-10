@@ -11,7 +11,6 @@ import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
-import no.nav.faktureringskomponenten.testutils.DBVerify
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
@@ -45,8 +44,7 @@ class FakturaserieControllerTest(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val server: MockOAuth2Server,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
-    @Autowired private val dbVerify: DBVerify
-) : PostgresTestContainerBase(dbVerify) {
+) : PostgresTestContainerBase() {
 
     @Test
     @Disabled("Skal ikke støtte endring av fakturaserie i denne versjonen")

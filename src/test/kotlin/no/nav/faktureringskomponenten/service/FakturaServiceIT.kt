@@ -13,7 +13,6 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
-import no.nav.faktureringskomponenten.testutils.DBVerify
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.junit.jupiter.api.AfterEach
@@ -39,8 +38,7 @@ class FakturaServiceIT(
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
-    @Autowired private val dbVerify: DBVerify
-) : PostgresTestContainerBase(dbVerify) {
+) : PostgresTestContainerBase() {
 
     private var fakturaId: Long? = null
 

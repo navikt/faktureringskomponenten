@@ -4,7 +4,6 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.*
-import no.nav.faktureringskomponenten.testutils.DBVerify
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,8 +18,7 @@ import java.time.LocalDate
 class FakturaserieRepositoryIT(
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
-    @Autowired private val dbVerify: DBVerify
-) : PostgresTestContainerBase(dbVerify) {
+) : PostgresTestContainerBase() {
 
     @Test
     fun test_findAllByDatoBestiltIsLessThanEqualAndStatusIs() {
