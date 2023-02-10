@@ -1,15 +1,19 @@
 package no.nav.faktureringskomponenten.testutils
 
 import org.junit.jupiter.api.AfterEach
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.PostgreSQLContainer
 
 @Import(value = [DBVerify::class])
-open class PostgresTestContainerBase(
-    private val dbVerify: DBVerify
-) {
+open class PostgresTestContainerBase {
+
+    @Suppress("SpringJavaAutowiredMembersInspection")
+    @Autowired
+    private lateinit var dbVerify: DBVerify
+
     companion object {
         var dbContainer = PostgreSQLContainer("postgres:12.11")
 
