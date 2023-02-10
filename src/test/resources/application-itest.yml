@@ -1,45 +1,16 @@
-spring:
-  datasource:
-    username: postgres
-    password: mysecretpassword
-    url: jdbc:postgresql://localhost:5432/postgres?currentSchema=faktureringskomponenten
-  flyway:
-    locations: classpath:db/migration
-    enabled: true
-  jpa:
-    properties:
-      hibernate:
-        format_sql: true
-        ddl-auto: none
-    show-sql: false
+DB_USERNAME: postgres
+DB_PASSWORD: mysecretpassword
+DB_HOST: localhost
+DB_PORT: 5432
+DB_DATABASE: faktureringskomponenten
 
-management:
-  endpoint:
-    health:
-      probes:
-        enabled: true
-  health:
-    livenessState:
-      enabled: true
-    readinessState:
-      enabled: true
-kafka:
-  aiven:
-    brokers: "localhost:29092"
-    keystorePath: "/dev/zero"
-    truststorePath: "/dev/zero"
-    credstorePassword: "/dev/zero"
-  producer:
-    faktura-bestilt: "faktura-bestilt.v1"
-  consumer:
-    oebs:
-      groupid: "faktura-mottatt-groupid"
-      topic: "faktura-mottatt-topic"
+KAFKA_BROKERS: localhost:29092 # vil helst slippe å ha denne, men ting wires opp, logger feil men funker selv om ikke kafaka kjører
+KAFKA_KEYSTORE_PATH: "/dev/zero"
+KAFKA_TRUSTSTORE_PATH: "/dev/zero"
+KAFKA_CREDSTORE_PASSWORD: "pwd"
+KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_GROUPID: "faktura-mottatt-groupid"
+KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_TOPIC: "faktura-mottatt-topic-local"
+KAFKA_TOPIC_NAME_FAKTURA_BESTILT: "faktura-bestilt.v1"
 
-no.nav.security.jwt.issuer:
-  aad:
-    discovery-url: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
-    accepted-audience: faktureringskomponenten-localhost
-  sts:
-    discovery-url: http://localhost:${mock-oauth2-server.port}/sts/.well-known/openid-configuration
-    accepted-audience: srvfaktureringskomponenten-localhost
+AZURE_APP_WELL_KNOWN_URL: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
+AZURE_APP_CLIENT_ID: faktureringskomponenten-localhost

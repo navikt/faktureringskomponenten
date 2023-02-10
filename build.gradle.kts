@@ -35,6 +35,7 @@ object dependencyVersions {
     const val springdocOpenapiStarter = "2.0.2"
     const val logstashLogbackEncoder = "7.2"
     const val tokenSupportVersion = "3.0.2"
+    const val awaitabilityVersion = "4.2.0"
 }
 
 object TestContainersDependencies {
@@ -68,6 +69,8 @@ dependencies {
     testImplementation("io.mockk:mockk:${dependencyVersions.mockkVersion}")
     testImplementation(TestContainersDependencies.postgresTestContainers)
     testImplementation(TestContainersDependencies.junitJupiterTestContainers)
+    testImplementation("org.awaitility:awaitility:${dependencyVersions.awaitabilityVersion}")
+    testImplementation("org.awaitility:awaitility-kotlin:${dependencyVersions.awaitabilityVersion}")
 }
 
 tasks {
