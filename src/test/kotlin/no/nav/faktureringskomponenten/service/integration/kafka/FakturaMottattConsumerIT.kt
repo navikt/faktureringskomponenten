@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
@@ -29,7 +30,7 @@ import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.util.concurrent.TimeUnit
 
-@ActiveProfiles(value = ["itest", "embeded-kafka"])
+@ActiveProfiles("itest", "embeded-kafka")
 @EmbeddedKafka(
     count = 1, controlledShutdown = true, partitions = 1,
     topics = ["faktura-mottatt-topic-local"],
@@ -49,7 +50,7 @@ class FakturaMottattConsumerIT(
     class KafkaTestConfig {
         @Bean
         @Qualifier("fakturaBestilt")
-        fun melosysEessiMeldingKafkaTemplate(
+        fun fakturaBestiltKafkaTemplate(
             kafkaProperties: KafkaProperties,
             objectMapper: ObjectMapper?
         ): KafkaTemplate<String, FakturaMottattDto> {
@@ -88,10 +89,53 @@ class FakturaMottattConsumerIT(
         fakturaserieRepository.delete(faktura.fakturaserie!!)
     }
 
-    private fun lagFakturaMedSerie(faktura: Faktura): Faktura =
+    @Test
+    fun `les faktura fra kakfak kø skal stoppe ved feil`() {
+        val faktura = lagFakturaMedSerie(
+            Faktura(
+                status = FakturaStatus.OPPRETTET,
+            )
+        )
+        kafkaTemplate.send(
+            kafkaTopic, FakturaMottattDto(
+                fodselsnummer = "12345678901",
+                vedtaksId = "MEL-1-1",
+                fakturaReferanseNr = faktura.id.toString(),
+                kreditReferanseNr = "",
+                belop = BigDecimal(1000),
+                status = FakturaStatus.BETALT
+            )
+        )
+        val faktura2 = lagFakturaMedSerie(
+            Faktura(
+                status = FakturaStatus.BESTILLT,
+            ), "MEL-2-1"
+        )
+        kafkaTemplate.send(
+            kafkaTopic, FakturaMottattDto(
+                fodselsnummer = "12345678901",
+                vedtaksId = "MEL-2-1",
+                fakturaReferanseNr = faktura2.id.toString(),
+                kreditReferanseNr = "",
+                belop = BigDecimal(1000),
+                status = FakturaStatus.BETALT
+            )
+        )
+
+        // Ikke beste løsningen dette, skal se om vi kan bruke metriker vente til de er satt med feilet
+        Thread.sleep(5000)
+
+        fakturaRepository.findById(faktura2.id!!)!!.status.shouldBe(FakturaStatus.BESTILLT)
+
+        fakturaserieRepository.delete(faktura.fakturaserie!!)
+        fakturaserieRepository.delete(faktura2.fakturaserie!!)
+    }
+
+
+    private fun lagFakturaMedSerie(faktura: Faktura, vedtaksId: String = "MEL-1-1"): Faktura =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
-                vedtaksId = "MEL-1-1",
+                vedtaksId = vedtaksId,
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(faktura)
             ).apply { this.faktura.forEach { it.fakturaserie = this } }
