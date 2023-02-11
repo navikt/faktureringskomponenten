@@ -45,7 +45,7 @@ class FakturaService(
             fakturaRepository.save(faktura)
             log.info("Faktura {} er endret til {}", faktura.id, faktura)
         } else {
-            throw IllegalStateException("Faktura melding mottat fra oebs med status: ${faktura.status}")
+            throw IllegalStateException("Faktura melding mottatt fra oebs med status: ${faktura.status}")
         }
     }
 
