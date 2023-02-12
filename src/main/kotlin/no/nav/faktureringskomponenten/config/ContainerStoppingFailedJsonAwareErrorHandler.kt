@@ -6,9 +6,11 @@ import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.common.errors.RecordDeserializationException
 import org.springframework.kafka.listener.CommonContainerStoppingErrorHandler
 import org.springframework.kafka.listener.MessageListenerContainer
+import org.springframework.stereotype.Component
 
+@Component
 class ContainerStoppingFailedJsonAwareErrorHandler(
-    private val valueDeserializer: DeserializerFailedJsonAware<*>,
+    private val valueDeserializer: DeserializerFailedJsonAware,
     private val fakturaMotakFeilRepository: FakturaMottakFeilRepository
 ) : CommonContainerStoppingErrorHandler() {
 

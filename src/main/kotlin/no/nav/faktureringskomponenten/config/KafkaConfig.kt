@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.config
 
-import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import org.apache.kafka.clients.CommonClientConfigs
@@ -34,7 +33,6 @@ class KafkaConfig(
     @Value("\${kafka.aiven.keystorePath}") private val keystorePath: String,
     @Value("\${kafka.aiven.truststorePath}") private val truststorePath: String,
     @Value("\${kafka.aiven.credstorePassword}") private val credstorePassword: String,
-    private val fakturaMotakFeilRepository: FakturaMottakFeilRepository
 ) {
 
     @Bean
@@ -56,21 +54,19 @@ class KafkaConfig(
     ) + securityConfig()
 
     @Bean
-    fun faktarMottattHendelseListenerContainerFactory(kafkaProperties: KafkaProperties) =
+    fun faktarMottattHendelseListenerContainerFactory(
+        kafkaProperties: KafkaProperties,
+        containerStoppingFailedJsonAwareErrorHandler: ContainerStoppingFailedJsonAwareErrorHandler,
+        valueDeserializer: DeserializerFailedJsonAware
+    ) =
         ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>().apply {
-            val valueDeserializer =
-                DeserializerFailedJsonAware(
-                    JsonDeserializer(FakturaMottattDto::class.java, false)
-                )
+            setCommonErrorHandler(containerStoppingFailedJsonAwareErrorHandler)
+
             consumerFactory = DefaultKafkaConsumerFactory(
                 kafkaProperties.buildConsumerProperties() + consumerConfig(),
                 StringDeserializer(),
                 valueDeserializer
             )
-            setCommonErrorHandler(ContainerStoppingFailedJsonAwareErrorHandler(
-                valueDeserializer,
-                fakturaMotakFeilRepository
-            ))
             containerProperties.ackMode = ContainerProperties.AckMode.RECORD
         }
 
