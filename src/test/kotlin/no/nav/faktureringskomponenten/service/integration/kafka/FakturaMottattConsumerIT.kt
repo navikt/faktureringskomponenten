@@ -39,11 +39,11 @@ import java.util.concurrent.TimeUnit
     topics = ["faktura-mottatt-topic-local"],
     brokerProperties = ["offsets.topic.replication.factor=1", "transaction.state.log.replication.factor=1", "transaction.state.log.min.isr=1"]
 )
-@SpringBootTest()
+@SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @EnableMockOAuth2Server
 class FakturaMottattConsumerIT(
-    @Autowired @Qualifier("fakturaBestilt") private val kafkaTemplate: KafkaTemplate<String, FakturaMottattDto>,
+    @Autowired @Qualifier("fakturaMottatt") private val kafkaTemplate: KafkaTemplate<String, FakturaMottattDto>,
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired private val fakturaMotakFeilRepository: FakturaMottakFeilRepository,
@@ -54,8 +54,8 @@ class FakturaMottattConsumerIT(
     @TestConfiguration
     class KafkaTestConfig {
         @Bean
-        @Qualifier("fakturaBestilt")
-        fun fakturaBestiltKafkaTemplate(
+        @Qualifier("fakturaMottatt")
+        fun fakturaMottattKafkaTemplate(
             kafkaProperties: KafkaProperties,
             objectMapper: ObjectMapper?
         ): KafkaTemplate<String, FakturaMottattDto> {
@@ -120,13 +120,14 @@ class FakturaMottattConsumerIT(
                 fakturaMotakFeilRepository.findAll().isNotEmpty()
             }
 
-        fakturaMotakFeilRepository.findAll()
+        val fakturaMottakFeil = fakturaMotakFeilRepository.findAll()
             .shouldHaveSize(1)
             .first()
-            .apply {
-                vedtaksId.shouldBe("MEL-1-1")
-                error?.shouldBe("Faktura melding mottatt fra oebs med status: OPPRETTET")
-            }
+
+        fakturaMottakFeil.apply {
+            vedtaksId.shouldBe("MEL-1-1")
+            error?.shouldBe("Faktura melding mottatt fra oebs med status: OPPRETTET")
+        }
 
         await.timeout(30, TimeUnit.SECONDS).until { !listenerContainer.isRunning }
 
