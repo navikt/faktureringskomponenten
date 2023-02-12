@@ -14,7 +14,7 @@ class FakturaMottakFeil(
     val error: String? = null,
 
     @Column(name = "kafka_melding")
-    val KafkaMelding: String? = null,
+    val kafkaMelding: String? = null,
 
     @Column(name = "vedtaks_id")
     val vedtaksId: String? = null,

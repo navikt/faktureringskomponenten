@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.config
 
+import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import org.apache.kafka.clients.CommonClientConfigs
@@ -32,7 +33,8 @@ class KafkaConfig(
     @Value("\${kafka.aiven.brokers}") private val brokersUrl: String,
     @Value("\${kafka.aiven.keystorePath}") private val keystorePath: String,
     @Value("\${kafka.aiven.truststorePath}") private val truststorePath: String,
-    @Value("\${kafka.aiven.credstorePassword}") private val credstorePassword: String
+    @Value("\${kafka.aiven.credstorePassword}") private val credstorePassword: String,
+    private val fakturaMotakFeilRepository: FakturaMottakFeilRepository
 ) {
 
     @Bean
@@ -65,7 +67,10 @@ class KafkaConfig(
                 StringDeserializer(),
                 valueDeserializer
             )
-            setCommonErrorHandler(ContainerStoppingFailedJsonAwareErrorHandler(valueDeserializer))
+            setCommonErrorHandler(ContainerStoppingFailedJsonAwareErrorHandler(
+                valueDeserializer,
+                fakturaMotakFeilRepository
+            ))
             containerProperties.ackMode = ContainerProperties.AckMode.RECORD
         }
 
