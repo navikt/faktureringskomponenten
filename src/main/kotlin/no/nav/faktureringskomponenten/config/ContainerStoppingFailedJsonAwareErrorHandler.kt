@@ -20,13 +20,12 @@ class ContainerStoppingFailedJsonAwareErrorHandler(
     ) {
         val failedJson = valueDeserializer.getFailedJson()
         if (failedJson != null) {
-            val recordDeserializationException = thrownException as RecordDeserializationException
-            recordDeserializationException.offset()
+            val recordDeserializationException = thrownException as? RecordDeserializationException
             fakturaMotakFeilRepository.saveAndFlush(
                 FakturaMottakFeil(
                     error = thrownException.message,
                     kafkaMelding = failedJson,
-                    kafkaOffset = recordDeserializationException.offset()
+                    kafkaOffset = recordDeserializationException?.offset()
                 )
             )
         }
