@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.config
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
@@ -21,9 +20,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
-import org.springframework.kafka.listener.CommonContainerStoppingErrorHandler
 import org.springframework.kafka.listener.ContainerProperties
-import org.springframework.kafka.listener.MessageListenerContainer
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import java.util.*
 
@@ -56,31 +53,11 @@ class KafkaConfig(
         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to FakturaBestiltSerializer::class.java
     ) + securityConfig()
 
-    class MyCommonContainerStoppingErrorHandler(
-        private val valueDeserializer: ErrorHandlingDeserializerFailedJsonAware<*>
-    ) :
-        CommonContainerStoppingErrorHandler() {
-
-        override fun handleOtherException(
-            thrownException: java.lang.Exception,
-            consumer: Consumer<*, *>,
-            container: MessageListenerContainer,
-            batchListener: Boolean
-        ) {
-            val failedJson = valueDeserializer.getFailedJson()
-
-            if (failedJson != null) {
-                println("Failed to deserialize JSON: $failedJson")
-            }
-            super.handleOtherException(thrownException, consumer, container, batchListener)
-        }
-    }
-
     @Bean
     fun faktarMottattHendelseListenerContainerFactory(kafkaProperties: KafkaProperties) =
         ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>().apply {
             val valueDeserializer =
-                ErrorHandlingDeserializerFailedJsonAware(
+                DeserializerFailedJsonAware(
                     JsonDeserializer(FakturaMottattDto::class.java, false)
                 )
             consumerFactory = DefaultKafkaConsumerFactory(
@@ -88,7 +65,7 @@ class KafkaConfig(
                 StringDeserializer(),
                 valueDeserializer
             )
-            setCommonErrorHandler(MyCommonContainerStoppingErrorHandler(valueDeserializer))
+            setCommonErrorHandler(ContainerStoppingFailedJsonAwareErrorHandler(valueDeserializer))
             containerProperties.ackMode = ContainerProperties.AckMode.RECORD
         }
 
