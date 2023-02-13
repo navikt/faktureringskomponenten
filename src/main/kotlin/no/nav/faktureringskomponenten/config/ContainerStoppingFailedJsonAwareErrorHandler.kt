@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 @Component
 class ContainerStoppingFailedJsonAwareErrorHandler(
     private val valueDeserializer: DeserializerFailedJsonAware,
-    private val fakturaMotakFeilRepository: FakturaMottakFeilRepository
+    private val fakturaMottakFeilRepository: FakturaMottakFeilRepository
 ) : CommonContainerStoppingErrorHandler() {
 
     override fun handleOtherException(
@@ -23,7 +23,7 @@ class ContainerStoppingFailedJsonAwareErrorHandler(
         val failedJson = valueDeserializer.getFailedJson()
         if (failedJson != null) {
             val recordDeserializationException = thrownException as? RecordDeserializationException
-            fakturaMotakFeilRepository.saveAndFlush(
+            fakturaMottakFeilRepository.saveAndFlush(
                 FakturaMottakFeil(
                     error = thrownException.message,
                     kafkaMelding = failedJson,
