@@ -4,5 +4,4 @@ class FakturaMottattConsumerException(
     message: String,
     val offset: Long,
     cause: Throwable?
-) : RuntimeException(message, cause) {
-}
+) : RuntimeException(message, cause)
