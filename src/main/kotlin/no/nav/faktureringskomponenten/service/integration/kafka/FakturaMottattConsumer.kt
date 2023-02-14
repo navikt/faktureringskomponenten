@@ -1,7 +1,5 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
-import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
-import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -12,16 +10,17 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.listener.AbstractConsumerSeekAware
 import org.springframework.kafka.listener.ConsumerSeekAware.ConsumerSeekCallback
+import org.springframework.kafka.listener.MessageListenerContainer
 import org.springframework.stereotype.Component
 
 @Component
 class FakturaMottattConsumer(
     private val fakturaService: FakturaService,
-    private val listenerContainer: KafkaListenerEndpointRegistry,
-    private val fakturaMotakFeilRepository: FakturaMottakFeilRepository
+    private val kafkaListenerEndpointRegistry: KafkaListenerEndpointRegistry
 ) : AbstractConsumerSeekAware() {
 
     @KafkaListener(
+        id = "fakturaMottatt",
         clientIdPrefix = "melosys-faktureringskomponenten-fakturaMottatt",
         topics = ["\${kafka.consumer.oebs.topic}"],
         containerFactory = "faktarMottattHendelseListenerContainerFactory",
@@ -38,24 +37,20 @@ class FakturaMottattConsumer(
                         "offset=${consumerRecord.offset()}\n" +
                         "Error:${e.message}", e
             )
-            stop()
-            fakturaMotakFeilRepository.saveAndFlush(
-                FakturaMottakFeil(
-                    error = e.message,
-                    kafkaOffset = consumerRecord.offset(),
-                    vedtaksId = fakturaMottattDto.vedtaksId,
-                    fakturaReferanseNr = fakturaMottattDto.fakturaReferanseNr
-                )
-            )
+            throw e
         }
     }
 
     fun start() {
-        listenerContainer.start()
+        fakturaMottattListenerContainer().start()
+    }
+
+    fun fakturaMottattListenerContainer(): MessageListenerContainer {
+        return kafkaListenerEndpointRegistry.getListenerContainer("fakturaMottatt")!!
     }
 
     fun stop() {
-        listenerContainer.stop()
+        fakturaMottattListenerContainer().stop()
     }
 
     fun settSpesifiktOffsetPåConsumer(offset: Long) {

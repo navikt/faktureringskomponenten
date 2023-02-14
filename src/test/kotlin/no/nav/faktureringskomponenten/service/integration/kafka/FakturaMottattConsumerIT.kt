@@ -23,7 +23,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
-import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
@@ -46,8 +45,8 @@ class FakturaMottattConsumerIT(
     @Autowired @Qualifier("fakturaMottatt") private val kafkaTemplate: KafkaTemplate<String, FakturaMottattDto>,
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
-    @Autowired private val fakturaMotakFeilRepository: FakturaMottakFeilRepository,
-    @Autowired private val listenerContainer: KafkaListenerEndpointRegistry,
+    @Autowired private val fakturaMottakFeilRepository: FakturaMottakFeilRepository,
+    @Autowired private val fakturaMottattConsumer: FakturaMottattConsumer
 ) : PostgresTestContainerBase() {
     private val kafkaTopic = "faktura-mottatt-topic-local"
 
@@ -95,7 +94,7 @@ class FakturaMottattConsumerIT(
     }
 
     @Test
-    fun `les faktura fra kakfak kø skal stoppe ved feil`() {
+    fun `les faktura fra kakfak kø skal stoppe ved feil og ikke avansere offset`() {
         val (f1, f2) = (1..2).map {
             val faktura = lagFakturaMedSerie(
                 faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILLT),
@@ -117,21 +116,21 @@ class FakturaMottattConsumerIT(
         await
             .timeout(30, TimeUnit.SECONDS)
             .until {
-                fakturaMotakFeilRepository.findAll().isNotEmpty()
+                fakturaMottakFeilRepository.findAll().isNotEmpty()
             }
 
-        val fakturaMottakFeil = fakturaMotakFeilRepository.findAll()
+        fakturaMottakFeilRepository.findAll()
             .shouldHaveSize(1)
-            .first()
+            .first().error.shouldBe("Faktura melding mottatt fra oebs med status: OPPRETTET")
 
-        fakturaMottakFeil.apply {
-            vedtaksId.shouldBe("MEL-1-1")
-            error?.shouldBe("Faktura melding mottatt fra oebs med status: OPPRETTET")
+        val listenerContainer = fakturaMottattConsumer.fakturaMottattListenerContainer()
+        await.timeout(20, TimeUnit.SECONDS).until { !listenerContainer.isRunning }
+
+        listenerContainer.start()
+        await.timeout(10, TimeUnit.SECONDS).until {
+            fakturaMottakFeilRepository.findAll().size == 2
         }
-
-        await.timeout(30, TimeUnit.SECONDS).until { !listenerContainer.isRunning }
-
-        // Sjekk at kafka kø ha stoppet og melding nummer 2 ikke er har blitt konsumert
+        // FakturaStatus blir BETELAT om neste kafka melding blir prosessert
         fakturaRepository.findById(f2.id!!)?.status.shouldBe(FakturaStatus.BESTILLT)
 
         fakturaserieRepository.delete(f1.fakturaserie!!)

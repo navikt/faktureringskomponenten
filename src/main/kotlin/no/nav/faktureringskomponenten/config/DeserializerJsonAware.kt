@@ -6,18 +6,18 @@ import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.stereotype.Component
 
 @Component
-class DeserializerFailedJsonAware : Deserializer<FakturaMottattDto> {
+class DeserializerJsonAware : Deserializer<FakturaMottattDto> {
 
     private val delegate = JsonDeserializer(FakturaMottattDto::class.java, false)
 
-    private var failedJson: String? = null
+    private var json: String? = null
 
     override fun deserialize(topic: String, data: ByteArray?): FakturaMottattDto {
-        failedJson = data?.let { String(it, Charsets.UTF_8) }
+        json = data?.let { String(it, Charsets.UTF_8) }
         return delegate.deserialize(topic, data)
     }
 
-    fun getFailedJson(): String? {
-        return failedJson
+    fun getJson(): String? {
+        return json
     }
 }

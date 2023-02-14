@@ -57,7 +57,7 @@ class KafkaConfig(
     fun faktarMottattHendelseListenerContainerFactory(
         kafkaProperties: KafkaProperties,
         containerStoppingFailedJsonAwareErrorHandler: ContainerStoppingFailedJsonAwareErrorHandler,
-        valueDeserializer: DeserializerFailedJsonAware
+        valueDeserializer: DeserializerJsonAware
     ) =
         ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>().apply {
             setCommonErrorHandler(containerStoppingFailedJsonAwareErrorHandler)
