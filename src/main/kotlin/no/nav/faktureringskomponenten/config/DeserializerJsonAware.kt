@@ -10,14 +10,10 @@ class DeserializerJsonAware : Deserializer<FakturaMottattDto> {
 
     private val delegate = JsonDeserializer(FakturaMottattDto::class.java, false)
 
-    private var json: String? = null
+    var json: String? = null
 
     override fun deserialize(topic: String, data: ByteArray?): FakturaMottattDto {
         json = data?.let { String(it, Charsets.UTF_8) }
         return delegate.deserialize(topic, data)
-    }
-
-    fun getJson(): String? {
-        return json
     }
 }

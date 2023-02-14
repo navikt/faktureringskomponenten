@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.service.integration.kafka
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
@@ -121,7 +122,10 @@ class FakturaMottattConsumerIT(
 
         fakturaMottakFeilRepository.findAll()
             .shouldHaveSize(1)
-            .first().error.shouldBe("Faktura melding mottatt fra oebs med status: OPPRETTET")
+            .first().apply {
+                error.shouldStartWith("Feil ved lagring av faktura:")
+                kafkaOffset.shouldBe(0)
+            }
 
         val listenerContainer = fakturaMottattConsumer.fakturaMottattListenerContainer()
         await.timeout(20, TimeUnit.SECONDS).until { !listenerContainer.isRunning }
