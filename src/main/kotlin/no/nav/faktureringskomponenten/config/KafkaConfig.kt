@@ -32,7 +32,7 @@ class KafkaConfig(
     @Value("\${kafka.aiven.brokers}") private val brokersUrl: String,
     @Value("\${kafka.aiven.keystorePath}") private val keystorePath: String,
     @Value("\${kafka.aiven.truststorePath}") private val truststorePath: String,
-    @Value("\${kafka.aiven.credstorePassword}") private val credstorePassword: String,
+    @Value("\${kafka.aiven.credstorePassword}") private val credstorePassword: String
 ) {
 
     @Bean
