@@ -56,11 +56,11 @@ class KafkaConfig(
     @Bean
     fun faktarMottattHendelseListenerContainerFactory(
         kafkaProperties: KafkaProperties,
-        containerStoppingFailedJsonAwareErrorHandler: ContainerStoppingFailedJsonAwareErrorHandler,
+        containerStoppingErrorSavingHandler: ContainerStoppingErrorSavingHandler,
         valueDeserializer: DeserializerJsonAware
     ) =
         ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>().apply {
-            setCommonErrorHandler(containerStoppingFailedJsonAwareErrorHandler)
+            setCommonErrorHandler(containerStoppingErrorSavingHandler)
 
             consumerFactory = DefaultKafkaConsumerFactory(
                 kafkaProperties.buildConsumerProperties() + consumerConfig(),

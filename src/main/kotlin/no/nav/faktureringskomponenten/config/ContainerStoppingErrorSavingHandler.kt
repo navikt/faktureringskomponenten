@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 import java.lang.Exception
 
 @Component
-class ContainerStoppingFailedJsonAwareErrorHandler(
+class ContainerStoppingErrorSavingHandler(
     private val valueDeserializer: DeserializerJsonAware
 ) : CommonContainerStoppingErrorHandler() {
 
@@ -57,6 +57,6 @@ class ContainerStoppingFailedJsonAwareErrorHandler(
     }
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(ContainerStoppingFailedJsonAwareErrorHandler::class.java)
+        private val log: Logger = LoggerFactory.getLogger(ContainerStoppingErrorSavingHandler::class.java)
     }
 }
