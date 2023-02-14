@@ -33,7 +33,7 @@ class FakturaMottattConsumer(
             fakturaService.lagreFakturaMottattMelding(fakturaMottattDto)
         } catch (e: Exception) {
             log.error(
-                "Feil ved lagring av faktura kafka melding\n" +
+                "Feil ved lagring av faktura ved mottak av kafka melding\n" +
                         "offset=${consumerRecord.offset()}\n" +
                         "Error:${e.message}", e
             )
