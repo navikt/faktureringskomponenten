@@ -21,7 +21,7 @@ class AdminController(
     @GetMapping("/faktura/mottak/feil")
     fun hentFakturaMottakFeil(): ResponseEntity<Map<Long?, List<FakturaMottakFeil>>> {
         val groupBy: Map<Long?, List<FakturaMottakFeil>> =
-            fakturaMottakFeilRepository.findAll().groupBy { it.kafkaOffset }
+            fakturaMottakFeilRepository.findAll().groupBy { it.kafkaOffset ?: -1 }
         return ResponseEntity.ok(groupBy.toSortedMap(compareBy { it }))
     }
 
