@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.listener.CommonContainerStoppingErrorHandler
 import org.springframework.kafka.listener.MessageListenerContainer
 import org.springframework.stereotype.Component
-import java.lang.Exception
 
 @Component
 class ContainerStoppingErrorSavingHandler(
@@ -49,11 +48,19 @@ class ContainerStoppingErrorSavingHandler(
         if (offset == null) log.warn("Fant ikke kafka offset fra Exceptions", thrownException)
         fakturaMottakFeilRepository.saveAndFlush(
             FakturaMottakFeil(
-                error = thrownException.cause?.message ?: thrownException.message,
+                error = getErrorStack(thrownException), //thrownException.cause?.message ?: thrownException.message,
                 kafkaMelding = valueDeserializer.json,
                 kafkaOffset = offset
             )
         )
+    }
+
+    fun getErrorStack(throwable: Throwable?, message: String? = ""): String? {
+        if (throwable?.message != null) return getErrorStack(
+            throwable.cause,
+            "${throwable.message} - (${throwable.javaClass.simpleName})\n$message"
+        )
+        return message
     }
 
     companion object {

@@ -10,7 +10,7 @@ class FakturaMottakFeil(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name = "feil_melding")
+    @Column(name = "error")
     val error: String? = null,
 
     @Column(name = "kafka_melding")

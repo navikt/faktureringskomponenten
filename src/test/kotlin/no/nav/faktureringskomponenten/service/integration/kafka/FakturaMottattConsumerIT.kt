@@ -123,7 +123,7 @@ class FakturaMottattConsumerIT(
         fakturaMottakFeilRepository.findAll()
             .shouldHaveSize(1)
             .first().apply {
-                error.shouldStartWith("Feil ved lagring av faktura:")
+                error.shouldStartWith("Faktura melding mottatt fra oebs med status: OPPRETTET")
                 //kafkaOffset.shouldBe(1) må finne en måte å hent ut dette far consumer
             }
 
