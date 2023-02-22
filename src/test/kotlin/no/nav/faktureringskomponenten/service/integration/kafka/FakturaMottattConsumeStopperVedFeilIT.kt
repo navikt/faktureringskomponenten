@@ -1,9 +1,13 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
@@ -38,10 +42,12 @@ import java.util.concurrent.TimeUnit
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @EnableMockOAuth2Server
-class FakturaMottattConsumerIT(
+class FakturaMottattConsumeStopperVedFeilIT(
     @Autowired @Qualifier("fakturaMottatt") private val kafkaTemplate: KafkaTemplate<String, FakturaMottattDto>,
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
+    @Autowired private val fakturaMottakFeilRepository: FakturaMottakFeilRepository,
+    @Autowired private val fakturaMottattConsumer: FakturaMottattConsumer
 ) : PostgresTestContainerBase() {
     private val kafkaTopic = "faktura-mottatt-topic-local"
 
@@ -61,32 +67,59 @@ class FakturaMottattConsumerIT(
     }
 
     @Test
-    fun `les faktura fra kakfak kø og sjekk at status blir satt til BETALT`() {
-        val faktura = lagFakturaMedSerie(
-            Faktura(
-                status = FakturaStatus.BESTILLT,
+    fun `les faktura fra kafka kø skal stoppe ved feil og ikke avansere offset`() {
+        val (f1, f2) = (1..2).map {
+            val faktura = lagFakturaMedSerie(
+                faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILLT),
+                vedtaksId = "MEL-$it-$it"
             )
-        )
-        val fakturaMottattDto = FakturaMottattDto(
-            fodselsnummer = "12345678901",
-            vedtaksId = "MEL-1-1",
-            fakturaReferanseNr = faktura.id.toString(),
-            kreditReferanseNr = "",
-            belop = BigDecimal(1000),
-            status = FakturaStatus.BETALT
-        )
+            kafkaTemplate.send(
+                kafkaTopic, FakturaMottattDto(
+                    fodselsnummer = "12345678901",
+                    vedtaksId = "MEL-$it-$it",
+                    fakturaReferanseNr = faktura.id.toString(),
+                    kreditReferanseNr = "",
+                    belop = BigDecimal(1000),
+                    status = FakturaStatus.BETALT
+                )
+            )
+            faktura
+        }
 
-
-        kafkaTemplate.send(kafkaTopic, fakturaMottattDto)
-
-
-        await.timeout(20, TimeUnit.SECONDS)
+        await
+            .timeout(30, TimeUnit.SECONDS)
             .until {
-                fakturaRepository.findById(faktura.id!!)!!.status == FakturaStatus.BETALT
+                fakturaMottakFeilRepository.findAll().isNotEmpty()
             }
 
-        fakturaserieRepository.delete(faktura.fakturaserie!!)
+        fakturaMottakFeilRepository.findAll()
+            .shouldHaveSize(1)
+            .first().apply {
+                error.shouldStartWith("Faktura melding mottatt fra oebs med status: OPPRETTET")
+                //kafkaOffset.shouldBe(1) må finne en måte å hent ut dette far consumer
+            }
+
+        val listenerContainer = fakturaMottattConsumer.fakturaMottattListenerContainer()
+        await.timeout(20, TimeUnit.SECONDS).until { !listenerContainer.isRunning }
+
+        await.timeout(5, TimeUnit.SECONDS).until {
+            if (!listenerContainer.isRunning) {
+                // fungerer ikke å starte på utsiden av await
+                fakturaMottattConsumer.start()
+            }
+            listenerContainer.isRunning
+        }
+
+        await.timeout(10, TimeUnit.SECONDS).until {
+            fakturaMottakFeilRepository.findAll().size == 2
+        }
+        // FakturaStatus blir BETALT om neste kafka melding blir prosessert
+        fakturaRepository.findById(f2.id!!)?.status.shouldBe(FakturaStatus.BESTILLT)
+
+        fakturaserieRepository.delete(f1.fakturaserie!!)
+        fakturaserieRepository.delete(f2.fakturaserie!!)
     }
+
 
     private fun lagFakturaMedSerie(faktura: Faktura, vedtaksId: String = "MEL-1-1"): Faktura =
         fakturaserieRepository.saveAndFlush(
