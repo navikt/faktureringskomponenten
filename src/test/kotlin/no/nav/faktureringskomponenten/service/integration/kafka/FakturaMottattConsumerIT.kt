@@ -95,7 +95,7 @@ class FakturaMottattConsumerIT(
     }
 
     @Test
-    fun `les faktura fra kakfak kø skal stoppe ved feil og ikke avansere offset`() {
+    fun `les faktura fra kafka kø skal stoppe ved feil og ikke avansere offset`() {
         val (f1, f2) = (1..2).map {
             val faktura = lagFakturaMedSerie(
                 faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILLT),
@@ -134,7 +134,7 @@ class FakturaMottattConsumerIT(
         await.timeout(10, TimeUnit.SECONDS).until {
             fakturaMottakFeilRepository.findAll().size == 2
         }
-        // FakturaStatus blir BETELAT om neste kafka melding blir prosessert
+        // FakturaStatus blir BETALT om neste kafka melding blir prosessert
         fakturaRepository.findById(f2.id!!)?.status.shouldBe(FakturaStatus.BESTILLT)
 
         fakturaserieRepository.delete(f1.fakturaserie!!)
