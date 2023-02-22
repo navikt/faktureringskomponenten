@@ -1,10 +1,14 @@
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BROKERS} # for kjøring mot lokal kafka
+
 DB_USERNAME: postgres
 DB_PASSWORD: mysecretpassword
 DB_HOST: localhost
 DB_PORT: 5432
 DB_DATABASE: faktureringskomponenten
 
-KAFKA_BROKERS: localhost:29092 # vil helst slippe å ha denne, men ting wires opp, logger feil men funker selv om ikke kafaka kjører
+KAFKA_BROKERS: localhost:29092
 KAFKA_KEYSTORE_PATH: "/dev/zero"
 KAFKA_TRUSTSTORE_PATH: "/dev/zero"
 KAFKA_CREDSTORE_PASSWORD: "pwd"

@@ -30,8 +30,7 @@ spec:
     application:
       enabled: true
       tenant: {{tenant}}
-      claims:
-        allowAllUsers: true
+      allowAllUsers: true
   accessPolicy:
     inbound:
       rules:

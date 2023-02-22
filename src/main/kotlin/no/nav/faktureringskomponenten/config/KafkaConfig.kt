@@ -21,9 +21,9 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.ContainerProperties
-import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import java.util.*
+
 
 @Configuration
 @EnableKafka
@@ -54,12 +54,18 @@ class KafkaConfig(
     ) + securityConfig()
 
     @Bean
-    fun faktarMottattHendelseListenerContainerFactory(kafkaProperties: KafkaProperties) =
+    fun faktarMottattHendelseListenerContainerFactory(
+        kafkaProperties: KafkaProperties,
+        containerStoppingErrorSavingHandler: ContainerStoppingErrorSavingHandler,
+        valueDeserializer: DeserializerJsonAware
+    ) =
         ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>().apply {
+            setCommonErrorHandler(containerStoppingErrorSavingHandler)
+
             consumerFactory = DefaultKafkaConsumerFactory(
                 kafkaProperties.buildConsumerProperties() + consumerConfig(),
                 StringDeserializer(),
-                ErrorHandlingDeserializer(JsonDeserializer(FakturaMottattDto::class.java, false))
+                valueDeserializer
             )
             containerProperties.ackMode = ContainerProperties.AckMode.RECORD
         }
