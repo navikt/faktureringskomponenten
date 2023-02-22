@@ -32,27 +32,27 @@ class FakturaMottattConsumeStopperVedFeilIT(
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired private val fakturaMottakFeilRepository: FakturaMottakFeilRepository,
     @Autowired private val fakturaMottattConsumer: FakturaMottattConsumer
- ) : EmbeddedKafkaBase(fakturaserieRepository) {
+) : EmbeddedKafkaBase(fakturaserieRepository) {
 
 
     @Test // Kan kun være denne testen i klassen siden offset vil stå på den feilede meldingen etter kjøring
     fun `les faktura fra kafka kø skal stoppe ved feil og ikke avansere offset`() {
-        val (f1, f2) = (1..2).map {
-            val faktura = lagFakturaMedSerie(
+        val (_, faktura) = (1..2).map {
+            lagFakturaMedSerie(
                 faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILLT),
                 vedtaksId = "MEL-$it-$it"
-            )
-            kafkaTemplate.send(
-                kafkaTopic, FakturaMottattDto(
-                    fodselsnummer = "12345678901",
-                    vedtaksId = "MEL-$it-$it",
-                    fakturaReferanseNr = faktura.id.toString(),
-                    kreditReferanseNr = "",
-                    belop = BigDecimal(1000),
-                    status = FakturaStatus.BETALT
+            ).apply {
+                kafkaTemplate.send(
+                    kafkaTopic, FakturaMottattDto(
+                        fodselsnummer = "12345678901",
+                        vedtaksId = "MEL-$it-$it",
+                        fakturaReferanseNr = id.toString(),
+                        kreditReferanseNr = "",
+                        belop = BigDecimal(1000),
+                        status = FakturaStatus.BETALT
+                    )
                 )
-            )
-            faktura
+            }
         }
 
         await
@@ -65,7 +65,7 @@ class FakturaMottattConsumeStopperVedFeilIT(
             .shouldHaveSize(1)
             .first().apply {
                 error.shouldStartWith("Faktura melding mottatt fra oebs med status: OPPRETTET")
-                //kafkaOffset.shouldBe(1) må finne en måte å hent ut dette far consumer
+                kafkaOffset.shouldBe(0)
             }
 
         val listenerContainer = fakturaMottattConsumer.fakturaMottattListenerContainer()
@@ -83,9 +83,6 @@ class FakturaMottattConsumeStopperVedFeilIT(
             fakturaMottakFeilRepository.findAll().size == 2
         }
         // FakturaStatus blir BETALT om neste kafka melding blir prosessert
-        fakturaRepository.findById(f2.id!!)?.status.shouldBe(FakturaStatus.BESTILLT)
-
-        fakturaserieRepository.delete(f1.fakturaserie!!)
-        fakturaserieRepository.delete(f2.fakturaserie!!)
+        fakturaRepository.findById(faktura.id!!)?.status.shouldBe(FakturaStatus.BESTILLT)
     }
 }

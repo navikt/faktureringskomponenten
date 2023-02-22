@@ -68,7 +68,6 @@ class FakturaServiceIT(
     fun cleanup() {
         TestQueue.fakturaBestiltMeldinger.clear()
         TestQueue.kastException = false
-        slettFakturaSerie(fakturaId!!)
     }
 
     @BeforeEach
@@ -94,12 +93,9 @@ class FakturaServiceIT(
                     )
                 )
             ).apply { faktura.forEach { it.fakturaserie = this } }
-        ).faktura.first().id!!
-
-    private fun slettFakturaSerie(fakturaId: Long) {
-        val faktura: Faktura = fakturaRepository.findById(fakturaId)!!
-        fakturaserieRepository.delete(faktura.fakturaserie!!)
-    }
+        ).faktura.first().apply {
+            addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
+        }.id!!
 
     @Test
     fun `test at melding blir sent på kø`() {

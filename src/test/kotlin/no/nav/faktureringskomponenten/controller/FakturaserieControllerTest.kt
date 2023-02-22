@@ -93,6 +93,11 @@ class FakturaserieControllerTest(
     @Test
     fun `lagNyFaktura validerer duplikate vedtaksId`() {
         val duplikatNokkel = "id-1"
+        addCleanUpAction {
+            fakturaserieRepository.findByVedtaksId(duplikatNokkel)?.let {
+                fakturaserieRepository.delete(it)
+            }
+        }
 
         val fakturaSerieDto = lagFakturaserieDto(vedtaksId = duplikatNokkel)
         postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk
@@ -106,9 +111,6 @@ class FakturaserieControllerTest(
             .jsonPath("$.violations[0].message").isEqualTo(
                 "Kan ikke opprette fakturaserie når vedtaksId allerede finnes"
             )
-
-        val fakturaserie = fakturaserieRepository.findByVedtaksId(duplikatNokkel)
-        fakturaserieRepository.delete(fakturaserie!!)
     }
 
     @ParameterizedTest(name = "{0} gir feilmelding \"{3}\"")

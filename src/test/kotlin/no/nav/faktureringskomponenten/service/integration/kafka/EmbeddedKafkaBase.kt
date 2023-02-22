@@ -20,7 +20,6 @@ open class EmbeddedKafkaBase(
     private val fakturaserieRepository: FakturaserieRepository,
 ) : PostgresTestContainerBase() {
 
-
     protected fun lagFakturaMedSerie(faktura: Faktura, vedtaksId: String = "MEL-1-1"): Faktura =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
@@ -28,8 +27,9 @@ open class EmbeddedKafkaBase(
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(faktura)
             ).apply { this.faktura.forEach { it.fakturaserie = this } }
-        ).faktura.first()
-
+        ).faktura.first().apply {
+            addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
+        }
 
     companion object {
         const val kafkaTopic = "faktura-mottatt-topic-local"

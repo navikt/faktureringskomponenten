@@ -14,6 +14,8 @@ open class PostgresTestContainerBase {
     @Autowired
     private lateinit var dbVerify: DBVerify
 
+    private var dbCleanUpActions = mutableListOf<() -> Unit>()
+
     companion object {
         var dbContainer = PostgreSQLContainer("postgres:12.11")
         private const val useContainer = true // easy way to switch to run against local docker
@@ -40,8 +42,13 @@ open class PostgresTestContainerBase {
         }
     }
 
+    protected fun addCleanUpAction(deleteAction: () -> Unit) {
+        dbCleanUpActions.add(deleteAction)
+    }
+
     @AfterEach
     fun postgresTestContainerBaseAfterEach() {
+        dbCleanUpActions.forEach { it() }
         checkThatDatabaseIsEmpty()
     }
 }
