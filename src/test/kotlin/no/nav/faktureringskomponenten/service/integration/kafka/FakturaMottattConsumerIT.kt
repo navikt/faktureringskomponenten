@@ -53,6 +53,5 @@ class FakturaMottattConsumerIT(
                 fakturaRepository.findById(faktura.id!!)!!.status == FakturaStatus.BETALT
             }
 
-        fakturaserieRepository.delete(faktura.fakturaserie!!)
     }
 }

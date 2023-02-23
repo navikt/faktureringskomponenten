@@ -1,17 +1,18 @@
 package no.nav.faktureringskomponenten.config
 
+import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaMottattConsumerException
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.errors.RecordDeserializationException
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.listener.CommonContainerStoppingErrorHandler
 import org.springframework.kafka.listener.MessageListenerContainer
 import org.springframework.stereotype.Component
+
+private val log = KotlinLogging.logger { }
 
 @Component
 class ContainerStoppingErrorSavingHandler(
@@ -61,9 +62,5 @@ class ContainerStoppingErrorSavingHandler(
             "${throwable.message} - (${throwable.javaClass.simpleName})\n$message"
         )
         return message
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(ContainerStoppingErrorSavingHandler::class.java)
     }
 }

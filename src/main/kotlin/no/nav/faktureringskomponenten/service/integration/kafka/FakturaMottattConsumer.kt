@@ -1,17 +1,18 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
+import mu.KotlinLogging
 import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.TopicPartition
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.listener.AbstractConsumerSeekAware
 import org.springframework.kafka.listener.ConsumerSeekAware.ConsumerSeekCallback
 import org.springframework.kafka.listener.MessageListenerContainer
 import org.springframework.stereotype.Component
+
+private val log = KotlinLogging.logger { }
 
 @Component
 class FakturaMottattConsumer(
@@ -62,9 +63,5 @@ class FakturaMottattConsumer(
             log.info("tp:${tp.topic()} seek to:$offset")
             callback.seek(tp.topic(), tp.partition(), offset)
         }
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(FakturaMottattConsumer::class.java)
     }
 }

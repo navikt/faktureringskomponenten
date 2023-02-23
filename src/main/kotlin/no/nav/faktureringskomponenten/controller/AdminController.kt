@@ -1,14 +1,15 @@
 package no.nav.faktureringskomponenten.controller
 
+import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaMottattConsumer
 import no.nav.security.token.support.core.api.Protected
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+
+private val log = KotlinLogging.logger { }
 
 @Protected
 @Validated
@@ -44,9 +45,5 @@ class AdminController(
         log.info("setter offset for faktura mottak consumer til: $offset")
         fakturaMottattConsumer.settSpesifiktOffsetPåConsumer(offset)
         return ResponseEntity.ok("satt offset for faktura mottak consumer")
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(AdminController::class.java)
     }
 }

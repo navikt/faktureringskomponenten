@@ -36,6 +36,7 @@ object dependencyVersions {
     const val logstashLogbackEncoder = "7.2"
     const val tokenSupportVersion = "3.0.2"
     const val awaitabilityVersion = "4.2.0"
+    const val kotlinLogging = "3.0.5"
 }
 
 object TestContainersDependencies {
@@ -60,6 +61,7 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-spring:${dependencyVersions.shedlockVersion}")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockProvicerJdbcVersion}")
     implementation("net.logstash.logback:logstash-logback-encoder:${dependencyVersions.logstashLogbackEncoder}")
+    implementation("io.github.microutils:kotlin-logging-jvm:${dependencyVersions.kotlinLogging}")
     runtimeOnly("org.postgresql:postgresql")
     testImplementation("no.nav.security:token-validation-spring-test:${dependencyVersions.tokenSupportVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
