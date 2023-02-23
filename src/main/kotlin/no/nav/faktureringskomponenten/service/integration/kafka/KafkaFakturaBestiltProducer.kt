@@ -1,8 +1,7 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
+import mu.KotlinLogging
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -10,13 +9,14 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
 
+private val log = KotlinLogging.logger { }
+
 @Component
 class KafkaFakturaBestiltProducer(
     @Value("\${kafka.producer.faktura-bestilt}") private val topicName: String,
     @Qualifier("fakturaBestilt") @Autowired
     private val kafkaTemplate: KafkaTemplate<String, FakturaBestiltDto>
 ) : FakturaBestiltProducer {
-    private val log: Logger = LoggerFactory.getLogger(KafkaFakturaBestiltProducer::class.java)
 
     override fun produserBestillingsmelding(fakturaBestiltDto: FakturaBestiltDto) {
         val future = kafkaTemplate.send(topicName, fakturaBestiltDto)

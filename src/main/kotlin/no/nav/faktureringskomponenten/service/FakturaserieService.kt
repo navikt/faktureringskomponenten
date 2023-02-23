@@ -1,25 +1,23 @@
 package no.nav.faktureringskomponenten.service
 
+import mu.KotlinLogging
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
+import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
+private val log = KotlinLogging.logger { }
 
 @Component
 class FakturaserieService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaserieMapper: FakturaserieMapper,
 ) {
-
-    private val log: Logger = LoggerFactory.getLogger(FakturaserieService::class.java)
 
     fun hentFakturaserie(vedtaksId: String): Fakturaserie =
         fakturaserieRepository.findByVedtaksId(vedtaksId) ?: throw RessursIkkeFunnetException(
