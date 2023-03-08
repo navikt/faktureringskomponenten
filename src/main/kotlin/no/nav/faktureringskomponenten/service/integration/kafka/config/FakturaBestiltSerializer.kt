@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.config
+package no.nav.faktureringskomponenten.service.integration.kafka.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature

@@ -3,7 +3,9 @@ package no.nav.faktureringskomponenten.service.mappers
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
+import no.nav.faktureringskomponenten.service.FakturaserieDto
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -34,7 +36,7 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
         )
     }
 
-    private fun mapFullmektig(fullmektigDto: FullmektigDto?): Fullmektig? {
+    private fun mapFullmektig(fullmektigDto: Fullmektig?): Fullmektig? {
         if (fullmektigDto != null) {
             return Fullmektig(
                 fodselsnummer = fullmektigDto.fodselsnummer,
@@ -45,11 +47,11 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
         return null
     }
 
-    private fun mapStartdato(perioder: List<FakturaseriePeriodeDto>): LocalDate {
+    private fun mapStartdato(perioder: List<FakturaseriePeriode>): LocalDate {
         return perioder.minByOrNull { it.startDato }!!.startDato
     }
 
-    private fun mapSluttdato(perioder: List<FakturaseriePeriodeDto>): LocalDate {
+    private fun mapSluttdato(perioder: List<FakturaseriePeriode>): LocalDate {
         return perioder.maxByOrNull { it.sluttDato }!!.sluttDato
     }
 }

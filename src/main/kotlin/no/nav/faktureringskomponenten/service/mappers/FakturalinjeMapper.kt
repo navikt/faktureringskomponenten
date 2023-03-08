@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.service.mappers
 
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -11,7 +12,7 @@ import java.time.temporal.ChronoUnit
 class FakturalinjeMapper {
 
     fun tilFakturaLinjer(
-        perioder: List<FakturaseriePeriodeDto>,
+        perioder: List<FakturaseriePeriode>,
         periodeFra: LocalDate,
         periodeTil: LocalDate
     ): List<FakturaLinje> {

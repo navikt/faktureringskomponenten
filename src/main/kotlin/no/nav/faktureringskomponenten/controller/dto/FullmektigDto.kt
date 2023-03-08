@@ -1,7 +1,7 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
-import no.nav.faktureringskomponenten.validators.ErFodselsnummer
+import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
 
 @Schema(
     description = "Fullmektig som mottar faktura"

@@ -1,4 +1,16 @@
 # Faktureringskomponenten
+
+## Utvikling 
+
+### Kjør opp prosjekt lokalt
+
+1. Via melosys-docker-compose, kjør opp `make start-all`
+2. Kjør melosys-api i `local-mock` profil
+3. Kjør melosys-web `npm start`
+4. Kjør faktureringskomponenten i `local` profil
+
+
+## Datastruktur
 ```json5
 {
     "vedtaksId": "MEL-103-123",

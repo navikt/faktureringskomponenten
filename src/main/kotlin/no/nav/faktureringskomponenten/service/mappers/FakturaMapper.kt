@@ -1,9 +1,10 @@
 package no.nav.faktureringskomponenten.service.mappers
 
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -14,10 +15,10 @@ import java.time.temporal.TemporalAdjusters
 class FakturaMapper(@Autowired private val fakturalinjeMapper: FakturalinjeMapper) {
 
     fun tilListeAvFaktura(
-        periodeListeDto: List<FakturaseriePeriodeDto>,
+        periodeListeDto: List<FakturaseriePeriode>,
         startDatoForHelePerioden: LocalDate,
         sluttDatoForHelePerioden: LocalDate,
-        intervall: FakturaserieIntervallDto
+        intervall: FakturaserieIntervall
     ): List<Faktura> {
         var forsteDagAvPeriode = startDatoForHelePerioden
         val fakturaLinjer = mutableListOf<FakturaLinje>()
@@ -44,8 +45,8 @@ class FakturaMapper(@Autowired private val fakturalinjeMapper: FakturalinjeMappe
     private fun finnSluttDato(sluttDatoForHelePerioden: LocalDate, sisteDagAvPeriode: LocalDate) =
         if (sluttDatoForHelePerioden < sisteDagAvPeriode) sluttDatoForHelePerioden else sisteDagAvPeriode
 
-    private fun hentSisteDagAvPeriode(dato: LocalDate, intervall: FakturaserieIntervallDto): LocalDate {
-        if (intervall == FakturaserieIntervallDto.MANEDLIG)
+    private fun hentSisteDagAvPeriode(dato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
+        if (intervall == FakturaserieIntervall.MANEDLIG)
             return dato.withDayOfMonth(dato.lengthOfMonth())
         return dato.withMonth(dato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
     }

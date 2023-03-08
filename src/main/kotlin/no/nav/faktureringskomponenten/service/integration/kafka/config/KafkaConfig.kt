@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.config
+package no.nav.faktureringskomponenten.service.integration.kafka.config
 
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
@@ -55,9 +55,9 @@ class KafkaConfig(
 
     @Bean
     fun faktarMottattHendelseListenerContainerFactory(
-        kafkaProperties: KafkaProperties,
-        containerStoppingErrorSavingHandler: ContainerStoppingErrorSavingHandler,
-        valueDeserializer: DeserializerJsonAware
+            kafkaProperties: KafkaProperties,
+            containerStoppingErrorSavingHandler: ContainerStoppingErrorSavingHandler,
+            valueDeserializer: DeserializerJsonAware
     ) =
         ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>().apply {
             setCommonErrorHandler(containerStoppingErrorSavingHandler)

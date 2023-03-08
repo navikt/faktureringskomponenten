@@ -4,8 +4,11 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
+import mu.KotlinLogging
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
+import no.nav.faktureringskomponenten.controller.mapper.tilResponseDto
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
 import no.nav.faktureringskomponenten.service.FakturaserieService
@@ -18,12 +21,15 @@ import org.springframework.validation.BindingResult
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 
+
+private val log = KotlinLogging.logger { }
+
 @Protected
 @Validated
 @RestController
 @RequestMapping("/fakturaserie")
 class FakturaserieController @Autowired constructor(
-    val faktureringService: FakturaserieService,
+    val faktureringService: FakturaserieService
 ) {
 
     @Operation(summary = "Lager en ny fakturaserie")
@@ -35,11 +41,13 @@ class FakturaserieController @Autowired constructor(
     )
     @PostMapping
     fun lagNyFakturaserie(
-        @RequestBody @Validated fakturaserieDto: FakturaserieDto,
+        @RequestBody @Validated fakturaserieRequestDto: FakturaserieRequestDto,
         bindingResult: BindingResult
     ): ResponseEntity<ProblemDetail>? {
         val responseEntity = ProblemDetailValidator.validerBindingResult(bindingResult)
-        if(responseEntity.statusCode == HttpStatus.OK) {
+        if (responseEntity.statusCode == HttpStatus.OK) {
+            log.info("Mottatt $fakturaserieRequestDto")
+            val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
             faktureringService.lagNyFakturaserie(fakturaserieDto)
         }
         return responseEntity
@@ -47,7 +55,7 @@ class FakturaserieController @Autowired constructor(
 
     @Operation(
         summary = "Kansellerer eksisterende fakturaserie og fremtidlige planlagte fakturaer som ikke er bestilt. " +
-                "Oppretter så ny fakturaserie med fakturaer som erstatter kansellerte",
+            "Oppretter så ny fakturaserie med fakturaer som erstatter kansellerte",
         description = "vedtaksId i parameter må være identifikator for fakturaserie som skal oppdateres"
     )
     @ApiResponses(
@@ -59,8 +67,9 @@ class FakturaserieController @Autowired constructor(
     @PutMapping("/{vedtaksId}")
     fun endreFakturaserie(
         @PathVariable("vedtaksId") vedtaksId: String,
-        @RequestBody @Valid fakturaserieDto: FakturaserieDto
+        @RequestBody @Valid fakturaserieRequestDto: FakturaserieRequestDto
     ): Fakturaserie? {
+        val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
         return faktureringService.endreFakturaserie(vedtaksId, fakturaserieDto)
     }
 

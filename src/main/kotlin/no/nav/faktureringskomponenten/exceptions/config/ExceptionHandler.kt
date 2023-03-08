@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.config
+package no.nav.faktureringskomponenten.exceptions.config
 
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.springframework.http.HttpStatus

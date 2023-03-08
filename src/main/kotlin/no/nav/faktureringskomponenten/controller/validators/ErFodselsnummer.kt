@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.validators
+package no.nav.faktureringskomponenten.controller.validators
 
 import jakarta.validation.Constraint
 import kotlin.reflect.KClass
