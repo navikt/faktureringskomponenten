@@ -1,8 +1,6 @@
 package no.nav.faktureringskomponenten.service.mappers
 
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import org.junit.jupiter.api.TestInstance
@@ -36,7 +34,7 @@ class FakturaserieMapperTest {
             LocalDate.of(2023, 1, 13),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2022, 12, 1),
                     sluttDato = LocalDate.of(2023, 1, 1),
@@ -68,7 +66,7 @@ class FakturaserieMapperTest {
             LocalDate.of(2023, 4, 1),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2023, 1, 1),
                     sluttDato = LocalDate.of(2023, 2, 1),
@@ -100,7 +98,7 @@ class FakturaserieMapperTest {
             LocalDate.of(2023, 1, 31),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2022, 12, 1),
                     sluttDato = LocalDate.of(2023, 1, 31),
@@ -132,7 +130,7 @@ class FakturaserieMapperTest {
             LocalDate.of(2023, 1, 13),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2022, 12, 1),
                     sluttDato = LocalDate.of(2023, 2, 1),
@@ -174,13 +172,13 @@ class FakturaserieMapperTest {
             LocalDate.of(2023, 1, 23),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2022, 12, 1),
                     sluttDato = LocalDate.of(2023, 1, 22),
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                 ),
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2023, 1, 23),
                     sluttDato = LocalDate.of(2023, 2, 1),
@@ -225,13 +223,13 @@ class FakturaserieMapperTest {
             LocalDate.of(2023, 1, 26),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2022, 6, 1),
                     sluttDato = LocalDate.of(2023, 1, 24),
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                 ),
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2023, 1, 25),
                     sluttDato = LocalDate.of(2023, 6, 1),
@@ -336,13 +334,13 @@ class FakturaserieMapperTest {
             LocalDate.of(2023, 1, 26),
             FakturaserieIntervall.KVARTAL,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2022, 6, 1),
                     sluttDato = LocalDate.of(2023, 1, 24),
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                 ),
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2023, 1, 25),
                     sluttDato = LocalDate.of(2023, 6, 1),

@@ -20,7 +20,7 @@ class ArkitekturTest {
         .layer("Domain").definedBy("$appPath.domain..")
 
     @Test
-    fun `Ingen er avhengig av Controller laget`() {
+    fun `Controller er ikke brukt av noen andre lag`() {
         val layeringRules: ArchRule = definedLayers
             .whereLayer("Controller").mayNotBeAccessedByAnyLayer()
 
@@ -36,7 +36,7 @@ class ArkitekturTest {
     }
 
     @Test
-    fun `Domain er bare brukt av Controller og Service lagene`() {
+    fun `Domain er bare brukt av Controller eller Service lagene`() {
         val layeringRules: ArchRule = definedLayers
             .whereLayer("Domain").mayOnlyBeAccessedByLayers("Controller", "Service")
 
