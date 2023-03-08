@@ -37,14 +37,11 @@ object dependencyVersions {
     const val tokenSupportVersion = "3.0.2"
     const val awaitabilityVersion = "4.2.0"
     const val kotlinLogging = "3.0.5"
-}
-
-object TestContainersDependencies {
-    const val postgresTestContainers = "org.testcontainers:postgresql:${dependencyVersions.testContainerVersion}"
-    const val junitJupiterTestContainers = "org.testcontainers:junit-jupiter:${dependencyVersions.testContainerVersion}"
+    const val archUnitVersion = "1.0.1"
 }
 
 dependencies {
+    runtimeOnly("org.postgresql:postgresql")
     implementation("org.springdoc:springdoc-openapi-kotlin:${dependencyVersions.openapiVersion}")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${dependencyVersions.springdocOpenapiStarter}")
     implementation("org.springdoc:springdoc-openapi-starter-common:${dependencyVersions.springdocOpenapiStarter}")
@@ -62,17 +59,17 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockProvicerJdbcVersion}")
     implementation("net.logstash.logback:logstash-logback-encoder:${dependencyVersions.logstashLogbackEncoder}")
     implementation("io.github.microutils:kotlin-logging-jvm:${dependencyVersions.kotlinLogging}")
-    runtimeOnly("org.postgresql:postgresql")
     testImplementation("no.nav.security:token-validation-spring-test:${dependencyVersions.tokenSupportVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.kotest:kotest-assertions-core-jvm:${dependencyVersions.kotestVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("io.mockk:mockk:${dependencyVersions.mockkVersion}")
-    testImplementation(TestContainersDependencies.postgresTestContainers)
-    testImplementation(TestContainersDependencies.junitJupiterTestContainers)
+    testImplementation("org.testcontainers:postgresql:${dependencyVersions.testContainerVersion}")
+    testImplementation("org.testcontainers:junit-jupiter:${dependencyVersions.testContainerVersion}")
     testImplementation("org.awaitility:awaitility:${dependencyVersions.awaitabilityVersion}")
     testImplementation("org.awaitility:awaitility-kotlin:${dependencyVersions.awaitabilityVersion}")
+    testImplementation("com.tngtech.archunit:archunit:${dependencyVersions.archUnitVersion}")
 }
 
 tasks {

@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.config
+package no.nav.faktureringskomponenten.service.integration.kafka.config
 
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import org.apache.kafka.common.serialization.Deserializer

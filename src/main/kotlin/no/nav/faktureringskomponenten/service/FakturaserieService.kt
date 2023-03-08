@@ -1,7 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
@@ -28,8 +27,6 @@ class FakturaserieService(
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto): Fakturaserie {
         val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
-        log.info("Mottatt $fakturaserieDto")
-
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
         return fakturaserie

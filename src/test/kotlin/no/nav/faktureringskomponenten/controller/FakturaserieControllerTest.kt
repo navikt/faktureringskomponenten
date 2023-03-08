@@ -4,10 +4,11 @@ import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import net.bytebuddy.utility.RandomString
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
+import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieIntervallDto
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
@@ -117,11 +118,11 @@ class FakturaserieControllerTest(
     @MethodSource("fakturaserieDTOsMedValideringsfeil")
     fun `lagNyFaktura validerer input riktig`(
         testbeskrivelse: String,
-        fakturaserieDto: FakturaserieDto,
+        fakturaserieRequestDto: FakturaserieRequestDto,
         validertFelt: String,
         feilmelding: String
     ) {
-        postLagNyFakturaserieRequest(fakturaserieDto)
+        postLagNyFakturaserieRequest(fakturaserieRequestDto)
             .expectStatus().isBadRequest
             .expectBody().json(
                 """
@@ -143,9 +144,9 @@ class FakturaserieControllerTest(
     @MethodSource("fakturaserieDTOsMedOverlappendePerioder")
     fun `lagNyFaktura validerer overlappende perioder riktig`(
         testbeskrivelse: String,
-        fakturaserieDto: FakturaserieDto,
+        fakturaserieRequestDto: FakturaserieRequestDto,
     ) {
-        postLagNyFakturaserieRequest(fakturaserieDto)
+        postLagNyFakturaserieRequest(fakturaserieRequestDto)
             .expectStatus().isBadRequest
             .expectBody()
             .jsonPath("$.violations.size()").isEqualTo(1)
@@ -339,7 +340,7 @@ class FakturaserieControllerTest(
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
         fakturaGjelder: String = "Trygdeavgift",
-        intervall: FakturaserieIntervallDto = FakturaserieIntervallDto.KVARTAL,
+        intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
             FakturaseriePeriodeDto(
                 BigDecimal.valueOf(123),
@@ -348,15 +349,15 @@ class FakturaserieControllerTest(
                 "Beskrivelse"
             )
         ),
-    ): FakturaserieDto {
-        return FakturaserieDto(
+    ): FakturaserieRequestDto {
+        return FakturaserieRequestDto(
             vedtaksId,
             fodselsnummer,
             fullmektig,
             referanseBruker,
             referanseNav,
             fakturaGjelder,
-            intervall,
+            intervall.tilFakturaserieIntervallDto(),
             fakturaseriePeriode
         )
     }
@@ -369,12 +370,12 @@ class FakturaserieControllerTest(
         }.toList()
     }
 
-    private fun postLagNyFakturaserieRequest(fakturaserieDto: FakturaserieDto): WebTestClient.ResponseSpec =
+    private fun postLagNyFakturaserieRequest(fakturaserieRequestDto: FakturaserieRequestDto): WebTestClient.ResponseSpec =
         webClient.post()
             .uri("/fakturaserie")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(fakturaserieDto)
+            .bodyValue(fakturaserieRequestDto)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
@@ -382,14 +383,14 @@ class FakturaserieControllerTest(
             .exchange()
 
     private fun putEndreFakturaserieRequest(
-        fakturaserieDto: FakturaserieDto,
+        fakturaserieRequestDto: FakturaserieRequestDto,
         gammelVedtaksId: String
     ): WebTestClient.ResponseSpec {
         return webClient.put()
             .uri("/fakturaserie/$gammelVedtaksId")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(fakturaserieDto)
+            .bodyValue(fakturaserieRequestDto)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())

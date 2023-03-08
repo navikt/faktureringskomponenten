@@ -5,14 +5,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import net.bytebuddy.utility.RandomString
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
-import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
-import no.nav.faktureringskomponenten.domain.models.Fullmektig
+import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import org.junit.jupiter.api.Test
@@ -89,13 +84,13 @@ class FakturaserieServiceTest {
     fun lagFakturaserieDto(
         vedtaksId: String = "VEDTAK-1" + RandomString.make(3),
         fodselsnummer: String = "12345678911",
-        fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
+        fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
         fakturaGjelder: String = "Trygdeavgift",
-        intervall: FakturaserieIntervallDto = FakturaserieIntervallDto.KVARTAL,
-        fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
-            FakturaseriePeriodeDto(
+        intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
+        fakturaseriePeriode: List<FakturaseriePeriode> = listOf(
+            FakturaseriePeriode(
                 BigDecimal.valueOf(123),
                 LocalDate.of(2022, 1, 1),
                 LocalDate.of(2022, 11, 30),

@@ -43,7 +43,9 @@ class FakturaServiceTest {
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
         } returns faktura.fakturaserie!!
 
+
         fakturaService.bestillFaktura(1)
+
 
         verifySequence {
             fakturaRepository.findById(1)

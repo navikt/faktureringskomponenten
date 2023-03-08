@@ -3,12 +3,12 @@ package no.nav.faktureringskomponenten.controller.dto
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
-import no.nav.faktureringskomponenten.validators.ErFodselsnummer
-import no.nav.faktureringskomponenten.validators.ErIkkeOverlappendePerioder
-import no.nav.faktureringskomponenten.validators.IkkeDuplikatVedtaksId
+import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
+import no.nav.faktureringskomponenten.controller.validators.ErIkkeOverlappendePerioder
+import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
 
 @Schema(description = "DTO for fullstendig informasjon om alle planlagte fakturaer")
-data class FakturaserieDto(
+data class FakturaserieRequestDto(
 
     @field:Schema(
         description = "Unik identifikator som saksbehandlingssystemet kjenner igjen",

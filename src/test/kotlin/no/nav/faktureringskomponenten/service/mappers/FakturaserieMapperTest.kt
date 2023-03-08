@@ -1,12 +1,8 @@
 package no.nav.faktureringskomponenten.service.mappers
 
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieIntervallDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.FakturaserieDto
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
@@ -22,8 +18,8 @@ class FakturaserieMapperTest {
     fun testFakturaLinjer(
         beskrivelse: String,
         dagensDato: LocalDate,
-        intervall: FakturaserieIntervallDto,
-        perioder: List<FakturaseriePeriodeDto>,
+        intervall: FakturaserieIntervall,
+        perioder: List<FakturaseriePeriode>,
         expected: FakturaData
     ) {
         val fakturaserie = lagFakturaserie(dagensDato, intervall, perioder)
@@ -36,9 +32,9 @@ class FakturaserieMapperTest {
         arguments(
             "Går 1 dag inn i nest måned",
             LocalDate.of(2023, 1, 13),
-            FakturaserieIntervallDto.MANEDLIG,
+            FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2022, 12, 1),
                     sluttDato = LocalDate.of(2023, 1, 1),
@@ -68,9 +64,9 @@ class FakturaserieMapperTest {
         arguments(
             "Slutt dato er før dagens dato",
             LocalDate.of(2023, 4, 1),
-            FakturaserieIntervallDto.MANEDLIG,
+            FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2023, 1, 1),
                     sluttDato = LocalDate.of(2023, 2, 1),
@@ -100,9 +96,9 @@ class FakturaserieMapperTest {
         arguments(
             "Dagens dato er lik slutt dato",
             LocalDate.of(2023, 1, 31),
-            FakturaserieIntervallDto.MANEDLIG,
+            FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2022, 12, 1),
                     sluttDato = LocalDate.of(2023, 1, 31),
@@ -132,9 +128,9 @@ class FakturaserieMapperTest {
         arguments(
             "Før og etter dagens dato",
             LocalDate.of(2023, 1, 13),
-            FakturaserieIntervallDto.MANEDLIG,
+            FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2022, 12, 1),
                     sluttDato = LocalDate.of(2023, 2, 1),
@@ -174,15 +170,15 @@ class FakturaserieMapperTest {
         arguments(
             "2 faktura perioder - kun 1 dag i siste måned",
             LocalDate.of(2023, 1, 23),
-            FakturaserieIntervallDto.MANEDLIG,
+            FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2022, 12, 1),
                     sluttDato = LocalDate.of(2023, 1, 22),
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                 ),
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
                     startDato = LocalDate.of(2023, 1, 23),
                     sluttDato = LocalDate.of(2023, 2, 1),
@@ -225,15 +221,15 @@ class FakturaserieMapperTest {
         arguments(
             "2 perioder - lag 6 faktura med linjer",
             LocalDate.of(2023, 1, 26),
-            FakturaserieIntervallDto.MANEDLIG,
+            FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2022, 6, 1),
                     sluttDato = LocalDate.of(2023, 1, 24),
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                 ),
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2023, 1, 25),
                     sluttDato = LocalDate.of(2023, 6, 1),
@@ -336,15 +332,15 @@ class FakturaserieMapperTest {
         arguments(
             "2 perioder - lag 2 faktura med linjer",
             LocalDate.of(2023, 1, 26),
-            FakturaserieIntervallDto.KVARTAL,
+            FakturaserieIntervall.KVARTAL,
             listOf(
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2022, 6, 1),
                     sluttDato = LocalDate.of(2023, 1, 24),
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                 ),
-                FakturaseriePeriodeDto(
+                FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(10000),
                     startDato = LocalDate.of(2023, 1, 25),
                     sluttDato = LocalDate.of(2023, 6, 1),
@@ -395,15 +391,15 @@ class FakturaserieMapperTest {
 
     private fun lagFakturaserie(
         dagensDato: LocalDate = LocalDate.now(),
-        intervall: FakturaserieIntervallDto = FakturaserieIntervallDto.MANEDLIG,
-        perioder: List<FakturaseriePeriodeDto> = listOf()
+        intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
+        perioder: List<FakturaseriePeriode> = listOf()
     ): Fakturaserie {
         val fakturaMapper = FakturaMapperForTest(dagensDato)
         return FakturaserieMapper(fakturaMapper).tilFakturaserie(
             FakturaserieDto(
                 vedtaksId = "MEL-105-145",
                 fodselsnummer = "30056928150",
-                fullmektig = FullmektigDto(
+                fullmektig = Fullmektig(
                     fodselsnummer = null,
                     organisasjonsnummer = "999999999",
                     kontaktperson = "Test person"

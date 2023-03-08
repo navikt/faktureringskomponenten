@@ -7,6 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema
     example = "KVARTAL",
 )
 enum class FakturaserieIntervallDto {
-    KVARTAL,
-    MANEDLIG
+    MANEDLIG,
+    KVARTAL
 }
