@@ -25,7 +25,7 @@ Dette vil se slik ut:
 ```hosts
     127.0.0.1 localhost
     127.0.0.1 view-localhost
-    127.0.1.1 <din-maskin-navn>
+    127.0.1.1 <din-maskin>
 ```
 
 
