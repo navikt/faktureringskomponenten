@@ -1,6 +1,6 @@
 # Faktureringskomponenten
 
-## Utvikling 
+## Utvikling
 
 ### Kjør opp prosjekt lokalt
 
@@ -9,34 +9,57 @@
 3. Kjør melosys-web `npm start`
 4. Kjør faktureringskomponenten i `local` profil
 
+### Testfeil
+
+#### 401 UNAUTHORIZED
+
+Vi har opplevd en 401 feilmelding på flere tester som bruker våre kontrollere på Ubuntu-maskiner. Årsaken til denne
+feilen har vært at vi fikk feil URL (`view-localhost` istedet for `localhost`). Denne feilen ble løst ved å oppdatere
+hosts-filen.
+
+> Hosts-filen er en konfigurasjonsfil som mapper domenenavn til IP-adresser og brukes til å omgå DNS-forespørsler og
+akselerere tilgangen til nettsteder eller konfigurere nettverksaliaser.
+
+For å løse denne feilen på Ubuntu-maskiner må man flytte på rekkefølgen på linjene inne i `/etc/hosts`, slik
+at `127.0.0.1 localhost` er øverst. Når dette er rettet, vil filen se slik ut:
+
+```hosts                              
+127.0.0.1 localhost
+127.0.0.1 view-localhost
+127.0.1.1 PCX
+```
+
+Det er viktig å merke seg at denne feilen kan oppstå på grunn av feilaktig konfigurasjon i hosts-filen, og at det kan
+løses ved å sørge for at riktig URL blir brukt og at hosts-filen er riktig konfigurert.
 
 ## Datastruktur
+
 ```json5
 {
-    "vedtaksId": "MEL-103-123",
+  "vedtaksId": "MEL-103-123",
+  "fodselsnummer": "1234578911",
+  "referanseBruker": "Referanse for bruker",
+  "referanseNAV": "Referanse for NAV",
+  "fullmektig": {
     "fodselsnummer": "1234578911",
-    "referanseBruker": "Referanse for bruker",
-    "referanseNAV": "Referanse for NAV",
-    "fullmektig": {
-        "fodselsnummer": "1234578911",
-        "orgNr": "123456789",
-        "kontaktperson": "Ole Brumm"
+    "orgNr": "123456789",
+    "kontaktperson": "Ole Brumm"
+  },
+  "intervall": "KVARTAL",
+  "perioder": [
+    {
+      "enhetsprisPerManed": 10900,
+      "startDato": "01.01.2022",
+      "sluttDato": "30.04.2022",
+      "beskrivelse": "Inntekt: 50.000, Dekning: Pensjonsdel, Sats: 21.8 %"
     },
-    "intervall": "KVARTAL",
-    "perioder": [
-        {
-            "enhetsprisPerManed": 10900,
-            "startDato": "01.01.2022",
-            "sluttDato": "30.04.2022",
-            "beskrivelse": "Inntekt: 50.000, Dekning: Pensjonsdel, Sats: 21.8 %"
-        },
-        {
-            "enhetsprisPerManed": 3400,
-            "startDato": "01.05.2022",
-            "sluttDato": "31.03.2023",
-            "beskrivelse": "Inntekt: 50.000, Dekning: Helsedel med rett til syke-/foreldrepenger, Sats: 6.8 %"
-        }
-    ]
+    {
+      "enhetsprisPerManed": 3400,
+      "startDato": "01.05.2022",
+      "sluttDato": "31.03.2023",
+      "beskrivelse": "Inntekt: 50.000, Dekning: Helsedel med rett til syke-/foreldrepenger, Sats: 6.8 %"
+    }
+  ]
 } 
 ```
 
@@ -68,8 +91,6 @@ flowchart TB
     oebs-ny-app<-->OEBS
     OEBS---OEBS-DB[(OEBS-DB)]
 ```
-
-
 
 ```mermaid
 classDiagram
