@@ -9,28 +9,26 @@
 3. Kjør melosys-web `npm start`
 4. Kjør faktureringskomponenten i `local` profil
 
-### Testfeil
+### Feil
+#### Feilmelding: 401 UNAUTHORIZED  
+##### Årsak
+Feil URL (view-localhost i stedet for localhost) ble brukt i Faktureringskomponenten sine tester på Ubuntu-maskiner.  
 
-#### 401 UNAUTHORIZED
+Det er fordi VMWare Horizon Client kan ha lagt inn `127.0.0.1 view-localhost` automatisk. 
+Sørg for at riktig URL brukes og at hosts-filen er korrekt konfigurert for å unngå denne feilen.
 
-Vi har opplevd en 401 feilmelding på flere tester som bruker våre kontrollere på Ubuntu-maskiner. Årsaken til denne
-feilen har vært at vi fikk feil URL (`view-localhost` istedet for `localhost`). Denne feilen ble løst ved å oppdatere
-hosts-filen.
 
-> Hosts-filen er en konfigurasjonsfil som mapper domenenavn til IP-adresser og brukes til å omgå DNS-forespørsler og
-akselerere tilgangen til nettsteder eller konfigurere nettverksaliaser.
+##### Løsning
 
-For å løse denne feilen på Ubuntu-maskiner må man flytte på rekkefølgen på linjene inne i `/etc/hosts`, slik
-at `127.0.0.1 localhost` er øverst. Når dette er rettet, vil filen se slik ut:
+Oppdater hosts-filen på Ubuntu-maskinen ved å flytte `127.0.0.1 localhost` til **øverste linje** i `/etc/hosts`-filen.   
 
-```hosts                              
-127.0.0.1 localhost
-127.0.0.1 view-localhost
-127.0.1.1 PCX
+Dette vil se slik ut:
+```hosts
+    127.0.0.1 localhost
+    127.0.0.1 view-localhost
+    127.0.1.1 <din-maskin-navn>
 ```
 
-Det er viktig å merke seg at denne feilen kan oppstå på grunn av feilaktig konfigurasjon i hosts-filen, og at det kan
-løses ved å sørge for at riktig URL blir brukt og at hosts-filen er riktig konfigurert.
 
 ## Datastruktur
 
