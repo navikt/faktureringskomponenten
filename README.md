@@ -19,7 +19,6 @@ Sørg for at riktig URL brukes og at hosts-filen er korrekt konfigurert for å u
 
 
 ##### Løsning
-
 Oppdater hosts-filen på Ubuntu-maskinen ved å flytte `127.0.0.1 localhost` til **øverste linje** i `/etc/hosts`-filen.   
 
 Dette vil se slik ut:
