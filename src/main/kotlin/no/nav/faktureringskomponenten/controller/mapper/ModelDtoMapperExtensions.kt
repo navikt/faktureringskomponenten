@@ -4,7 +4,7 @@ import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 
-val Fakturaserie.tilResponseDto: FakturaserieResponseDto
+val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
         vedtaksId = this.vedtaksId,
         fakturaGjelder = this.fakturaGjelder,
@@ -30,10 +30,10 @@ val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
         referanseNAV = this.referanseNAV,
         fakturaGjelder = this.fakturaGjelder,
         intervall = this.intervall.tilFakturaserieIntervall(),
-        perioder = this.perioder.tilFakturaserieDtoList
+        perioder = this.perioder.tilFakturaseriePeriodeList
     )
 
-val List<FakturaseriePeriodeDto>.tilFakturaserieDtoList: List<FakturaseriePeriode>
+val List<FakturaseriePeriodeDto>.tilFakturaseriePeriodeList: List<FakturaseriePeriode>
     get() = map {
         FakturaseriePeriode(
             enhetsprisPerManed = it.enhetsprisPerManed,
@@ -42,23 +42,6 @@ val List<FakturaseriePeriodeDto>.tilFakturaserieDtoList: List<FakturaseriePeriod
             beskrivelse = it.beskrivelse
         )
     }
-
-
-val FakturaseriePeriode.tilFakturaseriePeriodeDto: FakturaseriePeriodeDto
-    get() = FakturaseriePeriodeDto(
-        enhetsprisPerManed = this.enhetsprisPerManed,
-        startDato = this.startDato,
-        sluttDato = this.sluttDato,
-        beskrivelse = this.beskrivelse
-    )
-
-val FakturaseriePeriodeDto.tilFakturaseriePeriode: FakturaseriePeriode
-    get() = FakturaseriePeriode(
-        enhetsprisPerManed = this.enhetsprisPerManed,
-        startDato = this.startDato,
-        sluttDato = this.sluttDato,
-        beskrivelse = this.beskrivelse
-    )
 
 fun FakturaserieIntervallDto.tilFakturaserieIntervall(): FakturaserieIntervall {
     return FakturaserieIntervall.valueOf(this.name.uppercase())
