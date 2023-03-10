@@ -4,12 +4,10 @@ import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import net.bytebuddy.utility.RandomString
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
-import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieIntervallDto
+import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
+import no.nav.faktureringskomponenten.domain.models.FakturaserieTema
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
@@ -340,6 +338,7 @@ class FakturaserieControllerTest(
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
         fakturaGjelder: String = "Trygdeavgift",
+        tema: FakturaserieTema = FakturaserieTema.TRY,
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
             FakturaseriePeriodeDto(
@@ -357,7 +356,8 @@ class FakturaserieControllerTest(
             referanseBruker,
             referanseNav,
             fakturaGjelder,
-            intervall.tilFakturaserieIntervallDto(),
+            FakturaserieTemaDto.valueOf(tema.name),
+            FakturaserieIntervallDto.valueOf(intervall.name),
             fakturaseriePeriode
         )
     }

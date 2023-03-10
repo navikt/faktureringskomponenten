@@ -11,6 +11,7 @@ import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltPr
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
+import no.nav.faktureringskomponenten.service.mappers.FakturaserieTemaTilArtikkelMapper
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -79,6 +80,7 @@ class FakturaService(
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
             beskrivelse = fakturaserie.fakturaGjelder,
+            artikkel = FakturaserieTemaTilArtikkelMapper().tilArtikkel(fakturaserie.tema),
             faktureringsDato = faktura.datoBestilt,
             fakturaLinjer = faktura.fakturaLinje.map {
                 val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")

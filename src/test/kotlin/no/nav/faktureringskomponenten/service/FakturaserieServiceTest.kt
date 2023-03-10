@@ -5,8 +5,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import net.bytebuddy.utility.RandomString
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
@@ -88,6 +86,7 @@ class FakturaserieServiceTest {
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
         fakturaGjelder: String = "Trygdeavgift",
+        tema: FakturaserieTema = FakturaserieTema.TRY,
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriode> = listOf(
             FakturaseriePeriode(
@@ -105,6 +104,7 @@ class FakturaserieServiceTest {
             referanseBruker,
             referanseNav,
             fakturaGjelder,
+            tema,
             intervall,
             fakturaseriePeriode
         )

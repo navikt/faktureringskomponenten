@@ -91,6 +91,7 @@ class FakturaServiceTest {
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
                     beskrivelse = "FTRL",
+                    artikkel = "F00008",
                     faktureringsDato = LocalDate.of(2022, 5, 1),
                     fakturaLinjer = listOf(
                         FakturaBestiltLinjeDto(

@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.controller.dto
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
+import jakarta.validation.constraints.NotNull
 import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
 import no.nav.faktureringskomponenten.controller.validators.ErIkkeOverlappendePerioder
 import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
@@ -46,6 +47,13 @@ data class FakturaserieRequestDto(
     )
     @field:NotBlank(message = "Du må oppgi fakturaGjelder")
     val fakturaGjelder: String,
+
+    @field:Schema(
+        description = "Tema til vedtaket",
+        example = "TRY"
+    )
+    @field:NotNull(message = "Du må oppgi tema")
+    val tema: FakturaserieTemaDto,
 
     @field:Schema(
         description = "Betalingsintervall",

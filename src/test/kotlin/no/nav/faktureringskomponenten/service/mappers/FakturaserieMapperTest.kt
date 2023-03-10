@@ -407,6 +407,7 @@ class FakturaserieMapperTest {
                 referanseBruker = "2023-01-19T11:39:48.680364Z", // Hvorfor får vi dagens dato her?
                 referanseNAV = "Medlemskap og avgift",
                 fakturaGjelder = "Medlemskapsavgift",
+                tema = FakturaserieTema.TRY,
                 intervall = intervall,
                 perioder = perioder
             )

@@ -33,6 +33,8 @@ data class FakturaserieResponseDto(
 
     val status: FakturaserieStatus,
 
+    val tema: FakturaserieTemaDto,
+
     val intervall: FakturaserieIntervallDto,
 
     @Schema(description = "Tidspunkt for opprettelse av fakturaserien")

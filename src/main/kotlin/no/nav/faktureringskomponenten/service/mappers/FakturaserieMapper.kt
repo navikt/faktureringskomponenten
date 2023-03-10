@@ -1,9 +1,9 @@
 package no.nav.faktureringskomponenten.service.mappers
 
-import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.FakturaserieTema
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,6 +27,7 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
             startdato = startDatoForHelePerioden,
             sluttdato = sluttDatoForHelePerioden,
             intervall = FakturaserieIntervall.valueOf(fakturaserieDto.intervall.name),
+            tema = FakturaserieTema.valueOf(fakturaserieDto.tema.name),
             faktura = fakturaMapper.tilListeAvFaktura(
                 fakturaserieDto.perioder,
                 startDatoForHelePerioden,

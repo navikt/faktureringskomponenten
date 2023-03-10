@@ -40,6 +40,10 @@ class Fakturaserie(
     @Enumerated(EnumType.STRING)
     var status: FakturaserieStatus = FakturaserieStatus.OPPRETTET,
 
+    @Column(name = "tema", nullable = false)
+    @Enumerated(EnumType.STRING)
+    var tema: FakturaserieTema = FakturaserieTema.TRY,
+
     @Column(name = "intervall", nullable = false)
     @Enumerated(EnumType.STRING)
     val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,

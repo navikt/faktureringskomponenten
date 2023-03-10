@@ -1,8 +1,8 @@
 package no.nav.faktureringskomponenten.service
 
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.FakturaserieTema
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 
 data class FakturaserieDto(
@@ -18,7 +18,10 @@ data class FakturaserieDto(
 
     val fakturaGjelder: String,
 
+    val tema: FakturaserieTema,
+
     val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
 
-    val perioder: List<FakturaseriePeriode>) {
+    val perioder: List<FakturaseriePeriode>
+) {
 }
