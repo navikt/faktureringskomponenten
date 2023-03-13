@@ -5,8 +5,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import net.bytebuddy.utility.RandomString
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
@@ -44,7 +42,9 @@ class FakturaserieServiceTest {
             fakturaserieRepository.save(nyFakturaserie)
         } returns nyFakturaserie
 
+
         fakturaserieService.endreFakturaserie(opprinneligVedtaksId, nyFakturaserieDto)
+
 
         val oppdatertOpprinneligFakturaserie =
             fakturaserieRepository.findByVedtaksId(vedtaksId = opprinneligVedtaksId)
