@@ -133,7 +133,6 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2024, 2, 15)
 
 
-
         val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
 
 
