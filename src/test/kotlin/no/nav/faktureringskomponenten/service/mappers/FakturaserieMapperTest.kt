@@ -52,7 +52,7 @@ class FakturaserieMapperTest {
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                             Linje(
-                                "2023-01-01", "2023-01-01", 821,
+                                "2023-01-01", "2023-01-01", 764,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
@@ -84,7 +84,7 @@ class FakturaserieMapperTest {
                                 "periode - 1"
                             ),
                             Linje(
-                                "2023-02-01", "2023-02-01", 357,
+                                "2023-02-01", "2023-02-01", 400,
                                 "periode - 1"
                             ),
                         )
@@ -158,7 +158,7 @@ class FakturaserieMapperTest {
                         fra = "2023-02-01", til = "2023-02-01",
                         listOf(
                             Linje(
-                                "2023-02-01", "2023-02-01", 909,
+                                "2023-02-01", "2023-02-01", 1018,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             )
                         )
@@ -196,11 +196,11 @@ class FakturaserieMapperTest {
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2023-01-01", "2023-01-22", 18075,
+                                "2023-01-01", "2023-01-22", 18083,
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2023-01-23", "2023-01-31", 7394,
+                                "2023-01-23", "2023-01-31", 7386,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
@@ -209,7 +209,7 @@ class FakturaserieMapperTest {
                         fra = "2023-02-01", til = "2023-02-01",
                         listOf(
                             Linje(
-                                "2023-02-01", "2023-02-01", 909,
+                                "2023-02-01", "2023-02-01", 1018,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
@@ -271,11 +271,11 @@ class FakturaserieMapperTest {
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2023-01-01", "2023-01-24", 7741,
+                                "2023-01-01", "2023-01-24", 7700,
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2023-01-25", "2023-01-31", 2258,
+                                "2023-01-25", "2023-01-31", 2300,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
@@ -320,7 +320,7 @@ class FakturaserieMapperTest {
                         fra = "2023-06-01", til = "2023-06-01",
                         listOf(
                             Linje(
-                                "2023-06-01", "2023-06-01", 333,
+                                "2023-06-01", "2023-06-01", 300,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
@@ -358,19 +358,19 @@ class FakturaserieMapperTest {
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2022-07-01", "2022-09-30", 29677,
+                                "2022-07-01", "2022-09-30", 30000,
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2022-10-01", "2022-12-31", 29677,
+                                "2022-10-01", "2022-12-31", 30000,
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2023-01-01", "2023-01-24", 7741,
+                                "2023-01-01", "2023-01-24", 7700,
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2023-01-25", "2023-03-31", 21935,
+                                "2023-01-25", "2023-03-31", 22300,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
@@ -379,7 +379,7 @@ class FakturaserieMapperTest {
                         fra = "2023-04-01", til = "2023-06-01",
                         listOf(
                             Linje(
-                                "2023-04-01", "2023-06-01", 20000,
+                                "2023-04-01", "2023-06-01", 20300,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
