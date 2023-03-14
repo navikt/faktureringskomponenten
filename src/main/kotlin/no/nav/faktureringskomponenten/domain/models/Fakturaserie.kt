@@ -16,7 +16,8 @@ class Fakturaserie(
     val vedtaksId: String = "",
 
     @Column(name = "faktura_gjelder", nullable = false)
-    val fakturaGjelder: String = "",
+    @Enumerated(EnumType.STRING)
+    val fakturaGjelder: FakturaserieTema = FakturaserieTema.TRY,
 
     @Column(name = "fodselsnummer", nullable = false)
     val fodselsnummer: String = "",
@@ -25,7 +26,7 @@ class Fakturaserie(
     val fullmektig: Fullmektig? = null,
 
     @Column(name = "referanse_bruker", nullable = false)
-    val referanseBruker: String  = "",
+    val referanseBruker: String = "",
 
     @Column(name = "referanse_nav", nullable = false)
     val referanseNAV: String = "",
@@ -39,10 +40,6 @@ class Fakturaserie(
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     var status: FakturaserieStatus = FakturaserieStatus.OPPRETTET,
-
-    @Column(name = "tema", nullable = false)
-    @Enumerated(EnumType.STRING)
-    var tema: FakturaserieTema = FakturaserieTema.TRY,
 
     @Column(name = "intervall", nullable = false)
     @Enumerated(EnumType.STRING)

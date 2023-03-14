@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull
 import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
 import no.nav.faktureringskomponenten.controller.validators.ErIkkeOverlappendePerioder
 import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.FakturaserieTema
 
 @Schema(description = "DTO for fullstendig informasjon om alle planlagte fakturaer")
 data class FakturaserieRequestDto(
@@ -42,24 +44,17 @@ data class FakturaserieRequestDto(
     val referanseNAV: String,
 
     @field:Schema(
-        description = "Informasjon om hva bruker betaler",
-        example = "Trygdeavgift",
+        description = "Informasjon om hvilket tema fakturaen gjelder",
+        example = "TRY",
     )
-    @field:NotBlank(message = "Du må oppgi fakturaGjelder")
-    val fakturaGjelder: String,
-
-    @field:Schema(
-        description = "Tema til vedtaket",
-        example = "TRY"
-    )
-    @field:NotNull(message = "Du må oppgi tema")
-    val tema: FakturaserieTemaDto,
+    @field:NotNull(message = "Du må oppgi fakturaGjelder")
+    val fakturaGjelder: FakturaserieTema,
 
     @field:Schema(
         description = "Betalingsintervall",
         example = "KVARTAL",
     )
-    val intervall: FakturaserieIntervallDto = FakturaserieIntervallDto.MANEDLIG,
+    val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
 
     @field:Schema(
         description = "Liste av betalingsperioder, kan ikke være overlappende",

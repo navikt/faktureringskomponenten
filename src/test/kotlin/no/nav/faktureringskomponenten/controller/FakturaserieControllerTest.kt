@@ -176,12 +176,6 @@ class FakturaserieControllerTest(
                 "Du må oppgi referanseNAV"
             ),
             arguments(
-                "fakturaGjelder som er tom",
-                lagFakturaserieDto(fakturaGjelder = ""),
-                "fakturaGjelder",
-                "Du må oppgi fakturaGjelder"
-            ),
-            arguments(
                 "Perioder som er tom",
                 lagFakturaserieDto(fakturaseriePeriode = listOf()),
                 "perioder",
@@ -337,8 +331,7 @@ class FakturaserieControllerTest(
         fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
-        fakturaGjelder: String = "Trygdeavgift",
-        tema: FakturaserieTema = FakturaserieTema.TRY,
+        fakturaGjelder:  FakturaserieTema = FakturaserieTema.TRY,
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
             FakturaseriePeriodeDto(
@@ -355,9 +348,8 @@ class FakturaserieControllerTest(
             fullmektig,
             referanseBruker,
             referanseNav,
-            fakturaGjelder,
-            FakturaserieTemaDto.valueOf(tema.name),
-            FakturaserieIntervallDto.valueOf(intervall.name),
+            FakturaserieTema.valueOf(fakturaGjelder.name),
+            FakturaserieIntervall.valueOf(intervall.name),
             fakturaseriePeriode
         )
     }

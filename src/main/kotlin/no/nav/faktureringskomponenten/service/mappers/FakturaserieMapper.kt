@@ -19,7 +19,7 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
         return Fakturaserie(
             id = null,
             vedtaksId = fakturaserieDto.vedtaksId,
-            fakturaGjelder = fakturaserieDto.fakturaGjelder,
+            fakturaGjelder = FakturaserieTema.valueOf(fakturaserieDto.fakturaGjelder.name),
             fodselsnummer = fakturaserieDto.fodselsnummer,
             fullmektig = mapFullmektig(fakturaserieDto.fullmektig),
             referanseBruker = fakturaserieDto.referanseBruker,
@@ -27,7 +27,6 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
             startdato = startDatoForHelePerioden,
             sluttdato = sluttDatoForHelePerioden,
             intervall = FakturaserieIntervall.valueOf(fakturaserieDto.intervall.name),
-            tema = FakturaserieTema.valueOf(fakturaserieDto.tema.name),
             faktura = fakturaMapper.tilListeAvFaktura(
                 fakturaserieDto.perioder,
                 startDatoForHelePerioden,

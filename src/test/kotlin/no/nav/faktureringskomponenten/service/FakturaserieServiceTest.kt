@@ -62,7 +62,7 @@ class FakturaserieServiceTest {
         return Fakturaserie(
             id = 100,
             vedtaksId = vedtaksId,
-            fakturaGjelder = "FTRL",
+            fakturaGjelder = FakturaserieTema.TRY,
             referanseBruker = "Referanse bruker",
             referanseNAV = "Referanse NAV",
             startdato = LocalDate.of(2022, 1, 1),
@@ -85,8 +85,7 @@ class FakturaserieServiceTest {
         fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
-        fakturaGjelder: String = "Trygdeavgift",
-        tema: FakturaserieTema = FakturaserieTema.TRY,
+        fakturaGjelder: FakturaserieTema = FakturaserieTema.TRY,
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriode> = listOf(
             FakturaseriePeriode(
@@ -104,7 +103,6 @@ class FakturaserieServiceTest {
             referanseBruker,
             referanseNav,
             fakturaGjelder,
-            tema,
             intervall,
             fakturaseriePeriode
         )

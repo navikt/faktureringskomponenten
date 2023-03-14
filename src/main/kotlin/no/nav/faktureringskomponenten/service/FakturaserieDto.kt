@@ -16,9 +16,7 @@ data class FakturaserieDto(
 
     val referanseNAV: String,
 
-    val fakturaGjelder: String,
-
-    val tema: FakturaserieTema,
+    val fakturaGjelder: FakturaserieTema,
 
     val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
 

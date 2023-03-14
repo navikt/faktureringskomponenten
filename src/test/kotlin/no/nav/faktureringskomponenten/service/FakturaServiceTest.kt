@@ -90,7 +90,7 @@ class FakturaServiceTest {
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
-                    beskrivelse = "FTRL",
+                    beskrivelse = "Trygdeavgift",
                     artikkel = "F00008",
                     faktureringsDato = LocalDate.of(2022, 5, 1),
                     fakturaLinjer = listOf(
@@ -127,7 +127,7 @@ class FakturaServiceTest {
             fakturaserie =
                 Fakturaserie(
                     100, vedtaksId = "MEL-1",
-                    fakturaGjelder = "FTRL",
+                    fakturaGjelder = FakturaserieTema.TRY,
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
                     startdato = LocalDate.of(2022, 1, 1),
