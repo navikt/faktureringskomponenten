@@ -127,7 +127,7 @@ class FakturaServiceTest {
             fakturaserie =
                 Fakturaserie(
                     100, vedtaksId = "MEL-1",
-                    fakturaGjelder = FakturaserieTema.TRY,
+                    fakturaGjelder = FakturaGjelder.TRYGDEAVGIFT,
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
                     startdato = LocalDate.of(2022, 1, 1),

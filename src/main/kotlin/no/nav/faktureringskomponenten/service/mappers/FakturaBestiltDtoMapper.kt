@@ -3,7 +3,7 @@ package no.nav.faktureringskomponenten.service.mappers
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaserieTema
+import no.nav.faktureringskomponenten.domain.models.FakturaGjelder
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import org.springframework.stereotype.Component
@@ -46,15 +46,15 @@ class FakturaBestiltDtoMapper {
     }
 
 
-    private fun mapFakturaBeskrivelse(fakturaGjelder: FakturaserieTema): String {
+    private fun mapFakturaBeskrivelse(fakturaGjelder: FakturaGjelder): String {
         return when (fakturaGjelder) {
-            FakturaserieTema.TRY -> "Trygdeavgift"
+            FakturaGjelder.TRYGDEAVGIFT -> "Trygdeavgift"
         }
     }
 
-    private fun mapArtikkel(fakturaGjelder: FakturaserieTema): String {
+    private fun mapArtikkel(fakturaGjelder: FakturaGjelder): String {
         return when (fakturaGjelder) {
-            FakturaserieTema.TRY -> AVGIFT_TIL_FOLKETRYGDEN
+            FakturaGjelder.TRYGDEAVGIFT -> AVGIFT_TIL_FOLKETRYGDEN
         }
     }
 }

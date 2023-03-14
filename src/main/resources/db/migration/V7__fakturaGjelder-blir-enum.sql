@@ -1,6 +1,6 @@
-CREATE TYPE fakturaserie_tema AS ENUM (
+CREATE TYPE faktura_gjelder AS ENUM (
     'TRY'
 );
-CREATE CAST (character varying as fakturaserie_tema) WITH INOUT AS IMPLICIT;
+CREATE CAST (character varying as faktura_gjelder) WITH INOUT AS IMPLICIT;
 
-ALTER TABLE fakturaserie ALTER COLUMN faktura_gjelder TYPE fakturaserie_tema USING 'TRY';
+ALTER TABLE fakturaserie ALTER COLUMN faktura_gjelder TYPE faktura_gjelder USING 'TRYGDEAVGIFT';

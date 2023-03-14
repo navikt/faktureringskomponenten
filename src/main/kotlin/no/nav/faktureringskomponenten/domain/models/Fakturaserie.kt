@@ -17,7 +17,7 @@ class Fakturaserie(
 
     @Column(name = "faktura_gjelder", nullable = false)
     @Enumerated(EnumType.STRING)
-    val fakturaGjelder: FakturaserieTema = FakturaserieTema.TRY,
+    val fakturaGjelder: FakturaGjelder = FakturaGjelder.TRYGDEAVGIFT,
 
     @Column(name = "fodselsnummer", nullable = false)
     val fodselsnummer: String = "",

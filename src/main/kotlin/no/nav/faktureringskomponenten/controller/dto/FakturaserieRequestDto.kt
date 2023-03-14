@@ -8,7 +8,7 @@ import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
 import no.nav.faktureringskomponenten.controller.validators.ErIkkeOverlappendePerioder
 import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
-import no.nav.faktureringskomponenten.domain.models.FakturaserieTema
+import no.nav.faktureringskomponenten.domain.models.FakturaGjelder
 
 @Schema(description = "DTO for fullstendig informasjon om alle planlagte fakturaer")
 data class FakturaserieRequestDto(
@@ -48,7 +48,7 @@ data class FakturaserieRequestDto(
         example = "TRY",
     )
     @field:NotNull(message = "Du må oppgi fakturaGjelder")
-    val fakturaGjelder: FakturaserieTema,
+    val fakturaGjelder: FakturaGjelder,
 
     @field:Schema(
         description = "Betalingsintervall",
