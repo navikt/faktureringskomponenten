@@ -1,11 +1,11 @@
-package no.nav.faktureringskomponenten.service.avregning
+package no.nav.faktureringskomponenten.service.beregning
 
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class BeløpAvregnerTest {
+class BeløpBeregnerTest {
 
     val enhetspris_1000 = BigDecimal("1000.00")
 
@@ -15,7 +15,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2023, 1, 31)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("350.00")
@@ -28,7 +28,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2023, 11, 15)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("500.00")
@@ -41,7 +41,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2023, 12, 31)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("11350.00")
@@ -55,7 +55,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2023, 11, 15)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("10500.00")
@@ -68,7 +68,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2023, 12, 31)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("10540.00")
@@ -81,7 +81,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2024, 2, 15)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("13520.00")
@@ -94,7 +94,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2024, 2, 29)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("14000.00")
@@ -107,7 +107,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2024, 3, 31)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("27000.00")
@@ -120,7 +120,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2024, 2, 29)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("1000.00")
@@ -133,7 +133,7 @@ class BeløpAvregnerTest {
         val tom = LocalDate.of(2024, 2, 15)
 
 
-        val result = BeløpAvregner.regnForPeriode(enhetspris_1000, fom, tom)
+        val result = BeløpBeregner.beløpForPeriode(enhetspris_1000, fom, tom)
 
 
         val forventetBeløp = BigDecimal("2100.00")

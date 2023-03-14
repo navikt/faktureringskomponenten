@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.service.avregning
+package no.nav.faktureringskomponenten.service.beregning
 
 import java.math.BigDecimal
 import java.math.RoundingMode

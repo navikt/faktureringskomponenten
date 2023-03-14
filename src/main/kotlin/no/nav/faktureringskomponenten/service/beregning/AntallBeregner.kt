@@ -1,13 +1,13 @@
-package no.nav.faktureringskomponenten.service.avregning
+package no.nav.faktureringskomponenten.service.beregning
 
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-class AngittAntallBeregner {
+class AntallBeregner {
     companion object {
-        fun regnAngittAntallForPeriode(fom: LocalDate, tom: LocalDate): BigDecimal {
+        fun antallForPeriode(fom: LocalDate, tom: LocalDate): BigDecimal {
             val gjelderSammeMånedOgÅr = fom.year == tom.year && fom.monthValue == tom.monthValue
             if (gjelderSammeMånedOgÅr) {
                 return regnAngittAntallForEnMåned(fom, tom)
