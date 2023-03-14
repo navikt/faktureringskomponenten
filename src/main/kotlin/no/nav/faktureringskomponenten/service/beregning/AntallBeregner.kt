@@ -1,21 +1,26 @@
 package no.nav.faktureringskomponenten.service.beregning
 
+import mu.KotlinLogging
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
+
+private val log = KotlinLogging.logger { }
 
 class AntallBeregner {
     companion object {
         fun antallForPeriode(fom: LocalDate, tom: LocalDate): BigDecimal {
             val gjelderSammeMånedOgÅr = fom.year == tom.year && fom.monthValue == tom.monthValue
             if (gjelderSammeMånedOgÅr) {
-                return regnAngittAntallForEnMåned(fom, tom)
+                log.debug("Beregner antall for periode $fom og $tom på én og samme måned")
+                return beregnAntallForEnMåned(fom, tom)
             }
-            return regnAngittAntallForFlereMåneder(fom, tom)
+            log.debug("Beregner antall for periode $fom og $tom på flere måneder")
+            return beregnAntallForFlereMåneder(fom, tom)
         }
 
-        private fun regnAngittAntallForFlereMåneder(fom: LocalDate, tom: LocalDate): BigDecimal {
+        private fun beregnAntallForFlereMåneder(fom: LocalDate, tom: LocalDate): BigDecimal {
             var totalAngittAntall = BigDecimal.ZERO
             var currentDate = fom
 
@@ -50,7 +55,7 @@ class AntallBeregner {
             return totalAngittAntall.setScale(2, RoundingMode.HALF_UP)
         }
 
-        private fun regnAngittAntallForEnMåned(fom: LocalDate, tom: LocalDate): BigDecimal {
+        private fun beregnAntallForEnMåned(fom: LocalDate, tom: LocalDate): BigDecimal {
             val antallDagerForMåned = BigDecimal(ChronoUnit.DAYS.between(fom, tom) + 1)
             val totalAntallDagerForMåned = BigDecimal(fom.lengthOfMonth())
             return antallDagerForMåned.divideWithScaleTwo(totalAntallDagerForMåned)
