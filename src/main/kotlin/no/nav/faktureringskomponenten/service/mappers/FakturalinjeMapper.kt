@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.service.mappers
 
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.service.avregning.AngittAntallBeregner
 import no.nav.faktureringskomponenten.service.avregning.BeløpAvregner
 import org.springframework.stereotype.Component
 import java.time.LocalDate
@@ -33,6 +34,7 @@ class FakturalinjeMapper {
                     fakturaLinjerPeriodeFra,
                     fakturaLinjerPeriodeTil
                 ),
+                antall = AngittAntallBeregner.regnAngittAntallForPeriode(fakturaLinjerPeriodeFra, fakturaLinjerPeriodeTil),
                 beskrivelse = it.beskrivelse,
                 enhetsprisPerManed = it.enhetsprisPerManed
             )

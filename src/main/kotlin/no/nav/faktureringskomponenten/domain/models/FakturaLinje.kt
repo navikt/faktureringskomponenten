@@ -24,6 +24,9 @@ class FakturaLinje(
     @Column(name = "belop", nullable = false)
     val belop: BigDecimal = BigDecimal(0),
 
+    @Column(name = "antall", nullable = false)
+    val antall: BigDecimal = BigDecimal(0),
+
     @Column(name = "enhetspris_per_maned", nullable = false)
     val enhetsprisPerManed: BigDecimal = BigDecimal(0)
 ) {

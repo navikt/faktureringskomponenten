@@ -87,7 +87,7 @@ class FakturaService(
 
                 FakturaBestiltLinjeDto(
                     beskrivelse = "Periode: $periodeFraFormatert - ${periodeTilFormatert}, ${it.beskrivelse}",
-                    antall = 1.0,
+                    antall = it.antall,
                     enhetspris = it.enhetsprisPerManed,
                     belop = it.belop
                 )
