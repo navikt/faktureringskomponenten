@@ -1,5 +1,5 @@
 CREATE TYPE faktura_gjelder AS ENUM (
-    'TRY'
+    'TRYGDEAVGIFT'
 );
 CREATE CAST (character varying as faktura_gjelder) WITH INOUT AS IMPLICIT;
 

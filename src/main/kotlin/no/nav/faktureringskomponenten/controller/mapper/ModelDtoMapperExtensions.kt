@@ -45,14 +45,14 @@ val List<FakturaseriePeriodeDto>.tilFakturaserieDtoList: List<FakturaseriePeriod
 
 private val Fullmektig.tilDto: FullmektigDto
     get() = FullmektigDto(
-        fodselsnummer = this.fodselsnummer.toString(),
+        fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,
         kontaktperson = this.kontaktperson
     )
 
 private val FullmektigDto.tilFullmektig: Fullmektig
     get() = Fullmektig(
-        fodselsnummer = this.fodselsnummer.toString(),
+        fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,
         kontaktperson = this.kontaktperson
     )
