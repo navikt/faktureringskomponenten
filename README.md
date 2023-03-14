@@ -71,28 +71,13 @@ Run: `./gradlew run`
 } 
 ```
 
-```mermaid
-sequenceDiagram
-    participant api as Melosys-API
-    participant faktura as Faktureringskomponenten
-    participant oebs as OEBS
-    
-    Note over api,faktura,oebs: Heiasd asd as
-    api->>+faktura: Logg inn
-    
-    alt Credentials not found
-        account->>web: Invalid credentials
-    else Credentials found
-        account->>-web: Successfully logged in
-    end
-```
 
 ```mermaid
 flowchart TB
     melosys-api --> melosys-trygdeavgift
     melosys-api --Send fakturaperioder over REST --> faktureringskomponenten
-    melosys-api --Kanseller faktura over REST --> faktureringskomponenten
-    melosys-web -- evt: Hent fakturainfo --> faktureringskomponenten
+    melosys-api -- Kanseller faktura over REST --> faktureringskomponenten
+    melosys-web -- Hent fakturainfo --> faktureringskomponenten
     faktureringskomponenten -. kafka-ny-faktura -.- oebs-ny-app
     oebs-ny-app -. kafka-faktura-status-endret -.- faktureringskomponenten
     faktureringskomponenten -. kafka-faktura-ikke-betalt -.- melosys-api
@@ -162,10 +147,18 @@ class faktura_status {
     KANSELLERT
 }
 
-fakturaserie "1" -->  "1..*" faktura
+fakturaserie "1" --> "1..*" faktura
 fakturaserie "PK_id" --> "FK_fakturaserie_id" faktura
 fakturaserie "status" -- "PK_fakturaserie_status" fakturaserie_status
 fakturaserie "intervall" -- "PK_fakturaserie_intervall" fakturaserie_intervall
 faktura "status" -- "PK_fakutra_status" faktura_status
-faktura "1" -->  "1..*" faktura_linje
+faktura "1" --> "1..*" faktura_linje
 ```
+
+# Henvendelser
+
+Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på GitHub
+
+## For NAV-ansatte
+
+Interne henvendelser kan sendes via Slack i kanalen [#teammelosys](https://nav-it.slack.com/archives/C92481HSP).
