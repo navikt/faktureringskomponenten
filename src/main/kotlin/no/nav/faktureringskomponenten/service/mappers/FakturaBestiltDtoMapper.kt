@@ -50,14 +50,13 @@ class FakturaBestiltDtoMapper {
     private fun mapFakturaBeskrivelse(fakturaGjelder: FakturaGjelder, intervall: FakturaserieIntervall): String {
         return when (fakturaGjelder) {
             FakturaGjelder.TRYGDEAVGIFT -> {
+                val nå = LocalDate.now()
                 if (intervall == FakturaserieIntervall.KVARTAL) {
-                    val nåværendeKvartal = LocalDate.now().get(IsoFields.QUARTER_OF_YEAR)
-                    val nåværendeÅr = LocalDate.now().year
-                    "Faktura Trygdeavgift $nåværendeKvartal. kvartal $nåværendeÅr"
+                    val nåværendeKvartal = nå.get(IsoFields.QUARTER_OF_YEAR)
+                    "Faktura Trygdeavgift $nåværendeKvartal. kvartal ${nå.year}"
                 } else {
-                    val nåværendeMåned = LocalDate.now().month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                    val nåværendeÅr = LocalDate.now().year
-                    "Faktura Trygdeavgift $nåværendeMåned $nåværendeÅr"
+                    val nåværendeMåned = nå.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                    "Faktura Trygdeavgift $nåværendeMåned ${nå.year}"
                 }
             }
         }

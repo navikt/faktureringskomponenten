@@ -14,6 +14,7 @@ import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBesti
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.temporal.IsoFields
 
 class FakturaServiceTest {
 
@@ -60,6 +61,7 @@ class FakturaServiceTest {
     fun `Bestiller bestillingsklare faktura med riktig data`() {
         val faktura = lagFaktura(1)
         val fakturaBestiltDtoCapturingSlot = slot<FakturaBestiltDto>()
+        val nå = LocalDate.now()
 
         every {
             fakturaRepository.findById(1)
@@ -90,7 +92,7 @@ class FakturaServiceTest {
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
-                    beskrivelse = "Trygdeavgift",
+                    beskrivelse = "Faktura Trygdeavgift ${nå.get(IsoFields.QUARTER_OF_YEAR)}. kvartal ${nå.year}",
                     artikkel = "F00008",
                     faktureringsDato = LocalDate.of(2022, 5, 1),
                     fakturaLinjer = listOf(
