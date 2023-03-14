@@ -7,7 +7,7 @@ import no.nav.faktureringskomponenten.service.FakturaserieDto
 val Fakturaserie.tilResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
         vedtaksId = this.vedtaksId,
-        fakturaGjelder = FakturaserieTema.valueOf(this.fakturaGjelder.name),
+        fakturaGjelder = this.fakturaGjelder,
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilDto,
         referanseBruker = this.referanseBruker,
@@ -15,7 +15,7 @@ val Fakturaserie.tilResponseDto: FakturaserieResponseDto
         startdato = this.startdato,
         sluttdato = this.sluttdato,
         status = this.status,
-        intervall = FakturaserieIntervall.valueOf(this.intervall.name),
+        intervall = this.intervall,
         opprettetTidspunkt = this.opprettetTidspunkt,
         faktura = this.faktura.map { it.tilResponseDto }
     )
@@ -28,8 +28,8 @@ val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,
         referanseNAV = this.referanseNAV,
-        fakturaGjelder = FakturaserieTema.valueOf(this.fakturaGjelder.name),
-        intervall = FakturaserieIntervall.valueOf(this.intervall.name),
+        fakturaGjelder = this.fakturaGjelder,
+        intervall = this.intervall,
         perioder = this.perioder.tilFakturaserieDtoList
     )
 

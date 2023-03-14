@@ -4,7 +4,9 @@ import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import net.bytebuddy.utility.RandomString
-import no.nav.faktureringskomponenten.controller.dto.*
+import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
+import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieTema
@@ -331,7 +333,7 @@ class FakturaserieControllerTest(
         fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
-        fakturaGjelder:  FakturaserieTema = FakturaserieTema.TRY,
+        fakturaGjelder: FakturaserieTema = FakturaserieTema.TRY,
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
             FakturaseriePeriodeDto(
@@ -348,8 +350,8 @@ class FakturaserieControllerTest(
             fullmektig,
             referanseBruker,
             referanseNav,
-            FakturaserieTema.valueOf(fakturaGjelder.name),
-            FakturaserieIntervall.valueOf(intervall.name),
+            fakturaGjelder,
+            intervall,
             fakturaseriePeriode
         )
     }
