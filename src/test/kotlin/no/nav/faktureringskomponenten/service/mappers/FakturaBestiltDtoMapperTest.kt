@@ -4,7 +4,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.FakturaGjelder
+import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import org.junit.jupiter.api.Test
@@ -15,7 +15,7 @@ class FakturaBestiltDtoMapperTest {
     fun `intervall KVARTAL setter rett beskrivelse`() {
         val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
             Faktura(),
-            Fakturaserie(fakturaGjelder = FakturaGjelder.TRYGDEAVGIFT, intervall = FakturaserieIntervall.KVARTAL)
+            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.KVARTAL)
         )
 
         fakturaBestiltDto
@@ -29,7 +29,7 @@ class FakturaBestiltDtoMapperTest {
     fun `intervall MANEDLIG setter rett beskrivelse`() {
         val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
             Faktura(),
-            Fakturaserie(fakturaGjelder = FakturaGjelder.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
         )
 
         fakturaBestiltDto

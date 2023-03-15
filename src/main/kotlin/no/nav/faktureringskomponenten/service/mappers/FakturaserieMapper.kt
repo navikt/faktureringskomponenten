@@ -17,7 +17,7 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
         return Fakturaserie(
             id = null,
             vedtaksId = fakturaserieDto.vedtaksId,
-            fakturaGjelder = fakturaserieDto.fakturaGjelder,
+            fakturaGjelderInnbetalingstype = fakturaserieDto.fakturaGjelderInnbetalingstype,
             fodselsnummer = fakturaserieDto.fodselsnummer,
             fullmektig = mapFullmektig(fakturaserieDto.fullmektig),
             referanseBruker = fakturaserieDto.referanseBruker,

@@ -7,7 +7,7 @@ import no.nav.faktureringskomponenten.service.FakturaserieDto
 val Fakturaserie.tilResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
         vedtaksId = this.vedtaksId,
-        fakturaGjelder = this.fakturaGjelder,
+        fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilDto,
         referanseBruker = this.referanseBruker,
@@ -28,7 +28,7 @@ val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,
         referanseNAV = this.referanseNAV,
-        fakturaGjelder = this.fakturaGjelder,
+        fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
         intervall = this.intervall,
         perioder = this.perioder.tilFakturaserieDtoList
     )

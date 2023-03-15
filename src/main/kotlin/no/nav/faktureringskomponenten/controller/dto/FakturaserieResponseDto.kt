@@ -3,7 +3,7 @@ package no.nav.faktureringskomponenten.controller.dto
 import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
-import no.nav.faktureringskomponenten.domain.models.FakturaGjelder
+import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -14,7 +14,7 @@ data class FakturaserieResponseDto(
     val vedtaksId: String,
 
     @Schema(description = "Informasjon om hva bruker betaler")
-    val fakturaGjelder: FakturaGjelder,
+    val fakturaGjelderInnbetalingstype: Innbetalingstype,
 
     @Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
     val fodselsnummer: String,

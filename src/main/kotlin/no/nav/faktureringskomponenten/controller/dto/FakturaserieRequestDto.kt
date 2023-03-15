@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull
 import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
 import no.nav.faktureringskomponenten.controller.validators.ErIkkeOverlappendePerioder
 import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
-import no.nav.faktureringskomponenten.domain.models.FakturaGjelder
+import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 
 @Schema(description = "DTO for fullstendig informasjon om alle planlagte fakturaer")
@@ -43,8 +43,8 @@ data class FakturaserieRequestDto(
         description = "Informasjon om hvilket tema fakturaen gjelder",
         example = "TRY",
     )
-    @field:NotNull(message = "Du må oppgi fakturaGjelder")
-    val fakturaGjelder: FakturaGjelder,
+    @field:NotNull(message = "Du må oppgi fakturaGjelderInnbetalingstype")
+    val fakturaGjelderInnbetalingstype: Innbetalingstype,
 
     @Schema(
         description = "Betalingsintervall",

@@ -25,8 +25,8 @@ class FakturaBestiltDtoMapper {
             kreditReferanseNr = "",
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
-            beskrivelse = mapFakturaBeskrivelse(fakturaserie.fakturaGjelder, fakturaserie.intervall),
-            artikkel = mapArtikkel(fakturaserie.fakturaGjelder),
+            beskrivelse = mapFakturaBeskrivelse(fakturaserie.fakturaGjelderInnbetalingstype, fakturaserie.intervall),
+            artikkel = mapArtikkel(fakturaserie.fakturaGjelderInnbetalingstype),
             faktureringsDato = faktura.datoBestilt,
             fakturaLinjer = faktura.fakturaLinje.map {
                 FakturaBestiltLinjeDto(
@@ -47,9 +47,9 @@ class FakturaBestiltDtoMapper {
     }
 
 
-    private fun mapFakturaBeskrivelse(fakturaGjelder: FakturaGjelder, intervall: FakturaserieIntervall): String {
+    private fun mapFakturaBeskrivelse(fakturaGjelder: Innbetalingstype, intervall: FakturaserieIntervall): String {
         return when (fakturaGjelder) {
-            FakturaGjelder.TRYGDEAVGIFT -> {
+            Innbetalingstype.TRYGDEAVGIFT -> {
                 val nå = LocalDate.now()
                 if (intervall == FakturaserieIntervall.KVARTAL) {
                     val nåværendeKvartal = nå.get(IsoFields.QUARTER_OF_YEAR)
@@ -62,9 +62,9 @@ class FakturaBestiltDtoMapper {
         }
     }
 
-    private fun mapArtikkel(fakturaGjelder: FakturaGjelder): String {
+    private fun mapArtikkel(fakturaGjelder: Innbetalingstype): String {
         return when (fakturaGjelder) {
-            FakturaGjelder.TRYGDEAVGIFT -> AVGIFT_TIL_FOLKETRYGDEN
+            Innbetalingstype.TRYGDEAVGIFT -> AVGIFT_TIL_FOLKETRYGDEN
         }
     }
 }

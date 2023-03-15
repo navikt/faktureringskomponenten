@@ -9,7 +9,7 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
-import no.nav.faktureringskomponenten.domain.models.FakturaGjelder
+import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
@@ -333,7 +333,7 @@ class FakturaserieControllerTest(
         fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
-        fakturaGjelder: FakturaGjelder = FakturaGjelder.TRYGDEAVGIFT,
+        fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
             FakturaseriePeriodeDto(
@@ -350,7 +350,7 @@ class FakturaserieControllerTest(
             fullmektig,
             referanseBruker,
             referanseNav,
-            fakturaGjelder,
+            fakturaGjelderInnbetalingstype,
             intervall,
             fakturaseriePeriode
         )

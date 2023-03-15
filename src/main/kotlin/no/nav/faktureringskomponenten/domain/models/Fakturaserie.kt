@@ -15,9 +15,9 @@ class Fakturaserie(
     @Column(nullable = false, unique = true)
     val vedtaksId: String = "",
 
-    @Column(name = "faktura_gjelder", nullable = false)
+    @Column(name = "faktura_gjelder_innbetalingstype", nullable = false)
     @Enumerated(EnumType.STRING)
-    val fakturaGjelder: FakturaGjelder = FakturaGjelder.TRYGDEAVGIFT,
+    val fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
 
     @Column(name = "fodselsnummer", nullable = false)
     val fodselsnummer: String = "",
@@ -55,7 +55,7 @@ class Fakturaserie(
     @Override
     override fun toString(): String {
         return "vedtaksId: $vedtaksId, " +
-                "fakturaGjelder: $fakturaGjelder, " +
+                "fakturaGjelderInnbetalingstype: $fakturaGjelderInnbetalingstype, " +
                 "referanseNAV: $referanseNAV, " +
                 "startdato: $startdato, " +
                 "sluttDato: $sluttdato, " +
