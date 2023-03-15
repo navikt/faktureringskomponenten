@@ -13,37 +13,37 @@ import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 @Schema(description = "DTO for fullstendig informasjon om alle planlagte fakturaer")
 data class FakturaserieRequestDto(
 
-    @Schema(description = "Unik identifikator som saksbehandlingssystemet kjenner igjen")
-    @IkkeDuplikatVedtaksId
+    @field:Schema(description = "Unik identifikator som saksbehandlingssystemet kjenner igjen")
+    @field:IkkeDuplikatVedtaksId
     val vedtaksId: String,
 
-    @Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
-    @ErFodselsnummer
+    @field:Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
+    @field:ErFodselsnummer
     val fodselsnummer: String,
 
     val fullmektig: FullmektigDto?,
 
-    @Schema(
+    @field:Schema(
         description = "Referanse for bruker/mottaker",
         example = "Vedtak om medlemskap datert 01.12.2022",
         maxLength = 240
     )
-    @NotBlank(message = "Du må oppgi referanseBruker")
+    @field:NotBlank(message = "Du må oppgi referanseBruker")
     val referanseBruker: String,
 
-    @Schema(
+    @field:Schema(
         description = "Referanse for NAV",
         example = "Medlemskap og avgift",
         maxLength = 240
     )
-    @NotBlank(message = "Du må oppgi referanseNAV")
+    @field:NotBlank(message = "Du må oppgi referanseNAV")
     val referanseNAV: String,
 
-    @Schema(
+    @field:Schema(
         description = "Informasjon om hvilket tema fakturaen gjelder",
         example = "TRY",
     )
-    @NotNull(message = "Du må oppgi fakturaGjelder")
+    @field:NotNull(message = "Du må oppgi fakturaGjelder")
     val fakturaGjelder: FakturaGjelder,
 
     @Schema(
@@ -52,9 +52,9 @@ data class FakturaserieRequestDto(
     )
     val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
 
-    @Schema(description = "Liste av betalingsperioder, kan ikke være overlappende")
-    @NotEmpty(message = "Du må oppgi minst én periode")
-    @ErIkkeOverlappendePerioder
+    @field:Schema(description = "Liste av betalingsperioder, kan ikke være overlappende")
+    @field:NotEmpty(message = "Du må oppgi minst én periode")
+    @field:ErIkkeOverlappendePerioder
     val perioder: List<FakturaseriePeriodeDto>
 ) {
     @Override
