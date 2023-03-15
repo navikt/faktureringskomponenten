@@ -25,11 +25,10 @@ class FakturaserieService(
         )
 
     @Transactional
-    fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto): Fakturaserie {
+    fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto) {
         val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
-        return fakturaserie
     }
 
     @Transactional
