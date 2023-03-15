@@ -7,60 +7,54 @@ import jakarta.validation.constraints.NotNull
 import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
 import no.nav.faktureringskomponenten.controller.validators.ErIkkeOverlappendePerioder
 import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaGjelder
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 
 @Schema(description = "DTO for fullstendig informasjon om alle planlagte fakturaer")
 data class FakturaserieRequestDto(
 
-    @field:Schema(
-        description = "Unik identifikator som saksbehandlingssystemet kjenner igjen",
-    )
+    @Schema(description = "Unik identifikator som saksbehandlingssystemet kjenner igjen")
     @IkkeDuplikatVedtaksId
     val vedtaksId: String,
 
-    @field:Schema(
-        description = "Fødselsnummer for fakturamottaker, 11 siffer",
-    )
-    @field:ErFodselsnummer
+    @Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
+    @ErFodselsnummer
     val fodselsnummer: String,
 
     val fullmektig: FullmektigDto?,
 
-    @field:Schema(
+    @Schema(
         description = "Referanse for bruker/mottaker",
         example = "Vedtak om medlemskap datert 01.12.2022",
         maxLength = 240
     )
-    @field:NotBlank(message = "Du må oppgi referanseBruker")
+    @NotBlank(message = "Du må oppgi referanseBruker")
     val referanseBruker: String,
 
-    @field:Schema(
+    @Schema(
         description = "Referanse for NAV",
-        example = "NAV medlemskap og avgift",
+        example = "Medlemskap og avgift",
         maxLength = 240
     )
-    @field:NotBlank(message = "Du må oppgi referanseNAV")
+    @NotBlank(message = "Du må oppgi referanseNAV")
     val referanseNAV: String,
 
-    @field:Schema(
+    @Schema(
         description = "Informasjon om hvilket tema fakturaen gjelder",
         example = "TRY",
     )
-    @field:NotNull(message = "Du må oppgi fakturaGjelder")
+    @NotNull(message = "Du må oppgi fakturaGjelder")
     val fakturaGjelder: FakturaGjelder,
 
-    @field:Schema(
+    @Schema(
         description = "Betalingsintervall",
         example = "KVARTAL",
     )
     val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
 
-    @field:Schema(
-        description = "Liste av betalingsperioder, kan ikke være overlappende",
-    )
-    @field:NotEmpty(message = "Du må oppgi minst én periode")
-    @field:ErIkkeOverlappendePerioder
+    @Schema(description = "Liste av betalingsperioder, kan ikke være overlappende")
+    @NotEmpty(message = "Du må oppgi minst én periode")
+    @ErIkkeOverlappendePerioder
     val perioder: List<FakturaseriePeriodeDto>
 ) {
     @Override

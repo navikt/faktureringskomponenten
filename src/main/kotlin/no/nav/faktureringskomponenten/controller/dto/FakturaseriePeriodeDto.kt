@@ -6,28 +6,28 @@ import java.time.LocalDate
 
 data class FakturaseriePeriodeDto(
 
-    @field:Schema(
+    @Schema(
         description = "Enhetspris mottaker betaler per måned",
         example = "1000",
     )
     val enhetsprisPerManed: BigDecimal,
 
 
-    @field:Schema(
+    @Schema(
         description = "Startdato for perioden",
         example = "01.01.2022",
     )
     val startDato: LocalDate,
 
 
-    @field:Schema(
+    @Schema(
         description = "Sluttdato for perioden",
         example = "01.05.2022",
     )
     val sluttDato: LocalDate,
 
 
-    @field:Schema(
+    @Schema(
         description = "Beskrivelse på hva grunnlaget for faktureringsbeløpet for perioden",
         example = "Inntekt: 50.000, Dekning: Pensjonsdel, Sats: 21.8 %",
     )
