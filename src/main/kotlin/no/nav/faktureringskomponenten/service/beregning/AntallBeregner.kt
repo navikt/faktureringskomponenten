@@ -15,9 +15,9 @@ class AntallBeregner(private val fom: LocalDate, private val tom: LocalDate) {
     private val erSammeMånedOgÅr = fom.year == tom.year && fom.monthValue == tom.monthValue
 
     fun beregn(): BigDecimal {
-        val total = beregnFørsteMånedProsent() + beregnMånederMellomProsent() + beregnSisteMånedProsent()
-        log.debug("AntallBeregner beregner fom: {} og tom: {} som gir total antall: {}", fom, tom, total)
-        return total
+        val totalAntall = beregnFørsteMånedProsent() + beregnMånederMellomProsent() + beregnSisteMånedProsent()
+        log.debug {"AntallBeregner beregner fom: $fom og tom: $tom som gir total antall: $totalAntall" }
+        return totalAntall
     }
 
     private fun beregnFørsteMånedProsent(): BigDecimal {
