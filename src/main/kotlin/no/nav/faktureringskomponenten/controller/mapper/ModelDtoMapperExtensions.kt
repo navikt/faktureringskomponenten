@@ -4,7 +4,7 @@ import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 
-val Fakturaserie.tilResponseDto: FakturaserieResponseDto
+val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
         vedtaksId = this.vedtaksId,
         fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
@@ -30,10 +30,10 @@ val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
         referanseNAV = this.referanseNAV,
         fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
         intervall = this.intervall,
-        perioder = this.perioder.tilFakturaserieDtoList
+        perioder = this.perioder.tilFakturaseriePeriodeList
     )
 
-val List<FakturaseriePeriodeDto>.tilFakturaserieDtoList: List<FakturaseriePeriode>
+val List<FakturaseriePeriodeDto>.tilFakturaseriePeriodeList: List<FakturaseriePeriode>
     get() = map {
         FakturaseriePeriode(
             enhetsprisPerManed = it.enhetsprisPerManed,

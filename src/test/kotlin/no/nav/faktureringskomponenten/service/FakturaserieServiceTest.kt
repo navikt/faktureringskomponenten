@@ -42,7 +42,9 @@ class FakturaserieServiceTest {
             fakturaserieRepository.save(nyFakturaserie)
         } returns nyFakturaserie
 
+
         fakturaserieService.endreFakturaserie(opprinneligVedtaksId, nyFakturaserieDto)
+
 
         val oppdatertOpprinneligFakturaserie =
             fakturaserieRepository.findByVedtaksId(vedtaksId = opprinneligVedtaksId)

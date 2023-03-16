@@ -9,7 +9,7 @@ import mu.KotlinLogging
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
-import no.nav.faktureringskomponenten.controller.mapper.tilResponseDto
+import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
@@ -84,6 +84,6 @@ class FakturaserieController @Autowired constructor(
     )
     @GetMapping("/{vedtaksId}")
     fun hentFakturaserie(@PathVariable("vedtaksId") vedtaksId: String): FakturaserieResponseDto {
-        return faktureringService.hentFakturaserie(vedtaksId).tilResponseDto
+        return faktureringService.hentFakturaserie(vedtaksId).tilFakturaserieResponseDto
     }
 }

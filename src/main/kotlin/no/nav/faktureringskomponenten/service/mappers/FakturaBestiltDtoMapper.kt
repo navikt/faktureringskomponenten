@@ -31,7 +31,7 @@ class FakturaBestiltDtoMapper {
             fakturaLinjer = faktura.fakturaLinje.map {
                 FakturaBestiltLinjeDto(
                     beskrivelse = mapFakturaserieBeskrivelse(it),
-                    antall = 1.0,
+                    antall = it.antall,
                     enhetspris = it.enhetsprisPerManed,
                     belop = it.belop
                 )

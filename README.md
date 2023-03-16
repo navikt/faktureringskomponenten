@@ -28,6 +28,17 @@ Dette vil se slik ut:
     127.0.1.1 <din-maskin>
 ```
 
+### Gradle
+
+Vi bruker Gradle i dette prosjektet.
+
+> Hvert gradle prosjekt inkluderer en gradlew / gradlew.bat fil som vi kan bruke for å kjøre gradle kommandoer uten å måtte ha det installert lokalt på vår maskin. 
+> Hvis du har egen gradle erstatter du `./gradlew` med `gradle`.
+
+Build: `./gradlew build`
+Clean: `./gradlew clean`
+Test: `./gradlew test`
+Run: `./gradlew run`
 
 ## Datastruktur
 
