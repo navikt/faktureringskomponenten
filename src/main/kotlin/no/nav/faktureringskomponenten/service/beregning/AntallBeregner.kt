@@ -10,55 +10,59 @@ private val log = KotlinLogging.logger { }
 
 class AntallBeregner {
     companion object {
-        fun antallForPeriode(fom: LocalDate, tom: LocalDate): BigDecimal {
-            val gjelderSammeMånedOgÅr = fom.year == tom.year && fom.monthValue == tom.monthValue
-            if (gjelderSammeMånedOgÅr) {
-                log.debug("Beregner antall for periode $fom og $tom på én og samme måned")
-                return beregnAntallForEnMåned(fom, tom)
-            }
-            log.debug("Beregner antall for periode $fom og $tom på flere måneder")
-            return beregnAntallForFlereMåneder(fom, tom)
+        fun antallForPeriode(datoFra: LocalDate, datoTil: LocalDate): BigDecimal {
+            val førsteMånedDager = datoFra.lengthOfMonth().toBigDecimal()
+            val sisteMånedDager = datoTil.lengthOfMonth().toBigDecimal()
+
+            val erSammeMånedOgÅr = datoFra.year == datoTil.year && datoFra.monthValue == datoTil.monthValue
+            val førsteMånedProsent = beregnProsentTilFørsteMåned(erSammeMånedOgÅr, førsteMånedDager, datoFra, datoTil)
+            val sisteMånedProsent = beregnProsentTilSisteMåned(erSammeMånedOgÅr, datoTil, sisteMånedDager)
+            val månederMellom = beregnProsentTilMånederMellomFørsteOgSiste(erSammeMånedOgÅr, datoFra, datoTil)
+
+            val total = førsteMånedProsent + månederMellom + sisteMånedProsent
+            return total.setScale(2, RoundingMode.HALF_UP)
         }
 
-        private fun beregnAntallForFlereMåneder(fom: LocalDate, tom: LocalDate): BigDecimal {
-            var totalAngittAntall = BigDecimal.ZERO
-            var currentDate = fom
-
-            while (currentDate <= tom) {
-                val erFørsteMåned = fom == currentDate
-                val erSisteMåned = currentDate.year == tom.year && currentDate.month == tom.month
-                val totalAntallDagerForMåned = currentDate.lengthOfMonth()
-                val dagerIgjenAvMåneden = totalAntallDagerForMåned - (currentDate.dayOfMonth - 1)
-
-                val angittAntallForMåned =
-                    BigDecimal(dagerIgjenAvMåneden.toDouble() / totalAntallDagerForMåned.toDouble())
-                        .setScale(2, RoundingMode.HALF_UP)
-
-                when {
-                    erFørsteMåned -> {
-                        totalAngittAntall = angittAntallForMåned
-                        currentDate = currentDate.withDayOfMonth(1)
-                    }
-
-                    erSisteMåned -> {
-                        val daysInMonth = tom.dayOfMonth - (currentDate.dayOfMonth - 1)
-                        totalAngittAntall += BigDecimal(daysInMonth.toDouble() / totalAntallDagerForMåned.toDouble())
-                            .setScale(2, RoundingMode.HALF_UP)
-                    }
-
-                    else -> {
-                        totalAngittAntall += angittAntallForMåned
-                    }
-                }
-                currentDate = currentDate.plusMonths(1)
+        private fun beregnProsentTilMånederMellomFørsteOgSiste(
+            erSammeMånedOgÅr: Boolean,
+            datoFra: LocalDate,
+            datoTil: LocalDate
+        ): BigDecimal {
+            return if (erSammeMånedOgÅr) {
+                BigDecimal.ZERO
+            } else {
+                val start = datoFra.withDayOfMonth(1).plusMonths(1)
+                val end = datoTil.withDayOfMonth(1)
+                ChronoUnit.MONTHS.between(start, end).toBigDecimal()
             }
-            return totalAngittAntall.setScale(2, RoundingMode.HALF_UP)
         }
 
-        private fun beregnAntallForEnMåned(fom: LocalDate, tom: LocalDate): BigDecimal {
-            val antallDagerForMåned = BigDecimal(ChronoUnit.DAYS.between(fom, tom) + 1)
-            val totalAntallDagerForMåned = BigDecimal(fom.lengthOfMonth())
-            return antallDagerForMåned.divideWithScaleTwo(totalAntallDagerForMåned)
+        private fun beregnProsentTilSisteMåned(
+            erSammeMånedOgÅr: Boolean,
+            datoTil: LocalDate,
+            sisteMånedDager: BigDecimal
+        ): BigDecimal {
+            return if (!erSammeMånedOgÅr) {
+                datoTil.dayOfMonth.toBigDecimal()
+                    .divide(sisteMånedDager, 2, RoundingMode.HALF_UP)
+            } else {
+                BigDecimal.ZERO
+            }
+        }
+
+        private fun beregnProsentTilFørsteMåned(
+            erSammeMånedOgÅr: Boolean,
+            førsteMånedDager: BigDecimal,
+            datoFra: LocalDate,
+            datoTil: LocalDate
+        ): BigDecimal {
+            return if (!erSammeMånedOgÅr) {
+                (førsteMånedDager - datoFra.dayOfMonth.toBigDecimal() + BigDecimal.ONE)
+                    .divide(førsteMånedDager, 2, RoundingMode.HALF_UP)
+            } else {
+                (datoTil.dayOfMonth.toBigDecimal() - datoFra.dayOfMonth.toBigDecimal() + BigDecimal.ONE)
+                    .divide(førsteMånedDager, 2, RoundingMode.HALF_UP)
+            }
         }
     }
 }

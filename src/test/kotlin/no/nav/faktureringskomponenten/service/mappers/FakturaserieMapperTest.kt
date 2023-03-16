@@ -158,7 +158,7 @@ class FakturaserieMapperTest {
                         fra = "2023-02-01", til = "2023-02-01",
                         listOf(
                             Linje(
-                                "2023-02-01", "2023-02-01", 1018,
+                                "2023-02-01", "2023-02-01", 1019,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             )
                         )
@@ -196,7 +196,7 @@ class FakturaserieMapperTest {
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2023-01-01", "2023-01-22", 18083,
+                                "2023-01-01", "2023-01-22", 18084,
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
@@ -209,7 +209,7 @@ class FakturaserieMapperTest {
                         fra = "2023-02-01", til = "2023-02-01",
                         listOf(
                             Linje(
-                                "2023-02-01", "2023-02-01", 1018,
+                                "2023-02-01", "2023-02-01", 1019,
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
                         )
