@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.controller
 
+import io.micrometer.core.instrument.Metrics
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
@@ -11,6 +12,7 @@ import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.controller.mapper.tilResponseDto
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
+import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.security.token.support.core.api.Protected
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,6 +51,7 @@ class FakturaserieController @Autowired constructor(
             log.info("Mottatt $fakturaserieRequestDto")
             val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
             faktureringService.lagNyFakturaserie(fakturaserieDto)
+            Metrics.counter(MetrikkNavn.FAKTURASERIE_OPPRETTET).increment()
         }
         return responseEntity
     }

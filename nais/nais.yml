@@ -19,11 +19,11 @@ spec:
     min: 1
     max: 2
   liveness:
-    path: /actuator/health
+    path: /internal/health
     initialDelay: 40
     timeout: 5
   readiness:
-    path: /actuator/health
+    path: /internal/health
     initialDelay: 35
     timeout: 5
   azure:
@@ -44,8 +44,8 @@ spec:
       external:
         - host: https://security-token-service.dev.adeo.no
   prometheus:
-    enabled: false
-    path: /actuator/prometheus
+    enabled: true
+    path: /internal/prometheus
   resources:
     limits:
       cpu: 500m
