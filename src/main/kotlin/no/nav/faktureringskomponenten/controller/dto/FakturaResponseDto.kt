@@ -9,25 +9,17 @@ data class FakturaResponseDto(
 
     val id: Long?,
 
-    @Schema(
-        description = "Dato for når faktura bestilles til OEBS"
-    )
+    @Schema(description = "Dato for når faktura bestilles til OEBS")
     val datoBestilt: LocalDate,
 
     var status: FakturaStatus,
 
-    @Schema(
-        description = "Fakturalinjer i fakturaen"
-    )
+    @Schema(description = "Fakturalinjer i fakturaen")
     val fakturaLinje: List<FakturaLinjeResponseDto>,
 
-    @Schema(
-        description = "Startdato for perioden"
-    )
+    @Schema(description = "Startdato for perioden")
     val periodeFra: LocalDate,
 
-    @Schema(
-        description = "Sluttdato for perioden"
-    )
+    @Schema(description = "Sluttdato for perioden")
     val periodeTil: LocalDate,
 )

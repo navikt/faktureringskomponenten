@@ -5,8 +5,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import net.bytebuddy.utility.RandomString
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
@@ -64,7 +62,7 @@ class FakturaserieServiceTest {
         return Fakturaserie(
             id = 100,
             vedtaksId = vedtaksId,
-            fakturaGjelder = "FTRL",
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
             referanseBruker = "Referanse bruker",
             referanseNAV = "Referanse NAV",
             startdato = LocalDate.of(2022, 1, 1),
@@ -87,7 +85,7 @@ class FakturaserieServiceTest {
         fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
-        fakturaGjelder: String = "Trygdeavgift",
+        fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriode> = listOf(
             FakturaseriePeriode(
@@ -104,7 +102,7 @@ class FakturaserieServiceTest {
             fullmektig,
             referanseBruker,
             referanseNav,
-            fakturaGjelder,
+            fakturaGjelderInnbetalingstype,
             intervall,
             fakturaseriePeriode
         )

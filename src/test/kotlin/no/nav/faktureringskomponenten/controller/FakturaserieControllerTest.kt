@@ -4,12 +4,12 @@ import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import net.bytebuddy.utility.RandomString
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
-import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieIntervallDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
+import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
@@ -178,12 +178,6 @@ class FakturaserieControllerTest(
                 "Du må oppgi referanseNAV"
             ),
             arguments(
-                "fakturaGjelder som er tom",
-                lagFakturaserieDto(fakturaGjelder = ""),
-                "fakturaGjelder",
-                "Du må oppgi fakturaGjelder"
-            ),
-            arguments(
                 "Perioder som er tom",
                 lagFakturaserieDto(fakturaseriePeriode = listOf()),
                 "perioder",
@@ -339,7 +333,7 @@ class FakturaserieControllerTest(
         fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
-        fakturaGjelder: String = "Trygdeavgift",
+        fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
             FakturaseriePeriodeDto(
@@ -356,8 +350,8 @@ class FakturaserieControllerTest(
             fullmektig,
             referanseBruker,
             referanseNav,
-            fakturaGjelder,
-            intervall.tilFakturaserieIntervallDto(),
+            fakturaGjelderInnbetalingstype,
+            intervall,
             fakturaseriePeriode
         )
     }

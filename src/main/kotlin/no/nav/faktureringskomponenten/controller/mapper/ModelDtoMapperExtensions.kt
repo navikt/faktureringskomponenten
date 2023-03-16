@@ -7,7 +7,7 @@ import no.nav.faktureringskomponenten.service.FakturaserieDto
 val Fakturaserie.tilResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
         vedtaksId = this.vedtaksId,
-        fakturaGjelder = this.fakturaGjelder,
+        fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilDto,
         referanseBruker = this.referanseBruker,
@@ -15,7 +15,7 @@ val Fakturaserie.tilResponseDto: FakturaserieResponseDto
         startdato = this.startdato,
         sluttdato = this.sluttdato,
         status = this.status,
-        intervall = FakturaserieIntervallDto.valueOf(this.intervall.name),
+        intervall = this.intervall,
         opprettetTidspunkt = this.opprettetTidspunkt,
         faktura = this.faktura.map { it.tilResponseDto }
     )
@@ -28,8 +28,8 @@ val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,
         referanseNAV = this.referanseNAV,
-        fakturaGjelder = this.fakturaGjelder,
-        intervall = this.intervall.tilFakturaserieIntervall(),
+        fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
+        intervall = this.intervall,
         perioder = this.perioder.tilFakturaserieDtoList
     )
 
@@ -43,41 +43,16 @@ val List<FakturaseriePeriodeDto>.tilFakturaserieDtoList: List<FakturaseriePeriod
         )
     }
 
-
-val FakturaseriePeriode.tilFakturaseriePeriodeDto: FakturaseriePeriodeDto
-    get() = FakturaseriePeriodeDto(
-        enhetsprisPerManed = this.enhetsprisPerManed,
-        startDato = this.startDato,
-        sluttDato = this.sluttDato,
-        beskrivelse = this.beskrivelse
-    )
-
-val FakturaseriePeriodeDto.tilFakturaseriePeriode: FakturaseriePeriode
-    get() = FakturaseriePeriode(
-        enhetsprisPerManed = this.enhetsprisPerManed,
-        startDato = this.startDato,
-        sluttDato = this.sluttDato,
-        beskrivelse = this.beskrivelse
-    )
-
-fun FakturaserieIntervallDto.tilFakturaserieIntervall(): FakturaserieIntervall {
-    return FakturaserieIntervall.valueOf(this.name.uppercase())
-}
-
-fun FakturaserieIntervall.tilFakturaserieIntervallDto(): FakturaserieIntervallDto {
-    return FakturaserieIntervallDto.valueOf(this.name.uppercase())
-}
-
 private val Fullmektig.tilDto: FullmektigDto
     get() = FullmektigDto(
-        fodselsnummer = this.fodselsnummer.toString(),
+        fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,
         kontaktperson = this.kontaktperson
     )
 
 private val FullmektigDto.tilFullmektig: Fullmektig
     get() = Fullmektig(
-        fodselsnummer = this.fodselsnummer.toString(),
+        fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,
         kontaktperson = this.kontaktperson
     )
