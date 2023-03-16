@@ -1,8 +1,6 @@
 package no.nav.faktureringskomponenten.service.mappers
 
-import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import no.nav.faktureringskomponenten.service.FakturaserieDto
@@ -19,14 +17,14 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
         return Fakturaserie(
             id = null,
             vedtaksId = fakturaserieDto.vedtaksId,
-            fakturaGjelder = fakturaserieDto.fakturaGjelder,
+            fakturaGjelderInnbetalingstype = fakturaserieDto.fakturaGjelderInnbetalingstype,
             fodselsnummer = fakturaserieDto.fodselsnummer,
             fullmektig = mapFullmektig(fakturaserieDto.fullmektig),
             referanseBruker = fakturaserieDto.referanseBruker,
             referanseNAV = fakturaserieDto.referanseNAV,
             startdato = startDatoForHelePerioden,
             sluttdato = sluttDatoForHelePerioden,
-            intervall = FakturaserieIntervall.valueOf(fakturaserieDto.intervall.name),
+            intervall = fakturaserieDto.intervall,
             faktura = fakturaMapper.tilListeAvFaktura(
                 fakturaserieDto.perioder,
                 startDatoForHelePerioden,

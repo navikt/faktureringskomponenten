@@ -15,8 +15,9 @@ class Fakturaserie(
     @Column(nullable = false, unique = true)
     val vedtaksId: String = "",
 
-    @Column(name = "faktura_gjelder", nullable = false)
-    val fakturaGjelder: String = "",
+    @Column(name = "faktura_gjelder_innbetalingstype", nullable = false)
+    @Enumerated(EnumType.STRING)
+    val fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
 
     @Column(name = "fodselsnummer", nullable = false)
     val fodselsnummer: String = "",
@@ -25,7 +26,7 @@ class Fakturaserie(
     val fullmektig: Fullmektig? = null,
 
     @Column(name = "referanse_bruker", nullable = false)
-    val referanseBruker: String  = "",
+    val referanseBruker: String = "",
 
     @Column(name = "referanse_nav", nullable = false)
     val referanseNAV: String = "",
@@ -54,7 +55,7 @@ class Fakturaserie(
     @Override
     override fun toString(): String {
         return "vedtaksId: $vedtaksId, " +
-                "fakturaGjelder: $fakturaGjelder, " +
+                "fakturaGjelderInnbetalingstype: $fakturaGjelderInnbetalingstype, " +
                 "referanseNAV: $referanseNAV, " +
                 "startdato: $startdato, " +
                 "sluttDato: $sluttdato, " +

@@ -10,13 +10,11 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
-import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
-import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
+import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 private val log = KotlinLogging.logger { }
 
@@ -71,30 +69,7 @@ class FakturaService(
         faktura.status = FakturaStatus.BESTILLT
         fakturaserie.status = FakturaserieStatus.UNDER_BESTILLING
 
-        val fakturaBestiltDto = FakturaBestiltDto(
-            fodselsnummer = fakturaserie.fodselsnummer,
-            fullmektigOrgnr = fakturaserie.fullmektig?.organisasjonsnummer,
-            fullmektigFnr = fakturaserie.fullmektig?.fodselsnummer,
-            vedtaksId = fakturaserie.vedtaksId,
-            fakturaReferanseNr = "${faktura.id}",
-            kreditReferanseNr = "",
-            referanseBruker = fakturaserie.referanseBruker,
-            referanseNAV = fakturaserie.referanseNAV,
-            beskrivelse = fakturaserie.fakturaGjelder,
-            faktureringsDato = faktura.datoBestilt,
-            fakturaLinjer = faktura.fakturaLinje.map {
-                val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-                val periodeFraFormatert = it.periodeFra.format(formatter)
-                val periodeTilFormatert = it.periodeTil.format(formatter)
-
-                FakturaBestiltLinjeDto(
-                    beskrivelse = "Periode: $periodeFraFormatert - ${periodeTilFormatert}, ${it.beskrivelse}",
-                    antall = it.antall,
-                    enhetspris = it.enhetsprisPerManed,
-                    belop = it.belop
-                )
-            }
-        )
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(faktura, fakturaserie)
 
         fakturaserieRepository.save(fakturaserie)
         fakturaRepository.save(faktura)
