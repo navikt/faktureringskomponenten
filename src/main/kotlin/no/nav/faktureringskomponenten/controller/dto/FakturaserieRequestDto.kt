@@ -40,8 +40,8 @@ data class FakturaserieRequestDto(
     val referanseNAV: String,
 
     @field:Schema(
-        description = "Informasjon om hvilket tema fakturaen gjelder",
-        example = "TRY",
+        description = "Informasjon om hvilken innbetalingstype fakturaen gjelder",
+        example = "TRYGDEAVGIFT",
     )
     @field:NotNull(message = "Du må oppgi fakturaGjelderInnbetalingstype")
     val fakturaGjelderInnbetalingstype: Innbetalingstype,
