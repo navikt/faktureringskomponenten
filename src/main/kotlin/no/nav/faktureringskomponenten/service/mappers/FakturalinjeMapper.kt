@@ -34,7 +34,7 @@ class FakturalinjeMapper {
                     fakturaLinjerPeriodeFra,
                     fakturaLinjerPeriodeTil
                 ),
-                antall = AntallBeregner.antallForPeriode(fakturaLinjerPeriodeFra, fakturaLinjerPeriodeTil),
+                antall = AntallBeregner(fakturaLinjerPeriodeFra, fakturaLinjerPeriodeTil).beregn(),
                 beskrivelse = it.beskrivelse,
                 enhetsprisPerManed = it.enhetsprisPerManed
             )
