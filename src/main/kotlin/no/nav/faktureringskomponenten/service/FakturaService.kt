@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
+import io.micrometer.core.instrument.Metrics
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
@@ -7,6 +8,7 @@ import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
@@ -98,5 +100,6 @@ class FakturaService(
         fakturaRepository.save(faktura)
 
         fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
+        Metrics.counter(MetrikkNavn.FAKTURA_BESTILT).increment()
     }
 }

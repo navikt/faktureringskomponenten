@@ -38,6 +38,8 @@ object dependencyVersions {
     const val awaitabilityVersion = "4.2.0"
     const val kotlinLogging = "3.0.5"
     const val archUnitVersion = "1.0.1"
+    const val micrometerJvmExtrasVersion = "0.2.2"
+    const val micrometerVersion = "1.10.5"
 }
 
 dependencies {
@@ -59,6 +61,9 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockProvicerJdbcVersion}")
     implementation("net.logstash.logback:logstash-logback-encoder:${dependencyVersions.logstashLogbackEncoder}")
     implementation("io.github.microutils:kotlin-logging-jvm:${dependencyVersions.kotlinLogging}")
+    implementation("io.micrometer:micrometer-registry-prometheus:${dependencyVersions.micrometerVersion}")
+    implementation("io.github.mweirauch:micrometer-jvm-extras:${dependencyVersions.micrometerJvmExtrasVersion}")
+
     testImplementation("no.nav.security:token-validation-spring-test:${dependencyVersions.tokenSupportVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.kotest:kotest-assertions-core-jvm:${dependencyVersions.kotestVersion}")
