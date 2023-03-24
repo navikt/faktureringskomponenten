@@ -15,6 +15,7 @@ import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.security.token.support.core.api.Protected
+import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
@@ -41,6 +42,7 @@ class FakturaserieController @Autowired constructor(
             ApiResponse(responseCode = "400", description = "Feil med validering av felter")
         ]
     )
+    @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
     @PostMapping
     fun lagNyFakturaserie(
         @RequestBody @Validated fakturaserieRequestDto: FakturaserieRequestDto,
@@ -67,6 +69,7 @@ class FakturaserieController @Autowired constructor(
             ApiResponse(responseCode = "400", description = "Feil med validering av felter")
         ]
     )
+    @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
     @PutMapping("/{vedtaksId}")
     fun endreFakturaserie(
         @PathVariable("vedtaksId") vedtaksId: String,
