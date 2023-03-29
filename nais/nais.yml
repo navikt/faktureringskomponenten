@@ -37,6 +37,9 @@ spec:
         - application: {{app_name_melosys_api}}
           namespace: teammelosys
           cluster: {{cluster_name}}
+          permissions:
+            roles:
+              - faktureringskomponenten-skriv
         - application: {{app_name_melosys_web}}
           namespace: teammelosys
           cluster: {{cluster_name}}

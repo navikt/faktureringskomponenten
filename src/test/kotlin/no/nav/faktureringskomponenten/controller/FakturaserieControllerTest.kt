@@ -401,7 +401,7 @@ class FakturaserieControllerTest(
                 subject,
                 JOSEObjectType.JWT.type,
                 listOf("faktureringskomponenten-localhost"),
-                mapOf(),
+                mapOf("roles" to "faktureringskomponenten-skriv"),
                 3600
             )
         ).serialize()
