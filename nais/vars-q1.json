@@ -2,7 +2,7 @@
   "app_name": "faktureringskomponenten-q1",
   "database_name": "faktureringskomponenten-db-q1",
   "namespace": "teammelosys",
-  "ingress": "https://faktureringskomponenten-q1.dev.intern.nav.no",
+  "ingress": "https://faktureringskomponenten-q1.intern.dev.nav.no",
   "tenant": "trygdeetaten.no",
   "kafka_pool": "nav-dev",
   "cluster_name": "dev-fss",
