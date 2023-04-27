@@ -14,7 +14,7 @@ class FakturaBestillCronjob(
     @Autowired val fakturaService: FakturaService
 ) {
 
-    @Scheduled(cron = "0 0 4 * * *")
+    @Scheduled(cron = "0 */5 * * * *")
     @SchedulerLock(name = "bestill faktura", lockAtMostFor = "PT5M")
     fun bestillFaktura() {
         val alleFaktura = fakturaService.hentBestillingsklareFaktura()
