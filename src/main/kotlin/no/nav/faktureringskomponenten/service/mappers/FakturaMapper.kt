@@ -59,6 +59,7 @@ class FakturaMapper(@Autowired private val fakturalinjeMapper: FakturalinjeMappe
     protected fun dagensDato(): LocalDate = LocalDate.now()
 
     companion object {
-        const val BESTILT_DATO_FORSINKES_MED_DAGER = 1L
+        // TODO: Endre denne tilbake til 1L før prodsetting. Hør først med fag hva som egentlig er ønsket her.
+        const val BESTILT_DATO_FORSINKES_MED_DAGER = 0L
     }
 }
