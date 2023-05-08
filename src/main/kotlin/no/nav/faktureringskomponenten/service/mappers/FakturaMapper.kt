@@ -32,7 +32,7 @@ class FakturaMapper(@Autowired private val fakturalinjeMapper: FakturalinjeMappe
 
             fakturaLinjer.addAll(fakturaLinjerForPeriode)
             if (dagensDato() <= sisteDagAvPeriode) {
-                fakturaListe.add(tilFaktura(forsteDagAvPeriode, fakturaLinjer.toList()))
+                fakturaListe.add(tilFakturaTemp(forsteDagAvPeriode, fakturaLinjer.toList()))
                 fakturaLinjer.clear()
             }
 
@@ -56,10 +56,16 @@ class FakturaMapper(@Autowired private val fakturalinjeMapper: FakturalinjeMappe
         return Faktura(null, korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
     }
 
+    // TODO: Før prodsetting, bytt til å bruke tilFaktura. Diskuter med fag hva som er ønsket løsning. Husk også å endre chron-jobb til å gå sjeldnere.
+    // Denne er satt til dagensDato slik at testerne kan se umiddelbart alle fakturaene som kommer ut av et vedtak.
+    private fun tilFakturaTemp(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
+        val korrigertDatoBestilt = dagensDato()
+        return Faktura(null, korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
+    }
+
     protected fun dagensDato(): LocalDate = LocalDate.now()
 
     companion object {
-        // TODO: Endre denne tilbake til 1L før prodsetting. Hør først med fag hva som egentlig er ønsket her.
         const val BESTILT_DATO_FORSINKES_MED_DAGER = 0L
     }
 }
