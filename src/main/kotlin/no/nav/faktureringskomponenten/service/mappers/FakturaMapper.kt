@@ -59,8 +59,7 @@ class FakturaMapper(@Autowired private val fakturalinjeMapper: FakturalinjeMappe
     // TODO: Før prodsetting, bytt til å bruke tilFaktura. Diskuter med fag hva som er ønsket løsning. Husk også å endre chron-jobb til å gå sjeldnere.
     // Denne er satt til dagensDato slik at testerne kan se umiddelbart alle fakturaene som kommer ut av et vedtak.
     private fun tilFakturaTemp(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
-        val korrigertDatoBestilt = dagensDato()
-        return Faktura(null, korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
+        return Faktura(null, dagensDato(), fakturaLinje = fakturaLinjer)
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()
