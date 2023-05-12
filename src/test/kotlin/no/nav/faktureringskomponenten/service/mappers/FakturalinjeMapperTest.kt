@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service.mappers
 
+import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
@@ -39,5 +40,31 @@ class FakturalinjeMapperTest {
                 periodeTil.shouldBe(til)
                 beskrivelse.shouldBe("Inntekt: 80000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %")
             }
+    }
+
+    @Test
+    fun `to perioder med samme fom og tom datoer`() {
+        val fra = LocalDate.of(2023, 1, 1)
+        val til = LocalDate.of(2023, 1, 31)
+        val perioder = listOf(
+            FakturaseriePeriode(
+                enhetsprisPerManed = BigDecimal(22830),
+                startDato = fra,
+                sluttDato = til,
+                beskrivelse = "Inntekt: 80000, Dekning: Pensjonsdel, Sats: 21.5 %"
+            ),
+            FakturaseriePeriode(
+                enhetsprisPerManed = BigDecimal(25470),
+                startDato = fra,
+                sluttDato = til,
+                beskrivelse = "Inntekt: 80000, Dekning: Helse- og pensjonsdel, Sats: 28.3 %"
+            )
+        )
+
+        val fakturaLinjer = FakturalinjeMapper().tilFakturaLinjer(perioder, fra, til)
+
+        fakturaLinjer.shouldHaveSize(2)
+        fakturaLinjer.map { it.periodeFra }.shouldContainOnly(fra)
+        fakturaLinjer.map { it.periodeTil }.shouldContainOnly(til)
     }
 }
