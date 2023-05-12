@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
-import no.nav.faktureringskomponenten.controller.validators.ErIkkeOverlappendePerioder
 import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
@@ -52,9 +51,8 @@ data class FakturaserieRequestDto(
     )
     val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
 
-    @field:Schema(description = "Liste av betalingsperioder, kan ikke være overlappende")
+    @field:Schema(description = "Liste av betalingsperioder, kan ikke være tom")
     @field:NotEmpty(message = "Du må oppgi minst én periode")
-    @field:ErIkkeOverlappendePerioder
     val perioder: List<FakturaseriePeriodeDto>
 ) {
     @Override
