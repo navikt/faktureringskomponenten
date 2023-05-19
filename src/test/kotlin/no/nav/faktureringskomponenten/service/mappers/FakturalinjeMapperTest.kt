@@ -3,9 +3,7 @@ package no.nav.faktureringskomponenten.service.mappers
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
-import no.nav.faktureringskomponenten.service.mappers.FakturalinjeMapper
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -44,27 +42,30 @@ class FakturalinjeMapperTest {
 
     @Test
     fun `to perioder med samme fom og tom datoer`() {
-        val fra = LocalDate.of(2023, 1, 1)
-        val til = LocalDate.of(2023, 1, 31)
+        val fakturaFraDato = LocalDate.of(2023, 1, 1)
+        val fakturaTilDato = LocalDate.of(2023, 3, 31)
+        val periodeFraDato = LocalDate.of(2023, 2, 1)
+        val periodeTilDato = LocalDate.of(2023, 3, 31)
+
         val perioder = listOf(
             FakturaseriePeriode(
                 enhetsprisPerManed = BigDecimal(22830),
-                startDato = fra,
-                sluttDato = til,
+                startDato = periodeFraDato,
+                sluttDato = periodeTilDato,
                 beskrivelse = "Inntekt: 80000, Dekning: Pensjonsdel, Sats: 21.5 %"
             ),
             FakturaseriePeriode(
                 enhetsprisPerManed = BigDecimal(25470),
-                startDato = fra,
-                sluttDato = til,
+                startDato = periodeFraDato,
+                sluttDato = periodeTilDato,
                 beskrivelse = "Inntekt: 80000, Dekning: Helse- og pensjonsdel, Sats: 28.3 %"
             )
         )
 
-        val fakturaLinjer = FakturalinjeMapper().tilFakturaLinjer(perioder, fra, til)
+        val fakturaLinjer = FakturalinjeMapper().tilFakturaLinjer(perioder, fakturaFraDato, fakturaTilDato)
 
         fakturaLinjer.shouldHaveSize(2)
-        fakturaLinjer.map { it.periodeFra }.shouldContainOnly(fra)
-        fakturaLinjer.map { it.periodeTil }.shouldContainOnly(til)
+        fakturaLinjer.map { it.periodeFra }.shouldContainOnly(periodeFraDato)
+        fakturaLinjer.map { it.periodeTil }.shouldContainOnly(periodeTilDato)
     }
 }
