@@ -49,7 +49,7 @@ data class FakturaserieRequestDto(
         description = "Betalingsintervall",
         example = "KVARTAL",
     )
-    val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
+    val intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
 
     @field:Schema(description = "Liste av betalingsperioder, kan ikke være tom")
     @field:NotEmpty(message = "Du må oppgi minst én periode")

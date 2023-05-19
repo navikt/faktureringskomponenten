@@ -1,11 +1,14 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import net.bytebuddy.utility.RandomString
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
@@ -89,6 +92,37 @@ class FakturaserieControllerTest(
             .status.shouldBe(FakturaserieStatus.KANSELLERT)
         nyFakturaserie.startdato.shouldBe(startDatoNy)
         nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
+    }
+
+
+    @Test
+    fun `lagNyFaktura med overlappende perioder er tillatt og resulterer i flere fakturalinjer på samme faktura`() {
+        val startDato = LocalDate.parse("2023-01-01")
+        val sluttDato = LocalDate.parse("2023-03-31")
+        val fakturaSerieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(12000), startDato, sluttDato, "Inntekt fra utlandet"),
+                FakturaseriePeriodeDto(BigDecimal(500), startDato, sluttDato, "Misjonær")
+            )
+        )
+        addCleanUpAction {
+            fakturaserieRepository.findByVedtaksId(fakturaSerieDto.vedtaksId)?.let {
+                fakturaserieRepository.delete(it)
+            }
+        }
+
+
+        postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk
+
+        val response = hentFakturaserieRequest(fakturaSerieDto.vedtaksId)
+            .expectStatus().isOk
+            .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
+
+        response.shouldNotBeNull()
+        response.faktura.size.shouldBe(1)
+        response.faktura[0].fakturaLinje.map { it.periodeFra }.shouldContainOnly(startDato)
+        response.faktura[0].fakturaLinje.map { it.periodeTil }.shouldContainOnly(sluttDato)
+        response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactly("Inntekt fra utlandet", "Misjonær")
     }
 
     @Test
@@ -200,20 +234,22 @@ class FakturaserieControllerTest(
         )
     }
 
-    private fun lagOverlappendePerioder(vararg datoer: Pair<LocalDate, LocalDate>): List<FakturaseriePeriodeDto> {
-        return datoer.map {
-            FakturaseriePeriodeDto(
-                BigDecimal.valueOf(123), it.first, it.second, "Beskrivelse"
-            )
-        }.toList()
-    }
-
     private fun postLagNyFakturaserieRequest(fakturaserieRequestDto: FakturaserieRequestDto): WebTestClient.ResponseSpec =
         webClient.post()
             .uri("/fakturaserie")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(fakturaserieRequestDto)
+            .headers {
+                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
+    private fun hentFakturaserieRequest(vedtaksId: String): WebTestClient.ResponseSpec =
+        webClient.get()
+            .uri("/fakturaserie/$vedtaksId")
+            .accept(MediaType.APPLICATION_JSON)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
