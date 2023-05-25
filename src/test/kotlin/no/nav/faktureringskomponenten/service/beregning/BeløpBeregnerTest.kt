@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service.beregning
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -141,15 +142,13 @@ class BeløpBeregnerTest {
     }
 
     @Test
-    fun regnForPeriode_midtenAvDesember2023TilMidtenAvFebruar2024_rundesNed_regnesKorrekt() {
+    fun `Avrunding etter 2 desimaler trengs ikke, siden antall bruker 2 desimaler og enhetspris heltall`() {
         val fom = LocalDate.of(2023, 12, 14)
         val tom = LocalDate.of(2024, 2, 15)
 
 
-        val result = BeløpBeregner.beløpForPeriode(BigDecimal("1002.25"), fom, tom)
-
-
-        val forventetBeløp = BigDecimal("2104.72") // Rundes ned fra 2104.7250
-        result.shouldBe(forventetBeløp)
+        shouldThrow<ArithmeticException> {
+            BeløpBeregner.beløpForPeriode(BigDecimal("1002.25"), fom, tom)
+        }
     }
 }
