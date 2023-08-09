@@ -10,7 +10,6 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
-import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -27,26 +26,6 @@ class FakturaService(
 
     fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> =
         fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
-
-    fun lagreFakturaMottattMelding(fakturaMottattDto: FakturaMottattDto) {
-        val faktura = fakturaRepository.findById(fakturaMottattDto.fakturaReferanseNr.toLong())
-            ?: throw RessursIkkeFunnetException(
-                field = "fakturaId",
-                message = "Finner ikke faktura med faktura id $fakturaMottattDto.fakturaReferanseNr"
-            )
-
-        if (faktura.status == FakturaStatus.BESTILLT) {
-            faktura.apply {
-                status = fakturaMottattDto.status
-                innbetaltBelop = fakturaMottattDto.belop
-            }
-
-            fakturaRepository.save(faktura)
-            log.info("Faktura {} er endret til {}", faktura.id, faktura)
-        } else {
-            throw IllegalStateException("Faktura melding mottatt fra oebs med status: ${faktura.status}")
-        }
-    }
 
     @Transactional
     fun bestillFaktura(fakturaId: Long) {

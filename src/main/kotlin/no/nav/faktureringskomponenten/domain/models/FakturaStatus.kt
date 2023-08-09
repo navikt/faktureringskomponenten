@@ -12,3 +12,4 @@ enum class FakturaStatus {
     BETALT,
     DELVIS_BETALT,
 }
+
