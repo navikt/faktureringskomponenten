@@ -15,5 +15,6 @@ CREATE TABLE faktura_mottatt
     status                  faktura_mottatt_status,
     faktura_belop           NUMERIC(10, 2),
     ubetalt_belop           NUMERIC(10, 2),
-    feilmelding             VARCHAR
+    feilmelding             VARCHAR,
+    sendt                   BOOLEAN
 );

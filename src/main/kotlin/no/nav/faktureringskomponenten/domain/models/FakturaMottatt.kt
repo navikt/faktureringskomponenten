@@ -23,7 +23,7 @@ class FakturaMottatt(
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    val status: FakturaMottattStatus = FakturaMottattStatus.FEIL,
+    val status: FakturaMottattStatus? = null,
 
     @Column(name = "faktura_belop", nullable = true)
     val fakturaBelop: BigDecimal? = null,
@@ -33,5 +33,8 @@ class FakturaMottatt(
 
     @Column(name = "feilmelding", nullable = true)
     val feilMelding: String? = null,
+
+    @Column(name = "sendt", nullable = true)
+    val sendt: Boolean? = false,
 ) {
 }
