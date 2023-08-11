@@ -1,14 +1,15 @@
 package no.nav.faktureringskomponenten.service.integration.kafka.dto
 
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.FakturaMottattStatus
 import java.math.BigDecimal
+import java.time.LocalDate
 
 data class FakturaMottattDto(
-
-    val fodselsnummer: String,
-    val vedtaksId: String?,
     val fakturaReferanseNr: String,
-    val kreditReferanseNr: String?,
-    val belop: BigDecimal,
-    val status: FakturaStatus,
+    val fakturanummer: String?,
+    val dato: LocalDate,
+    val status: FakturaMottattStatus,
+    val fakturaBeløp: BigDecimal?,
+    val ubetaltBeløp: BigDecimal?,
+    val feilmelding: String?,
 )

@@ -28,8 +28,7 @@ class Faktura(
 
     @ManyToOne
     @JoinColumn(name = "fakturaserie_id", nullable = false, insertable = false, updatable = false)
-    var fakturaserie: Fakturaserie? = null
-
+    var fakturaserie: Fakturaserie? = null,
 ) {
     fun getPeriodeFra(): LocalDate {
         return fakturaLinje.minOf { it.periodeFra }

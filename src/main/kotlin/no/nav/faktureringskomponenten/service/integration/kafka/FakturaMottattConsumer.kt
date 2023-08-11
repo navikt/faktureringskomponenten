@@ -1,7 +1,7 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.service.FakturaService
+import no.nav.faktureringskomponenten.service.FakturaMottattService
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.TopicPartition
@@ -16,7 +16,7 @@ private val log = KotlinLogging.logger { }
 
 @Component
 class FakturaMottattConsumer(
-    private val fakturaService: FakturaService,
+    private val fakturaMottattService: FakturaMottattService,
     private val kafkaListenerEndpointRegistry: KafkaListenerEndpointRegistry
 ) : AbstractConsumerSeekAware() {
 
@@ -31,7 +31,7 @@ class FakturaMottattConsumer(
         val fakturaMottattDto = consumerRecord.value()
         log.info("Mottatt melding {}", consumerRecord)
         try {
-            fakturaService.lagreFakturaMottattMelding(fakturaMottattDto)
+            fakturaMottattService.lagreFakturaMottattMelding(fakturaMottattDto)
         } catch (e: Exception) {
             log.error(
                 "Feil ved lagring av faktura ved mottak av kafka melding\n" +
@@ -44,6 +44,7 @@ class FakturaMottattConsumer(
             )
         }
     }
+
 
     fun start() {
         fakturaMottattListenerContainer().start()
