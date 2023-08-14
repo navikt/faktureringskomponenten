@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service.integration.kafka.config
 
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
+import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFakturabetalingDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -22,7 +23,6 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.support.serializer.JsonDeserializer
-import java.util.*
 
 
 @Configuration
@@ -41,9 +41,19 @@ class KafkaConfig(
     }
 
     @Bean
+    fun producerFactoryManglendeFakturabetaling(): ProducerFactory<String, ManglendeFakturabetalingDto> {
+        return DefaultKafkaProducerFactory(producerManglendeFakturabetalingProps())
+    }
+
+    @Bean
     @Qualifier("fakturaBestilt")
     fun fakturaBestiltTemplate(): KafkaTemplate<String, FakturaBestiltDto> =
         KafkaTemplate(producerFactory())
+
+    @Bean
+    @Qualifier("manglendeFakturabetaling")
+    fun manglendeFakturabetalingTemplate(): KafkaTemplate<String, ManglendeFakturabetalingDto> =
+        KafkaTemplate(producerFactoryManglendeFakturabetaling())
 
     private fun producerProps(): Map<String, Any> = mutableMapOf<String, Any>(
         CommonClientConfigs.CLIENT_ID_CONFIG to "melosys-producer",
@@ -51,6 +61,14 @@ class KafkaConfig(
         ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to brokersUrl,
         ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to FakturaBestiltSerializer::class.java
+    ) + securityConfig()
+
+    private fun producerManglendeFakturabetalingProps(): Map<String, Any> = mutableMapOf<String, Any>(
+        CommonClientConfigs.CLIENT_ID_CONFIG to "melosys-producer",
+        ProducerConfig.ACKS_CONFIG to "all",
+        ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to brokersUrl,
+        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+        ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to ManglendeFakturabetalingSerializer::class.java
     ) + securityConfig()
 
     @Bean

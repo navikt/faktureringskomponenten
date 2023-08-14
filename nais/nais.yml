@@ -63,5 +63,7 @@ spec:
   env:
     - name: KAFKA_TOPIC_NAME_FAKTURA_BESTILT
       value: {{kafka_topic_name_faktura_bestilt}}
+    - name: KAFKA_TOPIC_NAME_MANGLENDE_FAKTURABETALING
+      value: {{kafka_topic_name_manglende_fakturabetaling}}
   envFrom:
     - secret: faktureringskomponenten
