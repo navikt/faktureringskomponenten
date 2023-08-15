@@ -1,6 +1,9 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.FakturaMottatt
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottattRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
@@ -20,6 +23,8 @@ class FakturaMottattService(
     private val fakturaMottattRepository: FakturaMottattRepository,
     private val manglendeFakturabetalingProducer: ManglendeFakturabetalingProducer
 ) {
+
+    fun hentFakturamottat(fakturaReferanseNr: String): List<FakturaMottatt>? = fakturaMottattRepository.findAllByFakturaReferanseNr(fakturaReferanseNr)
 
     @Transactional
     fun lagreFakturaMottattMelding(fakturaMottattDto: FakturaMottattDto) {

@@ -20,6 +20,14 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
         faktura = this.faktura.map { it.tilResponseDto }
     )
 
+val FakturaMottatt.tilFakturaTilbakemeldingResponseDto: FakturaTilbakemeldingResponseDto
+    get() = FakturaTilbakemeldingResponseDto(
+        fakturaBelop = this.fakturaBelop,
+        ubetaltBelop = this.ubetaltBelop,
+        dato = this.dato,
+        status = this.status,
+        feilmelding = this.feilMelding
+    )
 
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
     get() = FakturaserieDto(

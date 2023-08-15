@@ -8,5 +8,5 @@ interface FakturaMottattRepository : JpaRepository<FakturaMottatt, String> {
 
     fun findById(id: Long): FakturaMottatt?
 
-    fun findByFakturaReferanseNr(id: String): FakturaMottatt?
+    fun findAllByFakturaReferanseNr(id: String): List<FakturaMottatt>?
 }
