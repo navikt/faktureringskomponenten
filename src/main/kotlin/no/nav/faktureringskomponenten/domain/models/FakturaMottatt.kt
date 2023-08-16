@@ -35,6 +35,6 @@ class FakturaMottatt(
     val feilMelding: String? = null,
 
     @Column(name = "sendt", nullable = true)
-    val sendt: Boolean? = false,
+    var sendt: Boolean? = false,
 ) {
 }

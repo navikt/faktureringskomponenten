@@ -15,6 +15,7 @@ KAFKA_CREDSTORE_PASSWORD: "pwd"
 KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_GROUPID: "faktura-mottatt-groupid"
 KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_TOPIC: "faktura-mottatt-topic-local"
 KAFKA_TOPIC_NAME_FAKTURA_BESTILT: "faktura-bestilt.v1"
+KAFKA_TOPIC_NAME_MANGLENDE_FAKTURABETALING: "manglende-fakturabetaling.v1"
 
 AZURE_APP_WELL_KNOWN_URL: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
 AZURE_APP_CLIENT_ID: faktureringskomponenten-localhost
