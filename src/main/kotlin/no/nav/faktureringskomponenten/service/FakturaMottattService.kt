@@ -43,7 +43,7 @@ class FakturaMottattService(
             try {
                 manglendeFakturabetalingProducer.produserBestillingsmelding(
                     ManglendeFakturabetalingDto(
-                        behandlingId = faktura.fakturaserie!!.vedtaksId,
+                        vedtaksId = faktura.fakturaserie!!.vedtaksId,
                         mottaksDato = fakturaMottatt.dato!!
                     )
                 )
