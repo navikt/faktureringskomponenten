@@ -22,6 +22,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("itest", "embeded-kafka")
@@ -42,11 +43,11 @@ class FakturaMottattConsumerIT(
         )
         val fakturaMottattDto = FakturaMottattDto(
             fakturaReferanseNr = faktura.id.toString(),
-            fakturanummer = "82",
+            fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaMottattStatus.INNE_I_OEBS,
-            fakturaBeløp = BigDecimal(4000),
-            ubetaltBeløp = BigDecimal(2000),
+            fakturaBelop = BigDecimal(4000),
+            ubetaltBelop = BigDecimal(2000),
             feilmelding = null
         )
 
@@ -65,11 +66,11 @@ class FakturaMottattConsumerIT(
         )
         val fakturaMottattDto = FakturaMottattDto(
             fakturaReferanseNr = faktura.id.toString(),
-            fakturanummer = "82",
+            fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaMottattStatus.FEIL,
-            fakturaBeløp = BigDecimal(4000),
-            ubetaltBeløp = BigDecimal(2000),
+            fakturaBelop = BigDecimal(4000),
+            ubetaltBelop = BigDecimal(2000),
             feilmelding = "Feil med faktura, mangler faktura referanse nummer"
         )
 
@@ -95,11 +96,11 @@ class FakturaMottattConsumerIT(
         )
         val fakturaMottattDto = FakturaMottattDto(
             fakturaReferanseNr = faktura.id.toString(),
-            fakturanummer = "82",
+            fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaMottattStatus.MANGLENDE_BETALING,
-            fakturaBeløp = BigDecimal(4000.00),
-            ubetaltBeløp = BigDecimal(2000.00),
+            fakturaBelop = BigDecimal(4000.00),
+            ubetaltBelop = BigDecimal(2000.00),
             feilmelding = null
         )
 
@@ -127,11 +128,11 @@ class FakturaMottattConsumerIT(
         )
         val fakturaMottattDto = FakturaMottattDto(
             fakturaReferanseNr = faktura.id.toString(),
-            fakturanummer = "82",
+            fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaMottattStatus.INNE_I_OEBS,
-            fakturaBeløp = BigDecimal(1000.00),
-            ubetaltBeløp = BigDecimal(2000.00),
+            fakturaBelop = BigDecimal(1000.00),
+            ubetaltBelop = BigDecimal(2000.00),
             feilmelding = null
         )
 

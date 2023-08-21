@@ -12,11 +12,11 @@ class FakturaMottattMapper {
     ): FakturaMottatt = FakturaMottatt(
             id = null,
             fakturaReferanseNr = fakturaMottatt.fakturaReferanseNr,
-            fakturaNummer = fakturaMottatt.fakturanummer,
+            fakturaNummer = fakturaMottatt.fakturaNummer,
             dato = fakturaMottatt.dato,
             status = fakturaMottatt.status,
-            fakturaBelop = fakturaMottatt.fakturaBeløp,
-            ubetaltBelop = fakturaMottatt.ubetaltBeløp,
+            fakturaBelop = fakturaMottatt.fakturaBelop,
+            ubetaltBelop = fakturaMottatt.ubetaltBelop,
             feilMelding = fakturaMottatt.feilmelding
         )
 }

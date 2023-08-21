@@ -24,7 +24,7 @@ class FakturaMottattConsumer(
         id = "fakturaMottatt",
         clientIdPrefix = "melosys-faktureringskomponenten-fakturaMottatt",
         topics = ["\${kafka.consumer.oebs.topic}"],
-        containerFactory = "faktarMottattHendelseListenerContainerFactory",
+        containerFactory = "fakturaMottattHendelseListenerContainerFactory",
         groupId = "\${kafka.consumer.oebs.groupid}"
     )
     fun fakturaMottatt(consumerRecord: ConsumerRecord<String, FakturaMottattDto>) {
