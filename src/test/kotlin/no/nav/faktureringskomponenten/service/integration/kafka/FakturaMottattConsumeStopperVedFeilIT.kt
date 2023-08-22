@@ -22,6 +22,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("itest", "embeded-kafka")
@@ -48,11 +49,11 @@ class FakturaMottattConsumeStopperVedFeilIT(
                 kafkaTemplate.send(
                     kafkaTopic, FakturaMottattDto(
                         fakturaReferanseNr = id.toString(),
-                        fakturanummer = "82",
+                        fakturaNummer = "82",
                         dato = LocalDate.now(),
                         status = FakturaMottattStatus.INNE_I_OEBS,
-                        fakturaBeløp = BigDecimal(1000),
-                        ubetaltBeløp = BigDecimal(2000),
+                        fakturaBelop = BigDecimal(1000),
+                        ubetaltBelop = BigDecimal(2000),
                         feilmelding = null
                     )
                 )

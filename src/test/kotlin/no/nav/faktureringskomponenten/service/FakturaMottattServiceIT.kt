@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @ActiveProfiles("itest")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -59,11 +60,11 @@ class FakturaMottattServiceIT(
     fun lagFakturaMottattDto() =
         FakturaMottattDto(
             fakturaReferanseNr = "123",
-            fakturanummer = "1",
+            fakturaNummer = "1",
             dato = LocalDate.now(),
             status = FakturaMottattStatus.MANGLENDE_BETALING,
-            fakturaBeløp = BigDecimal(1200.00),
-            ubetaltBeløp = BigDecimal(1000.00),
+            fakturaBelop = BigDecimal(1200.00),
+            ubetaltBelop = BigDecimal(1000.00),
             feilmelding = null
         )
 

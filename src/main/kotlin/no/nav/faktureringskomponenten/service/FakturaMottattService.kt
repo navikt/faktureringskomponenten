@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaMottatt
+import no.nav.faktureringskomponenten.domain.models.FakturaMottattStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottattRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
@@ -41,13 +42,18 @@ class FakturaMottattService(
 
         if(faktura.fakturaserie?.vedtaksId != null) {
             try {
-                manglendeFakturabetalingProducer.produserBestillingsmelding(
-                    ManglendeFakturabetalingDto(
-                        vedtaksId = faktura.fakturaserie!!.vedtaksId,
-                        mottaksDato = fakturaMottatt.dato!!
+                if(fakturaMottatt.status == FakturaMottattStatus.MANGLENDE_BETALING) {
+                    manglendeFakturabetalingProducer.produserBestillingsmelding(
+                        ManglendeFakturabetalingDto(
+                            vedtaksId = faktura.fakturaserie!!.vedtaksId,
+                            mottaksDato = fakturaMottatt.dato!!
+                        )
                     )
-                )
-                fakturaMottattRepository.save(fakturaMottatt.apply { sendt = true })
+                    fakturaMottattRepository.save(fakturaMottatt.apply { sendt = true })
+                } else {
+                    fakturaMottattRepository.save(fakturaMottatt.apply { sendt = false })
+                }
+
             } catch (e: Exception) {
                 fakturaMottattRepository.save(fakturaMottatt.apply { sendt = false })
                 throw RuntimeException(

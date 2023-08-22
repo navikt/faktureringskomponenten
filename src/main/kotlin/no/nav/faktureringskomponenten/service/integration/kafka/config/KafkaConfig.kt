@@ -72,7 +72,7 @@ class KafkaConfig(
     ) + securityConfig()
 
     @Bean
-    fun faktarMottattHendelseListenerContainerFactory(
+    fun fakturaMottattHendelseListenerContainerFactory(
             kafkaProperties: KafkaProperties,
             containerStoppingErrorSavingHandler: ContainerStoppingErrorSavingHandler,
             valueDeserializer: DeserializerJsonAware
