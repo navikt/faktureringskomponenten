@@ -1,7 +1,10 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.config.MDCOperations
+import no.nav.faktureringskomponenten.config.MDCOperations.CORRELATION_ID
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFakturabetalingDto
+import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
@@ -19,7 +22,9 @@ class KafkaManglendeFakturabetalingProducer(
 ) : ManglendeFakturabetalingProducer {
 
     override fun produserBestillingsmelding(manglendeFakturabetalingDto: ManglendeFakturabetalingDto) {
-        val future = kafkaTemplate.send(topicName, manglendeFakturabetalingDto)
+        val manglendeInnbetalingRecord = ProducerRecord<String, ManglendeFakturabetalingDto>(topicName, manglendeFakturabetalingDto)
+        manglendeInnbetalingRecord.headers().add(CORRELATION_ID, MDCOperations.correlationId.encodeToByteArray())
+        val future = kafkaTemplate.send(manglendeInnbetalingRecord)
 
         try {
             val sendeResultat = future.get(15L, TimeUnit.SECONDS)
