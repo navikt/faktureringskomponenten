@@ -79,7 +79,7 @@ class FakturaMottattConsumeStopperVedFeilIT(
         await.timeout(5, TimeUnit.SECONDS).until {
             if (!listenerContainer.isRunning) {
                 // fungerer ikke å starte på utsiden av await
-                fakturaMottattConsumer.start()
+                fakturaMottattConsumer.fakturaMottattListenerContainer().start()
             }
             listenerContainer.isRunning
         }
