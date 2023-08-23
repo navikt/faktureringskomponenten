@@ -1,8 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
-import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaMottatt
 import no.nav.faktureringskomponenten.domain.models.FakturaMottattStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottattRepository
@@ -42,7 +40,7 @@ class FakturaMottattService(
 
         if(faktura.fakturaserie?.vedtaksId != null) {
             try {
-                if(fakturaMottatt.status == FakturaMottattStatus.MANGLENDE_BETALING) {
+                if(fakturaMottatt.status == FakturaMottattStatus.MANGLENDE_INNBETALING) {
                     manglendeFakturabetalingProducer.produserBestillingsmelding(
                         ManglendeFakturabetalingDto(
                             vedtaksId = faktura.fakturaserie!!.vedtaksId,

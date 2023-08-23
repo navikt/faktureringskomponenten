@@ -22,7 +22,6 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("itest", "embeded-kafka")
@@ -98,7 +97,7 @@ class FakturaMottattConsumerIT(
             fakturaReferanseNr = faktura.id.toString(),
             fakturaNummer = "82",
             dato = LocalDate.now(),
-            status = FakturaMottattStatus.MANGLENDE_BETALING,
+            status = FakturaMottattStatus.MANGLENDE_INNBETALING,
             fakturaBelop = BigDecimal(4000.00),
             ubetaltBelop = BigDecimal(2000.00),
             feilmelding = null
@@ -114,7 +113,7 @@ class FakturaMottattConsumerIT(
         val fakturaMottatt = fakturaMottattRepository.findAllByFakturaReferanseNr(fakturaMottattDto.fakturaReferanseNr)?.sortedBy { it.dato }?.get(0)
 
         fakturaMottatt.shouldNotBeNull()
-        fakturaMottatt.status.shouldBe(FakturaMottattStatus.MANGLENDE_BETALING)
+        fakturaMottatt.status.shouldBe(FakturaMottattStatus.MANGLENDE_INNBETALING)
         fakturaMottatt.ubetaltBelop!!.shouldBeLessThan(fakturaMottatt.fakturaBelop!!)
     }
 

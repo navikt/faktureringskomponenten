@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(description = "Status for faktura mottatt")
 enum class FakturaMottattStatus {
-    MANGLENDE_BETALING,
+    MANGLENDE_INNBETALING,
     INNE_I_OEBS,
     FEIL
 }
