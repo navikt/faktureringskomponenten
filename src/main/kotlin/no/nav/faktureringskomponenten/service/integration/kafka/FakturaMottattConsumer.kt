@@ -45,24 +45,8 @@ class FakturaMottattConsumer(
         }
     }
 
-
-    fun start() {
-        fakturaMottattListenerContainer().start()
-    }
-
     fun fakturaMottattListenerContainer(): MessageListenerContainer {
         return kafkaListenerEndpointRegistry.getListenerContainer("fakturaMottatt")!!
     }
 
-    fun stop() {
-        fakturaMottattListenerContainer().stop()
-    }
-
-    fun settSpesifiktOffsetPåConsumer(offset: Long) {
-        log.info("settSpesifiktOffsetPåConsumer til $offset")
-        seekCallbacks.forEach { (tp: TopicPartition, callback: ConsumerSeekCallback) ->
-            log.info("tp:${tp.topic()} seek to:$offset")
-            callback.seek(tp.topic(), tp.partition(), offset)
-        }
-    }
 }
