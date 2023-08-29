@@ -24,6 +24,10 @@ class FakturaserieService(
             message = "Fant ikke fakturaserie på: $vedtaksId"
         )
 
+    fun hentFakturaserier(saksnummer: String, fakturaStatus: String? = null): List<Fakturaserie> {
+        return fakturaserieRepository.findAllFakturaserierWithFilteredFaktura(saksnummer, fakturaStatus)
+    }
+
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto) {
         val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)

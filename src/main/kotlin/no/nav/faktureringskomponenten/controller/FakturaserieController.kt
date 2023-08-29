@@ -12,6 +12,8 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaTilbakemeldingResponseDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
@@ -33,7 +35,7 @@ private val log = KotlinLogging.logger { }
 @Protected
 @Validated
 @RestController
-@RequestMapping("/fakturaserie")
+@RequestMapping("/fakturaserier")
 class FakturaserieController @Autowired constructor(
     val faktureringService: FakturaserieService,
     val fakturaMottattService: FakturaMottattService
@@ -95,5 +97,13 @@ class FakturaserieController @Autowired constructor(
     @GetMapping("/{vedtaksId}")
     fun hentFakturaserie(@PathVariable("vedtaksId") vedtaksId: String): FakturaserieResponseDto {
         return faktureringService.hentFakturaserie(vedtaksId).tilFakturaserieResponseDto
+    }
+
+    @GetMapping
+    fun hentFakturaserier(
+        @RequestParam("saksnummer") saksnummer: String,
+        @RequestParam(value = "fakturaStatus", required = false) fakturaStatus: String? = null
+): List<FakturaserieResponseDto> {
+        return faktureringService.hentFakturaserier(saksnummer, fakturaStatus).map { it.tilFakturaserieResponseDto }
     }
 }

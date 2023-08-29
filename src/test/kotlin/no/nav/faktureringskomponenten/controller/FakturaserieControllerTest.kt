@@ -10,6 +10,7 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
@@ -49,6 +50,8 @@ class FakturaserieControllerTest(
     @Autowired private val server: MockOAuth2Server,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
 ) : PostgresTestContainerBase() {
+
+
 
     @Test
     @Disabled("Skal ikke støtte endring av fakturaserie i denne versjonen")
@@ -92,6 +95,38 @@ class FakturaserieControllerTest(
             .status.shouldBe(FakturaserieStatus.KANSELLERT)
         nyFakturaserie.startdato.shouldBe(startDatoNy)
         nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
+    }
+
+    @Test
+    fun `hent fakturaserier basert på vedtaksId med fakturastatus filter`() {
+        val saksnummer = "VEDTAK-1"
+        val startDato = LocalDate.parse("2023-01-01")
+        val sluttDato = LocalDate.parse("2024-03-31")
+        val fakturaSerieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(12000), startDato, sluttDato, "Inntekt fra utlandet"),
+                FakturaseriePeriodeDto(BigDecimal(500), startDato, sluttDato, "Misjonær")
+            )
+        )
+        addCleanUpAction {
+            fakturaserieRepository.findByVedtaksId(fakturaSerieDto.vedtaksId)?.let {
+                fakturaserieRepository.delete(it)
+            }
+        }
+
+
+        postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk
+
+        val responseAlleFakturaOpprettet = hentFakturaserierRequest(saksnummer, FakturaStatus.OPPRETTET)
+            .expectStatus().isOk
+            .expectBodyList(FakturaserieResponseDto::class.java).returnResult().responseBody
+
+        val fakturaserie = responseAlleFakturaOpprettet?.get(0)!!
+
+        fakturaserie.faktura.size.shouldBe(3)
+        fakturaserie.faktura[0].status.shouldBe(FakturaStatus.OPPRETTET)
+        fakturaserie.faktura[1].status.shouldBe(FakturaStatus.OPPRETTET)
+        fakturaserie.faktura[2].status.shouldBe(FakturaStatus.OPPRETTET)
     }
 
 
@@ -236,7 +271,7 @@ class FakturaserieControllerTest(
 
     private fun postLagNyFakturaserieRequest(fakturaserieRequestDto: FakturaserieRequestDto): WebTestClient.ResponseSpec =
         webClient.post()
-            .uri("/fakturaserie")
+            .uri("/fakturaserier")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(fakturaserieRequestDto)
@@ -248,7 +283,17 @@ class FakturaserieControllerTest(
 
     private fun hentFakturaserieRequest(vedtaksId: String): WebTestClient.ResponseSpec =
         webClient.get()
-            .uri("/fakturaserie/$vedtaksId")
+            .uri("/fakturaserier/$vedtaksId")
+            .accept(MediaType.APPLICATION_JSON)
+            .headers {
+                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
+    private fun hentFakturaserierRequest(saksnummer: String, fakturaStatus: FakturaStatus?): WebTestClient.ResponseSpec =
+        webClient.get()
+            .uri("/fakturaserier?saksnummer=$saksnummer&fakturaStatus=${fakturaStatus.toString()}")
             .accept(MediaType.APPLICATION_JSON)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -261,7 +306,7 @@ class FakturaserieControllerTest(
         gammelVedtaksId: String
     ): WebTestClient.ResponseSpec {
         return webClient.put()
-            .uri("/fakturaserie/$gammelVedtaksId")
+            .uri("/fakturaserier/$gammelVedtaksId")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(fakturaserieRequestDto)
