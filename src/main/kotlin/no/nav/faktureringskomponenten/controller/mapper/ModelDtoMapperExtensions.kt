@@ -32,6 +32,7 @@ val FakturaMottatt.tilFakturaTilbakemeldingResponseDto: FakturaTilbakemeldingRes
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
     get() = FakturaserieDto(
         vedtaksId = this.vedtaksId,
+        saksnummer = this.saksummer,
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,

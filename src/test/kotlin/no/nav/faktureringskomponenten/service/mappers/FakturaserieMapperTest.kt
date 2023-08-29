@@ -398,6 +398,7 @@ class FakturaserieMapperTest {
         return FakturaserieMapper(fakturaMapper).tilFakturaserie(
             FakturaserieDto(
                 vedtaksId = "MEL-105-145",
+                saksnummer = null,
                 fodselsnummer = "30056928150",
                 fullmektig = Fullmektig(
                     fodselsnummer = null,

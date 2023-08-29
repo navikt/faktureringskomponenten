@@ -27,6 +27,10 @@ class FakturaserieServiceTest {
         val nyFakturaserie = lagFakturaserie(nyVedtaksId)
 
         every {
+            fakturaserieRepository.findFakturaserieByVedtaksIdLikeAndStatusIn(opprinneligVedtaksId)
+        } returns opprinneligFakturaserie
+
+        every {
             fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
         } returns opprinneligFakturaserie
 
@@ -45,16 +49,15 @@ class FakturaserieServiceTest {
 
         fakturaserieService.endreFakturaserie(opprinneligVedtaksId, nyFakturaserieDto)
 
-
         val oppdatertOpprinneligFakturaserie =
             fakturaserieRepository.findByVedtaksId(vedtaksId = opprinneligVedtaksId)
+
         oppdatertOpprinneligFakturaserie?.status
             .shouldBe(FakturaserieStatus.KANSELLERT)
 
-        verify(exactly = 2) {
-            fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
-        }
         verify(exactly = 1) {
+            fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
+            fakturaserieRepository.findFakturaserieByVedtaksIdLikeAndStatusIn(opprinneligVedtaksId)
             fakturaserieRepository.save(opprinneligFakturaserie)
             fakturaserieRepository.save(nyFakturaserie)
         }
@@ -100,6 +103,7 @@ class FakturaserieServiceTest {
     ): FakturaserieDto {
         return FakturaserieDto(
             vedtaksId,
+            null,
             fodselsnummer,
             fullmektig,
             referanseBruker,

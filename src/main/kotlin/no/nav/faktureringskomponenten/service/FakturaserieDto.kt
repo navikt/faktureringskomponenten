@@ -8,6 +8,8 @@ import no.nav.faktureringskomponenten.domain.models.Fullmektig
 data class FakturaserieDto(
     val vedtaksId: String,
 
+    val saksnummer: String?,
+
     val fodselsnummer: String,
 
     val fullmektig: Fullmektig?,

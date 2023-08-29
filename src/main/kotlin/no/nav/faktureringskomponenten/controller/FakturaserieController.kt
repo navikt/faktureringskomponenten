@@ -6,15 +6,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.controller.dto.FakturaTilbakemeldingResponseDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
-import no.nav.faktureringskomponenten.controller.mapper.tilFakturaTilbakemeldingResponseDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.FakturaMottattService
@@ -81,10 +76,17 @@ class FakturaserieController @Autowired constructor(
     @PutMapping("/{vedtaksId}")
     fun endreFakturaserie(
         @PathVariable("vedtaksId") vedtaksId: String,
-        @RequestBody @Valid fakturaserieRequestDto: FakturaserieRequestDto
-    ): Fakturaserie? {
-        val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
-        return faktureringService.endreFakturaserie(vedtaksId, fakturaserieDto)
+        @RequestBody @Valid fakturaserieRequestDto: FakturaserieRequestDto,
+        bindingResult: BindingResult,
+    ): ResponseEntity<ProblemDetail>? {
+        val responseEntity = ProblemDetailValidator.validerBindingResult(bindingResult)
+        if (responseEntity.statusCode == HttpStatus.OK) {
+            log.info("Mottatt en endring på ${vedtaksId} med nye verdier: $fakturaserieRequestDto")
+            val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
+            faktureringService.endreFakturaserie(vedtaksId, fakturaserieDto)
+            Metrics.counter(MetrikkNavn.FAKTURASERIE_ENDRET).increment()
+        }
+        return responseEntity
     }
 
     @Operation(summary = "Henter fakturaserie på vedtaksId")

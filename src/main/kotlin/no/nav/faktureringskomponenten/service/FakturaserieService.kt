@@ -30,14 +30,20 @@ class FakturaserieService(
 
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto) {
+        if(!fakturaserieDto.saksnummer.isNullOrEmpty() && fakturaserieRepository.findFakturaserieByVedtaksIdLikeAndStatusIn(fakturaserieDto.saksnummer) != null){
+            endreFakturaserie(fakturaserieDto.saksnummer, fakturaserieDto);
+            log.info("Kansellerer fakturaserie: ${fakturaserieDto.vedtaksId}, lager ny fakturaserie: ${fakturaserieDto.vedtaksId}")
+            return
+        }
+
         val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
     }
 
     @Transactional
-    fun endreFakturaserie(opprinneligVedtaksId: String, fakturaserieDto: FakturaserieDto): Fakturaserie? {
-        val opprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
+    fun endreFakturaserie(opprinneligVedtaksId: String, fakturaserieDto: FakturaserieDto) {
+        val opprinneligFakturaserie = fakturaserieRepository.findFakturaserieByVedtaksIdLikeAndStatusIn(opprinneligVedtaksId)
             ?: throw RessursIkkeFunnetException(
                 field = "vedtaksId",
                 message = "Fant ikke opprinnelig fakturaserie med vedtaksId $opprinneligVedtaksId"
@@ -52,7 +58,6 @@ class FakturaserieService(
         val fakturaSomIkkeErSendtPeriodeFra =
             if (fakturaSomIkkeErSendt.isNotEmpty()) fakturaSomIkkeErSendt[0].getPeriodeFra() else null
 
-
         val nyFakturaserie =
             fakturaserieMapper.tilFakturaserie(
                 fakturaserieDto,
@@ -65,7 +70,7 @@ class FakturaserieService(
         fakturaserieRepository.save(opprinneligFakturaserie)
         fakturaserieRepository.save(nyFakturaserie)
 
-        return nyFakturaserie
+        log.info("Kansellert fakturaserie med id: ${opprinneligFakturaserie.vedtaksId}, lager ny med id: ${nyFakturaserie.vedtaksId}")
     }
 
     fun finnesVedtaksId(vedtaksId: String): Boolean {

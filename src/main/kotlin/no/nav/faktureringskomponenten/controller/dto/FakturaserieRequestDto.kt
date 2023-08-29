@@ -16,6 +16,8 @@ data class FakturaserieRequestDto(
     @field:IkkeDuplikatVedtaksId
     val vedtaksId: String,
 
+    val saksummer: String?,
+
     @field:Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
     @field:ErFodselsnummer
     val fodselsnummer: String,

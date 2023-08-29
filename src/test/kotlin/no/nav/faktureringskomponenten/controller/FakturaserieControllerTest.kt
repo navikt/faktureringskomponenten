@@ -14,6 +14,7 @@ import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
+import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
@@ -51,48 +52,125 @@ class FakturaserieControllerTest(
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
 ) : PostgresTestContainerBase() {
 
+    @Test
+    fun `endre fakturaserie, lager ny hvis ikke fakturaserie finnes når saksnummer finnes`() {
+        val saksnummer = "MEL-111"
+        val nyVedtaksId = "MEL-111-333"
+        val startDatoNy = LocalDate.now().minusMonths(2)
+        val sluttDatoNy = LocalDate.now().plusMonths(8)
 
+        val nyFakturaserieDto = lagFakturaserieDto(
+            vedtaksId = nyVedtaksId, saksnummer = saksnummer, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(24000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
+            )
+        )
+
+        addCleanUpAction {
+            fakturaserieRepository.findByVedtaksId(nyFakturaserieDto.vedtaksId)?.let {
+                fakturaserieRepository.delete(it)
+            }
+        }
+
+        postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk
+
+        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).shouldNotBeNull()
+
+        nyFakturaserie.shouldNotBeNull()
+            .status.shouldBe(FakturaserieStatus.OPPRETTET)
+
+    }
 
     @Test
-    @Disabled("Skal ikke støtte endring av fakturaserie i denne versjonen")
-    fun `endre fakturaserie setter første faktura til å bli utsendt dagen etterpå`() {
-        val vedtaksId = "id-3"
-        val nyVedtaksId = "id-4"
+    fun `endre fakturaserie, kansellerer opprinnelig og lager ny, finner gammel serie`() {
+        val saksnummer = "MEL-111"
+        val vedtaksId = "MEL-111-222"
+        val nyVedtaksId = "MEL-111-333"
         val startDatoOpprinnelig = LocalDate.now().minusMonths(3)
         val sluttDatoOpprinnelig = LocalDate.now().plusMonths(9)
         val startDatoNy = LocalDate.now().minusMonths(2)
         val sluttDatoNy = LocalDate.now().plusMonths(8)
+
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             vedtaksId = vedtaksId, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal.valueOf(123),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Beskrivelse"
-                )
+                FakturaseriePeriodeDto(BigDecimal(12000), startDatoOpprinnelig, sluttDatoOpprinnelig, "Inntekt fra utlandet"),
             )
         )
 
         val nyFakturaserieDto = lagFakturaserieDto(
-            vedtaksId = nyVedtaksId, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal.valueOf(123),
-                    startDatoNy,
-                    sluttDatoNy,
-                    "Beskrivelse"
-                )
+            vedtaksId = nyVedtaksId, saksnummer = saksnummer, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(24000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
             )
         )
 
-        postLagNyFakturaserieRequest(opprinneligFakturaserieDto)
+        addCleanUpAction {
+            fakturaserieRepository.findByVedtaksId(opprinneligFakturaserieDto.vedtaksId)?.let {
+                fakturaserieRepository.delete(it)
+            }
+            fakturaserieRepository.findByVedtaksId(nyFakturaserieDto.vedtaksId)?.let {
+                fakturaserieRepository.delete(it)
+            }
+        }
 
-        putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId)
+        postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk
+
+        postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk
 
         val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).shouldNotBeNull()
         val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
 
         oppdatertOpprinneligFakturaserie.shouldNotBeNull()
             .status.shouldBe(FakturaserieStatus.KANSELLERT)
+
+        nyFakturaserie.shouldNotBeNull()
+            .status.shouldBe(FakturaserieStatus.OPPRETTET)
+
+        nyFakturaserie.startdato.shouldBe(startDatoNy)
+        nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
+    }
+
+    @Test
+    fun `endre fakturaserie, kansellerer opprinnelig og lager ny, eget endepunkt`() {
+        val vedtaksId = "VEDTAK-1"
+        val nyVedtaksId = "VEDTAK-2"
+        val startDatoOpprinnelig = LocalDate.now().minusMonths(3)
+        val sluttDatoOpprinnelig = LocalDate.now().plusMonths(9)
+        val startDatoNy = LocalDate.now().minusMonths(2)
+        val sluttDatoNy = LocalDate.now().plusMonths(8)
+
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            vedtaksId = vedtaksId, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(12000), startDatoOpprinnelig, sluttDatoOpprinnelig, "Inntekt fra utlandet"),
+            )
+        )
+
+        val nyFakturaserieDto = lagFakturaserieDto(
+            vedtaksId = nyVedtaksId, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(24000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
+            )
+        )
+
+        addCleanUpAction {
+            fakturaserieRepository.findByVedtaksId(opprinneligFakturaserieDto.vedtaksId)?.let {
+                fakturaserieRepository.delete(it)
+            }
+            fakturaserieRepository.findByVedtaksId(nyFakturaserieDto.vedtaksId)?.let {
+                fakturaserieRepository.delete(it)
+            }
+        }
+
+        postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk
+
+        putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId).expectStatus().isOk
+
+        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).shouldNotBeNull()
+        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
+
+        oppdatertOpprinneligFakturaserie.shouldNotBeNull()
+            .status.shouldBe(FakturaserieStatus.KANSELLERT)
+
+        nyFakturaserie.shouldNotBeNull()
+            .status.shouldBe(FakturaserieStatus.OPPRETTET)
+
         nyFakturaserie.startdato.shouldBe(startDatoNy)
         nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
     }
@@ -242,6 +320,7 @@ class FakturaserieControllerTest(
 
     fun lagFakturaserieDto(
         vedtaksId: String = "VEDTAK-1" + RandomString.make(3),
+        saksnummer: String? = null,
         fodselsnummer: String = "12345678911",
         fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
@@ -259,6 +338,7 @@ class FakturaserieControllerTest(
     ): FakturaserieRequestDto {
         return FakturaserieRequestDto(
             vedtaksId,
+            saksnummer,
             fodselsnummer,
             fullmektig,
             referanseBruker,
