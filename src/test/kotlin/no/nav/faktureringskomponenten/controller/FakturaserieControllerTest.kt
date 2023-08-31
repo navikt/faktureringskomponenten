@@ -129,53 +129,6 @@ class FakturaserieControllerTest(
     }
 
     @Test
-    fun `endre fakturaserie, kansellerer opprinnelig og lager ny, eget endepunkt`() {
-        val vedtaksId = "VEDTAK-1"
-        val nyVedtaksId = "VEDTAK-2"
-        val startDatoOpprinnelig = LocalDate.now().minusMonths(3)
-        val sluttDatoOpprinnelig = LocalDate.now().plusMonths(9)
-        val startDatoNy = LocalDate.now().minusMonths(2)
-        val sluttDatoNy = LocalDate.now().plusMonths(8)
-
-        val opprinneligFakturaserieDto = lagFakturaserieDto(
-            vedtaksId = vedtaksId, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(12000), startDatoOpprinnelig, sluttDatoOpprinnelig, "Inntekt fra utlandet"),
-            )
-        )
-
-        val nyFakturaserieDto = lagFakturaserieDto(
-            vedtaksId = nyVedtaksId, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(24000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
-            )
-        )
-
-        addCleanUpAction {
-            fakturaserieRepository.findByVedtaksId(opprinneligFakturaserieDto.vedtaksId)?.let {
-                fakturaserieRepository.delete(it)
-            }
-            fakturaserieRepository.findByVedtaksId(nyFakturaserieDto.vedtaksId)?.let {
-                fakturaserieRepository.delete(it)
-            }
-        }
-
-        postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk
-
-        putEndreFakturaserieRequest(nyFakturaserieDto, vedtaksId).expectStatus().isOk
-
-        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).shouldNotBeNull()
-        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
-
-        oppdatertOpprinneligFakturaserie.shouldNotBeNull()
-            .status.shouldBe(FakturaserieStatus.KANSELLERT)
-
-        nyFakturaserie.shouldNotBeNull()
-            .status.shouldBe(FakturaserieStatus.OPPRETTET)
-
-        nyFakturaserie.startdato.shouldBe(startDatoNy)
-        nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
-    }
-
-    @Test
     fun `hent fakturaserier basert på vedtaksId med fakturastatus filter`() {
         val saksnummer = "VEDTAK-1"
         val startDato = LocalDate.parse("2023-01-01")

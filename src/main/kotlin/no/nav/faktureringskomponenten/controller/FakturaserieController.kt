@@ -60,35 +60,6 @@ class FakturaserieController @Autowired constructor(
         return responseEntity
     }
 
-    @Operation(
-        summary = "Kansellerer eksisterende fakturaserie og fremtidlige planlagte fakturaer som ikke er bestilt. " +
-            "Oppretter så ny fakturaserie med fakturaer som erstatter kansellerte",
-        description = "vedtaksId i parameter må være identifikator for fakturaserie som skal oppdateres"
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "202", description = "Fakturaserie erstattet"),
-            ApiResponse(responseCode = "400", description = "Feil med validering av felter")
-        ]
-    )
-
-    @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
-    @PutMapping("/{vedtaksId}")
-    fun endreFakturaserie(
-        @PathVariable("vedtaksId") vedtaksId: String,
-        @RequestBody @Valid fakturaserieRequestDto: FakturaserieRequestDto,
-        bindingResult: BindingResult,
-    ): ResponseEntity<ProblemDetail>? {
-        val responseEntity = ProblemDetailValidator.validerBindingResult(bindingResult)
-        if (responseEntity.statusCode == HttpStatus.OK) {
-            log.info("Mottatt en endring på ${vedtaksId} med nye verdier: $fakturaserieRequestDto")
-            val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
-            faktureringService.endreFakturaserie(vedtaksId, fakturaserieDto)
-            Metrics.counter(MetrikkNavn.FAKTURASERIE_ENDRET).increment()
-        }
-        return responseEntity
-    }
-
     @Operation(summary = "Henter fakturaserie på vedtaksId")
     @ApiResponses(
         value = [
