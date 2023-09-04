@@ -7,7 +7,7 @@ data class FakturaBestiltDto(
     val fodselsnummer: String,
     val fullmektigOrgnr: String?,
     val fullmektigFnr: String?,
-    val vedtaksId: String,
+    val referanseId: String,
     val fakturaReferanseNr: String,
     val kreditReferanseNr: String?,
     val referanseBruker: String,

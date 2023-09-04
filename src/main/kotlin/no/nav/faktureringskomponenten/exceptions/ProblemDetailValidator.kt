@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindingResult
 
 class ProblemDetailValidator {
-
     companion object {
 
         fun validerBindingResult(bindingResult: BindingResult): ResponseEntity<ProblemDetail> {
@@ -23,7 +22,16 @@ class ProblemDetailValidator {
                 )
                 return ResponseEntity<ProblemDetail>(problemDetail, HttpStatus.BAD_REQUEST)
             }
+
             return ResponseEntity.ok(ProblemDetail.forStatus(HttpStatus.OK))
+        }
+
+        fun leggTilProperties(properties: LinkedHashMap<String, String>): ResponseEntity<ProblemDetail> {
+            val problemDetail = ProblemDetail.forStatus(HttpStatus.OK)
+            for ((key, value) in properties) {
+                problemDetail.setProperty(key, value)
+            }
+            return ResponseEntity<ProblemDetail>(problemDetail, HttpStatus.OK)
         }
     }
 }

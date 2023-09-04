@@ -5,23 +5,18 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import net.bytebuddy.utility.RandomString
-import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
-import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
-import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
+import io.kotest.matchers.string.shouldNotContain
+import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
-import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -32,10 +27,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.transaction.annotation.Transactional
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -53,84 +48,60 @@ class FakturaserieControllerTest(
 ) : PostgresTestContainerBase() {
 
     @Test
-    fun `endre fakturaserie, lager ny hvis ikke fakturaserie finnes når saksnummer finnes`() {
-        val saksnummer = "MEL-111"
-        val nyVedtaksId = "MEL-111-333"
-        val startDatoNy = LocalDate.now().minusMonths(2)
-        val sluttDatoNy = LocalDate.now().plusMonths(8)
-
-        val nyFakturaserieDto = lagFakturaserieDto(
-            vedtaksId = nyVedtaksId, saksnummer = saksnummer, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(24000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
-            )
-        )
-
-        addCleanUpAction {
-            fakturaserieRepository.findByVedtaksId(nyFakturaserieDto.vedtaksId)?.let {
-                fakturaserieRepository.delete(it)
-            }
-        }
-
-        postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk
-
-        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).shouldNotBeNull()
-
-        nyFakturaserie.shouldNotBeNull()
-            .status.shouldBe(FakturaserieStatus.OPPRETTET)
-
-    }
-
-    @Test
-    fun `endre fakturaserie, kansellerer opprinnelig og lager ny, finner gammel serie`() {
-        val saksnummer = "MEL-111"
-        val vedtaksId = "MEL-111-222"
-        val nyVedtaksId = "MEL-111-333"
+    @Transactional
+    fun `erstatt fakturaserie, erstatter opprinnelig og lager ny`() {
         val startDatoOpprinnelig = LocalDate.now().minusMonths(3)
         val sluttDatoOpprinnelig = LocalDate.now().plusMonths(9)
         val startDatoNy = LocalDate.now().minusMonths(2)
         val sluttDatoNy = LocalDate.now().plusMonths(8)
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
-            vedtaksId = vedtaksId, fakturaseriePeriode = listOf(
+            fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(BigDecimal(12000), startDatoOpprinnelig, sluttDatoOpprinnelig, "Inntekt fra utlandet"),
             )
         )
 
+        val opprinneligFakturaserieResponse = postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+
         val nyFakturaserieDto = lagFakturaserieDto(
-            vedtaksId = nyVedtaksId, saksnummer = saksnummer, fakturaseriePeriode = listOf(
+            referanseId = opprinneligFakturaserieResponse?.referanseId, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(18000), startDatoNy, sluttDatoNy, "Inntekt fra Norge"),
                 FakturaseriePeriodeDto(BigDecimal(24000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
             )
         )
 
-        addCleanUpAction {
-            fakturaserieRepository.findByVedtaksId(opprinneligFakturaserieDto.vedtaksId)?.let {
-                fakturaserieRepository.delete(it)
-            }
-            fakturaserieRepository.findByVedtaksId(nyFakturaserieDto.vedtaksId)?.let {
-                fakturaserieRepository.delete(it)
-            }
-        }
+        val nyFakturaserieResponse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
 
-        postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk
-
-        postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk
-
-        val nyFakturaserie = fakturaserieRepository.findByVedtaksId(nyVedtaksId).shouldNotBeNull()
-        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByVedtaksId(vedtaksId)
+        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByReferanseId(opprinneligFakturaserieResponse.referanseId)
+        val nyFakturaserie = fakturaserieRepository.findByReferanseId(nyFakturaserieResponse.referanseId).shouldNotBeNull()
 
         oppdatertOpprinneligFakturaserie.shouldNotBeNull()
-            .status.shouldBe(FakturaserieStatus.KANSELLERT)
+            .status.shouldBe(FakturaserieStatus.ERSTATTET)
 
         nyFakturaserie.shouldNotBeNull()
             .status.shouldBe(FakturaserieStatus.OPPRETTET)
 
+        nyFakturaserie.erstattetMed.shouldBe(oppdatertOpprinneligFakturaserie.id)
+
         nyFakturaserie.startdato.shouldBe(startDatoNy)
         nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
+
+        oppdatertOpprinneligFakturaserie.faktura.forEach {
+            it.status.shouldBe(FakturaStatus.KANSELLERT)
+            it.fakturaLinje.forEach { it.beskrivelse.shouldNotContain("Inntekt fra Norge") }
+        }
+
+        nyFakturaserie.faktura.forEach {
+            it.status.shouldBe(FakturaStatus.OPPRETTET)
+        }
+
+        addCleanUpAction {
+            fakturaserieRepository.deleteAll()
+        }
     }
 
     @Test
-    fun `hent fakturaserier basert på vedtaksId med fakturastatus filter`() {
-        val saksnummer = "VEDTAK-1"
+    fun `hent fakturaserier basert på referanseId med fakturastatus filter`() {
         val startDato = LocalDate.parse("2023-01-01")
         val sluttDato = LocalDate.parse("2024-03-31")
         val fakturaSerieDto = lagFakturaserieDto(
@@ -139,25 +110,33 @@ class FakturaserieControllerTest(
                 FakturaseriePeriodeDto(BigDecimal(500), startDato, sluttDato, "Misjonær")
             )
         )
+
         addCleanUpAction {
-            fakturaserieRepository.findByVedtaksId(fakturaSerieDto.vedtaksId)?.let {
-                fakturaserieRepository.delete(it)
-            }
+            fakturaserieRepository.deleteAll()
         }
 
+        val fakturaserieResponse1 = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+        val fakturaserieResponse2 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { referanseId = fakturaserieResponse1.referanseId }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+        val fakturaserieResponse3 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { referanseId = fakturaserieResponse2.referanseId }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+        val fakturaserieResponse4 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { referanseId = fakturaserieResponse3.referanseId }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
 
-        postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk
-
-        val responseAlleFakturaOpprettet = hentFakturaserierRequest(saksnummer, FakturaStatus.OPPRETTET)
+        val responseAlleFakturaserier = hentFakturaserierRequest(fakturaserieResponse4.referanseId!!)
             .expectStatus().isOk
             .expectBodyList(FakturaserieResponseDto::class.java).returnResult().responseBody
 
-        val fakturaserie = responseAlleFakturaOpprettet?.get(0)!!
+        responseAlleFakturaserier?.size.shouldBe(4)
+        responseAlleFakturaserier?.filter { it.status == FakturaserieStatus.ERSTATTET }?.size.shouldBe(3)
+        responseAlleFakturaserier?.filter { it.status == FakturaserieStatus.OPPRETTET }?.size.shouldBe(1)
 
-        fakturaserie.faktura.size.shouldBe(3)
-        fakturaserie.faktura[0].status.shouldBe(FakturaStatus.OPPRETTET)
-        fakturaserie.faktura[1].status.shouldBe(FakturaStatus.OPPRETTET)
-        fakturaserie.faktura[2].status.shouldBe(FakturaStatus.OPPRETTET)
+        val responseAlleFakturaserierKunKansellert = hentFakturaserierRequest(fakturaserieResponse4.referanseId!!, "&fakturaStatus=${FakturaStatus.KANSELLERT}")
+            .expectStatus().isOk
+            .expectBodyList(FakturaserieResponseDto::class.java).returnResult().responseBody
+
+        responseAlleFakturaserierKunKansellert?.size.shouldBe(3)
+        responseAlleFakturaserierKunKansellert?.stream()?.forEach {
+            it.status.shouldBe(FakturaserieStatus.ERSTATTET)
+            it.faktura.forEach { it.status.shouldBe(FakturaStatus.KANSELLERT) }
+        }
     }
 
 
@@ -172,15 +151,12 @@ class FakturaserieControllerTest(
             )
         )
         addCleanUpAction {
-            fakturaserieRepository.findByVedtaksId(fakturaSerieDto.vedtaksId)?.let {
-                fakturaserieRepository.delete(it)
-            }
+            fakturaserieRepository.deleteAll()
         }
 
+        val responsePost = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
 
-        postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk
-
-        val response = hentFakturaserieRequest(fakturaSerieDto.vedtaksId)
+        val response = hentFakturaserieRequest(responsePost.referanseId)
             .expectStatus().isOk
             .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
 
@@ -189,29 +165,6 @@ class FakturaserieControllerTest(
         response.faktura[0].fakturaLinje.map { it.periodeFra }.shouldContainOnly(startDato)
         response.faktura[0].fakturaLinje.map { it.periodeTil }.shouldContainOnly(sluttDato)
         response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactly("Inntekt fra utlandet", "Misjonær")
-    }
-
-    @Test
-    fun `lagNyFaktura validerer duplikate vedtaksId`() {
-        val duplikatNokkel = "id-1"
-        addCleanUpAction {
-            fakturaserieRepository.findByVedtaksId(duplikatNokkel)?.let {
-                fakturaserieRepository.delete(it)
-            }
-        }
-
-        val fakturaSerieDto = lagFakturaserieDto(vedtaksId = duplikatNokkel)
-        postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk
-
-        postLagNyFakturaserieRequest(fakturaSerieDto)
-            .expectStatus()
-            .isEqualTo(HttpStatus.BAD_REQUEST)
-            .expectBody()
-            .jsonPath("$.violations.size()").isEqualTo(1)
-            .jsonPath("$.violations[0].field").isEqualTo("vedtaksId")
-            .jsonPath("$.violations[0].message").isEqualTo(
-                "Kan ikke opprette fakturaserie når vedtaksId allerede finnes"
-            )
     }
 
     @ParameterizedTest(name = "{0} gir feilmelding \"{3}\"")
@@ -272,8 +225,7 @@ class FakturaserieControllerTest(
     //endregion
 
     fun lagFakturaserieDto(
-        vedtaksId: String = "VEDTAK-1" + RandomString.make(3),
-        saksnummer: String? = null,
+        referanseId: String? = null,
         fodselsnummer: String = "12345678911",
         fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
@@ -290,9 +242,8 @@ class FakturaserieControllerTest(
         ),
     ): FakturaserieRequestDto {
         return FakturaserieRequestDto(
-            vedtaksId,
-            saksnummer,
             fodselsnummer,
+            referanseId,
             fullmektig,
             referanseBruker,
             referanseNav,
@@ -314,9 +265,9 @@ class FakturaserieControllerTest(
             }
             .exchange()
 
-    private fun hentFakturaserieRequest(vedtaksId: String): WebTestClient.ResponseSpec =
+    private fun hentFakturaserieRequest(referanseId: String?): WebTestClient.ResponseSpec =
         webClient.get()
-            .uri("/fakturaserier/$vedtaksId")
+            .uri("/fakturaserier/$referanseId")
             .accept(MediaType.APPLICATION_JSON)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -324,31 +275,15 @@ class FakturaserieControllerTest(
             }
             .exchange()
 
-    private fun hentFakturaserierRequest(saksnummer: String, fakturaStatus: FakturaStatus?): WebTestClient.ResponseSpec =
+    private fun hentFakturaserierRequest(referanseId: String, fakturaStatus: String? = null): WebTestClient.ResponseSpec =
         webClient.get()
-            .uri("/fakturaserier?saksnummer=$saksnummer&fakturaStatus=${fakturaStatus.toString()}")
+            .uri("/fakturaserier?referanseId=$referanseId${fakturaStatus ?: ""}")
             .accept(MediaType.APPLICATION_JSON)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
             }
             .exchange()
-
-    private fun putEndreFakturaserieRequest(
-        fakturaserieRequestDto: FakturaserieRequestDto,
-        gammelVedtaksId: String
-    ): WebTestClient.ResponseSpec {
-        return webClient.put()
-            .uri("/fakturaserier/$gammelVedtaksId")
-            .contentType(MediaType.APPLICATION_JSON)
-            .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(fakturaserieRequestDto)
-            .headers {
-                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
-                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
-            }
-            .exchange()
-    }
 
     private fun token(subject: String = "faktureringskomponenten-test"): String? =
         server.issueToken(

@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
@@ -18,35 +19,36 @@ class FakturaserieService(
     private val fakturaserieMapper: FakturaserieMapper,
 ) {
 
-    fun hentFakturaserie(vedtaksId: String): Fakturaserie =
-        fakturaserieRepository.findByVedtaksId(vedtaksId) ?: throw RessursIkkeFunnetException(
-            field = "vedtaksId",
-            message = "Fant ikke fakturaserie på: $vedtaksId"
+    fun hentFakturaserie(referanseId: String): Fakturaserie =
+        fakturaserieRepository.findByReferanseId(referanseId) ?: throw RessursIkkeFunnetException(
+            field = "referanseId",
+            message = "Fant ikke fakturaserie på: $referanseId"
         )
 
-    fun hentFakturaserier(saksnummer: String, fakturaStatus: String? = null): List<Fakturaserie> {
-        return fakturaserieRepository.findAllFakturaserierWithFilteredFaktura(saksnummer, fakturaStatus)
+    fun hentFakturaserier(referanseId: String, fakturaStatus: String?): List<Fakturaserie> {
+        return fakturaserieRepository.findAllByReferanseId2(referanseId, fakturaStatus)
     }
 
     @Transactional
-    fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto) {
-        if(!fakturaserieDto.saksnummer.isNullOrEmpty() && fakturaserieRepository.findFakturaserieByVedtaksIdLikeAndStatusIn(fakturaserieDto.saksnummer) != null){
-            endreFakturaserie(fakturaserieDto.saksnummer, fakturaserieDto);
-            log.info("Kansellerer fakturaserie: ${fakturaserieDto.vedtaksId}, lager ny fakturaserie: ${fakturaserieDto.vedtaksId}")
-            return
+    fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto, forrigeReferanseId: String? = null): String {
+        if(!forrigeReferanseId.isNullOrEmpty() && fakturaserieRepository.findFakturaserieByReferanseIdAndStatusIn(forrigeReferanseId) != null){
+            endreFakturaserie(forrigeReferanseId, fakturaserieDto);
+            log.info("Kansellerer fakturaserie: ${fakturaserieDto.referanseId}, lager ny fakturaserie: ${fakturaserieDto.referanseId}")
+            return fakturaserieDto.referanseId
         }
 
         val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
+        return fakturaserie.referanseId
     }
 
     @Transactional
-    fun endreFakturaserie(opprinneligVedtaksId: String, fakturaserieDto: FakturaserieDto) {
-        val opprinneligFakturaserie = fakturaserieRepository.findFakturaserieByVedtaksIdLikeAndStatusIn(opprinneligVedtaksId)
+    fun endreFakturaserie(opprinneligReferanseId: String, fakturaserieDto: FakturaserieDto) {
+        val opprinneligFakturaserie = fakturaserieRepository.findFakturaserieByReferanseIdAndStatusIn(opprinneligReferanseId)
             ?: throw RessursIkkeFunnetException(
-                field = "vedtaksId",
-                message = "Fant ikke opprinnelig fakturaserie med vedtaksId $opprinneligVedtaksId"
+                field = "referanseId",
+                message = "Fant ikke opprinnelig fakturaserie med referanseId $opprinneligReferanseId"
             )
 
         val opprinneligFakturaserieErUnderBestilling =
@@ -64,16 +66,17 @@ class FakturaserieService(
                 if (opprinneligFakturaserieErUnderBestilling) fakturaSomIkkeErSendtPeriodeFra else null
             )
 
-        opprinneligFakturaserie.status = FakturaserieStatus.KANSELLERT
+        opprinneligFakturaserie.status = FakturaserieStatus.ERSTATTET
         fakturaSomIkkeErSendt.forEach { it.status = FakturaStatus.KANSELLERT }
+
+        nyFakturaserie.apply { erstattetMed = opprinneligFakturaserie.id }
 
         fakturaserieRepository.save(opprinneligFakturaserie)
         fakturaserieRepository.save(nyFakturaserie)
-
-        log.info("Kansellert fakturaserie med id: ${opprinneligFakturaserie.vedtaksId}, lager ny med id: ${nyFakturaserie.vedtaksId}")
+        log.info("Kansellert fakturaserie med id: ${opprinneligFakturaserie.referanseId}, lager ny med id: ${nyFakturaserie.referanseId}")
     }
 
-    fun finnesVedtaksId(vedtaksId: String): Boolean {
-        return fakturaserieRepository.findByVedtaksId(vedtaksId) != null
+    fun finnesReferanseId(referanseId: String): Boolean {
+        return fakturaserieRepository.findByReferanseId(referanseId) != null
     }
 }

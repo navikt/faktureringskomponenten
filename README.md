@@ -44,7 +44,7 @@ Run: `./gradlew run`
 
 ```json5
 {
-  "vedtaksId": "MEL-103-123",
+  "referanseId": "MEL-103-123",
   "fodselsnummer": "1234578911",
   "referanseBruker": "Referanse for bruker",
   "referanseNAV": "Referanse for NAV",
@@ -89,7 +89,7 @@ flowchart TB
 classDiagram
 class fakturaserie {
     id : LONG
-    vedtaks_id : VARCHAR
+    referanse_id : VARCHAR
     faktura_gjelder : VARCHAR
     fodselsnummer : NUMERIC
     fullmektig_fodselsnummer : NUMERIC

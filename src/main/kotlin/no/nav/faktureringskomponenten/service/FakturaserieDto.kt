@@ -6,9 +6,7 @@ import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 
 data class FakturaserieDto(
-    val vedtaksId: String,
-
-    val saksnummer: String?,
+    val referanseId: String,
 
     val fodselsnummer: String,
 

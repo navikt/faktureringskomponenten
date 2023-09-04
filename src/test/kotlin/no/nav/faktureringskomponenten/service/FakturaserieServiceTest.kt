@@ -11,6 +11,7 @@ import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
@@ -20,18 +21,18 @@ class FakturaserieServiceTest {
 
     @Test
     fun `Endrer fakturaserie, kansellerer opprinnelig og lager ny`() {
-        val opprinneligVedtaksId = "MEL-123"
-        val nyVedtaksId = "MEL-456"
-        val opprinneligFakturaserie = lagFakturaserie(opprinneligVedtaksId)
-        val nyFakturaserieDto = lagFakturaserieDto(nyVedtaksId)
-        val nyFakturaserie = lagFakturaserie(nyVedtaksId)
+        val opprinneligReferanseId = "MEL-123"
+        val nyReferanseId = "MEL-456"
+        val opprinneligFakturaserie = lagFakturaserie(opprinneligReferanseId)
+        val nyFakturaserieDto = lagFakturaserieDto(nyReferanseId)
+        val nyFakturaserie = lagFakturaserie(nyReferanseId)
 
         every {
-            fakturaserieRepository.findFakturaserieByVedtaksIdLikeAndStatusIn(opprinneligVedtaksId)
+            fakturaserieRepository.findFakturaserieByReferanseIdAndStatusIn(opprinneligReferanseId)
         } returns opprinneligFakturaserie
 
         every {
-            fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
+            fakturaserieRepository.findByReferanseId(opprinneligReferanseId)
         } returns opprinneligFakturaserie
 
         every {
@@ -47,17 +48,17 @@ class FakturaserieServiceTest {
         } returns nyFakturaserie
 
 
-        fakturaserieService.endreFakturaserie(opprinneligVedtaksId, nyFakturaserieDto)
+        fakturaserieService.endreFakturaserie(opprinneligReferanseId, nyFakturaserieDto)
 
         val oppdatertOpprinneligFakturaserie =
-            fakturaserieRepository.findByVedtaksId(vedtaksId = opprinneligVedtaksId)
+            fakturaserieRepository.findByReferanseId(referanseId = opprinneligReferanseId)
 
         oppdatertOpprinneligFakturaserie?.status
-            .shouldBe(FakturaserieStatus.KANSELLERT)
+            .shouldBe(FakturaserieStatus.ERSTATTET)
 
         verify(exactly = 1) {
-            fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
-            fakturaserieRepository.findFakturaserieByVedtaksIdLikeAndStatusIn(opprinneligVedtaksId)
+            fakturaserieRepository.findByReferanseId(opprinneligReferanseId)
+            fakturaserieRepository.findFakturaserieByReferanseIdAndStatusIn(opprinneligReferanseId)
             fakturaserieRepository.save(opprinneligFakturaserie)
             fakturaserieRepository.save(nyFakturaserie)
         }
@@ -66,7 +67,7 @@ class FakturaserieServiceTest {
     fun lagFakturaserie(vedtaksId: String): Fakturaserie {
         return Fakturaserie(
             id = 100,
-            vedtaksId = vedtaksId,
+            referanseId = vedtaksId,
             fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
             referanseBruker = "Referanse bruker",
             referanseNAV = "Referanse NAV",
@@ -85,7 +86,7 @@ class FakturaserieServiceTest {
     }
 
     fun lagFakturaserieDto(
-        vedtaksId: String = "VEDTAK-1" + RandomString.make(3),
+        referanseId: String = UUID.randomUUID().toString(),
         fodselsnummer: String = "12345678911",
         fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
@@ -102,8 +103,7 @@ class FakturaserieServiceTest {
         ),
     ): FakturaserieDto {
         return FakturaserieDto(
-            vedtaksId,
-            null,
+            referanseId,
             fodselsnummer,
             fullmektig,
             referanseBruker,
