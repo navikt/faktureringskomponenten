@@ -8,6 +8,9 @@ on:
       - "CODEOWNERS"
     branches:
       - master
+permissions:
+  contents: write
+  packages: write
 env:
   image: ghcr.io/${{ github.repository }}/faktureringskomponenten:${{ github.sha }}
 jobs:

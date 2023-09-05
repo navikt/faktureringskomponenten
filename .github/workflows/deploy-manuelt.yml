@@ -5,7 +5,9 @@ on:
         description: 'Miljø (q1, q2 eller prod)'
         required: true
         default: 'q2'
-
+permissions:
+  contents: write
+  packages: write
 env:
   IMAGE: ghcr.io/${{ github.repository }}/faktureringskomponenten:${{ github.sha }}
   IMAGE_MANIFEST: https://ghcr.io/v2/${{ github.repository }}/faktureringskomponenten/manifests/${{ github.sha }}
