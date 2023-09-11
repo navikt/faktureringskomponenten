@@ -9,7 +9,7 @@ import java.time.LocalDateTime
 data class FakturaserieResponseDto(
 
     @Schema(description = "Unik identifikator som saksbehandlingssystemet kjenner igjen")
-    val referanseId: String,
+    val fakturaserieReferanse: String,
 
     @Schema(description = "Informasjon om hva bruker betaler")
     val fakturaGjelderInnbetalingstype: Innbetalingstype,

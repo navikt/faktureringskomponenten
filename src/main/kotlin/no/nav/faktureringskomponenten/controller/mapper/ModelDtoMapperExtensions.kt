@@ -7,7 +7,7 @@ import java.util.*
 
 val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
-        referanseId = this.referanseId,
+        fakturaserieReferanse = this.referanse,
         fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilDto,
@@ -33,7 +33,7 @@ val FakturaMottatt.tilFakturaTilbakemeldingResponseDto: FakturaTilbakemeldingRes
 
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
     get() = FakturaserieDto(
-        referanseId = UUID.randomUUID().toString(),
+        fakturaserieReferanse = UUID.randomUUID().toString(),
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,

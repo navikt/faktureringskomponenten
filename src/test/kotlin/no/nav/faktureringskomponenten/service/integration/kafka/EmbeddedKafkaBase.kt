@@ -23,7 +23,7 @@ open class EmbeddedKafkaBase(
     protected fun lagFakturaMedSerie(faktura: Faktura, vedtaksId: String = "MEL-1-1"): Faktura =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
-                referanseId = vedtaksId,
+                referanse = vedtaksId,
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(faktura)
             ).apply { this.faktura.forEach { it.fakturaserie = this } }

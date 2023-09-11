@@ -7,14 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 @Component
-class DuplikatReferanseIdValidator(@Autowired val fakturaserieService: FakturaserieService) :
+class DuplikatReferanseValidator(@Autowired val fakturaserieService: FakturaserieService) :
 
-ConstraintValidator<IkkeDuplikatReferanseId?, String> {
-    override fun initialize(constraintAnnotation: IkkeDuplikatReferanseId?) {}
+ConstraintValidator<IkkeDuplikatReferanse?, String> {
+    override fun initialize(constraintAnnotation: IkkeDuplikatReferanse?) {}
     override fun isValid(
-        referanseId: String,
+        referanse: String,
         cxt: ConstraintValidatorContext
     ): Boolean {
-        return !fakturaserieService.finnesReferanseId(referanseId)
+        return !fakturaserieService.finnesReferanse(referanse)
     }
 }

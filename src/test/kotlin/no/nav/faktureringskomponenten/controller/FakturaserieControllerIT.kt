@@ -41,7 +41,7 @@ import java.time.LocalDate
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableMockOAuth2Server
-class FakturaserieControllerTest(
+class FakturaserieControllerIT(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val server: MockOAuth2Server,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
@@ -64,7 +64,7 @@ class FakturaserieControllerTest(
         val opprinneligFakturaserieResponse = postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
 
         val nyFakturaserieDto = lagFakturaserieDto(
-            referanseId = opprinneligFakturaserieResponse?.referanseId, fakturaseriePeriode = listOf(
+            referanseId = opprinneligFakturaserieResponse?.fakturaserieReferanse, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(BigDecimal(18000), startDatoNy, sluttDatoNy, "Inntekt fra Norge"),
                 FakturaseriePeriodeDto(BigDecimal(24000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
             )
@@ -72,8 +72,8 @@ class FakturaserieControllerTest(
 
         val nyFakturaserieResponse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
 
-        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByReferanseId(opprinneligFakturaserieResponse.referanseId)
-        val nyFakturaserie = fakturaserieRepository.findByReferanseId(nyFakturaserieResponse.referanseId).shouldNotBeNull()
+        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligFakturaserieResponse.fakturaserieReferanse)
+        val nyFakturaserie = fakturaserieRepository.findByReferanse(nyFakturaserieResponse.fakturaserieReferanse).shouldNotBeNull()
 
         oppdatertOpprinneligFakturaserie.shouldNotBeNull()
             .status.shouldBe(FakturaserieStatus.ERSTATTET)
@@ -116,11 +116,11 @@ class FakturaserieControllerTest(
         }
 
         val fakturaserieResponse1 = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
-        val fakturaserieResponse2 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { referanseId = fakturaserieResponse1.referanseId }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
-        val fakturaserieResponse3 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { referanseId = fakturaserieResponse2.referanseId }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
-        val fakturaserieResponse4 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { referanseId = fakturaserieResponse3.referanseId }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+        val fakturaserieResponse2 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse1.fakturaserieReferanse }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+        val fakturaserieResponse3 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse2.fakturaserieReferanse }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+        val fakturaserieResponse4 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse3.fakturaserieReferanse }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
 
-        val responseAlleFakturaserier = hentFakturaserierRequest(fakturaserieResponse4.referanseId!!)
+        val responseAlleFakturaserier = hentFakturaserierRequest(fakturaserieResponse4.fakturaserieReferanse!!)
             .expectStatus().isOk
             .expectBodyList(FakturaserieResponseDto::class.java).returnResult().responseBody
 
@@ -128,7 +128,7 @@ class FakturaserieControllerTest(
         responseAlleFakturaserier?.filter { it.status == FakturaserieStatus.ERSTATTET }?.size.shouldBe(3)
         responseAlleFakturaserier?.filter { it.status == FakturaserieStatus.OPPRETTET }?.size.shouldBe(1)
 
-        val responseAlleFakturaserierKunKansellert = hentFakturaserierRequest(fakturaserieResponse4.referanseId!!, "&fakturaStatus=${FakturaStatus.KANSELLERT}")
+        val responseAlleFakturaserierKunKansellert = hentFakturaserierRequest(fakturaserieResponse4.fakturaserieReferanse!!, "&fakturaStatus=${FakturaStatus.KANSELLERT}")
             .expectStatus().isOk
             .expectBodyList(FakturaserieResponseDto::class.java).returnResult().responseBody
 
@@ -156,7 +156,7 @@ class FakturaserieControllerTest(
 
         val responsePost = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
 
-        val response = hentFakturaserieRequest(responsePost.referanseId)
+        val response = hentFakturaserieRequest(responsePost.fakturaserieReferanse)
             .expectStatus().isOk
             .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
 
@@ -275,9 +275,9 @@ class FakturaserieControllerTest(
             }
             .exchange()
 
-    private fun hentFakturaserierRequest(referanseId: String, fakturaStatus: String? = null): WebTestClient.ResponseSpec =
+    private fun hentFakturaserierRequest(referanse: String, fakturaStatus: String? = null): WebTestClient.ResponseSpec =
         webClient.get()
-            .uri("/fakturaserier?referanseId=$referanseId${fakturaStatus ?: ""}")
+            .uri("/fakturaserier?referanse=$referanse${fakturaStatus ?: ""}")
             .accept(MediaType.APPLICATION_JSON)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")

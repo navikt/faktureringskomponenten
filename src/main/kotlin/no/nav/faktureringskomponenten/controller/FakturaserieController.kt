@@ -56,34 +56,34 @@ class FakturaserieController @Autowired constructor(
         if (responseEntity.statusCode == HttpStatus.OK) {
             log.info("Mottatt $fakturaserieRequestDto")
 
-            val forrigeReferanseId = fakturaserieRequestDto.referanseId
+            val forrigeReferanse = fakturaserieRequestDto.fakturaserieReferanse
             val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
-            val referanseId = faktureringService.lagNyFakturaserie(fakturaserieDto, forrigeReferanseId)
+            val referanse = faktureringService.lagNyFakturaserie(fakturaserieDto, forrigeReferanse)
 
             Metrics.counter(MetrikkNavn.FAKTURASERIE_OPPRETTET).increment()
 
-            return ProblemDetailValidator.leggTilProperties(linkedMapOf(Pair("referanseId", referanseId)))
+            return ProblemDetailValidator.leggTilProperties(linkedMapOf(Pair("fakturaserieReferanse", referanse)))
         }
 
         return responseEntity
     }
 
-    @Operation(summary = "Henter fakturaserie på referanseId")
+    @Operation(summary = "Henter fakturaserie på referanse")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "400", description = "Fant ikke forespurt fakturaserie")
         ]
     )
-    @GetMapping("/{referanseId}")
-    fun hentFakturaserie(@PathVariable("referanseId") referanseId: String): FakturaserieResponseDto {
-        return faktureringService.hentFakturaserie(referanseId).tilFakturaserieResponseDto
+    @GetMapping("/{referanse}")
+    fun hentFakturaserie(@PathVariable("referanse") referanse: String): FakturaserieResponseDto {
+        return faktureringService.hentFakturaserie(referanse).tilFakturaserieResponseDto
     }
 
     @GetMapping
     fun hentFakturaserier(
-        @RequestParam("referanseId") referanseId: String,
+        @RequestParam("referanse") referanse: String,
         @RequestParam(value = "fakturaStatus", required = false) fakturaStatus: String? = null
 ): List<FakturaserieResponseDto> {
-        return faktureringService.hentFakturaserier(referanseId, fakturaStatus).map { it.tilFakturaserieResponseDto }
+        return faktureringService.hentFakturaserier(referanse, fakturaStatus).map { it.tilFakturaserieResponseDto }
     }
 }

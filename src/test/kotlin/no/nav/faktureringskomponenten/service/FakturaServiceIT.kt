@@ -78,7 +78,7 @@ class FakturaServiceIT(
     private fun lagFakturaSerie(): Long =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
-                referanseId = "MEL-1-1",
+                referanse = "MEL-1-1",
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(
                     Faktura(

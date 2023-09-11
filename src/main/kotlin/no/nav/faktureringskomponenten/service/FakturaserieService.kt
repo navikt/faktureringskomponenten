@@ -1,7 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
@@ -19,36 +18,36 @@ class FakturaserieService(
     private val fakturaserieMapper: FakturaserieMapper,
 ) {
 
-    fun hentFakturaserie(referanseId: String): Fakturaserie =
-        fakturaserieRepository.findByReferanseId(referanseId) ?: throw RessursIkkeFunnetException(
-            field = "referanseId",
-            message = "Fant ikke fakturaserie på: $referanseId"
+    fun hentFakturaserie(referanse: String): Fakturaserie =
+        fakturaserieRepository.findByReferanse(referanse) ?: throw RessursIkkeFunnetException(
+            field = "referanse",
+            message = "Fant ikke fakturaserie på: $referanse"
         )
 
-    fun hentFakturaserier(referanseId: String, fakturaStatus: String?): List<Fakturaserie> {
-        return fakturaserieRepository.findAllByReferanseId2(referanseId, fakturaStatus)
+    fun hentFakturaserier(referanse: String, fakturaStatus: String?): List<Fakturaserie> {
+        return fakturaserieRepository.findAllByReferanse(referanse, fakturaStatus)
     }
 
     @Transactional
-    fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto, forrigeReferanseId: String? = null): String {
-        if(!forrigeReferanseId.isNullOrEmpty() && fakturaserieRepository.findFakturaserieByReferanseIdAndStatusIn(forrigeReferanseId) != null){
-            endreFakturaserie(forrigeReferanseId, fakturaserieDto);
-            log.info("Kansellerer fakturaserie: ${fakturaserieDto.referanseId}, lager ny fakturaserie: ${fakturaserieDto.referanseId}")
-            return fakturaserieDto.referanseId
+    fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto, forrigeReferanse: String? = null): String {
+        if(!forrigeReferanse.isNullOrEmpty()){
+            endreFakturaserie(forrigeReferanse, fakturaserieDto);
+            log.info("Kansellerer fakturaserie: ${fakturaserieDto.fakturaserieReferanse}, lager ny fakturaserie: ${fakturaserieDto.fakturaserieReferanse}")
+            return fakturaserieDto.fakturaserieReferanse
         }
 
         val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
-        return fakturaserie.referanseId
+        return fakturaserie.referanse
     }
 
     @Transactional
-    fun endreFakturaserie(opprinneligReferanseId: String, fakturaserieDto: FakturaserieDto) {
-        val opprinneligFakturaserie = fakturaserieRepository.findFakturaserieByReferanseIdAndStatusIn(opprinneligReferanseId)
+    fun endreFakturaserie(opprinneligReferanse: String, fakturaserieDto: FakturaserieDto) {
+        val opprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligReferanse)
             ?: throw RessursIkkeFunnetException(
-                field = "referanseId",
-                message = "Fant ikke opprinnelig fakturaserie med referanseId $opprinneligReferanseId"
+                field = "referanse",
+                message = "Fant ikke opprinnelig fakturaserie med referanse $opprinneligReferanse"
             )
 
         val opprinneligFakturaserieErUnderBestilling =
@@ -73,10 +72,10 @@ class FakturaserieService(
 
         fakturaserieRepository.save(opprinneligFakturaserie)
         fakturaserieRepository.save(nyFakturaserie)
-        log.info("Kansellert fakturaserie med id: ${opprinneligFakturaserie.referanseId}, lager ny med id: ${nyFakturaserie.referanseId}")
+        log.info("Kansellert fakturaserie med id: ${opprinneligFakturaserie.referanse}, lager ny med id: ${nyFakturaserie.referanse}")
     }
 
-    fun finnesReferanseId(referanseId: String): Boolean {
-        return fakturaserieRepository.findByReferanseId(referanseId) != null
+    fun finnesReferanse(referanse: String): Boolean {
+        return fakturaserieRepository.findByReferanse(referanse) != null
     }
 }

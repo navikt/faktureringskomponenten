@@ -38,12 +38,12 @@ class FakturaMottattService(
 
         val fakturaMottatt = fakturaMottattMapper.tilFakturaMottat(fakturaMottattDto);
 
-        if(faktura.fakturaserie?.referanseId != null) {
+        if(faktura.fakturaserie?.referanse != null) {
             try {
                 if(fakturaMottatt.status == FakturaMottattStatus.MANGLENDE_INNBETALING) {
                     manglendeFakturabetalingProducer.produserBestillingsmelding(
                         ManglendeFakturabetalingDto(
-                            referanseId = faktura.fakturaserie!!.referanseId,
+                            fakturaserieReferanse = faktura.fakturaserie!!.referanse,
                             mottaksDato = fakturaMottatt.dato!!
                         )
                     )
@@ -55,7 +55,7 @@ class FakturaMottattService(
             } catch (e: Exception) {
                 fakturaMottattRepository.save(fakturaMottatt.apply { sendt = false })
                 throw RuntimeException(
-                    "Kunne ikke produsere melding om faktura mottatt bestilt for behandlingsID ${faktura.fakturaserie!!.referanseId}", e
+                    "Kunne ikke produsere melding om faktura mottatt bestilt for behandlingsID ${faktura.fakturaserie!!.referanse}", e
                 )
             }
         }

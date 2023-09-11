@@ -44,7 +44,7 @@ Run: `./gradlew run`
 
 ```json5
 {
-  "referanseId": "MEL-103-123",
+  "fakturaserieReferanse": "MEL-103-123",
   "fodselsnummer": "1234578911",
   "referanseBruker": "Referanse for bruker",
   "referanseNAV": "Referanse for NAV",

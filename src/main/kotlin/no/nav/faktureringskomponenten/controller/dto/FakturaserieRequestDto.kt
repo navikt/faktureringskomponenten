@@ -15,7 +15,7 @@ data class FakturaserieRequestDto(
     @field:ErFodselsnummer
     val fodselsnummer: String,
 
-    var referanseId: String?,
+    var fakturaserieReferanse: String?,
 
     val fullmektig: FullmektigDto?,
 

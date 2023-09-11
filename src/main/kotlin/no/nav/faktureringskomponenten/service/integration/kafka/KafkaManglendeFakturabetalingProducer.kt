@@ -30,15 +30,15 @@ class KafkaManglendeFakturabetalingProducer(
             val sendeResultat = future.get(15L, TimeUnit.SECONDS)
             log.info(
                 "Melding sendt på topic $topicName " +
-                        "for saksnummer-behandlingsID ${manglendeFakturabetalingDto.referanseId}. " +
+                        "for saksnummer-behandlingsID ${manglendeFakturabetalingDto.fakturaserieReferanse}. " +
                         "Offset: ${sendeResultat.recordMetadata.offset()} "
             )
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
-            throw RuntimeException("Avbrutt ved sending av melding om faktura bestilt for saksnummer-behandlingsID ${manglendeFakturabetalingDto.referanseId}")
+            throw RuntimeException("Avbrutt ved sending av melding om faktura bestilt for referanse ${manglendeFakturabetalingDto.fakturaserieReferanse}")
         } catch (e: Exception) {
             throw RuntimeException(
-                "Kunne ikke sende melding om faktura bestilt for saksnummer-behandlingsID ${manglendeFakturabetalingDto.referanseId}", e
+                "Kunne ikke sende melding om faktura bestilt for referanse ${manglendeFakturabetalingDto.fakturaserieReferanse}", e
             )
         }
     }

@@ -397,7 +397,7 @@ class FakturaserieMapperTest {
         val fakturaMapper = FakturaMapperForTest(dagensDato)
         return FakturaserieMapper(fakturaMapper).tilFakturaserie(
             FakturaserieDto(
-                referanseId = "MEL-105-145",
+                fakturaserieReferanse = "MEL-105-145",
                 fodselsnummer = "30056928150",
                 fullmektig = Fullmektig(
                     fodselsnummer = null,

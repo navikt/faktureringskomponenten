@@ -12,8 +12,8 @@ class Fakturaserie(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name="referanse_id", nullable = false, unique = true)
-    val referanseId: String = "",
+    @Column(name="referanse", nullable = false, unique = true)
+    val referanse: String = "",
 
     @Column(name = "faktura_gjelder_innbetalingstype", nullable = false)
     @Enumerated(EnumType.STRING)
@@ -52,12 +52,12 @@ class Fakturaserie(
     @JoinColumn(name = "fakturaserie_id", nullable = false)
     val faktura: List<Faktura> = mutableListOf(),
 
-    @JoinColumn(name = "erstattet_med", referencedColumnName = "id")
+    @Column(name = "erstattet_med")
     var erstattetMed: Long? = null,
 ) {
     @Override
     override fun toString(): String {
-        return "referanseId: $referanseId, " +
+        return "referanse: $referanse, " +
                 "fakturaGjelderInnbetalingstype: $fakturaGjelderInnbetalingstype, " +
                 "referanseNAV: $referanseNAV, " +
                 "startdato: $startdato, " +
