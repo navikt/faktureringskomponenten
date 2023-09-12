@@ -6,7 +6,10 @@ import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotContain
-import no.nav.faktureringskomponenten.controller.dto.*
+import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.dto.FullmektigDto
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
@@ -61,7 +64,7 @@ class FakturaserieControllerIT(
             )
         )
 
-        val opprinneligFakturaserieReferanse = postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
+        val opprinneligFakturaserieReferanse = postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
 
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
@@ -70,7 +73,7 @@ class FakturaserieControllerIT(
             )
         )
 
-        val nyFakturaserieReferanse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
+        val nyFakturaserieReferanse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
 
         val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse)
         val nyFakturaserie = fakturaserieRepository.findByReferanse(nyFakturaserieReferanse).shouldNotBeNull()
@@ -107,10 +110,10 @@ class FakturaserieControllerIT(
             )
         )
 
-        val fakturaserieResponse1Referanse = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
-        val fakturaserieResponse2Referanse = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse1Referanse }).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
-        val fakturaserieResponse3Referanse = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse2Referanse }).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
-        val fakturaserieResponse4Referanse = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse3Referanse }).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
+        val fakturaserieResponse1Referanse = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
+        val fakturaserieResponse2Referanse = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse1Referanse }).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
+        val fakturaserieResponse3Referanse = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse2Referanse }).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
+        val fakturaserieResponse4Referanse = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse3Referanse }).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
 
         val responseAlleFakturaserier = hentFakturaserierRequest(fakturaserieResponse4Referanse)
             .expectStatus().isOk
@@ -143,7 +146,7 @@ class FakturaserieControllerIT(
             )
         )
 
-        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
 
         val response = hentFakturaserieRequest(fakturaserieReferanse)
             .expectStatus().isOk

@@ -59,7 +59,7 @@ class FakturaserieController @Autowired constructor(
         val referanse = faktureringService.lagNyFakturaserie(fakturaserieDto, forrigeReferanse)
         Metrics.counter(MetrikkNavn.FAKTURASERIE_OPPRETTET).increment()
 
-        return ResponseEntity.ok(mapOf("fakturaserieReferanse" to referanse))
+        return ResponseEntity.ok(NyFakturaserieResponseDto(referanse))
     }
 
     @Operation(summary = "Henter fakturaserie på referanse")
