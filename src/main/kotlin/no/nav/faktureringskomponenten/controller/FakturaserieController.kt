@@ -49,23 +49,20 @@ class FakturaserieController @Autowired constructor(
     fun lagNyFakturaserie(
         @RequestBody @Validated fakturaserieRequestDto: FakturaserieRequestDto,
         bindingResult: BindingResult
-    ): ResponseEntity<ProblemDetail> {
+    ): ResponseEntity<Any> {
+        log.info("Mottatt $fakturaserieRequestDto")
+        val problemDetail = ProblemDetailValidator.validerBindingResult(bindingResult)
 
-        val responseEntity = ProblemDetailValidator.validerBindingResult(bindingResult)
-
-        if (responseEntity.statusCode == HttpStatus.OK) {
-            log.info("Mottatt $fakturaserieRequestDto")
-
-            val forrigeReferanse = fakturaserieRequestDto.fakturaserieReferanse
-            val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
-            val referanse = faktureringService.lagNyFakturaserie(fakturaserieDto, forrigeReferanse)
-
-            Metrics.counter(MetrikkNavn.FAKTURASERIE_OPPRETTET).increment()
-
-            return ProblemDetailValidator.leggTilProperties(linkedMapOf(Pair("fakturaserieReferanse", referanse)))
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail)
         }
 
-        return responseEntity
+        val forrigeReferanse = fakturaserieRequestDto.fakturaserieReferanse
+        val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
+        val referanse = faktureringService.lagNyFakturaserie(fakturaserieDto, forrigeReferanse)
+        Metrics.counter(MetrikkNavn.FAKTURASERIE_OPPRETTET).increment()
+
+        return ResponseEntity.ok(referanse)
     }
 
     @Operation(summary = "Henter fakturaserie på referanse")

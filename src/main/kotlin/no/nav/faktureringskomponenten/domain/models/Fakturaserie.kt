@@ -52,8 +52,9 @@ class Fakturaserie(
     @JoinColumn(name = "fakturaserie_id", nullable = false)
     val faktura: List<Faktura> = mutableListOf(),
 
-    @Column(name = "erstattet_med")
+    @JoinColumn(name = "erstattet_med", nullable = false, insertable = false, updatable = false)
     var erstattetMed: Long? = null,
+
 ) {
     @Override
     override fun toString(): String {

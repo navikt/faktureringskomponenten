@@ -61,19 +61,19 @@ class FakturaserieControllerIT(
             )
         )
 
-        val opprinneligFakturaserieResponse = postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+        val opprinneligFakturaserieReferanse = postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
 
         val nyFakturaserieDto = lagFakturaserieDto(
-            referanseId = opprinneligFakturaserieResponse?.fakturaserieReferanse, fakturaseriePeriode = listOf(
+            referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(BigDecimal(18000), startDatoNy, sluttDatoNy, "Inntekt fra Norge"),
                 FakturaseriePeriodeDto(BigDecimal(24000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
             )
         )
 
-        val nyFakturaserieResponse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+        val nyFakturaserieReferanse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
 
-        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligFakturaserieResponse.fakturaserieReferanse)
-        val nyFakturaserie = fakturaserieRepository.findByReferanse(nyFakturaserieResponse.fakturaserieReferanse).shouldNotBeNull()
+        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse)
+        val nyFakturaserie = fakturaserieRepository.findByReferanse(nyFakturaserieReferanse).shouldNotBeNull()
 
         oppdatertOpprinneligFakturaserie.shouldNotBeNull()
             .status.shouldBe(FakturaserieStatus.ERSTATTET)
@@ -94,10 +94,6 @@ class FakturaserieControllerIT(
         nyFakturaserie.faktura.forEach {
             it.status.shouldBe(FakturaStatus.OPPRETTET)
         }
-
-        addCleanUpAction {
-            fakturaserieRepository.deleteAll()
-        }
     }
 
     @Test
@@ -111,16 +107,12 @@ class FakturaserieControllerIT(
             )
         )
 
-        addCleanUpAction {
-            fakturaserieRepository.deleteAll()
-        }
+        val fakturaserieResponse1Referanse = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
+        val fakturaserieResponse2Referanse = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse1Referanse }).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
+        val fakturaserieResponse3Referanse = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse2Referanse }).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
+        val fakturaserieResponse4Referanse = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse3Referanse }).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
 
-        val fakturaserieResponse1 = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
-        val fakturaserieResponse2 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse1.fakturaserieReferanse }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
-        val fakturaserieResponse3 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse2.fakturaserieReferanse }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
-        val fakturaserieResponse4 = postLagNyFakturaserieRequest(fakturaSerieDto.apply { fakturaserieReferanse = fakturaserieResponse3.fakturaserieReferanse }).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
-
-        val responseAlleFakturaserier = hentFakturaserierRequest(fakturaserieResponse4.fakturaserieReferanse!!)
+        val responseAlleFakturaserier = hentFakturaserierRequest(fakturaserieResponse4Referanse)
             .expectStatus().isOk
             .expectBodyList(FakturaserieResponseDto::class.java).returnResult().responseBody
 
@@ -128,7 +120,7 @@ class FakturaserieControllerIT(
         responseAlleFakturaserier?.filter { it.status == FakturaserieStatus.ERSTATTET }?.size.shouldBe(3)
         responseAlleFakturaserier?.filter { it.status == FakturaserieStatus.OPPRETTET }?.size.shouldBe(1)
 
-        val responseAlleFakturaserierKunKansellert = hentFakturaserierRequest(fakturaserieResponse4.fakturaserieReferanse!!, "&fakturaStatus=${FakturaStatus.KANSELLERT}")
+        val responseAlleFakturaserierKunKansellert = hentFakturaserierRequest(fakturaserieResponse4Referanse, "&fakturaStatus=${FakturaStatus.KANSELLERT}")
             .expectStatus().isOk
             .expectBodyList(FakturaserieResponseDto::class.java).returnResult().responseBody
 
@@ -150,13 +142,10 @@ class FakturaserieControllerIT(
                 FakturaseriePeriodeDto(BigDecimal(500), startDato, sluttDato, "Misjonær")
             )
         )
-        addCleanUpAction {
-            fakturaserieRepository.deleteAll()
-        }
 
-        val responsePost = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(ProblemDetailResponse::class.java).returnResult().responseBody!!
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(String::class.java).returnResult().responseBody!!
 
-        val response = hentFakturaserieRequest(responsePost.fakturaserieReferanse)
+        val response = hentFakturaserieRequest(fakturaserieReferanse)
             .expectStatus().isOk
             .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
 

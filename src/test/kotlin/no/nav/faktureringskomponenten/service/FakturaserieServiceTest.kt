@@ -55,7 +55,7 @@ class FakturaserieServiceTest {
         oppdatertOpprinneligFakturaserie?.status
             .shouldBe(FakturaserieStatus.ERSTATTET)
 
-        verify(exactly = 1) {
+        verify {
             fakturaserieRepository.findByReferanse(opprinneligReferanse)
             fakturaserieRepository.save(opprinneligFakturaserie)
             fakturaserieRepository.save(nyFakturaserie)

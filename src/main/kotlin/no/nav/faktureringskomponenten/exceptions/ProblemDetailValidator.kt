@@ -8,7 +8,7 @@ import org.springframework.validation.BindingResult
 class ProblemDetailValidator {
     companion object {
 
-        fun validerBindingResult(bindingResult: BindingResult): ResponseEntity<ProblemDetail> {
+        fun validerBindingResult(bindingResult: BindingResult): ProblemDetail {
             if (bindingResult.hasErrors()) {
                 val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST)
                 problemDetail.apply {
@@ -20,10 +20,10 @@ class ProblemDetailValidator {
                         mapOf("field" to it.field, "message" to it.defaultMessage, "argument" to it.rejectedValue)
                     }
                 )
-                return ResponseEntity<ProblemDetail>(problemDetail, HttpStatus.BAD_REQUEST)
+                return problemDetail
             }
 
-            return ResponseEntity.ok(ProblemDetail.forStatus(HttpStatus.OK))
+            return ProblemDetail.forStatus(HttpStatus.OK)
         }
 
         fun leggTilProperties(properties: LinkedHashMap<String, String>): ResponseEntity<ProblemDetail> {

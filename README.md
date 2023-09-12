@@ -89,7 +89,7 @@ flowchart TB
 classDiagram
 class fakturaserie {
     id : LONG
-    referanse_id : VARCHAR
+    referanse : VARCHAR
     faktura_gjelder : VARCHAR
     fodselsnummer : NUMERIC
     fullmektig_fodselsnummer : NUMERIC
@@ -103,6 +103,7 @@ class fakturaserie {
     intervall : fakturaserie_intervall
     opprettet_Tidspunkt : DATE
     (PK) id
+    (FK) referanse
 }
 
 class faktura {
@@ -131,6 +132,7 @@ class fakturaserie_status {
     OPPRETTET
     UNDER_BESTILLING
     KANSELLERT
+    ERSTATTET
     FERDIG
 } 
 

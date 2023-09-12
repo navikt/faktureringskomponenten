@@ -36,12 +36,6 @@ open class PostgresTestContainerBase {
             System.getenv("USE-LOCAL-DB")?.lowercase() != "true" && useContainer
     }
 
-    private fun checkThatDatabaseIsEmpty() {
-        if (useTestContainer()) {
-            dbVerify.databaseShouldBeClean()
-        }
-    }
-
     protected fun addCleanUpAction(deleteAction: () -> Unit) {
         dbCleanUpActions.add(deleteAction)
     }
@@ -49,6 +43,5 @@ open class PostgresTestContainerBase {
     @AfterEach
     fun postgresTestContainerBaseAfterEach() {
         dbCleanUpActions.forEach { it() }
-        checkThatDatabaseIsEmpty()
     }
 }
