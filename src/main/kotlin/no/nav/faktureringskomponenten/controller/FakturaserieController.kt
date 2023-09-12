@@ -9,8 +9,7 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
-import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
+import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.FakturaMottattService
 import no.nav.faktureringskomponenten.service.FakturaserieService
@@ -18,7 +17,6 @@ import no.nav.security.token.support.core.api.Protected
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindingResult
 import org.springframework.validation.annotation.Validated
@@ -51,10 +49,9 @@ class FakturaserieController @Autowired constructor(
         bindingResult: BindingResult
     ): ResponseEntity<Any> {
         log.info("Mottatt $fakturaserieRequestDto")
-        val problemDetail = ProblemDetailValidator.validerBindingResult(bindingResult)
 
         if (bindingResult.hasErrors()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ProblemDetailFactory.of(bindingResult))
         }
 
         val forrigeReferanse = fakturaserieRequestDto.fakturaserieReferanse
@@ -62,7 +59,7 @@ class FakturaserieController @Autowired constructor(
         val referanse = faktureringService.lagNyFakturaserie(fakturaserieDto, forrigeReferanse)
         Metrics.counter(MetrikkNavn.FAKTURASERIE_OPPRETTET).increment()
 
-        return ResponseEntity.ok(referanse)
+        return ResponseEntity.ok(mapOf("fakturaserieReferanse" to referanse))
     }
 
     @Operation(summary = "Henter fakturaserie på referanse")
