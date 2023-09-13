@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.service
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
@@ -102,7 +101,7 @@ class FakturaServiceIT(
     fun `test at melding blir sent på kø`() {
         fakturaBestillCronjob.bestillFaktura()
 
-        TestQueue.fakturaBestiltMeldinger.shouldNotBeEmpty()
+        TestQueue.fakturaBestiltMeldinger.shouldHaveSize(1)
         fakturaRepository.findById(fakturaId!!)?.status
             .shouldBe(FakturaStatus.BESTILLT)
     }

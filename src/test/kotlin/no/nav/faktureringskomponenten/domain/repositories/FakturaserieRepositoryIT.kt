@@ -1,7 +1,6 @@
 package no.nav.faktureringskomponenten.domain.repositories
 
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.*
@@ -36,7 +35,7 @@ class FakturaserieRepositoryIT(
         val fakturaList =
             fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(LocalDate.now().plusDays(100))
 
-        fakturaList.shouldNotBeEmpty()
+        fakturaList.shouldHaveSize(1)
     }
 
     @Test

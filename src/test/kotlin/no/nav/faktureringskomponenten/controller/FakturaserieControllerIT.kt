@@ -20,6 +20,7 @@ import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -49,6 +50,13 @@ class FakturaserieControllerIT(
     @Autowired private val server: MockOAuth2Server,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
 ) : PostgresTestContainerBase() {
+
+    @AfterEach
+    fun cleanUp(){
+        addCleanUpAction {
+            fakturaserieRepository.deleteAll()
+        }
+    }
 
     @Test
     @Transactional
