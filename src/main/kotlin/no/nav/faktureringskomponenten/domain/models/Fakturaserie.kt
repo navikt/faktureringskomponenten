@@ -52,8 +52,9 @@ class Fakturaserie(
     @JoinColumn(name = "fakturaserie_id", nullable = false)
     val faktura: List<Faktura> = mutableListOf(),
 
-    @JoinColumn(name = "erstattet_med", nullable = false, insertable = false, updatable = false)
-    var erstattetMed: Long? = null,
+    @OneToOne(cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
+    @JoinColumn(name = "erstattet_med", referencedColumnName = "id")
+    var erstattetMed: Fakturaserie? = null,
 
 ) {
     @Override

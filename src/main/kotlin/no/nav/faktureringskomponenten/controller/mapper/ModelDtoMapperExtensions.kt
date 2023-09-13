@@ -19,7 +19,7 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
         intervall = this.intervall,
         opprettetTidspunkt = this.opprettetTidspunkt,
         faktura = this.faktura.map { it.tilResponseDto },
-        erstattetMed = this.erstattetMed
+        erstattetMed = this.erstattetMed?.id
     )
 
 val FakturaMottatt.tilFakturaTilbakemeldingResponseDto: FakturaTilbakemeldingResponseDto

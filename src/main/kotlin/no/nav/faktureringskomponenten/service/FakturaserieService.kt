@@ -68,7 +68,7 @@ class FakturaserieService(
         opprinneligFakturaserie.status = FakturaserieStatus.ERSTATTET
         fakturaSomIkkeErSendt.forEach { it.status = FakturaStatus.KANSELLERT }
 
-        nyFakturaserie.apply { erstattetMed = opprinneligFakturaserie.id }
+        nyFakturaserie.apply { erstattetMed = opprinneligFakturaserie }
 
         fakturaserieRepository.save(opprinneligFakturaserie)
         fakturaserieRepository.save(nyFakturaserie)
