@@ -102,7 +102,7 @@ class FakturaMottattServiceIT(
         ).apply {
             fakturaserie =
                 Fakturaserie(
-                    100, vedtaksId = "MEL-1",
+                    100, referanse = "MEL-1",
                     fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",

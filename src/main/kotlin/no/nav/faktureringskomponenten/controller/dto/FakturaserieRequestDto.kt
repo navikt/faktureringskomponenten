@@ -5,20 +5,17 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
-import no.nav.faktureringskomponenten.controller.validators.IkkeDuplikatVedtaksId
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 
 @Schema(description = "DTO for fullstendig informasjon om alle planlagte fakturaer")
 data class FakturaserieRequestDto(
 
-    @field:Schema(description = "Unik identifikator som saksbehandlingssystemet kjenner igjen")
-    @field:IkkeDuplikatVedtaksId
-    val vedtaksId: String,
-
     @field:Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
     @field:ErFodselsnummer
     val fodselsnummer: String,
+
+    var fakturaserieReferanse: String?,
 
     val fullmektig: FullmektigDto?,
 
@@ -57,6 +54,6 @@ data class FakturaserieRequestDto(
 ) {
     @Override
     override fun toString(): String {
-        return "vedtaksId: $vedtaksId, intervall: $intervall, perioder: $perioder"
+        return "referanseNav: $referanseNAV referanseBruker: $referanseBruker intervall: $intervall, perioder: $perioder"
     }
 }

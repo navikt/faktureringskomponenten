@@ -16,7 +16,7 @@ class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
         val sluttDatoForHelePerioden = mapSluttdato(fakturaserieDto.perioder)
         return Fakturaserie(
             id = null,
-            vedtaksId = fakturaserieDto.vedtaksId,
+            referanse = fakturaserieDto.fakturaserieReferanse,
             fakturaGjelderInnbetalingstype = fakturaserieDto.fakturaGjelderInnbetalingstype,
             fodselsnummer = fakturaserieDto.fodselsnummer,
             fullmektig = mapFullmektig(fakturaserieDto.fullmektig),

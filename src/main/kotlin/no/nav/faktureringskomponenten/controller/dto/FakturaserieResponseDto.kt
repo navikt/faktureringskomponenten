@@ -1,9 +1,7 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
-import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
-import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
+import no.nav.faktureringskomponenten.domain.models.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -11,7 +9,7 @@ import java.time.LocalDateTime
 data class FakturaserieResponseDto(
 
     @Schema(description = "Unik identifikator som saksbehandlingssystemet kjenner igjen")
-    val vedtaksId: String,
+    val fakturaserieReferanse: String,
 
     @Schema(description = "Informasjon om hva bruker betaler")
     val fakturaGjelderInnbetalingstype: Innbetalingstype,
@@ -41,5 +39,7 @@ data class FakturaserieResponseDto(
     val opprettetTidspunkt: LocalDateTime,
 
     @Schema(description = "Liste over planlagte fakturaer")
-    val faktura: List<FakturaResponseDto>
+    val faktura: List<FakturaResponseDto>,
+
+    val erstattetMed: Long?
 )

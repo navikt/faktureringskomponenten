@@ -4,18 +4,12 @@ import io.micrometer.core.instrument.Metrics
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import jakarta.validation.Valid
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.controller.dto.FakturaTilbakemeldingResponseDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
-import no.nav.faktureringskomponenten.controller.mapper.tilFakturaTilbakemeldingResponseDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.exceptions.ProblemDetailValidator
+import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.FakturaMottattService
 import no.nav.faktureringskomponenten.service.FakturaserieService
@@ -23,7 +17,6 @@ import no.nav.security.token.support.core.api.Protected
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindingResult
 import org.springframework.validation.annotation.Validated
@@ -54,56 +47,37 @@ class FakturaserieController @Autowired constructor(
     fun lagNyFakturaserie(
         @RequestBody @Validated fakturaserieRequestDto: FakturaserieRequestDto,
         bindingResult: BindingResult
-    ): ResponseEntity<ProblemDetail>? {
-        val responseEntity = ProblemDetailValidator.validerBindingResult(bindingResult)
-        if (responseEntity.statusCode == HttpStatus.OK) {
-            log.info("Mottatt $fakturaserieRequestDto")
-            val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
-            faktureringService.lagNyFakturaserie(fakturaserieDto)
-            Metrics.counter(MetrikkNavn.FAKTURASERIE_OPPRETTET).increment()
+    ): ResponseEntity<Any> {
+        log.info("Mottatt $fakturaserieRequestDto")
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ProblemDetailFactory.of(bindingResult))
         }
-        return responseEntity
-    }
 
-    @Operation(
-        summary = "Kansellerer eksisterende fakturaserie og fremtidlige planlagte fakturaer som ikke er bestilt. " +
-            "Oppretter så ny fakturaserie med fakturaer som erstatter kansellerte",
-        description = "vedtaksId i parameter må være identifikator for fakturaserie som skal oppdateres"
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "202", description = "Fakturaserie erstattet"),
-            ApiResponse(responseCode = "400", description = "Feil med validering av felter")
-        ]
-    )
-
-    @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
-    @PutMapping("/{vedtaksId}")
-    fun endreFakturaserie(
-        @PathVariable("vedtaksId") vedtaksId: String,
-        @RequestBody @Valid fakturaserieRequestDto: FakturaserieRequestDto
-    ): Fakturaserie? {
+        val forrigeReferanse = fakturaserieRequestDto.fakturaserieReferanse
         val fakturaserieDto = fakturaserieRequestDto.tilFakturaserieDto
-        return faktureringService.endreFakturaserie(vedtaksId, fakturaserieDto)
+        val referanse = faktureringService.lagNyFakturaserie(fakturaserieDto, forrigeReferanse)
+        Metrics.counter(MetrikkNavn.FAKTURASERIE_OPPRETTET).increment()
+
+        return ResponseEntity.ok(NyFakturaserieResponseDto(referanse))
     }
 
-    @Operation(summary = "Henter fakturaserie på vedtaksId")
+    @Operation(summary = "Henter fakturaserie på referanse")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "400", description = "Fant ikke forespurt fakturaserie")
         ]
     )
-
-    @GetMapping("/{vedtaksId}")
-    fun hentFakturaserie(@PathVariable("vedtaksId") vedtaksId: String): FakturaserieResponseDto {
-        return faktureringService.hentFakturaserie(vedtaksId).tilFakturaserieResponseDto
+    @GetMapping("/{referanse}")
+    fun hentFakturaserie(@PathVariable("referanse") referanse: String): FakturaserieResponseDto {
+        return faktureringService.hentFakturaserie(referanse).tilFakturaserieResponseDto
     }
 
     @GetMapping
     fun hentFakturaserier(
-        @RequestParam("saksnummer") saksnummer: String,
+        @RequestParam("referanse") referanse: String,
         @RequestParam(value = "fakturaStatus", required = false) fakturaStatus: String? = null
 ): List<FakturaserieResponseDto> {
-        return faktureringService.hentFakturaserier(saksnummer, fakturaStatus).map { it.tilFakturaserieResponseDto }
+        return faktureringService.hentFakturaserier(referanse, fakturaStatus).map { it.tilFakturaserieResponseDto }
     }
 }

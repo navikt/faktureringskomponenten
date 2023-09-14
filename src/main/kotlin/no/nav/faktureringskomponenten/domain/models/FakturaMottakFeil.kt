@@ -16,8 +16,8 @@ class FakturaMottakFeil(
     @Column(name = "kafka_melding")
     val kafkaMelding: String? = null,
 
-    @Column(name = "vedtaks_id")
-    val vedtaksId: String? = null,
+    @Column(name = "referanse")
+    val referanse: String? = null,
 
     @Column(name = "faktura_referanse_nr")
     val fakturaReferanseNr: String? = null,

@@ -4,13 +4,13 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import net.bytebuddy.utility.RandomString
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
@@ -20,14 +20,18 @@ class FakturaserieServiceTest {
 
     @Test
     fun `Endrer fakturaserie, kansellerer opprinnelig og lager ny`() {
-        val opprinneligVedtaksId = "MEL-123"
-        val nyVedtaksId = "MEL-456"
-        val opprinneligFakturaserie = lagFakturaserie(opprinneligVedtaksId)
-        val nyFakturaserieDto = lagFakturaserieDto(nyVedtaksId)
-        val nyFakturaserie = lagFakturaserie(nyVedtaksId)
+        val opprinneligReferanse = "MEL-123"
+        val nyReferanse = "MEL-456"
+        val opprinneligFakturaserie = lagFakturaserie(opprinneligReferanse)
+        val nyFakturaserieDto = lagFakturaserieDto(nyReferanse)
+        val nyFakturaserie = lagFakturaserie(nyReferanse)
 
         every {
-            fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
+            fakturaserieRepository.findByReferanse(opprinneligReferanse)
+        } returns opprinneligFakturaserie
+
+        every {
+            fakturaserieRepository.findByReferanse(opprinneligReferanse)
         } returns opprinneligFakturaserie
 
         every {
@@ -43,18 +47,16 @@ class FakturaserieServiceTest {
         } returns nyFakturaserie
 
 
-        fakturaserieService.endreFakturaserie(opprinneligVedtaksId, nyFakturaserieDto)
-
+        fakturaserieService.endreFakturaserie(opprinneligReferanse, nyFakturaserieDto)
 
         val oppdatertOpprinneligFakturaserie =
-            fakturaserieRepository.findByVedtaksId(vedtaksId = opprinneligVedtaksId)
-        oppdatertOpprinneligFakturaserie?.status
-            .shouldBe(FakturaserieStatus.KANSELLERT)
+            fakturaserieRepository.findByReferanse(referanse = opprinneligReferanse)
 
-        verify(exactly = 2) {
-            fakturaserieRepository.findByVedtaksId(opprinneligVedtaksId)
-        }
-        verify(exactly = 1) {
+        oppdatertOpprinneligFakturaserie?.status
+            .shouldBe(FakturaserieStatus.ERSTATTET)
+
+        verify {
+            fakturaserieRepository.findByReferanse(opprinneligReferanse)
             fakturaserieRepository.save(opprinneligFakturaserie)
             fakturaserieRepository.save(nyFakturaserie)
         }
@@ -63,7 +65,7 @@ class FakturaserieServiceTest {
     fun lagFakturaserie(vedtaksId: String): Fakturaserie {
         return Fakturaserie(
             id = 100,
-            vedtaksId = vedtaksId,
+            referanse = vedtaksId,
             fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
             referanseBruker = "Referanse bruker",
             referanseNAV = "Referanse NAV",
@@ -82,7 +84,7 @@ class FakturaserieServiceTest {
     }
 
     fun lagFakturaserieDto(
-        vedtaksId: String = "VEDTAK-1" + RandomString.make(3),
+        referanse: String = UUID.randomUUID().toString(),
         fodselsnummer: String = "12345678911",
         fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
@@ -99,7 +101,7 @@ class FakturaserieServiceTest {
         ),
     ): FakturaserieDto {
         return FakturaserieDto(
-            vedtaksId,
+            referanse,
             fodselsnummer,
             fullmektig,
             referanseBruker,

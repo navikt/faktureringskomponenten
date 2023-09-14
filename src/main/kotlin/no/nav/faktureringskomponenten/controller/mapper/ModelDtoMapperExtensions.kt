@@ -3,10 +3,11 @@ package no.nav.faktureringskomponenten.controller.mapper
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaserieDto
+import java.util.*
 
 val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
-        vedtaksId = this.vedtaksId,
+        fakturaserieReferanse = this.referanse,
         fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilDto,
@@ -17,7 +18,8 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
         status = this.status,
         intervall = this.intervall,
         opprettetTidspunkt = this.opprettetTidspunkt,
-        faktura = this.faktura.map { it.tilResponseDto }
+        faktura = this.faktura.map { it.tilResponseDto },
+        erstattetMed = this.erstattetMed?.id
     )
 
 val FakturaMottatt.tilFakturaTilbakemeldingResponseDto: FakturaTilbakemeldingResponseDto
@@ -31,7 +33,7 @@ val FakturaMottatt.tilFakturaTilbakemeldingResponseDto: FakturaTilbakemeldingRes
 
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
     get() = FakturaserieDto(
-        vedtaksId = this.vedtaksId,
+        fakturaserieReferanse = UUID.randomUUID().toString(),
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,

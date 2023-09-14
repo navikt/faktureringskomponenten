@@ -87,7 +87,7 @@ class FakturaServiceTest {
                     fodselsnummer = "12345678911",
                     fullmektigOrgnr = "",
                     fullmektigFnr = "12129012345",
-                    vedtaksId = "MEL-1",
+                    fakturaserieReferanse = "MEL-1",
                     fakturaReferanseNr = "1",
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
@@ -129,7 +129,7 @@ class FakturaServiceTest {
         ).apply {
             fakturaserie =
                 Fakturaserie(
-                    100, vedtaksId = "MEL-1",
+                    100, referanse = "MEL-1",
                     fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",

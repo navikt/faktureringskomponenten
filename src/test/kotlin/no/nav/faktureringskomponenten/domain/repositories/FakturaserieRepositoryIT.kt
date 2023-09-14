@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 
 @ActiveProfiles("itest")
@@ -21,17 +22,18 @@ class FakturaserieRepositoryIT(
 ) : PostgresTestContainerBase() {
 
     @Test
+    @Transactional
     fun test_findAllByDatoBestiltIsLessThanEqualAndStatusIs() {
         fakturaserieRepository.save(
             Fakturaserie(
                 faktura = listOf(
-                    Faktura(datoBestilt = LocalDate.now().plusDays(-1))
+                    Faktura(datoBestilt = LocalDate.now().plusDays(100))
                 )
             )
         ).apply { addCleanUpAction { fakturaserieRepository.delete(this) } }
 
         val fakturaList =
-            fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(LocalDate.now())
+            fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(LocalDate.now().plusDays(100))
 
         fakturaList.shouldHaveSize(1)
     }
