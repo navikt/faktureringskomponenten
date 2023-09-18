@@ -25,10 +25,10 @@ class FakturaserieMapper(val fakturaGenerator: FakturaGenerator = FakturaGenerat
             startdato = startDatoForHelePerioden,
             sluttdato = sluttDatoForHelePerioden,
             intervall = fakturaserieDto.intervall,
-            faktura = fakturaGenerator.tilListeAvFaktura(
-                fakturaserieDto.perioder,
+            faktura = fakturaGenerator.lagFakturaerFor(
                 startDatoForHelePerioden,
                 sluttDatoForHelePerioden,
+                fakturaserieDto.perioder,
                 fakturaserieDto.intervall
             ),
         )

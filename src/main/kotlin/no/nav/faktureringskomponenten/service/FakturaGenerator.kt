@@ -11,42 +11,59 @@ import java.time.temporal.TemporalAdjusters
 
 open class FakturaGenerator(private val fakturalinjeMapper: FakturalinjeMapper = FakturalinjeMapper()) {
 
-    fun tilListeAvFaktura(
-        periodeListeDto: List<FakturaseriePeriode>,
+    fun lagFakturaerFor(
         startDatoForHelePerioden: LocalDate,
         sluttDatoForHelePerioden: LocalDate,
-        intervall: FakturaserieIntervall
+        fakturaseriePerioder: List<FakturaseriePeriode>,
+        faktureringsintervall: FakturaserieIntervall
     ): List<Faktura> {
-        var forsteDagAvPeriode = startDatoForHelePerioden
-        val fakturaLinjer = mutableListOf<FakturaLinje>()
-        val fakturaListe = mutableListOf<Faktura>()
-        while (sluttDatoForHelePerioden >= forsteDagAvPeriode || fakturaLinjer.isNotEmpty()) {
-            val sisteDagAvPeriode = hentSisteDagAvPeriode(forsteDagAvPeriode, intervall)
-            val fakturaLinjerForPeriode = fakturalinjeMapper.tilFakturaLinjer(
-                perioder = periodeListeDto,
-                periodeFra = forsteDagAvPeriode,
-                periodeTil = finnSluttDato(sluttDatoForHelePerioden, sisteDagAvPeriode)
+        val samletFakturaListe = mutableListOf<Faktura>()
+        val gjeldendeFakturaLinjer = mutableListOf<FakturaLinje>()
+        var gjeldendeFaktureringStartDato = startDatoForHelePerioden
+
+        while (gjeldendeFaktureringStartDato <= sluttDatoForHelePerioden || gjeldendeFakturaLinjer.isNotEmpty()) {
+            val gjeldendeFaktureringSluttDato = faktureringSluttDatoFra(gjeldendeFaktureringStartDato, faktureringsintervall)
+
+            val fakturaLinjerForPeriode = lagFakturaLinjerForPeriode(
+                gjeldendeFaktureringStartDato,
+                gjeldendeFaktureringSluttDato,
+                fakturaseriePerioder,
+                sluttDatoForHelePerioden
             )
 
-            fakturaLinjer.addAll(fakturaLinjerForPeriode)
-            if (dagensDato() <= sisteDagAvPeriode) {
-                fakturaListe.add(tilFakturaTemp(forsteDagAvPeriode, fakturaLinjer.toList()))
-                fakturaLinjer.clear()
+            gjeldendeFakturaLinjer.addAll(fakturaLinjerForPeriode)
+
+            if (dagensDato() <= gjeldendeFaktureringSluttDato) {
+                samletFakturaListe.add(tilFakturaTemp(gjeldendeFaktureringStartDato, gjeldendeFakturaLinjer.toList()))
+                gjeldendeFakturaLinjer.clear()
             }
 
-            forsteDagAvPeriode = sisteDagAvPeriode.plusDays(1)
+            gjeldendeFaktureringStartDato = gjeldendeFaktureringSluttDato.plusDays(1)
         }
-        return fakturaListe
+        return samletFakturaListe
     }
 
-    private fun finnSluttDato(sluttDatoForHelePerioden: LocalDate, sisteDagAvPeriode: LocalDate) =
-        if (sluttDatoForHelePerioden < sisteDagAvPeriode) sluttDatoForHelePerioden else sisteDagAvPeriode
-
-    private fun hentSisteDagAvPeriode(dato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
-        if (intervall == FakturaserieIntervall.MANEDLIG)
-            return dato.withDayOfMonth(dato.lengthOfMonth())
+    private fun faktureringSluttDatoFra(dato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
+        if (intervall == FakturaserieIntervall.MANEDLIG) return dato.withDayOfMonth(dato.lengthOfMonth())
         return dato.withMonth(dato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
     }
+
+    private fun lagFakturaLinjerForPeriode(
+        gjeldendeFaktureringStartDato: LocalDate,
+        gjeldendeFaktureringSluttDato: LocalDate,
+        fakturaseriePerioder: List<FakturaseriePeriode>,
+        sluttDatoForHelePerioden: LocalDate
+    ): List<FakturaLinje> {
+        val fakturaLinjerForPeriode = fakturalinjeMapper.tilFakturaLinjer(
+            perioder = fakturaseriePerioder,
+            faktureringFra = gjeldendeFaktureringStartDato,
+            faktureringTil = sluttDatoFra(gjeldendeFaktureringSluttDato, sluttDatoForHelePerioden)
+        )
+        return fakturaLinjerForPeriode
+    }
+
+    private fun sluttDatoFra(sisteDagAvPeriode: LocalDate, sluttDatoForHelePerioden: LocalDate) =
+        if (sisteDagAvPeriode > sluttDatoForHelePerioden) sluttDatoForHelePerioden else sisteDagAvPeriode
 
 //    private fun tilFaktura(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
 //        val korrigertDatoBestilt = if (datoBestilt <= dagensDato()) dagensDato()
