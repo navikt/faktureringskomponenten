@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.service.mappers
 
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.FakturaGenerator
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -454,7 +455,7 @@ class FakturaserieMapperTest {
         intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
         perioder: List<FakturaseriePeriode> = listOf()
     ): Fakturaserie {
-        val fakturaMapper = FakturaMapperForTest(dagensDato)
+        val fakturaMapper = FakturaGeneratorForTest(dagensDato)
         return FakturaserieMapper(fakturaMapper).tilFakturaserie(
             FakturaserieDto(
                 fakturaserieReferanse = "MEL-105-145",
@@ -473,7 +474,7 @@ class FakturaserieMapperTest {
         )
     }
 
-    class FakturaMapperForTest(private val dagensDato: LocalDate) : FakturaMapper(FakturalinjeMapper()) {
+    class FakturaGeneratorForTest(private val dagensDato: LocalDate) : FakturaGenerator(FakturalinjeMapper()) {
         override fun dagensDato(): LocalDate = dagensDato
     }
 

@@ -1,14 +1,15 @@
-package no.nav.faktureringskomponenten.service.mappers
+package no.nav.faktureringskomponenten.service
 
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.service.mappers.FakturalinjeMapper
 import java.time.LocalDate
 import java.time.temporal.IsoFields
 import java.time.temporal.TemporalAdjusters
 
-open class FakturaMapper(private val fakturalinjeMapper: FakturalinjeMapper = FakturalinjeMapper()) {
+open class FakturaGenerator(private val fakturalinjeMapper: FakturalinjeMapper = FakturalinjeMapper()) {
 
     fun tilListeAvFaktura(
         periodeListeDto: List<FakturaseriePeriode>,
