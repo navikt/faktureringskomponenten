@@ -11,14 +11,14 @@ import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
 
-@Component
-class FakturaService(
+@Service
+class FakturaBestillingService(
     private val fakturaRepository: FakturaRepository,
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaBestiltProducer: FakturaBestiltProducer,

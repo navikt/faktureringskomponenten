@@ -8,7 +8,7 @@ import java.time.temporal.ChronoUnit
 
 private val log = KotlinLogging.logger { }
 
-class AntallBeregner(private val fom: LocalDate, private val tom: LocalDate) {
+class AntallMdBeregner(private val fom: LocalDate, private val tom: LocalDate) {
 
     private val førsteMånedDager = fom.lengthOfMonth().toBigDecimal()
     private val sisteMånedDager = tom.lengthOfMonth().toBigDecimal()
@@ -16,7 +16,7 @@ class AntallBeregner(private val fom: LocalDate, private val tom: LocalDate) {
 
     fun beregn(): BigDecimal {
         val totalAntall = beregnFørsteMånedProsent() + beregnMånederMellomProsent() + beregnSisteMånedProsent()
-        log.debug {"AntallBeregner beregner fom: $fom og tom: $tom som gir total antall: $totalAntall" }
+        log.debug {"AntallMdBeregner beregner fom: $fom og tom: $tom som gir total antall: $totalAntall" }
         return totalAntall
     }
 

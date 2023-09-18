@@ -4,12 +4,11 @@ import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import no.nav.faktureringskomponenten.service.FakturaserieDto
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 
 @Component
-class FakturaserieMapper(@Autowired val fakturaMapper: FakturaMapper) {
+class FakturaserieMapper(val fakturaMapper: FakturaMapper = FakturaMapper()) {
 
     fun tilFakturaserie(fakturaserieDto: FakturaserieDto, startDato: LocalDate? = null): Fakturaserie {
         val startDatoForHelePerioden = startDato ?: mapStartdato(fakturaserieDto.perioder)

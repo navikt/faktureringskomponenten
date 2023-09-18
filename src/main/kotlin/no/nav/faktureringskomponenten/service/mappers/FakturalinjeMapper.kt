@@ -2,12 +2,10 @@ package no.nav.faktureringskomponenten.service.mappers
 
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
-import no.nav.faktureringskomponenten.service.beregning.AntallBeregner
+import no.nav.faktureringskomponenten.service.beregning.AntallMdBeregner
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
-import org.springframework.stereotype.Component
 import java.time.LocalDate
 
-@Component
 class FakturalinjeMapper {
 
     fun tilFakturaLinjer(
@@ -22,8 +20,7 @@ class FakturalinjeMapper {
             val fakturaLinjerPeriodeFra = if (it.startDato < periodeFra) periodeFra else it.startDato
             val fakturaLinjerPeriodeTil = if (it.sluttDato >= periodeTil) periodeTil else it.sluttDato
 
-            if (fakturaLinjerPeriodeFra > fakturaLinjerPeriodeTil)
-                throw IllegalStateException("fakturaLinjerPeriodeFra($fakturaLinjerPeriodeFra) > periodeFra($fakturaLinjerPeriodeTil)")
+            check(fakturaLinjerPeriodeFra <= fakturaLinjerPeriodeTil) { "fakturaLinjerPeriodeFra($fakturaLinjerPeriodeFra) > periodeFra($fakturaLinjerPeriodeTil)" }
 
             FakturaLinje(
                 id = null,
@@ -34,7 +31,7 @@ class FakturalinjeMapper {
                     fakturaLinjerPeriodeFra,
                     fakturaLinjerPeriodeTil
                 ),
-                antall = AntallBeregner(fakturaLinjerPeriodeFra, fakturaLinjerPeriodeTil).beregn(),
+                antall = AntallMdBeregner(fakturaLinjerPeriodeFra, fakturaLinjerPeriodeTil).beregn(),
                 beskrivelse = it.beskrivelse,
                 enhetsprisPerManed = it.enhetsprisPerManed
             )

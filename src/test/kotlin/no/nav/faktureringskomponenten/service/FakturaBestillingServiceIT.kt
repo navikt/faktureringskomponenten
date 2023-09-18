@@ -34,7 +34,7 @@ import java.time.LocalDate
 @SpringBootTest
 //@Import(FakturaBestillCronjob::class)
 @EnableMockOAuth2Server
-class FakturaServiceIT(
+class FakturaBestillingServiceIT(
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
@@ -59,8 +59,8 @@ class FakturaServiceIT(
     ) {
         @Bean
         @Primary
-        fun testFakturaService(): FakturaService {
-            return FakturaService(fakturaRepository, fakturaserieRepository, TestQueue.fakturaBestiltProducer)
+        fun testFakturaService(): FakturaBestillingService {
+            return FakturaBestillingService(fakturaRepository, fakturaserieRepository, TestQueue.fakturaBestiltProducer)
         }
     }
 

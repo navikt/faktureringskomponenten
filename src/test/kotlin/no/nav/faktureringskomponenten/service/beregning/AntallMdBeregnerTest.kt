@@ -5,14 +5,14 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class AntallBeregnerTest {
+class AntallMdBeregnerTest {
     @Test
     fun `regnAngittAntallForPeriode for Januar regnes rett`() {
         val fom = LocalDate.of(2023, 1, 21)
         val tom = LocalDate.of(2023, 1, 31)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("0.35")
@@ -25,7 +25,7 @@ class AntallBeregnerTest {
         val tom = LocalDate.of(2023, 11, 15)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("0.50")
@@ -38,7 +38,7 @@ class AntallBeregnerTest {
         val tom = LocalDate.of(2023, 12, 31)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("11.35")
@@ -52,7 +52,7 @@ class AntallBeregnerTest {
         val tom = LocalDate.of(2023, 11, 15)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("10.50")
@@ -65,7 +65,7 @@ class AntallBeregnerTest {
         val tom = LocalDate.of(2023, 12, 31)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("10.54")
@@ -78,7 +78,7 @@ class AntallBeregnerTest {
         val tom = LocalDate.of(2024, 2, 15)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("13.52")
@@ -91,7 +91,7 @@ class AntallBeregnerTest {
         val tom = LocalDate.of(2024, 2, 29)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("14.00")
@@ -104,7 +104,7 @@ class AntallBeregnerTest {
         val tom = LocalDate.of(2024, 3, 31)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("27.00")
@@ -117,7 +117,7 @@ class AntallBeregnerTest {
         val tom = LocalDate.of(2024, 2, 29)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("1.00")
@@ -130,7 +130,7 @@ class AntallBeregnerTest {
         val tom = LocalDate.of(2024, 2, 15)
 
 
-        val result = AntallBeregner(fom, tom).beregn()
+        val result = AntallMdBeregner(fom, tom).beregn()
 
 
         val forventetAngittAntall = BigDecimal("2.10")

@@ -7,11 +7,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
-import no.nav.faktureringskomponenten.service.FakturaMottattService
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.security.token.support.core.api.Protected
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -30,8 +30,7 @@ private val log = KotlinLogging.logger { }
 @RestController
 @RequestMapping("/fakturaserier")
 class FakturaserieController @Autowired constructor(
-    val faktureringService: FakturaserieService,
-    val fakturaMottattService: FakturaMottattService
+    val faktureringService: FakturaserieService
 ) {
 
     @Operation(summary = "Lager en ny fakturaserie")
