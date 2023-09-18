@@ -4,10 +4,8 @@ import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.service.beregning.AntallMdBeregner
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
-import org.springframework.stereotype.Component
 import java.time.LocalDate
 
-@Component
 class FakturalinjeMapper {
 
     fun tilFakturaLinjer(

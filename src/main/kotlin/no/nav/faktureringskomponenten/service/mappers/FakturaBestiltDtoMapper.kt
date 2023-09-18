@@ -3,14 +3,12 @@ package no.nav.faktureringskomponenten.service.mappers
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
-import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.IsoFields
 import java.util.*
 
-@Component
 class FakturaBestiltDtoMapper {
     val AVGIFT_TIL_FOLKETRYGDEN: String = "F00008"
     val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
@@ -52,7 +50,7 @@ class FakturaBestiltDtoMapper {
             Innbetalingstype.TRYGDEAVGIFT -> {
                 val nå = LocalDate.now()
                 if (intervall == FakturaserieIntervall.KVARTAL) {
-                    val nåværendeKvartal = nå.get(IsoFields.QUARTER_OF_YEAR)
+                    val nåværendeKvartal = nå[IsoFields.QUARTER_OF_YEAR]
                     "Faktura Trygdeavgift $nåværendeKvartal. kvartal ${nå.year}"
                 } else {
                     val nåværendeMåned = nå.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
