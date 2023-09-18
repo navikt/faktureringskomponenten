@@ -16,13 +16,13 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.temporal.IsoFields
 
-class FakturaServiceTest {
+class FakturaBestillingServiceTest {
 
     private val fakturaRepository = mockk<FakturaRepository>(relaxed = true)
     private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
     private val fakturaBestiltProducer = mockk<FakturaBestiltProducer>(relaxed = true)
 
-    private val fakturaService = FakturaService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
+    private val fakturaBestillingService = FakturaBestillingService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
 
     @Test
     fun `Bestiller bestillingsklare faktura og lagrer i databasen`() {
@@ -45,7 +45,7 @@ class FakturaServiceTest {
         } returns faktura.fakturaserie!!
 
 
-        fakturaService.bestillFaktura(1)
+        fakturaBestillingService.bestillFaktura(1)
 
 
         verifySequence {
@@ -107,7 +107,7 @@ class FakturaServiceTest {
             )
         }
 
-        fakturaService.bestillFaktura(1)
+        fakturaBestillingService.bestillFaktura(1)
     }
 
     fun lagFaktura(id: Long? = 1): Faktura {
