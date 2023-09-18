@@ -7,15 +7,15 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaMottattReposito
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
-import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFakturabetalingDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
+import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFakturabetalingDto
 import no.nav.faktureringskomponenten.service.mappers.FakturaMottattMapper
-import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 private val log = KotlinLogging.logger { }
 
-@Component
+@Service
 class FakturaMottattService(
     private val fakturaRepository: FakturaRepository,
     private val fakturaMottattMapper: FakturaMottattMapper,
