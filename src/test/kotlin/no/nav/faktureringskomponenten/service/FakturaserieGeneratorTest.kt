@@ -1,10 +1,7 @@
-package no.nav.faktureringskomponenten.service.mappers
+package no.nav.faktureringskomponenten.service
 
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import no.nav.faktureringskomponenten.domain.models.*
-import no.nav.faktureringskomponenten.service.FakturaGenerator
-import no.nav.faktureringskomponenten.service.FakturalinjeGenerator
-import no.nav.faktureringskomponenten.service.FakturaserieDto
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
@@ -13,7 +10,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
-class FakturaserieMapperTest {
+class FakturaserieGeneratorTest {
 
     @ParameterizedTest(name = "[{index}] {2} {0}")
     @MethodSource("data")
@@ -457,7 +454,7 @@ class FakturaserieMapperTest {
         perioder: List<FakturaseriePeriode> = listOf()
     ): Fakturaserie {
         val fakturaMapper = FakturaGeneratorForTest(dagensDato)
-        return FakturaserieMapper(fakturaMapper).tilFakturaserie(
+        return FakturaserieGenerator(fakturaMapper).lagFakturaserie(
             FakturaserieDto(
                 fakturaserieReferanse = "MEL-105-145",
                 fodselsnummer = "30056928150",

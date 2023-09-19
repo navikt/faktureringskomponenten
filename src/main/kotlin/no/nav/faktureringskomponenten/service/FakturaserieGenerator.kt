@@ -1,17 +1,15 @@
-package no.nav.faktureringskomponenten.service.mappers
+package no.nav.faktureringskomponenten.service
 
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
-import no.nav.faktureringskomponenten.service.FakturaGenerator
-import no.nav.faktureringskomponenten.service.FakturaserieDto
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 
 @Component
-class FakturaserieMapper(val fakturaGenerator: FakturaGenerator = FakturaGenerator()) {
+class FakturaserieGenerator(val fakturaGenerator: FakturaGenerator = FakturaGenerator()) {
 
-    fun tilFakturaserie(fakturaserieDto: FakturaserieDto, startDato: LocalDate? = null): Fakturaserie {
+    fun lagFakturaserie(fakturaserieDto: FakturaserieDto, startDato: LocalDate? = null): Fakturaserie {
         val startDatoForHelePerioden = startDato ?: mapStartdato(fakturaserieDto.perioder)
         val sluttDatoForHelePerioden = mapSluttdato(fakturaserieDto.perioder)
         return Fakturaserie(
