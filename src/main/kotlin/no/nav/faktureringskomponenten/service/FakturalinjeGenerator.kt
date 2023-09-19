@@ -8,7 +8,7 @@ import java.time.LocalDate
 
 class FakturalinjeGenerator {
 
-    fun tilFakturaLinjer(
+    fun lagFakturaLinjer(
         perioder: List<FakturaseriePeriode>,
         faktureringFra: LocalDate,
         faktureringTil: LocalDate

@@ -29,7 +29,7 @@ class FakturalinjeGeneratorTest {
             )
         )
 
-        val fakturaLinjer = FakturalinjeGenerator().tilFakturaLinjer(perioder, fra, til)
+        val fakturaLinjer = FakturalinjeGenerator().lagFakturaLinjer(perioder, fra, til)
 
         fakturaLinjer
             .shouldHaveSize(1)
@@ -62,7 +62,7 @@ class FakturalinjeGeneratorTest {
             )
         )
 
-        val fakturaLinjer = FakturalinjeGenerator().tilFakturaLinjer(perioder, fakturaFraDato, fakturaTilDato)
+        val fakturaLinjer = FakturalinjeGenerator().lagFakturaLinjer(perioder, fakturaFraDato, fakturaTilDato)
 
         fakturaLinjer.shouldHaveSize(2)
         fakturaLinjer.map { it.periodeFra }.shouldContainOnly(periodeFraDato)

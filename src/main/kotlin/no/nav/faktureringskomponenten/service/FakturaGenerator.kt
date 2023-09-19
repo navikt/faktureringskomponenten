@@ -53,7 +53,7 @@ open class FakturaGenerator(private val fakturalinjeGenerator: FakturalinjeGener
         fakturaseriePerioder: List<FakturaseriePeriode>,
         sluttDatoForHelePerioden: LocalDate
     ): List<FakturaLinje> {
-        val fakturaLinjerForPeriode = fakturalinjeGenerator.tilFakturaLinjer(
+        val fakturaLinjerForPeriode = fakturalinjeGenerator.lagFakturaLinjer(
             perioder = fakturaseriePerioder,
             faktureringFra = gjeldendeFaktureringStartDato,
             faktureringTil = sluttDatoFra(gjeldendeFaktureringSluttDato, sluttDatoForHelePerioden)
