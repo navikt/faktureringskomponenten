@@ -6,7 +6,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -14,9 +13,9 @@ import java.util.UUID
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
-    private val fakturaserieMapper = mockk<FakturaserieMapper>(relaxed = true)
+    private val fakturaserieGenerator = mockk<FakturaserieGenerator>(relaxed = true)
 
-    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieMapper)
+    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieGenerator)
 
     @Test
     fun `Endrer fakturaserie, kansellerer opprinnelig og lager ny`() {
@@ -35,7 +34,7 @@ class FakturaserieServiceTest {
         } returns opprinneligFakturaserie
 
         every {
-            fakturaserieMapper.tilFakturaserie(nyFakturaserieDto, any())
+            fakturaserieGenerator.lagFakturaserie(nyFakturaserieDto, any())
         } returns nyFakturaserie
 
         every {

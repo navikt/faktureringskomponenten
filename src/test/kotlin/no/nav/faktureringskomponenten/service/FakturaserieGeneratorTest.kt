@@ -1,8 +1,7 @@
-package no.nav.faktureringskomponenten.service.mappers
+package no.nav.faktureringskomponenten.service
 
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import no.nav.faktureringskomponenten.domain.models.*
-import no.nav.faktureringskomponenten.service.FakturaserieDto
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
@@ -11,7 +10,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
-class FakturaserieMapperTest {
+class FakturaserieGeneratorTest {
 
     @ParameterizedTest(name = "[{index}] {2} {0}")
     @MethodSource("data")
@@ -454,8 +453,8 @@ class FakturaserieMapperTest {
         intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
         perioder: List<FakturaseriePeriode> = listOf()
     ): Fakturaserie {
-        val fakturaMapper = FakturaMapperForTest(dagensDato)
-        return FakturaserieMapper(fakturaMapper).tilFakturaserie(
+        val fakturaMapper = FakturaGeneratorForTest(dagensDato)
+        return FakturaserieGenerator(fakturaMapper).lagFakturaserie(
             FakturaserieDto(
                 fakturaserieReferanse = "MEL-105-145",
                 fodselsnummer = "30056928150",
@@ -473,7 +472,7 @@ class FakturaserieMapperTest {
         )
     }
 
-    class FakturaMapperForTest(private val dagensDato: LocalDate) : FakturaMapper(FakturalinjeMapper()) {
+    class FakturaGeneratorForTest(private val dagensDato: LocalDate) : FakturaGenerator(FakturaLinjeGenerator()) {
         override fun dagensDato(): LocalDate = dagensDato
     }
 

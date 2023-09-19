@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.service.mappers
+package no.nav.faktureringskomponenten.service
 
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
@@ -6,19 +6,19 @@ import no.nav.faktureringskomponenten.service.beregning.AntallMdBeregner
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import java.time.LocalDate
 
-class FakturalinjeMapper {
+class FakturaLinjeGenerator {
 
-    fun tilFakturaLinjer(
+    fun lagFakturaLinjer(
         perioder: List<FakturaseriePeriode>,
-        periodeFra: LocalDate,
-        periodeTil: LocalDate
+        faktureringFra: LocalDate,
+        faktureringTil: LocalDate
     ): List<FakturaLinje> {
         return perioder.filter {
-            it.startDato <= periodeTil && it.sluttDato >= periodeFra
+            it.startDato <= faktureringTil && it.sluttDato >= faktureringFra
         }.map {
 
-            val fakturaLinjerPeriodeFra = if (it.startDato < periodeFra) periodeFra else it.startDato
-            val fakturaLinjerPeriodeTil = if (it.sluttDato >= periodeTil) periodeTil else it.sluttDato
+            val fakturaLinjerPeriodeFra = if (it.startDato < faktureringFra) faktureringFra else it.startDato
+            val fakturaLinjerPeriodeTil = if (it.sluttDato >= faktureringTil) faktureringTil else it.sluttDato
 
             check(fakturaLinjerPeriodeFra <= fakturaLinjerPeriodeTil) { "fakturaLinjerPeriodeFra($fakturaLinjerPeriodeFra) > periodeFra($fakturaLinjerPeriodeTil)" }
 

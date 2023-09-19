@@ -6,7 +6,6 @@ import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
-import no.nav.faktureringskomponenten.service.mappers.FakturaserieMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,7 +14,7 @@ private val log = KotlinLogging.logger { }
 @Service
 class FakturaserieService(
     private val fakturaserieRepository: FakturaserieRepository,
-    private val fakturaserieMapper: FakturaserieMapper,
+    private val fakturaserieGenerator: FakturaserieGenerator,
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -36,7 +35,7 @@ class FakturaserieService(
             return fakturaserieDto.fakturaserieReferanse
         }
 
-        val fakturaserie = fakturaserieMapper.tilFakturaserie(fakturaserieDto)
+        val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
         return fakturaserie.referanse
@@ -60,7 +59,7 @@ class FakturaserieService(
             if (fakturaSomIkkeErSendt.isNotEmpty()) fakturaSomIkkeErSendt[0].getPeriodeFra() else null
 
         val nyFakturaserie =
-            fakturaserieMapper.tilFakturaserie(
+            fakturaserieGenerator.lagFakturaserie(
                 fakturaserieDto,
                 if (opprinneligFakturaserieErUnderBestilling) fakturaSomIkkeErSendtPeriodeFra else null
             )
