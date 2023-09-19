@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.service.mappers
+package no.nav.faktureringskomponenten.service
 
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
@@ -6,7 +6,7 @@ import no.nav.faktureringskomponenten.service.beregning.AntallMdBeregner
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import java.time.LocalDate
 
-class FakturalinjeMapper {
+class FakturalinjeGenerator {
 
     fun tilFakturaLinjer(
         perioder: List<FakturaseriePeriode>,

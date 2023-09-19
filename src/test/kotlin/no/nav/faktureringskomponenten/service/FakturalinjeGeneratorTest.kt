@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.service.mappers
+package no.nav.faktureringskomponenten.service
 
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class FakturalinjeMapperTest {
+class FakturalinjeGeneratorTest {
 
     @Test
     fun `fra til dato er lik og vi er i første dag av måneden`() {
@@ -29,7 +29,7 @@ class FakturalinjeMapperTest {
             )
         )
 
-        val fakturaLinjer = FakturalinjeMapper().tilFakturaLinjer(perioder, fra, til)
+        val fakturaLinjer = FakturalinjeGenerator().tilFakturaLinjer(perioder, fra, til)
 
         fakturaLinjer
             .shouldHaveSize(1)
@@ -62,7 +62,7 @@ class FakturalinjeMapperTest {
             )
         )
 
-        val fakturaLinjer = FakturalinjeMapper().tilFakturaLinjer(perioder, fakturaFraDato, fakturaTilDato)
+        val fakturaLinjer = FakturalinjeGenerator().tilFakturaLinjer(perioder, fakturaFraDato, fakturaTilDato)
 
         fakturaLinjer.shouldHaveSize(2)
         fakturaLinjer.map { it.periodeFra }.shouldContainOnly(periodeFraDato)

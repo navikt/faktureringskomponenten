@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.service.mappers
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaGenerator
+import no.nav.faktureringskomponenten.service.FakturalinjeGenerator
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
@@ -474,7 +475,7 @@ class FakturaserieMapperTest {
         )
     }
 
-    class FakturaGeneratorForTest(private val dagensDato: LocalDate) : FakturaGenerator(FakturalinjeMapper()) {
+    class FakturaGeneratorForTest(private val dagensDato: LocalDate) : FakturaGenerator(FakturalinjeGenerator()) {
         override fun dagensDato(): LocalDate = dagensDato
     }
 

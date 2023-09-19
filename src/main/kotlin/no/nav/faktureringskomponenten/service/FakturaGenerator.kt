@@ -4,12 +4,11 @@ import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
-import no.nav.faktureringskomponenten.service.mappers.FakturalinjeMapper
 import java.time.LocalDate
 import java.time.temporal.IsoFields
 import java.time.temporal.TemporalAdjusters
 
-open class FakturaGenerator(private val fakturalinjeMapper: FakturalinjeMapper = FakturalinjeMapper()) {
+open class FakturaGenerator(private val fakturalinjeGenerator: FakturalinjeGenerator = FakturalinjeGenerator()) {
 
     fun lagFakturaerFor(
         startDatoForHelePerioden: LocalDate,
@@ -54,7 +53,7 @@ open class FakturaGenerator(private val fakturalinjeMapper: FakturalinjeMapper =
         fakturaseriePerioder: List<FakturaseriePeriode>,
         sluttDatoForHelePerioden: LocalDate
     ): List<FakturaLinje> {
-        val fakturaLinjerForPeriode = fakturalinjeMapper.tilFakturaLinjer(
+        val fakturaLinjerForPeriode = fakturalinjeGenerator.tilFakturaLinjer(
             perioder = fakturaseriePerioder,
             faktureringFra = gjeldendeFaktureringStartDato,
             faktureringTil = sluttDatoFra(gjeldendeFaktureringSluttDato, sluttDatoForHelePerioden)
