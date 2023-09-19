@@ -6,7 +6,7 @@ import no.nav.faktureringskomponenten.service.beregning.AntallMdBeregner
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import java.time.LocalDate
 
-class FakturalinjeGenerator {
+class FakturaLinjeGenerator {
 
     fun lagFakturaLinjer(
         perioder: List<FakturaseriePeriode>,

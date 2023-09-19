@@ -8,7 +8,7 @@ import java.time.LocalDate
 import java.time.temporal.IsoFields
 import java.time.temporal.TemporalAdjusters
 
-open class FakturaGenerator(private val fakturalinjeGenerator: FakturalinjeGenerator = FakturalinjeGenerator()) {
+open class FakturaGenerator(private val fakturalinjeGenerator: FakturaLinjeGenerator = FakturaLinjeGenerator()) {
 
     fun lagFakturaerFor(
         startDatoForHelePerioden: LocalDate,

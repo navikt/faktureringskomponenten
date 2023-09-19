@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 
-class FakturalinjeGeneratorTest {
+class FakturaLinjeGeneratorTest {
 
     @Test
     fun `fra til dato er lik og vi er i første dag av måneden`() {
@@ -29,7 +29,7 @@ class FakturalinjeGeneratorTest {
             )
         )
 
-        val fakturaLinjer = FakturalinjeGenerator().lagFakturaLinjer(perioder, fra, til)
+        val fakturaLinjer = FakturaLinjeGenerator().lagFakturaLinjer(perioder, fra, til)
 
         fakturaLinjer
             .shouldHaveSize(1)
@@ -62,7 +62,7 @@ class FakturalinjeGeneratorTest {
             )
         )
 
-        val fakturaLinjer = FakturalinjeGenerator().lagFakturaLinjer(perioder, fakturaFraDato, fakturaTilDato)
+        val fakturaLinjer = FakturaLinjeGenerator().lagFakturaLinjer(perioder, fakturaFraDato, fakturaTilDato)
 
         fakturaLinjer.shouldHaveSize(2)
         fakturaLinjer.map { it.periodeFra }.shouldContainOnly(periodeFraDato)
