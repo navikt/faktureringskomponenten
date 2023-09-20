@@ -22,8 +22,7 @@ open class FakturaGenerator(private val fakturalinjeGenerator: FakturaLinjeGener
         var gjeldendeFaktureringStartDato = startDatoForHelePerioden
 
         while (gjeldendeFaktureringStartDato <= sluttDatoForHelePerioden || gjeldendeFakturaLinjer.isNotEmpty()) {
-            val gjeldendeFaktureringSluttDato =
-                faktureringSluttDatoFra(gjeldendeFaktureringStartDato, faktureringsintervall)
+            val gjeldendeFaktureringSluttDato = faktureringSluttDatoFra(gjeldendeFaktureringStartDato, faktureringsintervall)
 
             val fakturaLinjerForPeriode = fakturalinjeGenerator.lagFakturaLinjer(
                 perioder = fakturaseriePerioder,
