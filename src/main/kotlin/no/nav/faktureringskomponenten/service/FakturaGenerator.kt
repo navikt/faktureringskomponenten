@@ -24,13 +24,11 @@ open class FakturaGenerator(private val fakturalinjeGenerator: FakturaLinjeGener
         while (gjeldendeFaktureringStartDato <= sluttDatoForHelePerioden || gjeldendeFakturaLinjer.isNotEmpty()) {
             val gjeldendeFaktureringSluttDato = faktureringSluttDatoFra(gjeldendeFaktureringStartDato, faktureringsintervall)
 
-            val fakturaLinjerForPeriode = fakturalinjeGenerator.lagFakturaLinjer(
-                perioder = fakturaseriePerioder,
-                faktureringFra = gjeldendeFaktureringStartDato,
-                faktureringTil = sluttDatoFra(
-                    gjeldendeFaktureringSluttDato,
-                    sluttDatoForHelePerioden
-                )
+            val fakturaLinjerForPeriode = lagFakturaLinjerForPeriode(
+                gjeldendeFaktureringStartDato,
+                gjeldendeFaktureringSluttDato,
+                fakturaseriePerioder,
+                sluttDatoForHelePerioden
             )
 
             gjeldendeFakturaLinjer.addAll(fakturaLinjerForPeriode)
@@ -58,6 +56,17 @@ open class FakturaGenerator(private val fakturalinjeGenerator: FakturaLinjeGener
 
         return sluttDato
     }
+
+    private fun lagFakturaLinjerForPeriode(
+        gjeldendeFaktureringStartDato: LocalDate,
+        gjeldendeFaktureringSluttDato: LocalDate,
+        fakturaseriePerioder: List<FakturaseriePeriode>,
+        sluttDatoForHelePerioden: LocalDate
+    ): List<FakturaLinje> = fakturalinjeGenerator.lagFakturaLinjer(
+        perioder = fakturaseriePerioder,
+        faktureringFra = gjeldendeFaktureringStartDato,
+        faktureringTil = sluttDatoFra(gjeldendeFaktureringSluttDato, sluttDatoForHelePerioden)
+    )
 
     private fun sluttDatoFra(sisteDagAvPeriode: LocalDate, sluttDatoForHelePerioden: LocalDate) =
         if (sisteDagAvPeriode > sluttDatoForHelePerioden) sluttDatoForHelePerioden else sisteDagAvPeriode
