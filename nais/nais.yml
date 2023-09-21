@@ -43,6 +43,9 @@ spec:
         - application: {{app_name_melosys_web}}
           namespace: teammelosys
           cluster: {{cluster_name}}
+    outbound:
+      external:
+        - host: "melosys-unleash-api.nav.cloud.nais.io"
   prometheus:
     enabled: true
     path: /internal/prometheus
@@ -62,5 +65,9 @@ spec:
       value: {{kafka_topic_name_faktura_bestilt}}
     - name: KAFKA_TOPIC_NAME_MANGLENDE_FAKTURABETALING
       value: {{kafka_topic_name_manglende_fakturabetaling}}
+    - name: app_name
+      value: {{app_name}}
   envFrom:
     - secret: faktureringskomponenten
+    - secret: {{app_name}}-unleash-api-token
+

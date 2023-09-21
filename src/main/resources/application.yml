@@ -43,3 +43,6 @@ management:
       exposure:
         include: health,prometheus
       base-path: /internal
+
+unleash:
+  token: ${UNLEASH_SERVER_API_TOKEN}
