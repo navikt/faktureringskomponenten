@@ -40,6 +40,8 @@ object dependencyVersions {
     const val archUnitVersion = "1.0.1"
     const val micrometerJvmExtrasVersion = "0.2.2"
     const val micrometerVersion = "1.10.5"
+    const val unleashVersion = "8.3.0"
+
 }
 
 dependencies {
@@ -63,6 +65,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:${dependencyVersions.kotlinLogging}")
     implementation("io.micrometer:micrometer-registry-prometheus:${dependencyVersions.micrometerVersion}")
     implementation("io.github.mweirauch:micrometer-jvm-extras:${dependencyVersions.micrometerJvmExtrasVersion}")
+    implementation("io.getunleash:unleash-client-java:${dependencyVersions.unleashVersion}")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.junit.jupiter:junit-jupiter")
