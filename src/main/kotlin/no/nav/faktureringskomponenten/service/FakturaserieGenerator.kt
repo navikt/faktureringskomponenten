@@ -1,13 +1,18 @@
 package no.nav.faktureringskomponenten.service
 
+import io.getunleash.Unleash
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import java.time.LocalDate
 
 @Component
-class FakturaserieGenerator(val fakturaGenerator: FakturaGenerator = FakturaGenerator()) {
+class FakturaserieGenerator(
+    @Autowired val unleash: Unleash,
+    val fakturaGenerator: FakturaGenerator = FakturaGenerator(unleash = unleash)
+) {
 
     fun lagFakturaserie(fakturaserieDto: FakturaserieDto, startDato: LocalDate? = null): Fakturaserie {
         val startDatoForHelePerioden = startDato ?: mapStartdato(fakturaserieDto.perioder)

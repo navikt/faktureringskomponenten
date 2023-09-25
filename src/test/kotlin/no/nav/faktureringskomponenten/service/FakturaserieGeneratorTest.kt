@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
+import io.getunleash.FakeUnleash
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import no.nav.faktureringskomponenten.domain.models.*
 import org.junit.jupiter.api.TestInstance
@@ -11,6 +12,7 @@ import java.time.LocalDate
 
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 class FakturaserieGeneratorTest {
+    val unleash: FakeUnleash = FakeUnleash()
 
     @ParameterizedTest(name = "[{index}] {2} {0}")
     @MethodSource("data")
@@ -473,8 +475,8 @@ class FakturaserieGeneratorTest {
         intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
         perioder: List<FakturaseriePeriode> = listOf()
     ): Fakturaserie {
-        val fakturaMapper = FakturaGeneratorForTest(dagensDato)
-        return FakturaserieGenerator(fakturaMapper).lagFakturaserie(
+        val fakturaMapper = FakturaGeneratorForTest(dagensDato, unleash = unleash)
+        return FakturaserieGenerator(fakturaGenerator = fakturaMapper, unleash = unleash).lagFakturaserie(
             FakturaserieDto(
                 fakturaserieReferanse = "MEL-105-145",
                 fodselsnummer = "30056928150",
@@ -492,7 +494,7 @@ class FakturaserieGeneratorTest {
         )
     }
 
-    class FakturaGeneratorForTest(private val dagensDato: LocalDate) : FakturaGenerator(FakturaLinjeGenerator()) {
+    class FakturaGeneratorForTest(private val dagensDato: LocalDate, unleash: FakeUnleash) : FakturaGenerator(FakturaLinjeGenerator(), unleash = unleash) {
         override fun dagensDato(): LocalDate = dagensDato
     }
 
