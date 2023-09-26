@@ -476,7 +476,7 @@ class FakturaserieGeneratorTest {
         perioder: List<FakturaseriePeriode> = listOf()
     ): Fakturaserie {
         val fakturaMapper = FakturaGeneratorForTest(dagensDato, unleash = unleash)
-        return FakturaserieGenerator(fakturaGenerator = fakturaMapper, unleash = unleash).lagFakturaserie(
+        return FakturaserieGenerator(fakturaGenerator = fakturaMapper).lagFakturaserie(
             FakturaserieDto(
                 fakturaserieReferanse = "MEL-105-145",
                 fodselsnummer = "30056928150",

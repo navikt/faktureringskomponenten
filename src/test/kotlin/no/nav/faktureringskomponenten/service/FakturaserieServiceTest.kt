@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
+import io.getunleash.FakeUnleash
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -14,8 +15,9 @@ import java.util.UUID
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
+    private val fakturaserieGenerator = FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash()))
 
-    private val fakturaserieService = FakturaserieService(fakturaserieRepository, FakturaserieGenerator())
+    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieGenerator)
 
     @Test
     fun `Endrer fakturaserie, erstatter opprinnelig og lager ny`() {

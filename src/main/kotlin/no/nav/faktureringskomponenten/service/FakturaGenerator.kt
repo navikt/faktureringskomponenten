@@ -5,13 +5,15 @@ import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import org.springframework.stereotype.Component
 import java.time.LocalDate
 import java.time.Month
 import java.time.temporal.IsoFields
 import java.time.temporal.TemporalAdjusters
 
-open class FakturaGenerator (
-    private val fakturalinjeGenerator: FakturaLinjeGenerator = FakturaLinjeGenerator(),
+@Component
+class FakturaGenerator (
+    private val fakturalinjeGenerator: FakturaLinjeGenerator,
     private val unleash: Unleash
 ) {
 
@@ -41,7 +43,7 @@ open class FakturaGenerator (
                 var faktura = tilFaktura(gjeldendeFaktureringStartDato, gjeldendeFakturaLinjer.toList())
 
                 if(unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant")){
-                    faktura = tilFakturaTemp(gjeldendeFaktureringStartDato, gjeldendeFakturaLinjer.toList())
+                    faktura = tilFakturaTemp(gjeldendeFakturaLinjer.toList())
                 }
 
                 samletFakturaListe.add(faktura)
@@ -94,11 +96,11 @@ open class FakturaGenerator (
         return Faktura(null, korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
     }
 
-    private fun tilFakturaTemp(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
+    private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
         return Faktura(null, dagensDato(), fakturaLinje = fakturaLinjer)
     }
 
-    protected open fun dagensDato(): LocalDate = LocalDate.now()
+    protected fun dagensDato(): LocalDate = LocalDate.now()
 
     companion object {
         const val BESTILT_DATO_FORSINKES_MED_DAGER = 0L
