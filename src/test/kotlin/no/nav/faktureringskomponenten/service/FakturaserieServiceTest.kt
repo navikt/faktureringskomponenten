@@ -35,12 +35,15 @@ class FakturaserieServiceTest {
 
 
         val fakturaserier = mutableListOf<Fakturaserie>()
-        verify {
+        verify(exactly = 2) {
             fakturaserieRepository.save(capture(fakturaserier))
         }
+
         fakturaserier shouldContain opprinneligFakturaserie
         opprinneligFakturaserie.status shouldBe  FakturaserieStatus.ERSTATTET
-        fakturaserier.size shouldBe 2
+
+        val nyFakturaserie = fakturaserier.filter { it.referanse == "MEL-456" }.single()
+        nyFakturaserie.status shouldBe FakturaserieStatus.OPPRETTET
     }
 
     private fun lagFakturaserie(): Fakturaserie {
