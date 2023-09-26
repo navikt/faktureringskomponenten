@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -12,59 +13,38 @@ import java.time.LocalDate
 import java.util.UUID
 
 class FakturaserieServiceTest {
-    private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
-    private val fakturaserieGenerator = mockk<FakturaserieGenerator>(relaxed = true)
+    private val fakturaserieRepository = mockk<FakturaserieRepository>()
 
-    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieGenerator)
+    private val fakturaserieService = FakturaserieService(fakturaserieRepository, FakturaserieGenerator())
 
     @Test
-    fun `Endrer fakturaserie, kansellerer opprinnelig og lager ny`() {
-        val opprinneligReferanse = "MEL-123"
-        val nyReferanse = "MEL-456"
-        val opprinneligFakturaserie = lagFakturaserie(opprinneligReferanse)
-        val nyFakturaserieDto = lagFakturaserieDto(nyReferanse)
-        val nyFakturaserie = lagFakturaserie(nyReferanse)
+    fun `Endrer fakturaserie, erstatter opprinnelig og lager ny`() {
+        val opprinneligFakturaserie = lagFakturaserie()
+        val nyFakturaserieDto = lagFakturaserieDto("MEL-456")
 
         every {
-            fakturaserieRepository.findByReferanse(opprinneligReferanse)
+            fakturaserieRepository.findByReferanse("MEL-123")
         } returns opprinneligFakturaserie
 
-        every {
-            fakturaserieRepository.findByReferanse(opprinneligReferanse)
-        } returns opprinneligFakturaserie
-
-        every {
-            fakturaserieGenerator.lagFakturaserie(nyFakturaserieDto, any())
-        } returns nyFakturaserie
-
-        every {
-            fakturaserieRepository.save(opprinneligFakturaserie)
-        } returns opprinneligFakturaserie
-
-        every {
-            fakturaserieRepository.save(nyFakturaserie)
-        } returns nyFakturaserie
+        every { fakturaserieRepository.save(any()) } returns mockk()
 
 
-        fakturaserieService.endreFakturaserie(opprinneligReferanse, nyFakturaserieDto)
+        fakturaserieService.endreFakturaserie("MEL-123", nyFakturaserieDto)
 
-        val oppdatertOpprinneligFakturaserie =
-            fakturaserieRepository.findByReferanse(referanse = opprinneligReferanse)
 
-        oppdatertOpprinneligFakturaserie?.status
-            .shouldBe(FakturaserieStatus.ERSTATTET)
-
+        val fakturaserier = mutableListOf<Fakturaserie>()
         verify {
-            fakturaserieRepository.findByReferanse(opprinneligReferanse)
-            fakturaserieRepository.save(opprinneligFakturaserie)
-            fakturaserieRepository.save(nyFakturaserie)
+            fakturaserieRepository.save(capture(fakturaserier))
         }
+        fakturaserier shouldContain opprinneligFakturaserie
+        opprinneligFakturaserie.status shouldBe  FakturaserieStatus.ERSTATTET
+        fakturaserier.size shouldBe 2
     }
 
-    fun lagFakturaserie(vedtaksId: String): Fakturaserie {
+    private fun lagFakturaserie(): Fakturaserie {
         return Fakturaserie(
             id = 100,
-            referanse = vedtaksId,
+            referanse = "MEL-123",
             fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
             referanseBruker = "Referanse bruker",
             referanseNAV = "Referanse NAV",
@@ -82,12 +62,12 @@ class FakturaserieServiceTest {
         )
     }
 
-    fun lagFakturaserieDto(
+    private fun lagFakturaserieDto(
         referanse: String = UUID.randomUUID().toString(),
         fodselsnummer: String = "12345678911",
         fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
-        referanseNav: String = "NAV referanse",
+        referanseNav: String = "Referanse NAV",
         fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriode> = listOf(
