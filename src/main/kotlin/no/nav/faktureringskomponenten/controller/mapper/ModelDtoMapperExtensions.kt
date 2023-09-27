@@ -28,7 +28,8 @@ val FakturaMottatt.tilFakturaTilbakemeldingResponseDto: FakturaTilbakemeldingRes
         ubetaltBelop = this.ubetaltBelop,
         dato = this.dato,
         status = this.status,
-        feilmelding = this.feilMelding
+        feilmelding = this.feilMelding,
+        fakturaNummer = this.fakturaNummer
     )
 
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
