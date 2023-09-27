@@ -44,6 +44,6 @@ class Faktura(
 
     @Override
     override fun toString(): String {
-        return "$id: datoBestilt: $datoBestilt, status: $status"
+        return "id: $id, datoBestilt: $datoBestilt, status: $status"
     }
 }
