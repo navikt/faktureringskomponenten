@@ -46,30 +46,29 @@ class FakturaserieService(
                 message = "Fant ikke opprinnelig fakturaserie med referanse $opprinneligReferanse"
             )
 
-        val opprinneligFakturaserieErUnderBestilling =
-            opprinneligFakturaserie.status == FakturaserieStatus.UNDER_BESTILLING
+        kanseller(opprinneligFakturaserie)
 
-        val fakturaSomIkkeErSendt = opprinneligFakturaserie.faktura.filter { it.status == FakturaStatus.OPPRETTET }
-            .sortedBy { it.getPeriodeFra() }
-
-        val fakturaSomIkkeErSendtPeriodeFra =
-            if (fakturaSomIkkeErSendt.isNotEmpty()) fakturaSomIkkeErSendt[0].getPeriodeFra() else null
-
+        val tidligereFakturaerTilBestilling = opprinneligFakturaserie.faktura.filter { it.status == FakturaStatus.OPPRETTET }
         val nyFakturaserie =
             fakturaserieGenerator.lagFakturaserie(
                 fakturaserieDto,
-                if (opprinneligFakturaserieErUnderBestilling) fakturaSomIkkeErSendtPeriodeFra else null
+                if (opprinneligFakturaserie.status == FakturaserieStatus.UNDER_BESTILLING)
+                    if (tidligereFakturaerTilBestilling.isNotEmpty()) tidligereFakturaerTilBestilling.sortedBy { it.getPeriodeFra() }[0].getPeriodeFra() else null
+                else null
             )
-
-        opprinneligFakturaserie.status = FakturaserieStatus.ERSTATTET
-        fakturaSomIkkeErSendt.forEach { it.status = FakturaStatus.KANSELLERT }
-
         nyFakturaserie.apply { erstattetMed = opprinneligFakturaserie }
-
-        fakturaserieRepository.save(opprinneligFakturaserie)
         fakturaserieRepository.save(nyFakturaserie)
+
         log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
+    }
+
+    private fun kanseller(opprinneligFakturaserie: Fakturaserie) {
+        val tidligereFakturaerTilBestilling = opprinneligFakturaserie.faktura.filter { it.status == FakturaStatus.OPPRETTET }
+        tidligereFakturaerTilBestilling.forEach { it.status = FakturaStatus.KANSELLERT }
+
+        opprinneligFakturaserie.status = FakturaserieStatus.ERSTATTET
+        fakturaserieRepository.save(opprinneligFakturaserie)
     }
 
     fun finnesReferanse(referanse: String): Boolean {
