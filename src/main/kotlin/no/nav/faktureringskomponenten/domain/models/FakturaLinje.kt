@@ -12,6 +12,10 @@ class FakturaLinje(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "avregning_faktura_id")
+    val referertFakturaVedAvregning: Faktura? = null,
+
     @Column(name = "periode_fra", nullable = false)
     val periodeFra: LocalDate = LocalDate.now(),
 
@@ -21,16 +25,15 @@ class FakturaLinje(
     @Column(name = "beskrivelse", nullable = false)
     val beskrivelse: String = "",
 
-    @Column(name = "belop", nullable = false)
-    val belop: BigDecimal = BigDecimal(0),
-
     @Column(name = "antall", nullable = false)
     val antall: BigDecimal = BigDecimal(0),
 
     @Column(name = "enhetspris_per_maned", nullable = false)
-    val enhetsprisPerManed: BigDecimal = BigDecimal(0)
+    val enhetsprisPerManed: BigDecimal = BigDecimal(0),
+
+    @Column(name = "belop", nullable = false)
+    val belop: BigDecimal = BigDecimal(0),
 ) {
-    @Override
     override fun toString(): String {
         return "beskrivelse: $beskrivelse, belop: $belop"
     }

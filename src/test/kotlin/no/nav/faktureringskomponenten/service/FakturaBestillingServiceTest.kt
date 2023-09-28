@@ -110,16 +110,17 @@ class FakturaBestillingServiceTest {
         fakturaBestillingService.bestillFaktura(1)
     }
 
-    fun lagFaktura(id: Long? = 1): Faktura {
+    private fun lagFaktura(id: Long? = 1): Faktura {
         return Faktura(
             id,
             LocalDate.of(2022, 5, 1),
             FakturaStatus.OPPRETTET,
             fakturaLinje = listOf(
                 FakturaLinje(
-                    100,
-                    LocalDate.of(2023, 1, 1),
-                    LocalDate.of(2023, 5, 1),
+                    id = 100,
+                    referertFakturaVedAvregning = null,
+                    periodeFra = LocalDate.of(2023, 1, 1),
+                    periodeTil = LocalDate.of(2023, 5, 1),
                     beskrivelse = "En beskrivelse",
                     belop = BigDecimal(90000),
                     antall = BigDecimal(1),
