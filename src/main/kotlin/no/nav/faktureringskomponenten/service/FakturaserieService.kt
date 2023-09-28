@@ -56,8 +56,9 @@ class FakturaserieService(
                     if (tidligereFakturaerTilBestilling.isNotEmpty()) tidligereFakturaerTilBestilling.sortedBy { it.getPeriodeFra() }[0].getPeriodeFra() else null
                 else null
             )
-        nyFakturaserie.apply { erstattetMed = opprinneligFakturaserie }
         fakturaserieRepository.save(nyFakturaserie)
+        opprinneligFakturaserie.apply { erstattetMed = nyFakturaserie }
+        fakturaserieRepository.save(opprinneligFakturaserie)
 
         log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse

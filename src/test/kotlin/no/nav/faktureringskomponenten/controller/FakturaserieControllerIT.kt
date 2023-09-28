@@ -86,11 +86,10 @@ class FakturaserieControllerIT(
 
         oppdatertOpprinneligFakturaserie.shouldNotBeNull()
             .status.shouldBe(FakturaserieStatus.ERSTATTET)
+        oppdatertOpprinneligFakturaserie.erstattetMed!!.id.shouldBe(nyFakturaserie.id)
 
         nyFakturaserie.shouldNotBeNull()
             .status.shouldBe(FakturaserieStatus.OPPRETTET)
-
-        nyFakturaserie.erstattetMed!!.id.shouldBe(oppdatertOpprinneligFakturaserie.id)
 
         nyFakturaserie.startdato.shouldBe(startDatoNy)
         nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)

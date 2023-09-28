@@ -39,10 +39,12 @@ class FakturaserieServiceTest {
         fakturaserieService.erstattFakturaserie(OPPRINNELIG_REF, nyFakturaserieDto)
 
 
-        fakturaserier shouldContain opprinneligFakturaserie
-        opprinneligFakturaserie.status shouldBe  FakturaserieStatus.ERSTATTET
+        val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
 
-        val nyFakturaserie = fakturaserier.filter { it.referanse == NY_REF }.single()
+        opprinneligFakturaserie.status shouldBe  FakturaserieStatus.ERSTATTET
+        opprinneligFakturaserie.erstattetMed shouldNotBe null
+        opprinneligFakturaserie.erstattetMed!!.referanse shouldBe nyFakturaserie.referanse
+
         nyFakturaserie.status shouldBe FakturaserieStatus.OPPRETTET
     }
 
