@@ -1,8 +1,10 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
+import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.faktureringskomponenten.domain.models.*
@@ -46,8 +48,30 @@ class FakturaserieServiceTest {
 
     @Test
     fun `Endrer fakturaserie, fakturaer har blitt sendt for 2 kvartaler, avregning`() {
+        val opprinneligFakturaserie = lagOpprinneligFakturaserie()
+        every {
+            fakturaserieRepository.findByReferanse(OPPRINNELIG_REF)
+        } returns opprinneligFakturaserie
+
+        val fakturaserier = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.save(capture(fakturaserier)) } returns mockk()
+
+        val nyFakturaserieDto = lagFakturaserieDto(NY_REF)
 
 
+        fakturaserieService.endreFakturaserie(OPPRINNELIG_REF, nyFakturaserieDto)
+
+
+        val nyFakturaserie = fakturaserier.filter { it.referanse == NY_REF }.single()
+        val fakturaLinjer = nyFakturaserie.faktura.flatMap { it.fakturaLinje }
+        fakturaLinjer.forExactly(1) {
+            it.referertFakturaVedAvregning shouldNotBe null
+            it.periodeFra shouldBe LocalDate.of(2024, 1, 1)
+            it.periodeTil shouldBe LocalDate.of(2024, 3, 31)
+            it.antall shouldBe 1
+            it.enhetsprisPerManed shouldBe 1000
+            it.belop shouldBe 1000
+        }
     }
 
     private fun lagOpprinneligFakturaserie(): Fakturaserie {
@@ -132,11 +156,23 @@ class FakturaserieServiceTest {
         intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
         fakturaseriePeriode: List<FakturaseriePeriode> = listOf(
             FakturaseriePeriode(
-                BigDecimal.valueOf(123),
-                LocalDate.of(2022, 1, 1),
-                LocalDate.of(2022, 11, 30),
+                BigDecimal.valueOf(1000),
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 12, 31),
                 "Dekning: Pensjon og helsedel, Sats 10%"
-            )
+            ),
+            FakturaseriePeriode(
+                BigDecimal.valueOf(2000),
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 2, 28),
+                "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                BigDecimal.valueOf(3000),
+                LocalDate.of(2024, 3, 1),
+                LocalDate.of(2024, 12, 31),
+                "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
         ),
     ): FakturaserieDto {
         return FakturaserieDto(
