@@ -30,9 +30,7 @@ class FakturaserieService(
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto, forrigeReferanse: String? = null): String {
         if(!forrigeReferanse.isNullOrEmpty()){
-            endreFakturaserie(forrigeReferanse, fakturaserieDto);
-            log.info("Kansellerer fakturaserie: ${fakturaserieDto.fakturaserieReferanse}, lager ny fakturaserie: ${fakturaserieDto.fakturaserieReferanse}")
-            return fakturaserieDto.fakturaserieReferanse
+            return erstattFakturaserie(forrigeReferanse, fakturaserieDto)
         }
 
         val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto)
@@ -41,8 +39,7 @@ class FakturaserieService(
         return fakturaserie.referanse
     }
 
-    @Transactional
-    fun endreFakturaserie(opprinneligReferanse: String, fakturaserieDto: FakturaserieDto) {
+    fun erstattFakturaserie(opprinneligReferanse: String, fakturaserieDto: FakturaserieDto): String {
         val opprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligReferanse)
             ?: throw RessursIkkeFunnetException(
                 field = "referanse",
@@ -71,7 +68,8 @@ class FakturaserieService(
 
         fakturaserieRepository.save(opprinneligFakturaserie)
         fakturaserieRepository.save(nyFakturaserie)
-        log.info("Kansellert fakturaserie med id: ${opprinneligFakturaserie.referanse}, lager ny med id: ${nyFakturaserie.referanse}")
+        log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
+        return nyFakturaserie.referanse
     }
 
     fun finnesReferanse(referanse: String): Boolean {
