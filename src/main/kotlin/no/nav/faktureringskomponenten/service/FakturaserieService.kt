@@ -57,25 +57,16 @@ class FakturaserieService(
         fakturaserieRepository.save(nyFakturaserie)
 
         kansellerFakturarerTilBestilling(opprinneligFakturaserie)
-        erstattMed(opprinneligFakturaserie, nyFakturaserie)
+        opprinneligFakturaserie.erstattMed(nyFakturaserie)
         fakturaserieRepository.save(opprinneligFakturaserie)
 
         log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
     }
 
-    private fun erstattMed(
-        opprinneligFakturaserie: Fakturaserie,
-        nyFakturaserie: Fakturaserie
-    ) {
-        opprinneligFakturaserie.apply { erstattetMed = nyFakturaserie }
-        opprinneligFakturaserie.status = FakturaserieStatus.ERSTATTET
-    }
-
     private fun kansellerFakturarerTilBestilling(fakturaserie: Fakturaserie) {
         val fakturaerTilBestilling = fakturaserie.faktura.filter { it.status == FakturaStatus.OPPRETTET }
         fakturaerTilBestilling.forEach { it.status = FakturaStatus.KANSELLERT }
-        fakturaserieRepository.save(fakturaserie)
     }
 
     fun finnesReferanse(referanse: String): Boolean {

@@ -66,4 +66,9 @@ class Fakturaserie(
                 "sluttDato: $sluttdato, " +
                 "faktura: $faktura"
     }
+
+    fun erstattMed(nyFakturaserie: Fakturaserie) {
+        erstattetMed = nyFakturaserie
+        status = FakturaserieStatus.ERSTATTET
+    }
 }
