@@ -68,7 +68,16 @@ class Fakturaserie(
     }
 
     fun erstattMed(nyFakturaserie: Fakturaserie) {
+        kansellerPlanlagteFakturaer()
         erstattetMed = nyFakturaserie
         status = FakturaserieStatus.ERSTATTET
+    }
+
+    fun planlagteFakturaer(): List<Faktura> {
+        return faktura.filter { it.status == FakturaStatus.OPPRETTET }
+    }
+
+    private fun kansellerPlanlagteFakturaer() {
+        planlagteFakturaer().forEach { it.status = FakturaStatus.KANSELLERT }
     }
 }
