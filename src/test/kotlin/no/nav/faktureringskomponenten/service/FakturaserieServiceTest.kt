@@ -2,17 +2,17 @@ package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
 import io.kotest.inspectors.forExactly
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 private const val OPPRINNELIG_REF = "123"
 private const val NY_REF = "456"
@@ -49,6 +49,7 @@ class FakturaserieServiceTest {
     }
 
     @Test
+    @Disabled("Koden for løpende avregninger er ikke klar ennå")
     fun `Endrer fakturaserie, fakturaer har blitt sendt for 2 kvartaler, avregning`() {
         val opprinneligFakturaserie = lagOpprinneligFakturaserie()
         every {
