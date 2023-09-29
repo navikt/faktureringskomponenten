@@ -1,9 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.springframework.stereotype.Service
@@ -47,14 +45,13 @@ class FakturaserieService(
             )
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes"}
 
-        val tidligereFakturaerTilBestilling = opprinneligFakturaserie.faktura.filter { it.status == FakturaStatus.OPPRETTET }        
-        val nyFakturaserie =
-            fakturaserieGenerator.lagFakturaserie(
+        val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
                 fakturaserieDto,
-                if (opprinneligFakturaserie.status == FakturaserieStatus.UNDER_BESTILLING)
-                    if (tidligereFakturaerTilBestilling.isNotEmpty()) tidligereFakturaerTilBestilling.sortedBy { it.getPeriodeFra() }[0].getPeriodeFra() else null
-                else null
+                if (opprinneligFakturaserie.erUnderBestilling()) {
+                    opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
+                } else null
             )
+
         fakturaserieRepository.save(nyFakturaserie)
 
         opprinneligFakturaserie.erstattMed(nyFakturaserie)

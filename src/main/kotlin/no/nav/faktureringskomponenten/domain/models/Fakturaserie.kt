@@ -71,6 +71,10 @@ class Fakturaserie(
         return status == FakturaserieStatus.OPPRETTET || status == FakturaserieStatus.UNDER_BESTILLING
     }
 
+    fun erUnderBestilling(): Boolean {
+        return status == FakturaserieStatus.UNDER_BESTILLING
+    }
+
     fun erstattMed(nyFakturaserie: Fakturaserie) {
         kansellerPlanlagteFakturaer()
         erstattetMed = nyFakturaserie

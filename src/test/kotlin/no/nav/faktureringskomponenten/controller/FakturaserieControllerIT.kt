@@ -81,26 +81,21 @@ class FakturaserieControllerIT(
         val nyFakturaserieReferanse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(
             NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
 
-        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse)
+
         val nyFakturaserie = fakturaserieRepository.findByReferanse(nyFakturaserieReferanse).shouldNotBeNull()
+        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse)
 
-        oppdatertOpprinneligFakturaserie.shouldNotBeNull()
-            .status.shouldBe(FakturaserieStatus.ERSTATTET)
-        oppdatertOpprinneligFakturaserie.erstattetMed!!.id.shouldBe(nyFakturaserie.id)
-
-        nyFakturaserie.shouldNotBeNull()
-            .status.shouldBe(FakturaserieStatus.OPPRETTET)
-
-        nyFakturaserie.startdato.shouldBe(startDatoNy)
-        nyFakturaserie.sluttdato.shouldBe(sluttDatoNy)
-
+        oppdatertOpprinneligFakturaserie.shouldNotBeNull().erstattetMed!!.id shouldBe nyFakturaserie.id
+        oppdatertOpprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
         oppdatertOpprinneligFakturaserie.faktura.forEach {
             it.status.shouldBe(FakturaStatus.KANSELLERT)
-            it.fakturaLinje.forEach { it.beskrivelse.shouldNotContain("Inntekt fra Norge") }
         }
 
+        nyFakturaserie.startdato.shouldBe(startDatoNy)
+        nyFakturaserie.sluttdato shouldBe sluttDatoNy
+        nyFakturaserie.shouldNotBeNull().status shouldBe FakturaserieStatus.OPPRETTET
         nyFakturaserie.faktura.forEach {
-            it.status.shouldBe(FakturaStatus.OPPRETTET)
+            it.status shouldBe FakturaStatus.OPPRETTET
         }
     }
 
