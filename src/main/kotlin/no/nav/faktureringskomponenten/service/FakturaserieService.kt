@@ -1,15 +1,11 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
-import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
 
@@ -17,6 +13,7 @@ private val log = KotlinLogging.logger { }
 class FakturaserieService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaserieGenerator: FakturaserieGenerator,
+    private val avregningBehandler: AvregningBehandler,
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -51,10 +48,8 @@ class FakturaserieService(
 
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
             fakturaserieDto,
-            if (opprinneligFakturaserie.erUnderBestilling()) {
-                opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
-            } else null,
-            lagAvregningsFaktura(listOf(opprinneligFakturaserie.faktura[0]))
+            finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
+            avregningBehandler.lagAvregningsfaktura(opprinneligFakturaserie.bestilteFakturaer(), fakturaserieDto.perioder)
         )
         fakturaserieRepository.save(nyFakturaserie)
 
@@ -64,18 +59,11 @@ class FakturaserieService(
         log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
     }
-    private fun lagAvregningsFaktura(fakturaerBruktTilAvregning: List<Faktura>): Faktura {
-        val linje = FakturaLinje(
-            referertFakturaVedAvregning = fakturaerBruktTilAvregning[0],
-            periodeFra = LocalDate.of(2024, 1, 1),
-            periodeTil = LocalDate.of(2024, 3, 31),
-            beskrivelse = "it.beskrivelse",
-            antall = BigDecimal(1),
-            enhetsprisPerManed = BigDecimal(1000),
-            belop = BigDecimal(1000),
-        )
-        return Faktura(null, LocalDate.now(), fakturaLinje = listOf(linje))
-    }
+
+    private fun finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie: Fakturaserie) =
+        if (opprinneligFakturaserie.erUnderBestilling()) {
+            opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
+        } else null
 
     fun finnesReferanse(referanse: String): Boolean {
         return fakturaserieRepository.findByReferanse(referanse) != null

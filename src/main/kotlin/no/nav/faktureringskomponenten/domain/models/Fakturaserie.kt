@@ -80,6 +80,10 @@ class Fakturaserie(
         status = FakturaserieStatus.ERSTATTET
     }
 
+    fun bestilteFakturaer(): List<Faktura> {
+        return faktura.filter { it.status != FakturaStatus.OPPRETTET && it.status != FakturaStatus.KANSELLERT }
+    }
+
     fun planlagteFakturaer(): List<Faktura> {
         return faktura.filter { it.status == FakturaStatus.OPPRETTET }
     }

@@ -20,8 +20,9 @@ private const val NY_REF = "456"
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
     private val fakturaserieGenerator = FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash()))
+    private val avregningBehandler = AvregningBehandler()
 
-    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieGenerator)
+    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieGenerator, avregningBehandler)
 
     @Test
     fun `Endrer fakturaserie, erstatter opprinnelig og lager ny`() {
