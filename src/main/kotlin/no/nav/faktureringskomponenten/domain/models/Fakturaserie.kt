@@ -57,7 +57,6 @@ class Fakturaserie(
     var erstattetMed: Fakturaserie? = null,
 
 ) {
-    @Override
     override fun toString(): String {
         return "referanse: $referanse, " +
                 "fakturaGjelderInnbetalingstype: $fakturaGjelderInnbetalingstype, " +
