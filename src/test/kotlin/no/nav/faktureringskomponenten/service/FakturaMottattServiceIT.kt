@@ -91,6 +91,7 @@ class FakturaMottattServiceIT(
             fakturaLinje = listOf(
                 FakturaLinje(
                     100,
+                    null,
                     LocalDate.of(2023, 1, 1),
                     LocalDate.of(2023, 5, 1),
                     beskrivelse = "En beskrivelse",

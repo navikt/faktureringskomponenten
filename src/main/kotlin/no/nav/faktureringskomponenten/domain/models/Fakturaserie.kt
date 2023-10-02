@@ -57,7 +57,6 @@ class Fakturaserie(
     var erstattetMed: Fakturaserie? = null,
 
 ) {
-    @Override
     override fun toString(): String {
         return "referanse: $referanse, " +
                 "fakturaGjelderInnbetalingstype: $fakturaGjelderInnbetalingstype, " +
@@ -65,5 +64,27 @@ class Fakturaserie(
                 "startdato: $startdato, " +
                 "sluttDato: $sluttdato, " +
                 "faktura: $faktura"
+    }
+
+    fun erAktiv(): Boolean {
+        return status == FakturaserieStatus.OPPRETTET || status == FakturaserieStatus.UNDER_BESTILLING
+    }
+
+    fun erUnderBestilling(): Boolean {
+        return status == FakturaserieStatus.UNDER_BESTILLING
+    }
+
+    fun erstattMed(nyFakturaserie: Fakturaserie) {
+        kansellerPlanlagteFakturaer()
+        erstattetMed = nyFakturaserie
+        status = FakturaserieStatus.ERSTATTET
+    }
+
+    fun planlagteFakturaer(): List<Faktura> {
+        return faktura.filter { it.status == FakturaStatus.OPPRETTET }
+    }
+
+    private fun kansellerPlanlagteFakturaer() {
+        planlagteFakturaer().forEach { it.status = FakturaStatus.KANSELLERT }
     }
 }

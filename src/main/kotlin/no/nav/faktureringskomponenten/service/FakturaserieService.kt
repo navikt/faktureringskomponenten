@@ -1,9 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.springframework.stereotype.Service
@@ -30,9 +28,7 @@ class FakturaserieService(
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto, forrigeReferanse: String? = null): String {
         if(!forrigeReferanse.isNullOrEmpty()){
-            endreFakturaserie(forrigeReferanse, fakturaserieDto);
-            log.info("Kansellerer fakturaserie: ${fakturaserieDto.fakturaserieReferanse}, lager ny fakturaserie: ${fakturaserieDto.fakturaserieReferanse}")
-            return fakturaserieDto.fakturaserieReferanse
+            return erstattFakturaserie(forrigeReferanse, fakturaserieDto)
         }
 
         val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto)
@@ -41,37 +37,28 @@ class FakturaserieService(
         return fakturaserie.referanse
     }
 
-    @Transactional
-    fun endreFakturaserie(opprinneligReferanse: String, fakturaserieDto: FakturaserieDto) {
+    fun erstattFakturaserie(opprinneligReferanse: String, fakturaserieDto: FakturaserieDto): String {
         val opprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligReferanse)
             ?: throw RessursIkkeFunnetException(
                 field = "referanse",
                 message = "Fant ikke opprinnelig fakturaserie med referanse $opprinneligReferanse"
             )
+        check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes"}
 
-        val opprinneligFakturaserieErUnderBestilling =
-            opprinneligFakturaserie.status == FakturaserieStatus.UNDER_BESTILLING
-
-        val fakturaSomIkkeErSendt = opprinneligFakturaserie.faktura.filter { it.status == FakturaStatus.OPPRETTET }
-            .sortedBy { it.getPeriodeFra() }
-
-        val fakturaSomIkkeErSendtPeriodeFra =
-            if (fakturaSomIkkeErSendt.isNotEmpty()) fakturaSomIkkeErSendt[0].getPeriodeFra() else null
-
-        val nyFakturaserie =
-            fakturaserieGenerator.lagFakturaserie(
+        val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
                 fakturaserieDto,
-                if (opprinneligFakturaserieErUnderBestilling) fakturaSomIkkeErSendtPeriodeFra else null
+                if (opprinneligFakturaserie.erUnderBestilling()) {
+                    opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
+                } else null
             )
 
-        opprinneligFakturaserie.status = FakturaserieStatus.ERSTATTET
-        fakturaSomIkkeErSendt.forEach { it.status = FakturaStatus.KANSELLERT }
-
-        nyFakturaserie.apply { erstattetMed = opprinneligFakturaserie }
-
-        fakturaserieRepository.save(opprinneligFakturaserie)
         fakturaserieRepository.save(nyFakturaserie)
-        log.info("Kansellert fakturaserie med id: ${opprinneligFakturaserie.referanse}, lager ny med id: ${nyFakturaserie.referanse}")
+
+        opprinneligFakturaserie.erstattMed(nyFakturaserie)
+        fakturaserieRepository.save(opprinneligFakturaserie)
+
+        log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
+        return nyFakturaserie.referanse
     }
 
     fun finnesReferanse(referanse: String): Boolean {
