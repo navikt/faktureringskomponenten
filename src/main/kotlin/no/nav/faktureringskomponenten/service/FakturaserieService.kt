@@ -1,11 +1,15 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.BigDecimal
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
 
@@ -31,7 +35,7 @@ class FakturaserieService(
             return erstattFakturaserie(forrigeReferanse, fakturaserieDto)
         }
 
-        val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto)
+        val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto, avregningsfaktura = null)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
         return fakturaserie.referanse
@@ -46,12 +50,12 @@ class FakturaserieService(
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes"}
 
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
-                fakturaserieDto,
-                if (opprinneligFakturaserie.erUnderBestilling()) {
-                    opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
-                } else null
-            )
-
+            fakturaserieDto,
+            if (opprinneligFakturaserie.erUnderBestilling()) {
+                opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
+            } else null,
+            lagAvregningsFaktura(listOf(opprinneligFakturaserie.faktura[0]))
+        )
         fakturaserieRepository.save(nyFakturaserie)
 
         opprinneligFakturaserie.erstattMed(nyFakturaserie)
@@ -59,6 +63,18 @@ class FakturaserieService(
 
         log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
+    }
+    private fun lagAvregningsFaktura(fakturaerBruktTilAvregning: List<Faktura>): Faktura {
+        val linje = FakturaLinje(
+            referertFakturaVedAvregning = fakturaerBruktTilAvregning[0],
+            periodeFra = LocalDate.of(2024, 1, 1),
+            periodeTil = LocalDate.of(2024, 3, 31),
+            beskrivelse = "it.beskrivelse",
+            antall = BigDecimal(1),
+            enhetsprisPerManed = BigDecimal(1000),
+            belop = BigDecimal(1000),
+        )
+        return Faktura(null, LocalDate.now(), fakturaLinje = listOf(linje))
     }
 
     fun finnesReferanse(referanse: String): Boolean {

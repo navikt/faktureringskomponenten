@@ -49,7 +49,6 @@ class FakturaserieServiceTest {
     }
 
     @Test
-    @Disabled("Koden for løpende avregninger er ikke klar ennå")
     fun `Endrer fakturaserie, fakturaer har blitt sendt for 2 kvartaler, avregning`() {
         val opprinneligFakturaserie = lagOpprinneligFakturaserie()
         every {
@@ -71,9 +70,9 @@ class FakturaserieServiceTest {
             it.referertFakturaVedAvregning shouldNotBe null
             it.periodeFra shouldBe LocalDate.of(2024, 1, 1)
             it.periodeTil shouldBe LocalDate.of(2024, 3, 31)
-            it.antall shouldBe 1
-            it.enhetsprisPerManed shouldBe 1000
-            it.belop shouldBe 1000
+            it.antall shouldBe BigDecimal(1)
+            it.enhetsprisPerManed shouldBe BigDecimal(1000)
+            it.belop shouldBe BigDecimal(1000)
         }
     }
 
