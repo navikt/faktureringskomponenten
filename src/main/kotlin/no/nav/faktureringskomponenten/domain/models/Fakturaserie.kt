@@ -57,6 +57,22 @@ class Fakturaserie(
     var erstattetMed: Fakturaserie? = null,
 
 ) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Fakturaserie
+
+        if (id != other.id) return false
+        if (referanse != other.referanse) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return referanse.hashCode()
+    }
+
     override fun toString(): String {
         return "referanse: $referanse, " +
                 "fakturaGjelderInnbetalingstype: $fakturaGjelderInnbetalingstype, " +
