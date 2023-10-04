@@ -75,8 +75,7 @@ class FakturaserieController @Autowired constructor(
     @GetMapping
     fun hentFakturaserier(
         @RequestParam("referanse") referanse: String,
-        @RequestParam(value = "fakturaStatus", required = false) fakturaStatus: String? = null
 ): List<FakturaserieResponseDto> {
-        return faktureringService.hentFakturaserier(referanse, fakturaStatus).map { it.tilFakturaserieResponseDto }
+        return faktureringService.hentFakturaserier(referanse).map { it.tilFakturaserieResponseDto }
     }
 }

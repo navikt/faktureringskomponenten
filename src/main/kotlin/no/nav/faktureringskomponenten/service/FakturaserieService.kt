@@ -21,8 +21,8 @@ class FakturaserieService(
             message = "Fant ikke fakturaserie på: $referanse"
         )
 
-    fun hentFakturaserier(referanse: String, fakturaStatus: String?): List<Fakturaserie> {
-        return fakturaserieRepository.findAllByReferanse(referanse, fakturaStatus)
+    fun hentFakturaserier(referanse: String): List<Fakturaserie> {
+        return fakturaserieRepository.findAllByReferanse(referanse)
     }
 
     @Transactional

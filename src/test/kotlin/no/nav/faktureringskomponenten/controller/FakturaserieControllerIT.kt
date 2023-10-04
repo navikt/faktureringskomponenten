@@ -100,7 +100,7 @@ class FakturaserieControllerIT(
     }
 
     @Test
-    fun `hent fakturaserier basert på referanseId med fakturastatus filter`() {
+    fun `hent fakturaserier basert på referanseId`() {
         val startDato = LocalDate.parse("2023-01-01")
         val sluttDato = LocalDate.parse("2024-03-31")
         val fakturaSerieDto = lagFakturaserieDto(
@@ -122,16 +122,6 @@ class FakturaserieControllerIT(
         responseAlleFakturaserier?.size.shouldBe(4)
         responseAlleFakturaserier?.filter { it.status == FakturaserieStatus.ERSTATTET }?.size.shouldBe(3)
         responseAlleFakturaserier?.filter { it.status == FakturaserieStatus.OPPRETTET }?.size.shouldBe(1)
-
-        val responseAlleFakturaserierKunKansellert = hentFakturaserierRequest(fakturaserieResponse4Referanse, "&fakturaStatus=${FakturaStatus.KANSELLERT}")
-            .expectStatus().isOk
-            .expectBodyList(FakturaserieResponseDto::class.java).returnResult().responseBody
-
-        responseAlleFakturaserierKunKansellert?.size.shouldBe(3)
-        responseAlleFakturaserierKunKansellert?.stream()?.forEach {
-            it.status.shouldBe(FakturaserieStatus.ERSTATTET)
-            it.faktura.forEach { it.status.shouldBe(FakturaStatus.KANSELLERT) }
-        }
     }
 
 
@@ -267,9 +257,9 @@ class FakturaserieControllerIT(
             }
             .exchange()
 
-    private fun hentFakturaserierRequest(referanse: String, fakturaStatus: String? = null): WebTestClient.ResponseSpec =
+    private fun hentFakturaserierRequest(referanse: String): WebTestClient.ResponseSpec =
         webClient.get()
-            .uri("/fakturaserier?referanse=$referanse${fakturaStatus ?: ""}")
+            .uri("/fakturaserier?referanse=$referanse")
             .accept(MediaType.APPLICATION_JSON)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")

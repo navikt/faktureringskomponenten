@@ -39,16 +39,11 @@ interface FakturaserieRepository : JpaRepository<Fakturaserie, String> {
         JOIN fakturaserie_reverse fr ON fs.id = fr.erstattet_med
     )
     SELECT distinct fs.* FROM fakturaserie_forward fs
-    JOIN Faktura f ON f.fakturaserie_id = fs.id
-    WHERE (:fakturaStatus IS NULL OR CAST(f.status AS varchar) = :fakturaStatus)
     UNION ALL
     SELECT distinct fs.* FROM fakturaserie_reverse fs
-    JOIN Faktura f ON f.fakturaserie_id = fs.id
-    WHERE (:fakturaStatus IS NULL OR CAST(f.status AS varchar) = :fakturaStatus)
     """, nativeQuery = true)
     fun findAllByReferanse(
         @Param("referanse") referanse: String,
-        @Param("fakturaStatus") fakturaStatus: String?
     ): List<Fakturaserie>
 
 
