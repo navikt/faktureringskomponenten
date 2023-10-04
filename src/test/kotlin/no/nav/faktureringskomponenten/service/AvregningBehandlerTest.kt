@@ -19,7 +19,7 @@ class AvregningBehandlerTest {
         val bestilteFakturaer = listOf(faktura1, faktura2)
         val fakturaseriePerioder = fakturaseriePerioder()
 
-        val avregningsfaktura = avregningBehandler.lagAvregningsfaktura(bestilteFakturaer, fakturaseriePerioder)
+        val avregningsfaktura = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder, bestilteFakturaer)
 
         avregningsfaktura.shouldNotBeNull().shouldBeEqualToComparingFields(
             Faktura(
@@ -32,7 +32,7 @@ class AvregningBehandlerTest {
                         referertFakturaVedAvregning = faktura1,
                         periodeFra = LocalDate.of(2024, 1, 1),
                         periodeTil = LocalDate.of(2024, 3, 31),
-                        beskrivelse = "nytt beløp: 10.000 - tidligere beløp: 9.000",
+                        beskrivelse = "nytt beløp: 10000 - tidligere beløp: 9000",
                         antall = BigDecimal(1),
                         enhetsprisPerManed = BigDecimal(1000),
                         belop = BigDecimal(1000),
@@ -42,7 +42,7 @@ class AvregningBehandlerTest {
                         referertFakturaVedAvregning = faktura2,
                         periodeFra = LocalDate.of(2024, 4, 1),
                         periodeTil = LocalDate.of(2024, 6, 30),
-                        beskrivelse = "nytt beløp: 12.000 - tidligere beløp: 9.000",
+                        beskrivelse = "nytt beløp: 12000 - tidligere beløp: 9000",
                         antall = BigDecimal(1),
                         enhetsprisPerManed = BigDecimal(3000),
                         belop = BigDecimal(3000),

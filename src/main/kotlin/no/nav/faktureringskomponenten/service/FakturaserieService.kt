@@ -49,7 +49,7 @@ class FakturaserieService(
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
             fakturaserieDto,
             finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
-            avregningBehandler.lagAvregningsfaktura(opprinneligFakturaserie.bestilteFakturaer(), fakturaserieDto.perioder)
+            avregningBehandler.lagAvregningsfaktura(fakturaserieDto.perioder, opprinneligFakturaserie.bestilteFakturaer())
         )
         fakturaserieRepository.save(nyFakturaserie)
 
