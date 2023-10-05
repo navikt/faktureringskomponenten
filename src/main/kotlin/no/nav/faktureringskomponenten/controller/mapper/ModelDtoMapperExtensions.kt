@@ -22,16 +22,6 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
         erstattetMed = this.erstattetMed?.id
     )
 
-val FakturaMottatt.tilFakturaTilbakemeldingResponseDto: FakturaTilbakemeldingResponseDto
-    get() = FakturaTilbakemeldingResponseDto(
-        fakturaBelop = this.fakturaBelop,
-        ubetaltBelop = this.ubetaltBelop,
-        dato = this.dato,
-        status = this.status,
-        feilmelding = this.feilMelding,
-        fakturaNummer = this.fakturaNummer
-    )
-
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
     get() = FakturaserieDto(
         fakturaserieReferanse = UUID.randomUUID().toString(),
@@ -75,8 +65,20 @@ private val Faktura.tilResponseDto: FakturaResponseDto
         status = this.status,
         fakturaLinje = this.fakturaLinje.map { it.tilResponseDto },
         periodeFra = this.getPeriodeFra(),
-        periodeTil = this.getPeriodeTil()
+        periodeTil = this.getPeriodeTil(),
+        fakturaMottat = this.fakturaMottat.map { it.tilResponseDto }
     )
+
+private val FakturaMottatt.tilResponseDto: FakturaTilbakemeldingResponseDto
+    get() = FakturaTilbakemeldingResponseDto(
+        fakturaNummer = this.fakturaNummer,
+        dato = this.dato,
+        status = this.status,
+        fakturaBelop = this.fakturaBelop,
+        ubetaltBelop = this.ubetaltBelop,
+        feilmelding = this.feilMelding,
+    )
+
 
 private val FakturaLinje.tilResponseDto: FakturaLinjeResponseDto
     get() = FakturaLinjeResponseDto(
