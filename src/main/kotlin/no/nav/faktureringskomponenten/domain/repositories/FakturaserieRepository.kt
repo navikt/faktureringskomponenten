@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.domain.repositories
 
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -16,8 +15,7 @@ interface FakturaserieRepository : JpaRepository<Fakturaserie, String> {
     * av relasjonen. Kan se på dette som en som sjekker høyre og venstre, er det
     * noen relasjoner av meg til venstre(fakturaserie_forward) blir de funnnet av
     * denne CTE, hvis det er noen til høyre(fakturaserie_reverse) blir de funnnet
-    * av denne. Så den endelige SELECT henter svar fra begge CTE og joiner faktura
-    * og finner hvilke fakturaserie som har faktura med gitt status.
+    * av denne. Så den endelige SELECT henter svar fra begge CTE.
     * */
     @Query(value = """
     WITH RECURSIVE 
@@ -39,16 +37,11 @@ interface FakturaserieRepository : JpaRepository<Fakturaserie, String> {
         JOIN fakturaserie_reverse fr ON fs.id = fr.erstattet_med
     )
     SELECT distinct fs.* FROM fakturaserie_forward fs
-    JOIN Faktura f ON f.fakturaserie_id = fs.id
-    WHERE (:fakturaStatus IS NULL OR CAST(f.status AS varchar) = :fakturaStatus)
     UNION ALL
     SELECT distinct fs.* FROM fakturaserie_reverse fs
-    JOIN Faktura f ON f.fakturaserie_id = fs.id
-    WHERE (:fakturaStatus IS NULL OR CAST(f.status AS varchar) = :fakturaStatus)
     """, nativeQuery = true)
     fun findAllByReferanse(
         @Param("referanse") referanse: String,
-        @Param("fakturaStatus") fakturaStatus: String?
     ): List<Fakturaserie>
 
 
