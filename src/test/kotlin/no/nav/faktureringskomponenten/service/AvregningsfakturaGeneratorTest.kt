@@ -36,7 +36,7 @@ class AvregningsfakturaGeneratorTest {
             referertFakturaVedAvregning = bestilteFaktura,
             periodeFra = LocalDate.of(2024, 1, 1),
             periodeTil = LocalDate.of(2024, 3, 31),
-            beskrivelse = "nytt beløp: 1000 - tidligere beløp: 2000",
+            beskrivelse = "nytt beløp: 1000,00 - tidligere beløp: 2000,00",
             antall = BigDecimal(1),
             enhetsprisPerManed = BigDecimal(-1000),
             belop = BigDecimal(-1000),
