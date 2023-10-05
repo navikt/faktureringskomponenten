@@ -61,6 +61,6 @@ class FakturaLinje(
     }
 
     override fun toString(): String {
-        return "beskrivelse: $beskrivelse, belop: $belop"
+        return "fom: $periodeFra tom: $periodeTil, beskrivelse: $beskrivelse, antall: $antall, enhetspris: $enhetsprisPerManed, belop: $belop"
     }
 }

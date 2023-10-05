@@ -107,22 +107,22 @@ class AvregningBehandlerTest {
     private fun fakturaseriePerioder(): List<FakturaseriePeriode> {
         return listOf(
             FakturaseriePeriode(
-                BigDecimal.valueOf(1000),
-                LocalDate.of(2024, 1, 1),
-                LocalDate.of(2024, 12, 31),
-                "Dekning: Pensjon og helsedel, Sats 10%"
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 12, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
             ),
             FakturaseriePeriode(
-                BigDecimal.valueOf(2000),
-                LocalDate.of(2024, 1, 1),
-                LocalDate.of(2024, 2, 28),
-                "Dekning: Pensjon og helsedel, Sats 10%"
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 2, 28),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%",
+                enhetsprisPerManed = BigDecimal.valueOf(2000)
             ),
             FakturaseriePeriode(
-                BigDecimal.valueOf(3000),
-                LocalDate.of(2024, 3, 1),
-                LocalDate.of(2024, 12, 31),
-                "Dekning: Pensjon og helsedel, Sats 10%"
+                startDato = LocalDate.of(2024, 3, 1),
+                sluttDato = LocalDate.of(2024, 12, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(3000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
             ),
         )
     }
