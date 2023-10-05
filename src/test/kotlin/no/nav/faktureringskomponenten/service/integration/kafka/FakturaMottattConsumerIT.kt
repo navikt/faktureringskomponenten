@@ -55,7 +55,7 @@ class FakturaMottattConsumerIT(
 
         await.timeout(20, TimeUnit.SECONDS)
             .until {
-                fakturaMottattRepository.findAllByFakturaReferanseNr(Integer.parseInt(fakturaMottattDto.fakturaReferanseNr))?.isNotEmpty()
+                fakturaMottattRepository.findAllByFakturaReferanseNr(fakturaMottattDto.fakturaReferanseNr.toLong())?.isNotEmpty()
             }
     }
 
@@ -78,10 +78,10 @@ class FakturaMottattConsumerIT(
 
         await.timeout(20, TimeUnit.SECONDS)
             .until {
-                fakturaMottattRepository.findAllByFakturaReferanseNr(Integer.parseInt(fakturaMottattDto.fakturaReferanseNr))?.isNotEmpty()
+                fakturaMottattRepository.findAllByFakturaReferanseNr(fakturaMottattDto.fakturaReferanseNr.toLong())?.isNotEmpty()
             }
 
-        val fakturaMottatt = fakturaMottattRepository.findAllByFakturaReferanseNr(Integer.parseInt(fakturaMottattDto.fakturaReferanseNr))?.sortedBy { it.dato }?.get(0)
+        val fakturaMottatt = fakturaMottattRepository.findAllByFakturaReferanseNr(fakturaMottattDto.fakturaReferanseNr.toLong())?.sortedBy { it.dato }?.get(0)
 
         fakturaMottatt.shouldNotBeNull()
         fakturaMottatt.status.shouldBe(FakturaMottattStatus.FEIL)
@@ -108,10 +108,10 @@ class FakturaMottattConsumerIT(
 
         await.timeout(20, TimeUnit.SECONDS)
             .until {
-                fakturaMottattRepository.findAllByFakturaReferanseNr(Integer.parseInt(fakturaMottattDto.fakturaReferanseNr))?.isNotEmpty()
+                fakturaMottattRepository.findAllByFakturaReferanseNr(fakturaMottattDto.fakturaReferanseNr.toLong())?.isNotEmpty()
             }
 
-        val fakturaMottatt = fakturaMottattRepository.findAllByFakturaReferanseNr(Integer.parseInt(fakturaMottattDto.fakturaReferanseNr))?.sortedBy { it.dato }?.get(0)
+        val fakturaMottatt = fakturaMottattRepository.findAllByFakturaReferanseNr(fakturaMottattDto.fakturaReferanseNr.toLong())?.sortedBy { it.dato }?.get(0)
 
         fakturaMottatt.shouldNotBeNull()
         fakturaMottatt.status.shouldBe(FakturaMottattStatus.MANGLENDE_INNBETALING)

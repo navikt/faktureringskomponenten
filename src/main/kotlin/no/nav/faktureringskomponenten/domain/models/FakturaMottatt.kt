@@ -13,7 +13,7 @@ class FakturaMottatt(
     val id: Long? = null,
 
     @Column(name = "faktura_referanse_nr", nullable = false)
-    val fakturaReferanseNr: Int? = null,
+    val fakturaReferanseNr: Long? = null,
 
     @Column(name = "faktura_nummer", nullable = true)
     val fakturaNummer: String? = null,
