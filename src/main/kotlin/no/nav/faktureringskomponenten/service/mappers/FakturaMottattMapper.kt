@@ -11,7 +11,7 @@ class FakturaMottattMapper {
         fakturaMottatt: FakturaMottattDto
     ): FakturaMottatt = FakturaMottatt(
             id = null,
-            fakturaReferanseNr = fakturaMottatt.fakturaReferanseNr,
+            fakturaReferanseNr = Integer.parseInt(fakturaMottatt.fakturaReferanseNr),
             fakturaNummer = fakturaMottatt.fakturaNummer,
             dato = fakturaMottatt.dato,
             status = fakturaMottatt.status,

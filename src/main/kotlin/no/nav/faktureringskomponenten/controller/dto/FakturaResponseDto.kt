@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import no.nav.faktureringskomponenten.domain.models.FakturaMottatt
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import java.time.LocalDate
 
@@ -22,4 +23,6 @@ data class FakturaResponseDto(
 
     @Schema(description = "Sluttdato for perioden")
     val periodeTil: LocalDate,
+
+    val fakturaMottat: List<FakturaTilbakemeldingResponseDto>
 )

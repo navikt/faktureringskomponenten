@@ -29,7 +29,12 @@ class Faktura(
     @ManyToOne
     @JoinColumn(name = "fakturaserie_id", nullable = false, insertable = false, updatable = false)
     var fakturaserie: Fakturaserie? = null,
+
+    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "faktura_referanse_nr", nullable = false, insertable = false, updatable = false)
+    val fakturaMottat: List<FakturaMottatt> = mutableListOf(),
 ) {
+
     fun getPeriodeFra(): LocalDate {
         return fakturaLinje.minOf { it.periodeFra }
     }

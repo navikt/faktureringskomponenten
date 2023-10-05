@@ -7,6 +7,7 @@ import io.mockk.mockk
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottattRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
+import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFakturabetalingDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -30,8 +32,9 @@ import java.time.LocalDate
 class FakturaMottattServiceIT(
     @Autowired private val fakturaMottattMapper: FakturaMottattMapper,
     @Autowired private val fakturaMottattRepository: FakturaMottattRepository,
+    @Autowired private val fakturaRepository: FakturaRepository,
+    @Autowired private val fakturaserieRepository: FakturaserieRepository
 ) : PostgresTestContainerBase() {
-    private val fakturaRepository = mockk<FakturaRepository>(relaxed = true)
 
     private lateinit var fakturaMottattService: FakturaMottattService
 
@@ -56,9 +59,9 @@ class FakturaMottattServiceIT(
         TestQueue.kastException = false
     }
 
-    fun lagFakturaMottattDto() =
+    fun lagFakturaMottattDto(fakturaReferanseNr: String) =
         FakturaMottattDto(
-            fakturaReferanseNr = "123",
+            fakturaReferanseNr = fakturaReferanseNr,
             fakturaNummer = "1",
             dato = LocalDate.now(),
             status = FakturaMottattStatus.MANGLENDE_INNBETALING,
@@ -69,16 +72,21 @@ class FakturaMottattServiceIT(
 
     @Test
     fun `test at melding blir sendt til kø`() {
-        val faktura = lagFaktura(1)
+        val fakturaId = 1L
+        val faktura = lagFaktura(fakturaId)
 
-        every {
-            fakturaRepository.findById(1)
-        } returns faktura
+        fakturaserieRepository.save(
+            Fakturaserie(
+                faktura = listOf(
+                    Faktura(datoBestilt = LocalDate.now().plusDays(100))
+                )
+            )
+        ).apply { addCleanUpAction { fakturaserieRepository.delete(this) } }
 
-        fakturaMottattService.lagreFakturaMottattMelding(lagFakturaMottattDto())
+        fakturaMottattService.lagreFakturaMottattMelding(lagFakturaMottattDto(faktura.id.toString()))
 
         TestQueue.manglendeFakturabetalingMeldinger.shouldHaveSize(1)
-        val fakturaMottatt = fakturaMottattRepository.findById(1)!!
+        val fakturaMottatt = fakturaMottattRepository.findById(fakturaId)!!
 
         fakturaMottatt.sendt.shouldBe(true)
     }
