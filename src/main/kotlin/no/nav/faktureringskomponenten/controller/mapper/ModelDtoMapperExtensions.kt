@@ -86,6 +86,7 @@ private val FakturaLinje.tilResponseDto: FakturaLinjeResponseDto
         periodeTil = this.periodeTil,
         beskrivelse = this.beskrivelse,
         belop = this.belop,
+        antall = this.antall,
         enhetsprisPerManed = this.enhetsprisPerManed
     )
 
