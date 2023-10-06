@@ -5,10 +5,12 @@ import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
+import java.util.*
 
 @Component
 class AvregningsfakturaGenerator {
-    private val decimalFormat = DecimalFormat("0.00")
+    private val decimalFormat = DecimalFormat("0.00", DecimalFormatSymbols(Locale("no", "NO", "nb")))
     fun lagFaktura(avregningsperioder: List<Avregningsperiode>): Faktura? {
         if (avregningsperioder.isEmpty()) return null
 
