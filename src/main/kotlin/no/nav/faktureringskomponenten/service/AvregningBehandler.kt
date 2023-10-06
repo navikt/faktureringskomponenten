@@ -30,15 +30,15 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         return finnBestilteFakturaerSomAvregnes.map { lagAvregningsperiode(it) }
     }
 
-    private fun finnBestilteFakturaerSomAvregnes(bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>): List<Pair<Faktura, List<FakturaseriePeriode>>> {
-        return bestilteFakturaer.map { it to LocalDateRange.ofClosed(it.getPeriodeFra(), it.getPeriodeTil()) }.map { it.first to overlappendeFakturaseriePerioder(fakturaseriePerioder, it.second)}
+    private fun finnBestilteFakturaerSomAvregnes(bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>): List<FakturaOgNyePerioder> {
+        return bestilteFakturaer.map { FakturaOgNyePerioder(it, overlappendeFakturaseriePerioder(fakturaseriePerioder, LocalDateRange.ofClosed(it.getPeriodeFra(), it.getPeriodeTil()))) }
     }
 
     private fun overlappendeFakturaseriePerioder(fakturaseriePerioder: List<FakturaseriePeriode>, bestilteFakturaPeriode: LocalDateRange): List<FakturaseriePeriode> {
         return fakturaseriePerioder.map { it to LocalDateRange.ofClosed(it.startDato, it.sluttDato) }.filter { it.second.overlaps(bestilteFakturaPeriode) }.map { it.first }
     }
 
-    private fun lagAvregningsperiode(fakturaOgNyePerioder: Pair<Faktura, List<FakturaseriePeriode>>): Avregningsperiode {
+    private fun lagAvregningsperiode(fakturaOgNyePerioder: FakturaOgNyePerioder): Avregningsperiode {
         val (faktura, overlappendePerioder) = fakturaOgNyePerioder
         val nyttBeløp = beregnNyttBeløp(overlappendePerioder, faktura)
         return Avregningsperiode(
