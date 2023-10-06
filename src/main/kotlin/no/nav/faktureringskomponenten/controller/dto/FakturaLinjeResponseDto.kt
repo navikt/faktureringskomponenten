@@ -19,6 +19,9 @@ data class FakturaLinjeResponseDto(
     @Schema(description = "Totalbeløp for hele fakturalinjen")
     val belop: BigDecimal,
 
-    @Schema(description = "Enhetspris per måned")
+    @Schema(description = "Antall enheter")
+    val antall: BigDecimal,
+
+    @Schema(description = "Enhetspris")
     val enhetsprisPerManed: BigDecimal
 )
