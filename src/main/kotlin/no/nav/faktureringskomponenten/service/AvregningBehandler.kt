@@ -1,41 +1,63 @@
 package no.nav.faktureringskomponenten.service
 
+import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import org.springframework.stereotype.Component
+import org.threeten.extra.LocalDateRange
 import java.math.BigDecimal
-import java.time.LocalDate
+
+private val log = KotlinLogging.logger { }
+private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: List<FakturaseriePeriode>)
 
 @Component
-class AvregningBehandler {
+class AvregningBehandler(private val avregningsfakturaGenerator: AvregningsfakturaGenerator) {
     fun lagAvregningsfaktura(fakturaseriePerioder: List<FakturaseriePeriode>, bestilteFakturaer: List<Faktura>): Faktura? {
         if (bestilteFakturaer.isEmpty()) return null
 
         val avregningsperioder = lagEventuelleAvregningsperioder(bestilteFakturaer, fakturaseriePerioder)
         if (avregningsperioder.isEmpty()) return null
 
-        return AvregningsfakturaGenerator().lagFaktura(avregningsperioder)
+        return avregningsfakturaGenerator.lagFaktura(avregningsperioder)
     }
 
     private fun lagEventuelleAvregningsperioder(
         bestilteFakturaer: List<Faktura>,
         fakturaseriePerioder: List<FakturaseriePeriode>
     ): List<Avregningsperiode> {
-        // TODO bestilteFakturaerSomTrengerAvregning
-        return bestilteFakturaer.map { Avregningsperiode(
-            periodeFra = it.getPeriodeFra(),
-            periodeTil = it.getPeriodeTil(),
-            bestilteFaktura = it,
-            tidligereBeløp = it.totalbeløp(),
-            nyttBeløp = nyttBeløp(it.getPeriodeFra(), it.getPeriodeTil(), fakturaseriePerioder)
-        )
-        }
+        val finnBestilteFakturaerSomAvregnes = finnBestilteFakturaerSomAvregnes(bestilteFakturaer, fakturaseriePerioder)
+        return finnBestilteFakturaerSomAvregnes.map { lagAvregningsperiode(it) }
     }
 
-    private fun nyttBeløp(periodeFra: LocalDate, periodeTil: LocalDate, fakturaseriePerioder: List<FakturaseriePeriode>): BigDecimal {
-        if (periodeFra == LocalDate.of(2024, 1, 1)) return BigDecimal(10000)
-        if (periodeFra == LocalDate.of(2024, 4, 1)) return BigDecimal(12000)
-        return BigDecimal(1111)
+    private fun finnBestilteFakturaerSomAvregnes(bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>): List<Pair<Faktura, List<FakturaseriePeriode>>> {
+        return bestilteFakturaer.map { it to LocalDateRange.ofClosed(it.getPeriodeFra(), it.getPeriodeTil()) }.map { it.first to overlappendeFakturaseriePerioder(fakturaseriePerioder, it.second)}
+    }
 
+    private fun overlappendeFakturaseriePerioder(fakturaseriePerioder: List<FakturaseriePeriode>, bestilteFakturaPeriode: LocalDateRange): List<FakturaseriePeriode> {
+        return fakturaseriePerioder.map { it to LocalDateRange.ofClosed(it.startDato, it.sluttDato) }.filter { it.second.overlaps(bestilteFakturaPeriode) }.map { it.first }
+    }
+
+    private fun lagAvregningsperiode(fakturaOgNyePerioder: Pair<Faktura, List<FakturaseriePeriode>>): Avregningsperiode {
+        val (faktura, overlappendePerioder) = fakturaOgNyePerioder
+        val nyttBeløp = beregnNyttBeløp(overlappendePerioder, faktura)
+        return Avregningsperiode(
+            periodeFra = faktura.getPeriodeFra(),
+            periodeTil = faktura.getPeriodeTil(),
+            bestilteFaktura = faktura,
+            tidligereBeløp = faktura.totalbeløp(),
+            nyttBeløp = nyttBeløp,
+        )
+    }
+
+    private fun beregnNyttBeløp(overlappendePerioder: List<FakturaseriePeriode>, faktura: Faktura): BigDecimal {
+        return overlappendePerioder.sumOf { periode -> beregnBeløpForEnkelPeriode(periode, faktura)}
+    }
+
+    private fun beregnBeløpForEnkelPeriode(fakturaseriePeriode: FakturaseriePeriode, faktura: Faktura): BigDecimal {
+        val fakturaDateRange = LocalDateRange.ofClosed(faktura.getPeriodeFra(), faktura.getPeriodeTil())
+        val periodeDateRange = LocalDateRange.ofClosed(fakturaseriePeriode.startDato, fakturaseriePeriode.sluttDato)
+        val overlappDateRange = fakturaDateRange.intersection(periodeDateRange)
+        return BeløpBeregner.beløpForPeriode(fakturaseriePeriode.enhetsprisPerManed, overlappDateRange.start, overlappDateRange.endInclusive)
     }
 }

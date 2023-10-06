@@ -12,10 +12,10 @@ import java.time.LocalDate
 
 class AvregningBehandlerTest {
 
-    private val avregningBehandler = AvregningBehandler()
+    private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
 
     @Test
-    fun avregning() {
+    fun lagAvregningsfaktura() {
         val bestilteFakturaer = listOf(faktura1, faktura2)
         val fakturaseriePerioder = fakturaseriePerioder()
 
@@ -34,8 +34,8 @@ class AvregningBehandlerTest {
                         periodeTil = LocalDate.of(2024, 3, 31),
                         beskrivelse = "nytt beløp: 10000,00 - tidligere beløp: 9000,00",
                         antall = BigDecimal(1),
-                        enhetsprisPerManed = BigDecimal(1000),
-                        belop = BigDecimal(1000),
+                        enhetsprisPerManed = BigDecimal("1000.00"),
+                        belop = BigDecimal("1000.00"),
                     ),
                     FakturaLinje(
                         id = null,
@@ -44,8 +44,8 @@ class AvregningBehandlerTest {
                         periodeTil = LocalDate.of(2024, 6, 30),
                         beskrivelse = "nytt beløp: 12000,00 - tidligere beløp: 9000,00",
                         antall = BigDecimal(1),
-                        enhetsprisPerManed = BigDecimal(3000),
-                        belop = BigDecimal(3000),
+                        enhetsprisPerManed = BigDecimal("3000.00"),
+                        belop = BigDecimal("3000.00"),
                     ),
                 )
             )
@@ -114,7 +114,7 @@ class AvregningBehandlerTest {
             ),
             FakturaseriePeriode(
                 startDato = LocalDate.of(2024, 1, 1),
-                sluttDato = LocalDate.of(2024, 2, 28),
+                sluttDato = LocalDate.of(2024, 2, 29),
                 beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%",
                 enhetsprisPerManed = BigDecimal.valueOf(2000)
             ),

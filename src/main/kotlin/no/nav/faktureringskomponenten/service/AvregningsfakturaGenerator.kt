@@ -2,9 +2,11 @@ package no.nav.faktureringskomponenten.service
 
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.text.DecimalFormat
 
+@Component
 class AvregningsfakturaGenerator {
     private val decimalFormat = DecimalFormat("0.00")
     fun lagFaktura(avregningsperioder: List<Avregningsperiode>): Faktura? {
