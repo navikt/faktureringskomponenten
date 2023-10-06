@@ -31,7 +31,8 @@ class AvregningsfakturaGeneratorTest {
 
         val faktura = generator.lagFaktura(listOf(avregningsperiode))
 
-        faktura.shouldNotBeNull().fakturaLinje shouldContain FakturaLinje(
+        faktura.shouldNotBeNull()
+        faktura.fakturaLinje shouldContain FakturaLinje(
             id = null,
             referertFakturaVedAvregning = bestilteFaktura,
             periodeFra = LocalDate.of(2024, 1, 1),

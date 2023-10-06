@@ -21,7 +21,8 @@ class AvregningBehandlerTest {
 
         val avregningsfaktura = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder, bestilteFakturaer)
 
-        avregningsfaktura.shouldNotBeNull().shouldBeEqualToComparingFields(
+        avregningsfaktura.shouldNotBeNull()
+        avregningsfaktura.shouldBeEqualToComparingFields(
             Faktura(
                 id = null,
                 datoBestilt = LocalDate.now(),
