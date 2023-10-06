@@ -112,7 +112,7 @@ class AntallMdBeregnerTest {
     }
 
     @Test
-    fun `regnAngittAntallForPeriode for Februar 2023 regnes rett`() {
+    fun `regnAngittAntallForPeriode for Februar 2024 regnes rett`() {
         val fom = LocalDate.of(2024, 2, 1)
         val tom = LocalDate.of(2024, 2, 29)
 
@@ -125,7 +125,20 @@ class AntallMdBeregnerTest {
     }
 
     @Test
-    fun `regnAngittAntallForPeriode fra midten av Desember 2023 til Midten av Februar 2024 regnes rett`() {
+    fun `regnAngittAntallForPeriode fra Januar til slutten av Februar 2024 regnes rett`() {
+        val fom = LocalDate.of(2024, 1, 1)
+        val tom = LocalDate.of(2024, 2, 29)
+
+
+        val result = AntallMdBeregner(fom, tom).beregn()
+
+
+        val forventetAngittAntall = BigDecimal("2.00")
+        result.shouldBe(forventetAngittAntall)
+    }
+
+    @Test
+    fun `regnAngittAntallForPeriode fra midten av Desember 2023 til midten av Februar 2024 regnes rett`() {
         val fom = LocalDate.of(2023, 12, 14)
         val tom = LocalDate.of(2024, 2, 15)
 
