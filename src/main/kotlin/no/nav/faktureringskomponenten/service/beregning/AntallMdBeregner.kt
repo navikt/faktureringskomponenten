@@ -10,23 +10,23 @@ private val log = KotlinLogging.logger { }
 
 class AntallMdBeregner(private val fom: LocalDate, private val tom: LocalDate) {
 
-    private val førsteMånedDager = fom.lengthOfMonth().toBigDecimal()
-    private val sisteMånedDager = tom.lengthOfMonth().toBigDecimal()
     private val erSammeMånedOgÅr = fom.year == tom.year && fom.monthValue == tom.monthValue
+    private val antallDagerFørsteMåned = fom.lengthOfMonth().toBigDecimal()
+    private val antallDagerSisteMåned = tom.lengthOfMonth().toBigDecimal()
 
     fun beregn(): BigDecimal {
         val totalAntall = beregnFørsteMånedProsent() + beregnMånederMellomProsent() + beregnSisteMånedProsent()
-        log.debug {"AntallMdBeregner beregner fom: $fom og tom: $tom som gir total antall: $totalAntall" }
+        log.debug {"beregner for fom: $fom og tom: $tom som gir total antall: $totalAntall" }
         return totalAntall
     }
 
     private fun beregnFørsteMånedProsent(): BigDecimal {
         return if (erSammeMånedOgÅr) {
             (tom.dayOfMonth.toBigDecimal() - fom.dayOfMonth.toBigDecimal() + BigDecimal.ONE)
-                .divide(førsteMånedDager, 2, RoundingMode.HALF_UP)
+                .divide(antallDagerFørsteMåned, 2, RoundingMode.HALF_UP)
         } else {
-            (førsteMånedDager - fom.dayOfMonth.toBigDecimal() + BigDecimal.ONE)
-                .divide(førsteMånedDager, 2, RoundingMode.HALF_UP)
+            (antallDagerFørsteMåned - fom.dayOfMonth.toBigDecimal() + BigDecimal.ONE)
+                .divide(antallDagerFørsteMåned, 2, RoundingMode.HALF_UP)
         }
     }
 
@@ -44,7 +44,7 @@ class AntallMdBeregner(private val fom: LocalDate, private val tom: LocalDate) {
         return if (erSammeMånedOgÅr) {
             BigDecimal.ZERO
         } else {
-            tom.dayOfMonth.toBigDecimal().divide(sisteMånedDager, 2, RoundingMode.HALF_UP)
+            tom.dayOfMonth.toBigDecimal().divide(antallDagerSisteMåned, 2, RoundingMode.HALF_UP)
         }
     }
 }
