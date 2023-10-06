@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.service
 
-import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
@@ -8,7 +7,6 @@ import org.springframework.stereotype.Component
 import org.threeten.extra.LocalDateRange
 import java.math.BigDecimal
 
-private val log = KotlinLogging.logger { }
 private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: List<FakturaseriePeriode>)
 
 @Component
@@ -31,10 +29,11 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
     }
 
     private fun finnBestilteFakturaerSomAvregnes(bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>): List<FakturaOgNyePerioder> {
-        return bestilteFakturaer.map { FakturaOgNyePerioder(it, overlappendeFakturaseriePerioder(fakturaseriePerioder, LocalDateRange.ofClosed(it.getPeriodeFra(), it.getPeriodeTil()))) }
+        return bestilteFakturaer.map { FakturaOgNyePerioder(it, overlappendeFakturaseriePerioder(fakturaseriePerioder, it)) }
     }
 
-    private fun overlappendeFakturaseriePerioder(fakturaseriePerioder: List<FakturaseriePeriode>, bestilteFakturaPeriode: LocalDateRange): List<FakturaseriePeriode> {
+    private fun overlappendeFakturaseriePerioder(fakturaseriePerioder: List<FakturaseriePeriode>, faktura: Faktura): List<FakturaseriePeriode> {
+        val bestilteFakturaPeriode = LocalDateRange.ofClosed(faktura.getPeriodeFra(), faktura.getPeriodeTil())
         return fakturaseriePerioder.map { it to LocalDateRange.ofClosed(it.startDato, it.sluttDato) }.filter { it.second.overlaps(bestilteFakturaPeriode) }.map { it.first }
     }
 
