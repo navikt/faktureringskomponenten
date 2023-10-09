@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.controller
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
-import no.nav.faktureringskomponenten.service.integration.kafka.FakturaMottattConsumer
 import no.nav.security.token.support.core.api.Protected
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated

@@ -3,7 +3,7 @@ package no.nav.faktureringskomponenten.service.integration.kafka.config
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
-import no.nav.faktureringskomponenten.service.integration.kafka.FakturaMottattConsumerException
+import no.nav.faktureringskomponenten.service.integration.kafka.EksternFakturaStatusConsumerException
 import org.apache.kafka.clients.consumer.Consumer
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.errors.RecordDeserializationException
@@ -44,8 +44,8 @@ class ContainerStoppingErrorSavingHandler(
 
     private fun saveError(thrownException: Exception) {
         val recordDeserializationException = thrownException as? RecordDeserializationException
-        val fakturaMottattConsumerException = thrownException.cause as? FakturaMottattConsumerException
-        val offset = recordDeserializationException?.offset() ?: fakturaMottattConsumerException?.offset
+        val eksternFakturaStatusConsumerException = thrownException.cause as? EksternFakturaStatusConsumerException
+        val offset = recordDeserializationException?.offset() ?: eksternFakturaStatusConsumerException?.offset
         if (offset == null) log.warn("Fant ikke kafka offset fra Exceptions", thrownException)
         fakturaMottakFeilRepository.saveAndFlush(
                 FakturaMottakFeil(

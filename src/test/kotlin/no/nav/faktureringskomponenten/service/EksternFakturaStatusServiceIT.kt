@@ -2,16 +2,14 @@ package no.nav.faktureringskomponenten.service
 
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
 import no.nav.faktureringskomponenten.domain.models.*
-import no.nav.faktureringskomponenten.domain.repositories.FakturaMottattRepository
+import no.nav.faktureringskomponenten.domain.repositories.EksternFakturaStatusRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFakturabetalingDto
-import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
-import no.nav.faktureringskomponenten.service.mappers.FakturaMottattMapper
+import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
+import no.nav.faktureringskomponenten.service.mappers.EksternFakturaStatusMapper
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.junit.jupiter.api.AfterEach
@@ -30,14 +28,14 @@ import java.time.LocalDate
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SpringBootTest
 @EnableMockOAuth2Server
-class FakturaMottattServiceIT(
-    @Autowired private val fakturaMottattMapper: FakturaMottattMapper,
-    @Autowired private val fakturaMottattRepository: FakturaMottattRepository,
+class EksternFakturaStatusServiceIT(
+    @Autowired private val eksternFakturaStatusMapper: EksternFakturaStatusMapper,
+    @Autowired private val eksternFakturaStatusRepository: EksternFakturaStatusRepository,
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository
 ) : PostgresTestContainerBase() {
 
-    private lateinit var fakturaMottattService: FakturaMottattService
+    private lateinit var eksternFakturaStatusService: EksternFakturaStatusService
 
     private object TestQueue {
         val manglendeFakturabetalingMeldinger = mutableListOf<ManglendeFakturabetalingDto>()
@@ -51,7 +49,7 @@ class FakturaMottattServiceIT(
 
     @BeforeEach
     fun before() {
-        fakturaMottattService = FakturaMottattService(fakturaRepository, fakturaMottattMapper, fakturaMottattRepository, TestQueue.manglendeFakturabetalingProducer)
+        eksternFakturaStatusService = EksternFakturaStatusService(fakturaRepository, eksternFakturaStatusMapper, eksternFakturaStatusRepository, TestQueue.manglendeFakturabetalingProducer)
     }
 
     @AfterEach
@@ -60,42 +58,44 @@ class FakturaMottattServiceIT(
         TestQueue.kastException = false
     }
 
-    fun lagFakturaMottattDto(fakturaReferanseNr: String) =
-        FakturaMottattDto(
+    fun lagEksternFakturaStatusDto(fakturaReferanseNr: String) =
+        EksternFakturaStatusDto(
             fakturaReferanseNr = fakturaReferanseNr,
             fakturaNummer = "1",
             dato = LocalDate.now(),
-            status = FakturaMottattStatus.MANGLENDE_INNBETALING,
+            status = FakturaStatus.MANGLENDE_INNBETALING,
             fakturaBelop = BigDecimal(1200.00),
             ubetaltBelop = BigDecimal(1000.00),
             feilmelding = null
         )
 
     @Test
-    @Disabled("Disabler denne pga. visningsmøte. Legger inn denne igjen etterpå og refakturerer fakturaMottatt")
+    @Transactional
     fun `test at melding blir sendt til kø`() {
         val fakturaId = 1L
-        val faktura = lagFaktura(fakturaId)
+        val faktura = lagFaktura(fakturaId).apply {
+            fakturaserie = lagFakturaserie()
+        }
+        val fakturaserie = lagFakturaserie().apply { this.faktura = listOf(faktura) }
 
         fakturaserieRepository.save(
-            Fakturaserie(
-                faktura = listOf(
-                    Faktura(datoBestilt = LocalDate.now().plusDays(100))
-                )
-            )
-        ).apply { addCleanUpAction { fakturaserieRepository.delete(this) } }
+            fakturaserie
+        ).apply {
+            addCleanUpAction { fakturaserieRepository.delete(this) }
+        }
 
-        fakturaMottattService.lagreFakturaMottattMelding(lagFakturaMottattDto(faktura.id.toString()))
+        eksternFakturaStatusService.lagreEksternFakturaStatusMelding(lagEksternFakturaStatusDto(faktura.id.toString()))
 
         TestQueue.manglendeFakturabetalingMeldinger.shouldHaveSize(1)
-        val fakturaMottatt = fakturaMottattRepository.findById(fakturaId)!!
+        val eksternFakturaStatus = eksternFakturaStatusRepository.findById(fakturaId)!!
 
-        fakturaMottatt.sendt.shouldBe(true)
+        eksternFakturaStatus.sendt.shouldBe(true)
     }
 
     fun lagFaktura(id: Long? = 1): Faktura {
         return Faktura(
             id,
+            LocalDate.of(2022, 5, 1),
             LocalDate.of(2022, 5, 1),
             FakturaStatus.OPPRETTET,
             fakturaLinje = listOf(
@@ -110,25 +110,25 @@ class FakturaMottattServiceIT(
                     enhetsprisPerManed = BigDecimal(18000)
                 ),
             )
-        ).apply {
-            fakturaserie =
-                Fakturaserie(
-                    100, referanse = "MEL-1",
-                    fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
-                    referanseBruker = "Referanse bruker",
-                    referanseNAV = "Referanse NAV",
-                    startdato = LocalDate.of(2022, 1, 1),
-                    sluttdato = LocalDate.of(2023, 5, 1),
-                    status = FakturaserieStatus.OPPRETTET,
-                    intervall = FakturaserieIntervall.KVARTAL,
-                    faktura = listOf(),
-                    fullmektig = Fullmektig(
-                        fodselsnummer = "12129012345",
-                        kontaktperson = "Test",
-                        organisasjonsnummer = ""
-                    ),
-                    fodselsnummer = "12345678911"
-                )
-        }
+        )
+    }
+
+    fun lagFakturaserie(): Fakturaserie {
+        return Fakturaserie( referanse = "en_referanse",
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+            referanseBruker = "Referanse bruker",
+            referanseNAV = "Referanse NAV",
+            startdato = LocalDate.of(2022, 1, 1),
+            sluttdato = LocalDate.of(2023, 5, 1),
+            status = FakturaserieStatus.OPPRETTET,
+            intervall = FakturaserieIntervall.KVARTAL,
+            faktura = listOf(),
+            fullmektig = Fullmektig(
+                fodselsnummer = "12129012345",
+                kontaktperson = "Test",
+                organisasjonsnummer = ""
+            ),
+            fodselsnummer = "12345678911"
+        )
     }
 }

@@ -114,6 +114,7 @@ class FakturaBestillingServiceTest {
         return Faktura(
             id,
             LocalDate.of(2022, 5, 1),
+            LocalDate.of(2022, 5, 1),
             FakturaStatus.OPPRETTET,
             fakturaLinje = listOf(
                 FakturaLinje(

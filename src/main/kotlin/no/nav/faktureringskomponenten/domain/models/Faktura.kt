@@ -13,14 +13,20 @@ class Faktura(
     val id: Long? = null,
 
     @Column(name = "dato_bestilt", nullable = false)
-    val datoBestilt: LocalDate = LocalDate.now(),
+    var datoBestilt: LocalDate = LocalDate.now(),
+
+    @Column(name = "sist_oppdatert", nullable = false)
+    var sistOppdatert: LocalDate = LocalDate.now(),
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
-    @Column(name = "innbetalt_belop", nullable = false)
-    var innbetaltBelop: BigDecimal = BigDecimal(0.0),
+    @Column(name = "ubetalt_belop", nullable = false)
+    var ubetaltBelop: BigDecimal = BigDecimal(0.0),
+
+    @Column(name = "faktura_nummer", nullable = false)
+    var fakturaNummer: String? = null,
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "faktura_id", nullable = false)
@@ -31,8 +37,8 @@ class Faktura(
     var fakturaserie: Fakturaserie? = null,
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
-    @JoinColumn(name = "faktura_referanse_nr", nullable = false, insertable = false, updatable = false)
-    val fakturaMottat: List<FakturaMottatt> = mutableListOf(),
+    @JoinColumn(name = "faktura_referanse_nr")
+    var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
 ) {
 
     override fun toString(): String {

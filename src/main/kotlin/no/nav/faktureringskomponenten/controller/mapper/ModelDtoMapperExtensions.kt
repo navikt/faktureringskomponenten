@@ -62,14 +62,17 @@ private val Faktura.tilResponseDto: FakturaResponseDto
     get() = FakturaResponseDto(
         id = this.id,
         datoBestilt = this.datoBestilt,
+        sistOppdatert = this.sistOppdatert,
         status = this.status,
         fakturaLinje = this.fakturaLinje.map { it.tilResponseDto },
         periodeFra = this.getPeriodeFra(),
         periodeTil = this.getPeriodeTil(),
-        fakturaMottat = this.fakturaMottat.map { it.tilResponseDto }
+        fakturaMottat = this.eksternFakturaStatus.map { it.tilResponseDto },
+        ubetaltBelop = this.ubetaltBelop,
+        fakturaNummer = this.fakturaNummer
     )
 
-private val FakturaMottatt.tilResponseDto: FakturaTilbakemeldingResponseDto
+private val EksternFakturaStatus.tilResponseDto: FakturaTilbakemeldingResponseDto
     get() = FakturaTilbakemeldingResponseDto(
         fakturaNummer = this.fakturaNummer,
         dato = this.dato,

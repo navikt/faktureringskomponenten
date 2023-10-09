@@ -5,15 +5,12 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @Entity
-@Table(name = "faktura_mottatt")
-class FakturaMottatt(
+@Table(name = "ekstern_faktura_status")
+class EksternFakturaStatus(
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
-
-    @Column(name = "faktura_referanse_nr", nullable = false)
-    val fakturaReferanseNr: Long? = null,
 
     @Column(name = "faktura_nummer", nullable = true)
     val fakturaNummer: String? = null,
@@ -23,7 +20,7 @@ class FakturaMottatt(
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    val status: FakturaMottattStatus? = null,
+    val status: FakturaStatus? = null,
 
     @Column(name = "faktura_belop", nullable = true)
     val fakturaBelop: BigDecimal? = null,
