@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.service
+package no.nav.faktureringskomponenten.service.avregning
 
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.shouldNotBeNull

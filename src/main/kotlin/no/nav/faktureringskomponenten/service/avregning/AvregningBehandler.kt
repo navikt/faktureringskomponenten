@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.service
+package no.nav.faktureringskomponenten.service.avregning
 
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
