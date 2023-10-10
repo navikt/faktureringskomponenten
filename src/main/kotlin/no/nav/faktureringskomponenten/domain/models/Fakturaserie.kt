@@ -50,7 +50,7 @@ class Fakturaserie(
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "fakturaserie_id", nullable = false)
-    var faktura: List<Faktura> = mutableListOf(),
+    var faktura: MutableList<Faktura> = mutableListOf(),
 
     @OneToOne(cascade = [CascadeType.REMOVE], fetch = FetchType.LAZY)
     @JoinColumn(name = "erstattet_med", referencedColumnName = "id")

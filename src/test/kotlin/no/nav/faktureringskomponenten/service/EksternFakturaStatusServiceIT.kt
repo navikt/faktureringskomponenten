@@ -32,7 +32,8 @@ class EksternFakturaStatusServiceIT(
     @Autowired private val eksternFakturaStatusMapper: EksternFakturaStatusMapper,
     @Autowired private val eksternFakturaStatusRepository: EksternFakturaStatusRepository,
     @Autowired private val fakturaRepository: FakturaRepository,
-    @Autowired private val fakturaserieRepository: FakturaserieRepository
+    @Autowired private val fakturaserieRepository: FakturaserieRepository,
+    @Autowired private val fakturaserieService: FakturaserieService
 ) : PostgresTestContainerBase() {
 
     private lateinit var eksternFakturaStatusService: EksternFakturaStatusService
@@ -50,6 +51,8 @@ class EksternFakturaStatusServiceIT(
     @BeforeEach
     fun before() {
         eksternFakturaStatusService = EksternFakturaStatusService(fakturaRepository, eksternFakturaStatusMapper, eksternFakturaStatusRepository, TestQueue.manglendeFakturabetalingProducer)
+
+
     }
 
     @AfterEach
@@ -72,63 +75,36 @@ class EksternFakturaStatusServiceIT(
     @Test
     @Transactional
     fun `test at melding blir sendt til kø`() {
-        val fakturaId = 1L
-        val faktura = lagFaktura(fakturaId).apply {
-            fakturaserie = lagFakturaserie()
-        }
-        val fakturaserie = lagFakturaserie().apply { this.faktura = listOf(faktura) }
+        val fakturaId = "1"
+        lagFakturaSerie()
 
-        fakturaserieRepository.save(
-            fakturaserie
-        ).apply {
-            addCleanUpAction { fakturaserieRepository.delete(this) }
-        }
-
-        eksternFakturaStatusService.lagreEksternFakturaStatusMelding(lagEksternFakturaStatusDto(faktura.id.toString()))
+        eksternFakturaStatusService.lagreEksternFakturaStatusMelding(lagEksternFakturaStatusDto(fakturaId))
 
         TestQueue.manglendeFakturabetalingMeldinger.shouldHaveSize(1)
-        val eksternFakturaStatus = eksternFakturaStatusRepository.findById(fakturaId)!!
+        val eksternFakturaStatus = eksternFakturaStatusRepository.findById(fakturaId.toLong())!!
 
         eksternFakturaStatus.sendt.shouldBe(true)
     }
 
-    fun lagFaktura(id: Long? = 1): Faktura {
-        return Faktura(
-            id,
-            LocalDate.of(2022, 5, 1),
-            LocalDate.of(2022, 5, 1),
-            FakturaStatus.OPPRETTET,
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    100,
-                    null,
-                    LocalDate.of(2023, 1, 1),
-                    LocalDate.of(2023, 5, 1),
-                    beskrivelse = "En beskrivelse",
-                    belop = BigDecimal(90000),
-                    antall = BigDecimal(1),
-                    enhetsprisPerManed = BigDecimal(18000)
-                ),
-            )
-        )
-    }
-
-    fun lagFakturaserie(): Fakturaserie {
-        return Fakturaserie( referanse = "en_referanse",
-            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
-            referanseBruker = "Referanse bruker",
-            referanseNAV = "Referanse NAV",
-            startdato = LocalDate.of(2022, 1, 1),
-            sluttdato = LocalDate.of(2023, 5, 1),
-            status = FakturaserieStatus.OPPRETTET,
-            intervall = FakturaserieIntervall.KVARTAL,
-            faktura = listOf(),
-            fullmektig = Fullmektig(
-                fodselsnummer = "12129012345",
-                kontaktperson = "Test",
-                organisasjonsnummer = ""
-            ),
-            fodselsnummer = "12345678911"
-        )
-    }
+    private fun lagFakturaSerie(): Long =
+        fakturaserieRepository.saveAndFlush(
+            Fakturaserie(
+                referanse = "MEL-1-1",
+                fodselsnummer = "01234567890",
+                faktura = mutableListOf(
+                    Faktura(
+                        datoBestilt = LocalDate.now().plusDays(-1),
+                        fakturaLinje = mutableListOf(
+                            FakturaLinje(
+                                beskrivelse = "test 1",
+                                belop = BigDecimal(1000),
+                                enhetsprisPerManed = BigDecimal(100)
+                            )
+                        )
+                    )
+                )
+            ).apply { faktura.forEach { it.fakturaserie = this } }
+        ).faktura.first().apply {
+            addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
+        }.id!!
 }

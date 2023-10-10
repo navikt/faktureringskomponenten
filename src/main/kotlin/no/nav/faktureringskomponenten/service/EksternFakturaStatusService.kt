@@ -55,15 +55,13 @@ class EksternFakturaStatusService(
                     "Kunne ikke produsere melding om faktura mottatt bestilt for behandlingsID ${faktura.fakturaserie!!.referanse}", e
                 )
             } finally {
+                faktura.eksternFakturaStatus.add(eksternFakturaStatus)
 
                 faktura.apply {
                     sistOppdatert = eksternFakturaStatusDto.dato
                     status = eksternFakturaStatusDto.status
-                    ubetaltBelop = eksternFakturaStatusDto.ubetaltBelop ?: BigDecimal(0)
-                    fakturaNummer = eksternFakturaStatusDto.fakturaNummer
                 }
 
-                faktura.eksternFakturaStatus.add(eksternFakturaStatus)
                 fakturaRepository.save(faktura)
             }
         }

@@ -22,7 +22,7 @@ class FakturaGenerator (
         sluttDatoForHelePerioden: LocalDate,
         fakturaseriePerioder: List<FakturaseriePeriode>,
         faktureringsintervall: FakturaserieIntervall
-    ): List<Faktura> {
+    ): MutableList<Faktura> {
         val samletFakturaListe = mutableListOf<Faktura>()
         val gjeldendeFakturaLinjer = mutableListOf<FakturaLinje>()
         var gjeldendeFaktureringStartDato = startDatoForHelePerioden

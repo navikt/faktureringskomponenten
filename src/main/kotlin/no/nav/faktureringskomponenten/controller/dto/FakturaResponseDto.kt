@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -27,7 +28,7 @@ data class FakturaResponseDto(
     @Schema(description = "Sluttdato for perioden")
     val periodeTil: LocalDate,
 
-    val fakturaMottat: List<FakturaTilbakemeldingResponseDto>,
+    val eksternFakturaStatus: List<FakturaTilbakemeldingResponseDto>,
 
     val ubetaltBelop: BigDecimal? = BigDecimal(0),
 

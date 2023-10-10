@@ -139,7 +139,7 @@ class FakturaBestillingServiceTest {
                     sluttdato = LocalDate.of(2023, 5, 1),
                     status = FakturaserieStatus.OPPRETTET,
                     intervall = FakturaserieIntervall.KVARTAL,
-                    faktura = listOf(),
+                    faktura = mutableListOf(),
                     fullmektig = Fullmektig(
                         fodselsnummer = "12129012345",
                         kontaktperson = "Test",

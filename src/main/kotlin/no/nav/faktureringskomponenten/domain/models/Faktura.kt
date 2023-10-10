@@ -22,12 +22,6 @@ class Faktura(
     @Enumerated(EnumType.STRING)
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
-    @Column(name = "ubetalt_belop", nullable = false)
-    var ubetaltBelop: BigDecimal = BigDecimal(0.0),
-
-    @Column(name = "faktura_nummer", nullable = false)
-    var fakturaNummer: String? = null,
-
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "faktura_id", nullable = false)
     val fakturaLinje: List<FakturaLinje> = mutableListOf(),
@@ -37,7 +31,7 @@ class Faktura(
     var fakturaserie: Fakturaserie? = null,
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
-    @JoinColumn(name = "faktura_referanse_nr")
+    @JoinColumn(name = "faktura_id")
     var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
 ) {
 
