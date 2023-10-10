@@ -8,7 +8,6 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -20,8 +19,9 @@ private const val NY_REF = "456"
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
     private val fakturaserieGenerator = FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash()))
+    private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
 
-    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieGenerator)
+    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieGenerator, avregningBehandler)
 
     @Test
     fun `Endrer fakturaserie, erstatter opprinnelig og lager ny`() {
@@ -49,7 +49,6 @@ class FakturaserieServiceTest {
     }
 
     @Test
-    @Disabled("Koden for løpende avregninger er ikke klar ennå")
     fun `Endrer fakturaserie, fakturaer har blitt sendt for 2 kvartaler, avregning`() {
         val opprinneligFakturaserie = lagOpprinneligFakturaserie()
         every {
@@ -71,9 +70,9 @@ class FakturaserieServiceTest {
             it.referertFakturaVedAvregning shouldNotBe null
             it.periodeFra shouldBe LocalDate.of(2024, 1, 1)
             it.periodeTil shouldBe LocalDate.of(2024, 3, 31)
-            it.antall shouldBe 1
-            it.enhetsprisPerManed shouldBe 1000
-            it.belop shouldBe 1000
+            it.antall shouldBe BigDecimal(1)
+            it.enhetsprisPerManed shouldBe BigDecimal("1000.00")
+            it.belop shouldBe BigDecimal("1000.00")
         }
     }
 
@@ -167,7 +166,7 @@ class FakturaserieServiceTest {
             FakturaseriePeriode(
                 BigDecimal.valueOf(2000),
                 LocalDate.of(2024, 1, 1),
-                LocalDate.of(2024, 2, 28),
+                LocalDate.of(2024, 2, 29),
                 "Dekning: Pensjon og helsedel, Sats 10%"
             ),
             FakturaseriePeriode(

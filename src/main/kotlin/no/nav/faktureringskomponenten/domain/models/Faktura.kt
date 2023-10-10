@@ -35,6 +35,10 @@ class Faktura(
     val fakturaMottat: List<FakturaMottatt> = mutableListOf(),
 ) {
 
+    override fun toString(): String {
+        return "id: $id, datoBestilt: $datoBestilt, status: $status"
+    }
+
     fun getPeriodeFra(): LocalDate {
         return fakturaLinje.minOf { it.periodeFra }
     }
@@ -47,8 +51,7 @@ class Faktura(
         return fakturaserie?.id
     }
 
-    @Override
-    override fun toString(): String {
-        return "id: $id, datoBestilt: $datoBestilt, status: $status"
+    fun totalbeløp(): BigDecimal {
+        return fakturaLinje.sumOf(FakturaLinje::belop)
     }
 }

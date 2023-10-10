@@ -13,6 +13,7 @@ private val log = KotlinLogging.logger { }
 class FakturaserieService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaserieGenerator: FakturaserieGenerator,
+    private val avregningBehandler: AvregningBehandler,
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -31,7 +32,7 @@ class FakturaserieService(
             return erstattFakturaserie(forrigeReferanse, fakturaserieDto)
         }
 
-        val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto)
+        val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto, avregningsfaktura = null)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
         return fakturaserie.referanse
@@ -46,12 +47,10 @@ class FakturaserieService(
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes"}
 
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
-                fakturaserieDto,
-                if (opprinneligFakturaserie.erUnderBestilling()) {
-                    opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
-                } else null
-            )
-
+            fakturaserieDto,
+            finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
+            avregningBehandler.lagAvregningsfaktura(fakturaserieDto.perioder, opprinneligFakturaserie.bestilteFakturaer())
+        )
         fakturaserieRepository.save(nyFakturaserie)
 
         opprinneligFakturaserie.erstattMed(nyFakturaserie)
@@ -60,6 +59,11 @@ class FakturaserieService(
         log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
     }
+
+    private fun finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie: Fakturaserie) =
+        if (opprinneligFakturaserie.erUnderBestilling()) {
+            opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
+        } else null
 
     fun finnesReferanse(referanse: String): Boolean {
         return fakturaserieRepository.findByReferanse(referanse) != null

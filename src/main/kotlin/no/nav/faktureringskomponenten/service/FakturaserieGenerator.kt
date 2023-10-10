@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
+import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
@@ -11,9 +12,15 @@ class FakturaserieGenerator(
     val fakturaGenerator: FakturaGenerator
 ) {
 
-    fun lagFakturaserie(fakturaserieDto: FakturaserieDto, startDato: LocalDate? = null): Fakturaserie {
-        val startDatoForHelePerioden = startDato ?: mapStartdato(fakturaserieDto.perioder)
-        val sluttDatoForHelePerioden = mapSluttdato(fakturaserieDto.perioder)
+    fun lagFakturaserie(fakturaserieDto: FakturaserieDto, startDato: LocalDate? = null, avregningsfaktura: Faktura? = null): Fakturaserie {
+        val startDatoForSamletPeriode = startDato ?: mapStartdato(fakturaserieDto.perioder)
+        val sluttDatoForSamletPeriode = mapSluttdato(fakturaserieDto.perioder)
+        val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(
+            startDatoForSamletPeriode,
+            sluttDatoForSamletPeriode,
+            fakturaserieDto.perioder,
+            fakturaserieDto.intervall
+        )
         return Fakturaserie(
             id = null,
             referanse = fakturaserieDto.fakturaserieReferanse,
@@ -22,15 +29,10 @@ class FakturaserieGenerator(
             fullmektig = mapFullmektig(fakturaserieDto.fullmektig),
             referanseBruker = fakturaserieDto.referanseBruker,
             referanseNAV = fakturaserieDto.referanseNAV,
-            startdato = startDatoForHelePerioden,
-            sluttdato = sluttDatoForHelePerioden,
+            startdato = startDatoForSamletPeriode,
+            sluttdato = sluttDatoForSamletPeriode,
             intervall = fakturaserieDto.intervall,
-            faktura = fakturaGenerator.lagFakturaerFor(
-                startDatoForHelePerioden,
-                sluttDatoForHelePerioden,
-                fakturaserieDto.perioder,
-                fakturaserieDto.intervall
-            ),
+            faktura =  fakturaerForSamletPeriode + listOfNotNull(avregningsfaktura),
         )
     }
 
