@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.springframework.context.annotation.Import
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
+import org.springframework.transaction.annotation.Transactional
+import java.util.UUID
 
 @EmbeddedKafka(
     count = 1, controlledShutdown = true, partitions = 1,
@@ -20,10 +22,11 @@ open class EmbeddedKafkaBase(
     private val fakturaserieRepository: FakturaserieRepository,
 ) : PostgresTestContainerBase() {
 
-    protected fun lagFakturaMedSerie(faktura: Faktura, vedtaksId: String = "MEL-1-1"): Faktura =
+    @Transactional
+    protected open fun lagFakturaMedSerie(faktura: Faktura, referanse: String = UUID.randomUUID().toString()): Faktura =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
-                referanse = vedtaksId,
+                referanse = referanse,
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(faktura)
             ).apply { this.faktura.forEach { it.fakturaserie = this } }

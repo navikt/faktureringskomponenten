@@ -27,7 +27,6 @@ import java.util.concurrent.TimeUnit
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @EnableMockOAuth2Server
-@Disabled
 class EksternFakturaStatusConsumeStopperVedFeilIT(
     @Autowired @Qualifier("fakturaMottatt") private val kafkaTemplate: KafkaTemplate<String, EksternFakturaStatusDto>,
     @Autowired private val fakturaRepository: FakturaRepository,
@@ -36,17 +35,16 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
     @Autowired private val eksternFakturaStatusConsumer: EksternFakturaStatusConsumer
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
 
-
     @Test // Kan kun være denne testen i klassen siden offset vil stå på den feilede meldingen etter kjøring
     fun `les faktura fra kafka kø skal stoppe ved feil og ikke avansere offset`() {
         val (_, faktura) = (1..2).map {
             lagFakturaMedSerie(
                 faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILLT),
-                vedtaksId = "MEL-$it-$it"
+                referanse = "MEL-$it-$it"
             ).apply {
                 kafkaTemplate.send(
                     kafkaTopic, EksternFakturaStatusDto(
-                        fakturaReferanseNr = id.toString(),
+                        fakturaReferanseNr = "123",
                         fakturaNummer = "82",
                         dato = LocalDate.now(),
                         status = FakturaStatus.INNE_I_OEBS,
@@ -67,7 +65,7 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
         fakturaMottakFeilRepository.findAll()
             .shouldHaveSize(1)
             .first().apply {
-                error.shouldStartWith("Faktura melding mottatt fra oebs med status: OPPRETTET")
+                error.shouldStartWith("Finner ikke faktura med faktura id")
                 kafkaOffset.shouldBe(0)
             }
 

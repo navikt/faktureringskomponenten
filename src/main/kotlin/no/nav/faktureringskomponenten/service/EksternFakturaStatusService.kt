@@ -34,8 +34,7 @@ class EksternFakturaStatusService(
             message = "Finner ikke faktura med faktura id $eksternFakturaStatusDto.fakturaReferanseNr"
         )
 
-        val eksternFakturaStatus = eksternFakturaStatusMapper.tilEksternFakturaStatus(eksternFakturaStatusDto)
-
+        val eksternFakturaStatus = eksternFakturaStatusMapper.tilEksternFakturaStatus(eksternFakturaStatusDto, faktura)
         if(faktura.fakturaserie?.referanse != null) {
             try {
                 if(eksternFakturaStatus.status == FakturaStatus.MANGLENDE_INNBETALING) {
@@ -49,12 +48,7 @@ class EksternFakturaStatusService(
                 } else {
                     eksternFakturaStatus.apply { sendt = false }
                 }
-            } catch (e: Exception) {
-                eksternFakturaStatus.apply { sendt = false }
-                throw RuntimeException(
-                    "Kunne ikke produsere melding om faktura mottatt bestilt for behandlingsID ${faktura.fakturaserie!!.referanse}", e
-                )
-            } finally {
+
                 faktura.eksternFakturaStatus.add(eksternFakturaStatus)
 
                 faktura.apply {
@@ -63,6 +57,11 @@ class EksternFakturaStatusService(
                 }
 
                 fakturaRepository.save(faktura)
+            } catch (e: Exception) {
+                eksternFakturaStatus.apply { sendt = false }
+                throw RuntimeException(
+                    "Kunne ikke produsere melding om faktura mottatt bestilt for behandlingsID ${faktura.fakturaserie!!.referanse}", e
+                )
             }
         }
     }

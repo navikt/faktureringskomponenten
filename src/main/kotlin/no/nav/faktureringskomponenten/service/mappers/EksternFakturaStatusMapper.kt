@@ -9,14 +9,16 @@ import org.springframework.stereotype.Component
 class EksternFakturaStatusMapper {
 
     fun tilEksternFakturaStatus(
-        eksternFakturaStatus: EksternFakturaStatusDto
+        eksternFakturaStatus: EksternFakturaStatusDto,
+        faktura: Faktura
     ): EksternFakturaStatus = EksternFakturaStatus(
-            id = null,
-            fakturaNummer = eksternFakturaStatus.fakturaNummer,
-            dato = eksternFakturaStatus.dato,
-            status = eksternFakturaStatus.status,
-            fakturaBelop = eksternFakturaStatus.fakturaBelop,
-            ubetaltBelop = eksternFakturaStatus.ubetaltBelop,
-            feilMelding = eksternFakturaStatus.feilmelding,
-        )
+        id = null,
+        fakturaNummer = eksternFakturaStatus.fakturaNummer,
+        dato = eksternFakturaStatus.dato,
+        status = eksternFakturaStatus.status,
+        fakturaBelop = eksternFakturaStatus.fakturaBelop,
+        ubetaltBelop = eksternFakturaStatus.ubetaltBelop,
+        feilMelding = eksternFakturaStatus.feilmelding,
+        faktura = faktura
+    )
 }

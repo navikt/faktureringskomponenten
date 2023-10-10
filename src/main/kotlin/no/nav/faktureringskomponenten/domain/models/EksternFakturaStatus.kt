@@ -33,5 +33,9 @@ class EksternFakturaStatus(
 
     @Column(name = "sendt", nullable = true)
     var sendt: Boolean? = false,
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "faktura_id", nullable = false)
+    var faktura: Faktura? = null
 ) {
 }

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ContainerStoppingErrorSavingHandler(
-        private val valueDeserializer: DeserializerJsonAware
+    private val valueDeserializer: DeserializerJsonAware
 ) : CommonContainerStoppingErrorHandler() {
     private val log = KotlinLogging.logger { }
 
@@ -23,20 +23,20 @@ class ContainerStoppingErrorSavingHandler(
     private lateinit var fakturaMottakFeilRepository: FakturaMottakFeilRepository
 
     override fun handleRemaining(
-            thrownException: Exception,
-            records: MutableList<ConsumerRecord<*, *>>,
-            consumer: Consumer<*, *>,
-            container: MessageListenerContainer
+        thrownException: Exception,
+        records: MutableList<ConsumerRecord<*, *>>,
+        consumer: Consumer<*, *>,
+        container: MessageListenerContainer
     ) {
         saveError(thrownException)
         super.handleRemaining(thrownException, records, consumer, container)
     }
 
     override fun handleOtherException(
-            thrownException: Exception,
-            consumer: Consumer<*, *>,
-            container: MessageListenerContainer,
-            batchListener: Boolean
+        thrownException: Exception,
+        consumer: Consumer<*, *>,
+        container: MessageListenerContainer,
+        batchListener: Boolean
     ) {
         saveError(thrownException)
         super.handleOtherException(thrownException, consumer, container, batchListener)
@@ -48,18 +48,18 @@ class ContainerStoppingErrorSavingHandler(
         val offset = recordDeserializationException?.offset() ?: eksternFakturaStatusConsumerException?.offset
         if (offset == null) log.warn("Fant ikke kafka offset fra Exceptions", thrownException)
         fakturaMottakFeilRepository.saveAndFlush(
-                FakturaMottakFeil(
-                        error = getErrorStack(thrownException), //thrownException.cause?.message ?: thrownException.message,
-                        kafkaMelding = valueDeserializer.json,
-                        kafkaOffset = offset
-                )
+            FakturaMottakFeil(
+                error = getErrorStack(thrownException), //thrownException.cause?.message ?: thrownException.message,
+                kafkaMelding = valueDeserializer.json,
+                kafkaOffset = offset,
+            )
         )
     }
 
     fun getErrorStack(throwable: Throwable?, message: String? = ""): String? {
         if (throwable?.message != null) return getErrorStack(
-                throwable.cause,
-                "${throwable.message} - (${throwable.javaClass.simpleName})\n$message"
+            throwable.cause,
+            "${throwable.message} - (${throwable.javaClass.simpleName})\n$message"
         )
         return message
     }

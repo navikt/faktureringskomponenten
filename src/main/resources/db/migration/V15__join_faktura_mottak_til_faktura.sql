@@ -22,5 +22,8 @@ ALTER TABLE ekstern_faktura_status
 
 ALTER TABLE ekstern_faktura_status
     ADD CONSTRAINT fk_faktura_id
-        FOREIGN KEY (faktura_id) REFERENCES faktura(id);
+        FOREIGN KEY (faktura_id) REFERENCES faktura(id)
+            ON DELETE CASCADE;
 
+ALTER TABLE faktura_mottak_feil
+    DROP COLUMN referanse;
