@@ -33,23 +33,54 @@ class FakturaBestiltDtoMapperTest {
     }
 
     @Test
+    fun `fakturalinje har rett beskrivelse`() {
+        val linje = lagFakturaLinje(false)
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
+            Faktura(
+                fakturaLinje = listOf(linje)
+            ),
+            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+        )
+
+        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe
+                "Periode: 01.01.2024 - 31.03.2024, ${linje.beskrivelse}"
+    }
+
+    @Test
     fun `avregningsfaktura har rett beskrivelse`() {
         val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
             Faktura(
-                fakturaLinje = listOf(lagAvregningslinje())
+                fakturaLinje = listOf(lagFakturaLinje(true))
             ),
             Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
         )
 
         fakturaBestiltDto.beskrivelse shouldBe "Faktura for endring av tidligere fakturert trygdeavgift"
-
     }
 
-    private fun lagAvregningslinje(): FakturaLinje = FakturaLinje(
-        referertFakturaVedAvregning = Faktura(),
+    @Test
+    fun `fakturalinje i avregingsfaktura har rett beskrivelse`() {
+        val linje = lagFakturaLinje(true)
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
+            Faktura(
+                fakturaLinje = listOf(linje)
+            ),
+            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+        )
+
+        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe         // FIXME skal være fakturanummer her
+                "Avregning mot fakturanummer ${linje.referertFakturaVedAvregning!!.id}, Periode: 01.01.2024 - 31.03.2024, ${linje.beskrivelse}"
+    }
+
+    private fun lagFakturaLinje(erAvregning: Boolean): FakturaLinje = FakturaLinje(
+        referertFakturaVedAvregning = if (erAvregning) Faktura() else null,
         periodeFra = LocalDate.of(2024, 1, 1),
         periodeTil = LocalDate.of(2024, 3, 31),
-        beskrivelse = "nytt beløp: 10000,00 - tidligere beløp: 9000,00",
+        beskrivelse = if (erAvregning) {
+            "Nytt beløp: 10000,00 - tidligere beløp: 9000,00"
+        } else {
+            "Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%"
+        },
         antall = BigDecimal(1),
         enhetsprisPerManed = BigDecimal(1000),
         belop = BigDecimal(1000),
