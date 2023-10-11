@@ -2,7 +2,7 @@ package no.nav.faktureringskomponenten.service.integration.kafka.config
 
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFakturabetalingDto
-import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
+import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -77,7 +77,7 @@ class KafkaConfig(
             containerStoppingErrorSavingHandler: ContainerStoppingErrorSavingHandler,
             valueDeserializer: DeserializerJsonAware
     ) =
-        ConcurrentKafkaListenerContainerFactory<String, FakturaMottattDto>().apply {
+        ConcurrentKafkaListenerContainerFactory<String, EksternFakturaStatusDto>().apply {
             setCommonErrorHandler(containerStoppingErrorSavingHandler)
 
             consumerFactory = DefaultKafkaConsumerFactory(

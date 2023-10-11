@@ -1,8 +1,9 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
-import no.nav.faktureringskomponenten.domain.models.FakturaMottatt
+import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Schema(description = "Model for en faktura i fakturaserien")
@@ -12,6 +13,9 @@ data class FakturaResponseDto(
 
     @Schema(description = "Dato for når faktura bestilles til OEBS")
     val datoBestilt: LocalDate,
+
+    @Schema(description = "Dato for når faktura sist ble oppdatert")
+    val sistOppdatert: LocalDate,
 
     var status: FakturaStatus,
 
@@ -24,5 +28,5 @@ data class FakturaResponseDto(
     @Schema(description = "Sluttdato for perioden")
     val periodeTil: LocalDate,
 
-    val fakturaMottat: List<FakturaTilbakemeldingResponseDto>
+    val eksternFakturaStatus: List<FakturaTilbakemeldingResponseDto>,
 )

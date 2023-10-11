@@ -89,7 +89,7 @@ class FakturaserieServiceTest {
             sluttdato = LocalDate.of(2024, 12, 31),
             status = FakturaserieStatus.OPPRETTET,
             intervall = FakturaserieIntervall.KVARTAL,
-            faktura = listOf(
+            faktura = mutableListOf(
                 Faktura(
                     id = 1,
                     datoBestilt = LocalDate.of(2023, 12, 19),

@@ -114,6 +114,7 @@ class FakturaBestillingServiceTest {
         return Faktura(
             id,
             LocalDate.of(2022, 5, 1),
+            LocalDate.of(2022, 5, 1),
             FakturaStatus.OPPRETTET,
             fakturaLinje = listOf(
                 FakturaLinje(
@@ -138,7 +139,7 @@ class FakturaBestillingServiceTest {
                     sluttdato = LocalDate.of(2023, 5, 1),
                     status = FakturaserieStatus.OPPRETTET,
                     intervall = FakturaserieIntervall.KVARTAL,
-                    faktura = listOf(),
+                    faktura = mutableListOf(),
                     fullmektig = Fullmektig(
                         fodselsnummer = "12129012345",
                         kontaktperson = "Test",

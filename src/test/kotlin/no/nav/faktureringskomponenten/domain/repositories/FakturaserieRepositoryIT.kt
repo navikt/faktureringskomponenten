@@ -26,7 +26,7 @@ class FakturaserieRepositoryIT(
     fun test_findAllByDatoBestiltIsLessThanEqualAndStatusIs() {
         fakturaserieRepository.save(
             Fakturaserie(
-                faktura = listOf(
+                faktura = mutableListOf(
                     Faktura(datoBestilt = LocalDate.now().plusDays(100))
                 )
             )
@@ -46,7 +46,7 @@ class FakturaserieRepositoryIT(
                 fullmektig = Fullmektig(
                     fodselsnummer = "-123456789-"
                 ),
-                faktura = listOf()
+                faktura = mutableListOf()
             )
         ).apply { addCleanUpAction { fakturaserieRepository.delete(this) } }
 

@@ -1,7 +1,7 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaMottattDto
+import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties
@@ -19,9 +19,9 @@ class KafkaTestConfig {
     fun fakturaMottattKafkaTemplate(
         kafkaProperties: KafkaProperties,
         objectMapper: ObjectMapper?
-    ): KafkaTemplate<String, FakturaMottattDto> {
+    ): KafkaTemplate<String, EksternFakturaStatusDto> {
         val props = kafkaProperties.buildProducerProperties()
-        val producerFactory: ProducerFactory<String, FakturaMottattDto> =
+        val producerFactory: ProducerFactory<String, EksternFakturaStatusDto> =
             DefaultKafkaProducerFactory(props, StringSerializer(), JsonSerializer(objectMapper))
         return KafkaTemplate(producerFactory)
     }
