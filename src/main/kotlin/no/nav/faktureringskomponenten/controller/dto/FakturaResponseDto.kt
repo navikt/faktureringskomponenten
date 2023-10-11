@@ -30,7 +30,5 @@ data class FakturaResponseDto(
 
     val eksternFakturaStatus: List<FakturaTilbakemeldingResponseDto>,
 
-    val ubetaltBelop: BigDecimal? = BigDecimal(0),
-
-    val fakturaNummer: String? = null
+    val nyesteFakturaStatus: FakturaTilbakemeldingResponseDto? = null
 )

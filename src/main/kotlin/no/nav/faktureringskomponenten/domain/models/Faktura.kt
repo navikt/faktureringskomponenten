@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.domain.models
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -53,5 +54,12 @@ class Faktura(
 
     fun totalbeløp(): BigDecimal {
         return fakturaLinje.sumOf(FakturaLinje::belop)
+    }
+
+    fun nyesteFakturaStatus(): EksternFakturaStatus? {
+        val sortertEksternFakturaStatus = eksternFakturaStatus.sortedByDescending { it.dato }
+
+        if(sortertEksternFakturaStatus.isEmpty()) return null
+        return sortertEksternFakturaStatus.first()
     }
 }
