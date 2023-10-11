@@ -54,4 +54,8 @@ class Faktura(
     fun totalbeløp(): BigDecimal {
         return fakturaLinje.sumOf(FakturaLinje::belop)
     }
+
+    fun erAvregningsfaktura() : Boolean {
+        return fakturaLinje.any { it.referertFakturaVedAvregning != null }
+    }
 }

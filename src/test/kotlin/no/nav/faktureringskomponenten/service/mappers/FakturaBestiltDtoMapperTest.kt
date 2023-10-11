@@ -1,13 +1,12 @@
 package no.nav.faktureringskomponenten.service.mappers
 
-import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.*
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
+import java.time.LocalDate
 
 class FakturaBestiltDtoMapperTest {
 
@@ -18,11 +17,8 @@ class FakturaBestiltDtoMapperTest {
             Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.KVARTAL)
         )
 
-        fakturaBestiltDto
-            .shouldNotBeNull()
-            .apply {
-                beskrivelse.shouldContain("Faktura Trygdeavgift").shouldContain("kvartal")
-            }
+        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
+            .shouldContain("kvartal")
     }
 
     @Test
@@ -32,10 +28,61 @@ class FakturaBestiltDtoMapperTest {
             Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
         )
 
-        fakturaBestiltDto
-            .shouldNotBeNull()
-            .apply {
-                beskrivelse.shouldContain("Faktura Trygdeavgift").shouldNotContain("kvartal")
-            }
+        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
+            .shouldNotContain("kvartal")
     }
+
+    @Test
+    fun `fakturalinje har rett beskrivelse`() {
+        val linje = lagFakturaLinje(false)
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
+            Faktura(
+                fakturaLinje = listOf(linje)
+            ),
+            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+        )
+
+        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe
+                "Periode: 01.01.2024 - 31.03.2024, ${linje.beskrivelse}"
+    }
+
+    @Test
+    fun `avregningsfaktura har rett beskrivelse`() {
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
+            Faktura(
+                fakturaLinje = listOf(lagFakturaLinje(true))
+            ),
+            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+        )
+
+        fakturaBestiltDto.beskrivelse shouldBe "Faktura for endring av tidligere fakturert trygdeavgift"
+    }
+
+    @Test
+    fun `fakturalinje i avregingsfaktura har rett beskrivelse`() {
+        val linje = lagFakturaLinje(true)
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
+            Faktura(
+                fakturaLinje = listOf(linje)
+            ),
+            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+        )
+
+        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe         // FIXME skal være fakturanummer her
+                "Avregning mot fakturanummer ${linje.referertFakturaVedAvregning!!.id}, Periode: 01.01.2024 - 31.03.2024, ${linje.beskrivelse}"
+    }
+
+    private fun lagFakturaLinje(erAvregning: Boolean): FakturaLinje = FakturaLinje(
+        referertFakturaVedAvregning = if (erAvregning) Faktura() else null,
+        periodeFra = LocalDate.of(2024, 1, 1),
+        periodeTil = LocalDate.of(2024, 3, 31),
+        beskrivelse = if (erAvregning) {
+            "Nytt beløp: 10000,00 - tidligere beløp: 9000,00"
+        } else {
+            "Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%"
+        },
+        antall = BigDecimal(1),
+        enhetsprisPerManed = BigDecimal(1000),
+        belop = BigDecimal(1000),
+    )
 }

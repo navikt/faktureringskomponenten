@@ -8,6 +8,8 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
+import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
