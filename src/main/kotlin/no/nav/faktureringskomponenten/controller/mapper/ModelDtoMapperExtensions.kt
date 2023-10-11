@@ -67,8 +67,7 @@ private val Faktura.tilResponseDto: FakturaResponseDto
         fakturaLinje = this.fakturaLinje.map { it.tilResponseDto },
         periodeFra = this.getPeriodeFra(),
         periodeTil = this.getPeriodeTil(),
-        eksternFakturaStatus = this.eksternFakturaStatus.map { it.tilResponseDto },
-        nyesteFakturaStatus = this.nyesteFakturaStatus()?.tilResponseDto
+        eksternFakturaStatus = this.eksternFakturaStatus.map { it.tilResponseDto }
     )
 
 private val EksternFakturaStatus.tilResponseDto: FakturaTilbakemeldingResponseDto

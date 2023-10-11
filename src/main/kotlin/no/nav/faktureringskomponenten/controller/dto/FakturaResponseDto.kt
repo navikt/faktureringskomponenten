@@ -29,6 +29,4 @@ data class FakturaResponseDto(
     val periodeTil: LocalDate,
 
     val eksternFakturaStatus: List<FakturaTilbakemeldingResponseDto>,
-
-    val nyesteFakturaStatus: FakturaTilbakemeldingResponseDto? = null
 )
