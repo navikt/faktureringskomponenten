@@ -14,7 +14,7 @@ class Faktura(
     val id: Long? = null,
 
     @Column(name = "dato_bestilt", nullable = false)
-    var datoBestilt: LocalDate = LocalDate.now(),
+    val datoBestilt: LocalDate = LocalDate.now(),
 
     @Column(name = "sist_oppdatert", nullable = false)
     var sistOppdatert: LocalDate = LocalDate.now(),
