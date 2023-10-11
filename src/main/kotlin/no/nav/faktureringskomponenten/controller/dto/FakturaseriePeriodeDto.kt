@@ -32,4 +32,8 @@ data class FakturaseriePeriodeDto(
         example = "Inntekt: 50.000, Dekning: Pensjonsdel, Sats: 21.8 %",
     )
     val beskrivelse: String
-)
+) {
+    constructor(enhetsprisPerManed: Int, startDato: String, sluttDato: String, beskrivelse: String) : this(
+        BigDecimal(enhetsprisPerManed), LocalDate.parse(startDato), LocalDate.parse(sluttDato), beskrivelse
+    )
+}
