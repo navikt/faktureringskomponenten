@@ -5,17 +5,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
-import no.nav.faktureringskomponenten.domain.repositories.EksternFakturaStatusRepository
-import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.awaitility.kotlin.await
-import org.hibernate.Hibernate
-import org.junit.Before
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier

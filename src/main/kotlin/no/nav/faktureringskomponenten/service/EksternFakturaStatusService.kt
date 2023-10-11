@@ -65,7 +65,7 @@ class EksternFakturaStatusService(
         } catch (e: Exception) {
             eksternFakturaStatus.apply { sendt = false }
             throw RuntimeException(
-                "Kunne ikke produsere melding om faktura mottatt bestilt for behandlingsID ${faktura.fakturaserie!!.referanse}", e
+                "Kunne ikke produsere melding om faktura mottatt bestilt for fakturaserieReferanse ${faktura.fakturaserie!!.referanse}", e
             )
         }
     }
