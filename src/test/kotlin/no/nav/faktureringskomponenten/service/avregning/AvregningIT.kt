@@ -102,6 +102,45 @@ class AvregningIT(
                 belop = BigDecimal("3000.00"),
             ),
         )
+
+        // Bestiller avregningsfaktura og 1 faktura fra 2. serie
+        val faktura4 = fakturaer2[0]
+        faktura4.status = FakturaStatus.BESTILLT
+        avregningsfaktura.status = FakturaStatus.BESTILLT
+        fakturaRepository.save(faktura4)
+        fakturaRepository.save(avregningsfaktura)
+        val nyFakturaserie = fakturaserieRepository.findByReferanse(fakturaserieReferanse2)
+        nyFakturaserie!!.status = FakturaserieStatus.UNDER_BESTILLING
+        fakturaserieRepository.save(nyFakturaserie)
+
+        // Serie 3 med avregning
+        val fakturaserieDto3 = lagFakturaserieDto(
+            referanseId = fakturaserieReferanse2,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(1000, "2024-01-01", "2024-12-31", "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"),
+                FakturaseriePeriodeDto(2000, "2024-01-01", "2024-01-31", "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"),
+                FakturaseriePeriodeDto(3000, "2024-02-01", "2024-12-31", "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"),
+            )
+        )
+
+        val serieRef3 = postLagNyFakturaserieRequest(fakturaserieDto3).expectStatus().isOk.expectBody(
+            NyFakturaserieResponseDto::class.java
+        ).returnResult().responseBody!!.fakturaserieReferanse
+
+        // Tester andre avregning
+        val fakturaer3 = fakturaRepository.findByFakturaserieReferanse(serieRef3)
+        val avregningsfaktura2 = fakturaer3.single { it.erAvregningsfaktura() }
+        avregningsfaktura2.fakturaLinje shouldContainOnly listOf(
+            FakturaLinje(
+                referertFakturaVedAvregning = null, //bør testes
+                periodeFra = LocalDate.of(2024, 1, 1),
+                periodeTil = LocalDate.of(2024, 3, 31),
+                beskrivelse = "nytt beløp: 11000,00 - tidligere beløp: 10000,00",
+                antall = BigDecimal("1.00"),
+                enhetsprisPerManed = BigDecimal("1000.00"),
+                belop = BigDecimal("1000.00"),
+            ),
+        )
     }
 
     fun lagFakturaserieDto(
