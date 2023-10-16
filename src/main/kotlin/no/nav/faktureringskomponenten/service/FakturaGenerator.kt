@@ -10,6 +10,7 @@ import java.time.LocalDate
 import java.time.Month
 import java.time.temporal.IsoFields
 import java.time.temporal.TemporalAdjusters
+import java.util.UUID
 
 @Component
 class FakturaGenerator (
@@ -93,11 +94,11 @@ class FakturaGenerator (
     private fun tilFaktura(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
         val korrigertDatoBestilt = if (datoBestilt <= dagensDato()) dagensDato()
             .plusDays(BESTILT_DATO_FORSINKES_MED_DAGER) else datoBestilt
-        return Faktura(null, datoBestilt = korrigertDatoBestilt, sistOppdatert = korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
+        return Faktura(null, referanseNr = UUID.randomUUID().toString(), datoBestilt = korrigertDatoBestilt, sistOppdatert = korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
     }
 
     private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
-        return Faktura(null, datoBestilt = dagensDato(), sistOppdatert = dagensDato(), fakturaLinje = fakturaLinjer)
+        return Faktura(null, referanseNr = UUID.randomUUID().toString(), datoBestilt = dagensDato(), sistOppdatert = dagensDato(), fakturaLinje = fakturaLinjer)
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()

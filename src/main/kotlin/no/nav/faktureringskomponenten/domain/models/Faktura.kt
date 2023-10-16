@@ -13,6 +13,9 @@ class Faktura(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
+    @Column(name="referanse_nr", nullable = false, unique = true)
+    val referanseNr: String = "",
+
     @Column(name = "dato_bestilt", nullable = false)
     val datoBestilt: LocalDate = LocalDate.now(),
 

@@ -28,16 +28,16 @@ class FakturaBestillingService(
         fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
 
     @Transactional
-    fun bestillFaktura(fakturaId: Long) {
-        val faktura = fakturaRepository.findById(fakturaId) ?: throw RessursIkkeFunnetException(
-            field = "fakturaId",
-            message = "Finner ikke faktura med faktura id $fakturaId"
+    fun bestillFaktura(fakturaReferanseNr: String) {
+        val faktura = fakturaRepository.findByReferanseNr(fakturaReferanseNr) ?: throw RessursIkkeFunnetException(
+            field = "fakturaReferanseNr",
+            message = "Finner ikke faktura med faktura referanse nr $fakturaReferanseNr"
         )
 
         val fakturaserieId = faktura.getFakturaserieId()
             ?: throw RessursIkkeFunnetException(
                 field = "fakturaserieId",
-                message = "Finner ikke fakturaserie med faktura id ${faktura.id}"
+                message = "Finner ikke fakturaserie med faktura referanse nr ${faktura.referanseNr}"
             )
 
         val fakturaserie = fakturaserieRepository.findById(fakturaserieId) ?: throw RessursIkkeFunnetException(

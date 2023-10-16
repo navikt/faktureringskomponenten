@@ -9,6 +9,7 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.awaitility.kotlin.await
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -21,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("itest", "embeded-kafka")
@@ -32,15 +34,16 @@ class EksternFakturaStatusConsumerIT(
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired @Qualifier("fakturaMottatt") private var kafkaTemplate: KafkaTemplate<String, EksternFakturaStatusDto>,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
+    val fakturaReferanseNr = UUID.randomUUID().toString()
 
     @Test
     fun `les faktura fra kafka kø og lagre melding fra OEBS i DB`(){
         val faktura = lagFakturaMedSerie(
-            Faktura()
+            Faktura(referanseNr = fakturaReferanseNr)
         )
 
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
-            fakturaReferanseNr = faktura.id.toString(),
+            fakturaReferanseNr = faktura.referanseNr,
             fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaStatus.INNE_I_OEBS,
@@ -60,11 +63,11 @@ class EksternFakturaStatusConsumerIT(
     @Test
     fun `les faktura fra kafka kø og lagre melding fra OEBS i DB, sjekk feilmelding finnes`(){
         val faktura = lagFakturaMedSerie(
-            Faktura()
+            Faktura(referanseNr = fakturaReferanseNr)
         )
 
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
-            fakturaReferanseNr = faktura.id.toString(),
+            fakturaReferanseNr = faktura.referanseNr,
             fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaStatus.FEIL,
@@ -94,7 +97,7 @@ class EksternFakturaStatusConsumerIT(
             Faktura()
         )
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
-            fakturaReferanseNr = faktura.id.toString(),
+            fakturaReferanseNr = faktura.referanseNr,
             fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaStatus.MANGLENDE_INNBETALING,

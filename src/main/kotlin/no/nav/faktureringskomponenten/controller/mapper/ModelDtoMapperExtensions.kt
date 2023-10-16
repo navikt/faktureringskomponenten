@@ -19,7 +19,6 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
         intervall = this.intervall,
         opprettetTidspunkt = this.opprettetTidspunkt,
         faktura = this.faktura.map { it.tilResponseDto },
-        erstattetMed = this.erstattetMed?.id
     )
 
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
@@ -60,7 +59,6 @@ private val FullmektigDto.tilFullmektig: Fullmektig
 
 private val Faktura.tilResponseDto: FakturaResponseDto
     get() = FakturaResponseDto(
-        id = this.id,
         datoBestilt = this.datoBestilt,
         sistOppdatert = this.sistOppdatert,
         status = this.status,
