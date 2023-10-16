@@ -34,15 +34,20 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
     }
 
     private fun finnAvregningsfakturaerSomAvregnes(bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>): List<AvregningsfakturaLinjeOgNyePerioder> {
-        return bestilteFakturaer.filter { it.erAvregningsfaktura() }.flatMap { faktura -> faktura.fakturaLinje.map { linje -> Pair(faktura, linje) } }
-            .map { AvregningsfakturaLinjeOgNyePerioder(it.first, it.second, overlappendeFakturaseriePerioder(fakturaseriePerioder, it.second.periodeFra, it.second.periodeTil)) }
-            .filter { it.nyePerioder.isNotEmpty() }
+        return bestilteFakturaer.filter { it.erAvregningsfaktura() }
+            .flatMap { faktura -> faktura.fakturaLinje.map { linje -> Pair(faktura, linje) } }
+            .mapNotNull { (faktura, linje) ->
+                val overlappendePerioder = overlappendeFakturaseriePerioder(fakturaseriePerioder, linje.periodeFra, linje.periodeTil)
+                if (overlappendePerioder.isNotEmpty()) AvregningsfakturaLinjeOgNyePerioder(faktura, linje, overlappendePerioder) else null
+            }
     }
 
     private fun finnVanligeFakturaerSomAvregnes(bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>): List<FakturaOgNyePerioder> {
         return bestilteFakturaer.filter { !it.erAvregningsfaktura() }
-            .map { FakturaOgNyePerioder(it, overlappendeFakturaseriePerioder(fakturaseriePerioder, it.getPeriodeFra(), it.getPeriodeTil())) }
-            .filter { it.nyePerioder.isNotEmpty() }
+            .mapNotNull {
+                val overlappendePerioder = overlappendeFakturaseriePerioder(fakturaseriePerioder, it.getPeriodeFra(), it.getPeriodeTil())
+                if (overlappendePerioder.isNotEmpty()) FakturaOgNyePerioder(it, overlappendePerioder) else null
+            }
     }
 
     private fun overlappendeFakturaseriePerioder(fakturaseriePerioder: List<FakturaseriePeriode>, fom: LocalDate, tom: LocalDate): List<FakturaseriePeriode> {
