@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.domain.repositories
 
 import no.nav.faktureringskomponenten.domain.models.Faktura
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import java.time.LocalDate
@@ -10,4 +11,7 @@ interface FakturaRepository : JpaRepository<Faktura, String> {
     fun findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestiltDato: LocalDate): List<Faktura>
 
     fun findById(id: Long): Faktura?
+
+    @EntityGraph(attributePaths = ["fakturaLinje"])
+    fun findByFakturaserieReferanse(fakturaserieRef: String): List<Faktura>
 }
