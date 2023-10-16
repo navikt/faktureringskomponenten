@@ -1,7 +1,8 @@
 package no.nav.faktureringskomponenten.service.avregning
 
 import com.nimbusds.jose.JOSEObjectType
-import io.kotest.matchers.collections.shouldContainOnly
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
@@ -22,6 +23,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.reactive.server.expectBody
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -53,20 +55,24 @@ class AvregningIT(
             )
         )
 
-        val opprinneligFakturaserieReferanse = postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(
-            NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
 
         // Dette svarer til 2 fakturaer bestilt og mottatt hos OEBS
         val opprinneligeFakturaer = fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
-        val faktura1 = opprinneligeFakturaer[0]
-        val faktura2 = opprinneligeFakturaer[1]
-        faktura1.status = FakturaStatus.BESTILLT
-        faktura2.status = FakturaStatus.BESTILLT
-        fakturaRepository.save(faktura1)
-        fakturaRepository.save(faktura2)
-        val opprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse)
-        opprinneligFakturaserie!!.status = FakturaserieStatus.UNDER_BESTILLING
-        fakturaserieRepository.save(opprinneligFakturaserie)
+        opprinneligeFakturaer[0].let {
+            it.status = FakturaStatus.BESTILLT
+            fakturaRepository.save(it)
+        }
+        opprinneligeFakturaer[1].let {
+            it.status = FakturaStatus.BESTILLT
+            fakturaRepository.save(it)
+        }
+        fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).let {
+            it!!.status = FakturaserieStatus.UNDER_BESTILLING
+            fakturaserieRepository.save(it)
+        }
 
         // Serie 2 med avregning
         val fakturaserieDto2 = lagFakturaserieDto(
@@ -78,13 +84,13 @@ class AvregningIT(
             )
         )
 
-        val fakturaserieReferanse2 = postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk.expectBody(
-            NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
+        val fakturaserieReferanse2 = postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
 
         // Tester første avregning
         val fakturaer2 = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse2)
         val avregningsfaktura = fakturaer2.single { it.erAvregningsfaktura() }
-        avregningsfaktura.fakturaLinje shouldContainOnly listOf(
+        avregningsfaktura.fakturaLinje shouldBe listOf(
             FakturaLinje(
                 periodeFra = LocalDate.of(2024, 1, 1),
                 periodeTil = LocalDate.of(2024, 3, 31),
@@ -104,14 +110,18 @@ class AvregningIT(
         )
 
         // Bestiller avregningsfaktura og 1 faktura fra 2. serie
-        val faktura4 = fakturaer2[0]
-        faktura4.status = FakturaStatus.BESTILLT
-        avregningsfaktura.status = FakturaStatus.BESTILLT
-        fakturaRepository.save(faktura4)
-        fakturaRepository.save(avregningsfaktura)
-        val nyFakturaserie = fakturaserieRepository.findByReferanse(fakturaserieReferanse2)
-        nyFakturaserie!!.status = FakturaserieStatus.UNDER_BESTILLING
-        fakturaserieRepository.save(nyFakturaserie)
+        avregningsfaktura.let {
+            it.status = FakturaStatus.BESTILLT
+            fakturaRepository.save(it)
+        }
+        fakturaer2[0].let {
+            it.status = FakturaStatus.BESTILLT
+            fakturaRepository.save(it)
+        }
+        fakturaserieRepository.findByReferanse(fakturaserieReferanse2).let {
+            it!!.status = FakturaserieStatus.UNDER_BESTILLING
+            fakturaserieRepository.save(it)
+        }
 
         // Serie 3 med avregning
         val fakturaserieDto3 = lagFakturaserieDto(
@@ -123,24 +133,21 @@ class AvregningIT(
             )
         )
 
-        val serieRef3 = postLagNyFakturaserieRequest(fakturaserieDto3).expectStatus().isOk.expectBody(
-            NyFakturaserieResponseDto::class.java
-        ).returnResult().responseBody!!.fakturaserieReferanse
+        val serieRef3 = postLagNyFakturaserieRequest(fakturaserieDto3).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
 
         // Tester andre avregning
-        val fakturaer3 = fakturaRepository.findByFakturaserieReferanse(serieRef3)
-        val avregningsfaktura2 = fakturaer3.single { it.erAvregningsfaktura() }
-        avregningsfaktura2.fakturaLinje shouldContainOnly listOf(
-            FakturaLinje(
-                referertFakturaVedAvregning = null, //bør testes
-                periodeFra = LocalDate.of(2024, 1, 1),
-                periodeTil = LocalDate.of(2024, 3, 31),
-                beskrivelse = "nytt beløp: 11000,00 - tidligere beløp: 10000,00",
-                antall = BigDecimal("1.00"),
-                enhetsprisPerManed = BigDecimal("1000.00"),
-                belop = BigDecimal("1000.00"),
-            ),
-        )
+        fakturaRepository.findByFakturaserieReferanse(serieRef3).single { it.erAvregningsfaktura() }
+            .fakturaLinje.shouldHaveSize(1).first() shouldBe
+                FakturaLinje(
+                    referertFakturaVedAvregning = null, //bør testes
+                    periodeFra = LocalDate.of(2024, 1, 1),
+                    periodeTil = LocalDate.of(2024, 3, 31),
+                    beskrivelse = "nytt beløp: 11000,00 - tidligere beløp: 10000,00",
+                    antall = BigDecimal("1.00"),
+                    enhetsprisPerManed = BigDecimal("1000.00"),
+                    belop = BigDecimal("1000.00"),
+                )
     }
 
     fun lagFakturaserieDto(
