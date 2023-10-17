@@ -1,7 +1,7 @@
 package no.nav.faktureringskomponenten.service.avregning
 
-import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
@@ -22,7 +22,7 @@ class AvregningBehandlerTest {
         val avregningsfaktura = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder, bestilteFakturaer)
 
         avregningsfaktura.shouldNotBeNull()
-        avregningsfaktura.fakturaLinje shouldContainOnly listOf(
+        avregningsfaktura.fakturaLinje shouldBe listOf(
             FakturaLinje(
                 id = null,
                 referertFakturaVedAvregning = faktura1,
@@ -31,6 +31,8 @@ class AvregningBehandlerTest {
                 beskrivelse = "nytt beløp: 10000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal(1),
                 enhetsprisPerManed = BigDecimal("1000.00"),
+                avregningForrigeBeloep = BigDecimal("9000.00"),
+                avregningNyttBeloep = BigDecimal("10000.00"),
                 belop = BigDecimal("1000.00"),
             ),
             FakturaLinje(
@@ -41,6 +43,8 @@ class AvregningBehandlerTest {
                 beskrivelse = "nytt beløp: 12000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal(1),
                 enhetsprisPerManed = BigDecimal("3000.00"),
+                avregningForrigeBeloep = BigDecimal("9000.00"),
+                avregningNyttBeloep = BigDecimal("12000.00"),
                 belop = BigDecimal("3000.00"),
             ),
         )
@@ -53,16 +57,16 @@ class AvregningBehandlerTest {
         val avregningsfaktura2 = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder3(), listOf(avregningsfaktura!!))
 
         avregningsfaktura2.shouldNotBeNull()
-        avregningsfaktura2.fakturaLinje shouldContainOnly listOf(
-            FakturaLinje(
-                referertFakturaVedAvregning = null, //bør testes
-                periodeFra = LocalDate.of(2024, 1, 1),
-                periodeTil = LocalDate.of(2024, 3, 31),
-                beskrivelse = "nytt beløp: 11000,00 - tidligere beløp: 10000,00",
-                antall = BigDecimal(1),
-                enhetsprisPerManed = BigDecimal("1000.00"),
-                belop = BigDecimal("1000.00"),
-            ),
+        avregningsfaktura2.fakturaLinje.single() shouldBe FakturaLinje(
+            referertFakturaVedAvregning = null, //bør testes
+            periodeFra = LocalDate.of(2024, 1, 1),
+            periodeTil = LocalDate.of(2024, 3, 31),
+            beskrivelse = "nytt beløp: 11000,00 - tidligere beløp: 10000,00",
+            antall = BigDecimal(1),
+            avregningForrigeBeloep = BigDecimal("10000.00"),
+            avregningNyttBeloep = BigDecimal("11000.00"),
+            enhetsprisPerManed = BigDecimal("1000.00"),
+            belop = BigDecimal("1000.00"),
         )
     }
 
@@ -78,7 +82,7 @@ class AvregningBehandlerTest {
                 beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
                 antall = BigDecimal(3),
                 enhetsprisPerManed = BigDecimal(1000),
-                belop = BigDecimal(3000),
+                belop = BigDecimal("3000.00"),
             ),
             FakturaLinje(
                 id = 4,
@@ -87,7 +91,7 @@ class AvregningBehandlerTest {
                 beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
                 antall = BigDecimal(3),
                 enhetsprisPerManed = BigDecimal(2000),
-                belop = BigDecimal(6000),
+                belop = BigDecimal("6000.00"),
             ),
         ),
     )
@@ -104,7 +108,7 @@ class AvregningBehandlerTest {
                 beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
                 antall = BigDecimal(3),
                 enhetsprisPerManed = BigDecimal(1000),
-                belop = BigDecimal(3000),
+                belop = BigDecimal("3000.00"),
             ),
             FakturaLinje(
                 id = 6,
@@ -113,7 +117,7 @@ class AvregningBehandlerTest {
                 beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
                 antall = BigDecimal(3),
                 enhetsprisPerManed = BigDecimal(2000),
-                belop = BigDecimal(6000),
+                belop = BigDecimal("6000.00"),
             ),
         ),
     )
