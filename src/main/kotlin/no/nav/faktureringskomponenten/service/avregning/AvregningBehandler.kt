@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component
 import org.threeten.extra.LocalDateRange
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.regex.Pattern
 
 private data class AvregningsfakturaLinjeOgNyePerioder(val faktura: Faktura, val fakturaLinje: FakturaLinje, val nyePerioder: List<FakturaseriePeriode>)
 private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: List<FakturaseriePeriode>)
@@ -58,25 +57,15 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
     }
 
     private fun lagAvregningsperiode(avregningsfakturaLinjeOgNyePerioder: AvregningsfakturaLinjeOgNyePerioder): Avregningsperiode {
-        val (faktura, linje, overlappendePerioder) = avregningsfakturaLinjeOgNyePerioder
-        val nyttBeløp = beregnNyttBeløp(overlappendePerioder, linje.periodeFra, linje.periodeTil)
+        val (faktura, tidligereLinje, overlappendePerioder) = avregningsfakturaLinjeOgNyePerioder
+        val nyttBeløp = beregnNyttBeløp(overlappendePerioder, tidligereLinje.periodeFra, tidligereLinje.periodeTil)
         return Avregningsperiode(
-            periodeFra = linje.periodeFra,
-            periodeTil = linje.periodeTil,
+            periodeFra = tidligereLinje.periodeFra,
+            periodeTil = tidligereLinje.periodeTil,
             bestilteFaktura = faktura,
-            tidligereBeløp = parseLinjeForTidligereBeløp(linje),
+            tidligereBeløp = tidligereLinje.avregningNyttBeloep!!,
             nyttBeløp = nyttBeløp,
         )
-    }
-
-    private fun parseLinjeForTidligereBeløp(linje: FakturaLinje): BigDecimal {
-        val matcher = Pattern.compile("-?\\d+(\\.\\d+)?").matcher(linje.beskrivelse)
-
-        return if (matcher.find()) {
-            BigDecimal(matcher.group())
-        } else {
-            throw RuntimeException("Tidligere beløp kunne ikke leses ved avregning for fakturalinje" + linje.id)
-        }
     }
 
     private fun lagAvregningsperiode(fakturaOgNyePerioder: FakturaOgNyePerioder): Avregningsperiode {

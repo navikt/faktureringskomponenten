@@ -20,10 +20,11 @@ class AvregningsfakturaGenerator {
                 referertFakturaVedAvregning = it.bestilteFaktura,
                 periodeFra = it.periodeFra,
                 periodeTil = it.periodeTil,
-                // Rekkefølgen her kan ikke endres uten å endre parseLinjeForTidligereBeløp i AvregningBehandler
                 beskrivelse = "nytt beløp: ${decimalFormat.format(it.nyttBeløp)} - tidligere beløp: ${decimalFormat.format(it.tidligereBeløp)}",
                 antall = BigDecimal(1),
                 enhetsprisPerManed = it.nyttBeløp - it.tidligereBeløp,
+                avregningForrigeBeloep = it.tidligereBeløp,
+                avregningNyttBeloep = it.nyttBeløp,
                 belop = it.nyttBeløp - it.tidligereBeløp,
             )
         }

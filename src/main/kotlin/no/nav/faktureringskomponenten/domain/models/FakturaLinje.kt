@@ -31,6 +31,12 @@ class FakturaLinje(
     @Column(name = "enhetspris_per_maned", nullable = false)
     val enhetsprisPerManed: BigDecimal = BigDecimal(0),
 
+    @Column(name = "avregning_forrige_beloep")
+    val avregningForrigeBeloep: BigDecimal? = null,
+
+    @Column(name = "avregning_nytt_beloep")
+    val avregningNyttBeloep: BigDecimal? = null,
+
     @Column(name = "belop", nullable = false)
     val belop: BigDecimal = BigDecimal(0),
 ) {
@@ -45,6 +51,8 @@ class FakturaLinje(
         if (beskrivelse != other.beskrivelse) return false
         if (antall != other.antall) return false
         if (enhetsprisPerManed != other.enhetsprisPerManed) return false
+        if (avregningForrigeBeloep != other.avregningForrigeBeloep) return false
+        if (avregningNyttBeloep != other.avregningNyttBeloep) return false
         if (belop != other.belop) return false
 
         return true
@@ -56,11 +64,16 @@ class FakturaLinje(
         result = 31 * result + beskrivelse.hashCode()
         result = 31 * result + antall.hashCode()
         result = 31 * result + enhetsprisPerManed.hashCode()
+        result = 31 * result + (avregningForrigeBeloep?.hashCode() ?: 0)
+        result = 31 * result + (avregningNyttBeloep?.hashCode() ?: 0)
         result = 31 * result + belop.hashCode()
         return result
     }
 
     override fun toString(): String {
-        return "fom: $periodeFra tom: $periodeTil, beskrivelse: $beskrivelse, antall: $antall, enhetspris: $enhetsprisPerManed, belop: $belop"
+        return "Linje(periodeFra=$periodeFra, periodeTil=$periodeTil, beskrivelse='$beskrivelse', antall=$antall, enhetsprisPerManed=$enhetsprisPerManed," +
+                (avregningForrigeBeloep?.let { " avregningForrigeBeloep=$avregningForrigeBeloep," } ?: "") +
+                (avregningNyttBeloep?.let { " avregningNyttBeloep=$avregningNyttBeloep," } ?: "") +
+                " belop=$belop)"
     }
 }

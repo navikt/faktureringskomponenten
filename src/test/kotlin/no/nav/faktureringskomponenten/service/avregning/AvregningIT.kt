@@ -97,6 +97,8 @@ class AvregningIT(
                 beskrivelse = "nytt beløp: 10000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal("1.00"),
                 enhetsprisPerManed = BigDecimal("1000.00"),
+                avregningNyttBeloep = BigDecimal("10000.00"),
+                avregningForrigeBeloep = BigDecimal("9000.00"),
                 belop = BigDecimal("1000.00"),
             ),
             FakturaLinje(
@@ -105,6 +107,8 @@ class AvregningIT(
                 beskrivelse = "nytt beløp: 12000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal("1.00"),
                 enhetsprisPerManed = BigDecimal("3000.00"),
+                avregningNyttBeloep = BigDecimal("12000.00"),
+                avregningForrigeBeloep = BigDecimal("9000.00"),
                 belop = BigDecimal("3000.00"),
             ),
         )
@@ -146,6 +150,8 @@ class AvregningIT(
                     beskrivelse = "nytt beløp: 11000,00 - tidligere beløp: 10000,00",
                     antall = BigDecimal("1.00"),
                     enhetsprisPerManed = BigDecimal("1000.00"),
+                    avregningNyttBeloep = BigDecimal("11000.00"),
+                    avregningForrigeBeloep = BigDecimal("10000.00"),
                     belop = BigDecimal("1000.00"),
                 )
     }

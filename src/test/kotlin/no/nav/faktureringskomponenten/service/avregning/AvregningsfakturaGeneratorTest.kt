@@ -40,6 +40,8 @@ class AvregningsfakturaGeneratorTest {
             beskrivelse = "nytt beløp: 1000,00 - tidligere beløp: 2000,00",
             antall = BigDecimal(1),
             enhetsprisPerManed = BigDecimal(-1000),
+            avregningForrigeBeloep = avregningsperiode.tidligereBeløp,
+            avregningNyttBeloep = avregningsperiode.nyttBeløp,
             belop = BigDecimal(-1000),
         )
     }
