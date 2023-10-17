@@ -41,7 +41,7 @@ class FakturaBestillingServiceIT(
     @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
 ) : PostgresTestContainerBase() {
 
-    private var fakturaRefefanseNr: String = ""
+    private var fakturaReferanseNr: String = ""
 
     private object TestQueue {
         val fakturaBestiltMeldinger = mutableListOf<FakturaBestiltDto>()
@@ -73,7 +73,7 @@ class FakturaBestillingServiceIT(
 
     @BeforeEach
     fun before() {
-        fakturaRefefanseNr = lagFakturaSerie()
+        fakturaReferanseNr = lagFakturaSerie()
     }
 
     private fun lagFakturaSerie(): String =
@@ -104,7 +104,7 @@ class FakturaBestillingServiceIT(
         fakturaBestillCronjob.bestillFaktura()
 
         TestQueue.fakturaBestiltMeldinger.shouldHaveSize(1)
-        fakturaRepository.findByReferanseNr(fakturaRefefanseNr)?.status
+        fakturaRepository.findByReferanseNr(fakturaReferanseNr)?.status
             .shouldBe(FakturaStatus.BESTILT)
     }
 
@@ -116,7 +116,7 @@ class FakturaBestillingServiceIT(
             fakturaBestillCronjob.bestillFaktura()
         }.message.shouldBe("Klarte ikke å legge melding på kø")
 
-        fakturaRepository.findByReferanseNr(fakturaRefefanseNr)!!.status
+        fakturaRepository.findByReferanseNr(fakturaReferanseNr)!!.status
             .shouldBe(FakturaStatus.OPPRETTET)
         TestQueue.fakturaBestiltMeldinger.shouldBeEmpty()
     }
