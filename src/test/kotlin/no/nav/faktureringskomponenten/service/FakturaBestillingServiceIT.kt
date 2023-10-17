@@ -105,7 +105,7 @@ class FakturaBestillingServiceIT(
 
         TestQueue.fakturaBestiltMeldinger.shouldHaveSize(1)
         fakturaRepository.findByReferanseNr(fakturaRefefanseNr)?.status
-            .shouldBe(FakturaStatus.BESTILLT)
+            .shouldBe(FakturaStatus.BESTILT)
     }
 
     @Test

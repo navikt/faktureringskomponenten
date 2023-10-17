@@ -41,7 +41,7 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
         val fakturaReferanseNr = UUID.randomUUID().toString()
         val (_, faktura) = (1..2).map {
             lagFakturaMedSerie(
-                faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILLT, referanseNr = fakturaReferanseNr),
+                faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT, referanseNr = fakturaReferanseNr),
                 referanse = "MEL-$it-$it"
             ).apply {
                 kafkaTemplate.send(
@@ -86,6 +86,6 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
             fakturaMottakFeilRepository.findAll().size == 2
         }
         // FakturaStatus blir BETALT om neste kafka melding blir prosessert
-//        fakturaRepository.findByReferanseNr(faktura.id.toString())?.status.shouldBe(FakturaStatus.BESTILLT)
+//        fakturaRepository.findByReferanseNr(faktura.id.toString())?.status.shouldBe(FakturaStatus.BESTILT)
     }
 }

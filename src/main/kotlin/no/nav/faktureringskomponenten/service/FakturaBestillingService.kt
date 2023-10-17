@@ -45,7 +45,7 @@ class FakturaBestillingService(
             message = "Finner ikke fakturaserie med fakturaserieId $fakturaserieId"
         )
 
-        faktura.status = FakturaStatus.BESTILLT
+        faktura.status = FakturaStatus.BESTILT
         fakturaserie.status = FakturaserieStatus.UNDER_BESTILLING
 
         val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(faktura, fakturaserie)

@@ -93,7 +93,7 @@ class FakturaserieServiceTest {
                 Faktura(
                     id = 1,
                     datoBestilt = LocalDate.of(2023, 12, 19),
-                    status = FakturaStatus.BESTILLT,
+                    status = FakturaStatus.BESTILT,
                     fakturaLinje = listOf(
                                 FakturaLinje(
                                     id = 1,
@@ -118,7 +118,7 @@ class FakturaserieServiceTest {
                 Faktura(
                     id = 2,
                     datoBestilt = LocalDate.of(2024, 3, 19),
-                    status = FakturaStatus.BESTILLT,
+                    status = FakturaStatus.BESTILT,
                     fakturaLinje = listOf(
                         FakturaLinje(
                             id = 3,
