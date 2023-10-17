@@ -72,8 +72,8 @@ class FakturaLinje(
 
     override fun toString(): String {
         return "Linje(periodeFra=$periodeFra, periodeTil=$periodeTil, beskrivelse='$beskrivelse', antall=$antall, enhetsprisPerManed=$enhetsprisPerManed," +
-                "${avregningForrigeBeloep?.let { " avregningForrigeBeloep=$avregningForrigeBeloep," } ?: ""}" +
-                "${avregningNyttBeloep?.let { " avregningNyttBeloep=$avregningNyttBeloep," } ?: ""}" +
+                (avregningForrigeBeloep?.let { " avregningForrigeBeloep=$avregningForrigeBeloep," } ?: "") +
+                (avregningNyttBeloep?.let { " avregningNyttBeloep=$avregningNyttBeloep," } ?: "") +
                 " belop=$belop)"
     }
 }

@@ -58,7 +58,6 @@ class AvregningBehandlerTest {
 
         avregningsfaktura2.shouldNotBeNull()
         avregningsfaktura2.fakturaLinje.single() shouldBe FakturaLinje(
-            referertFakturaVedAvregning = null, //bør testes
             periodeFra = LocalDate.of(2024, 1, 1),
             periodeTil = LocalDate.of(2024, 3, 31),
             beskrivelse = "nytt beløp: 11000,00 - tidligere beløp: 10000,00",
