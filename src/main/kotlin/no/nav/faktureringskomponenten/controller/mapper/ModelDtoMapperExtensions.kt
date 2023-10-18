@@ -3,7 +3,7 @@ package no.nav.faktureringskomponenten.controller.mapper
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaserieDto
-import java.util.*
+import ulid.ULID
 
 val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
@@ -19,12 +19,11 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
         intervall = this.intervall,
         opprettetTidspunkt = this.opprettetTidspunkt,
         faktura = this.faktura.map { it.tilResponseDto },
-        erstattetMed = this.erstattetMed?.id
     )
 
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
     get() = FakturaserieDto(
-        fakturaserieReferanse = UUID.randomUUID().toString(),
+        fakturaserieReferanse = ULID.randomULID(),
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,
@@ -60,7 +59,6 @@ private val FullmektigDto.tilFullmektig: Fullmektig
 
 private val Faktura.tilResponseDto: FakturaResponseDto
     get() = FakturaResponseDto(
-        id = this.id,
         datoBestilt = this.datoBestilt,
         sistOppdatert = this.sistOppdatert,
         status = this.status,

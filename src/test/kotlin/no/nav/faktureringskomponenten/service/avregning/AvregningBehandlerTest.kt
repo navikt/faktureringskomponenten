@@ -72,7 +72,7 @@ class AvregningBehandlerTest {
     private val faktura1 = Faktura(
         id = 1,
         datoBestilt = LocalDate.of(2024, 3, 19),
-        status = FakturaStatus.BESTILLT,
+        status = FakturaStatus.BESTILT,
         fakturaLinje = listOf(
             FakturaLinje(
                 id = 3,
@@ -98,7 +98,7 @@ class AvregningBehandlerTest {
     private val faktura2 = Faktura(
         id = 2,
         datoBestilt = LocalDate.of(2024, 3, 19),
-        status = FakturaStatus.BESTILLT,
+        status = FakturaStatus.BESTILT,
         fakturaLinje = listOf(
             FakturaLinje(
                 id = 5,

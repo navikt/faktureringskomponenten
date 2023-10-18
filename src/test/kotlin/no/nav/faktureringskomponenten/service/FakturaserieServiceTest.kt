@@ -11,9 +11,9 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import org.junit.jupiter.api.Test
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 private const val OPPRINNELIG_REF = "123"
 private const val NY_REF = "456"
@@ -93,7 +93,7 @@ class FakturaserieServiceTest {
                 Faktura(
                     id = 1,
                     datoBestilt = LocalDate.of(2023, 12, 19),
-                    status = FakturaStatus.BESTILLT,
+                    status = FakturaStatus.BESTILT,
                     fakturaLinje = listOf(
                                 FakturaLinje(
                                     id = 1,
@@ -118,7 +118,7 @@ class FakturaserieServiceTest {
                 Faktura(
                     id = 2,
                     datoBestilt = LocalDate.of(2024, 3, 19),
-                    status = FakturaStatus.BESTILLT,
+                    status = FakturaStatus.BESTILT,
                     fakturaLinje = listOf(
                         FakturaLinje(
                             id = 3,
@@ -151,7 +151,7 @@ class FakturaserieServiceTest {
     }
 
     private fun lagFakturaserieDto(
-        referanse: String = UUID.randomUUID().toString(),
+        referanse: String = ULID.randomULID(),
         fodselsnummer: String = "12345678911",
         fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",

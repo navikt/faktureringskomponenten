@@ -26,11 +26,11 @@ class EksternFakturaStatusService(
     fun lagreEksternFakturaStatusMelding(eksternFakturaStatusDto: EksternFakturaStatusDto) {
         log.info("Mottatt $eksternFakturaStatusDto")
 
-        val faktura = fakturaRepository.findById(eksternFakturaStatusDto.fakturaReferanseNr.toLong())
+        val faktura = fakturaRepository.findByReferanseNr(eksternFakturaStatusDto.fakturaReferanseNr)
 
         faktura ?: throw RessursIkkeFunnetException(
-            field = "fakturaId",
-            message = "Finner ikke faktura med faktura id $eksternFakturaStatusDto.fakturaReferanseNr"
+            field = "faktura.referanseNr",
+            message = "Finner ikke faktura med faktura referanse nr ${eksternFakturaStatusDto.fakturaReferanseNr}"
         )
 
         val eksternFakturaStatus = eksternFakturaStatusMapper.tilEksternFakturaStatus(eksternFakturaStatusDto, faktura)

@@ -62,11 +62,11 @@ class AvregningIT(
         // Dette svarer til 2 fakturaer bestilt og mottatt hos OEBS
         val opprinneligeFakturaer = fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
         opprinneligeFakturaer[0].let {
-            it.status = FakturaStatus.BESTILLT
+            it.status = FakturaStatus.BESTILT
             fakturaRepository.save(it)
         }
         opprinneligeFakturaer[1].let {
-            it.status = FakturaStatus.BESTILLT
+            it.status = FakturaStatus.BESTILT
             fakturaRepository.save(it)
         }
         fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).let {
@@ -115,11 +115,11 @@ class AvregningIT(
 
         // Bestiller avregningsfaktura og 1 faktura fra 2. serie
         avregningsfaktura.let {
-            it.status = FakturaStatus.BESTILLT
+            it.status = FakturaStatus.BESTILT
             fakturaRepository.save(it)
         }
         fakturaer2[0].let {
-            it.status = FakturaStatus.BESTILLT
+            it.status = FakturaStatus.BESTILT
             fakturaRepository.save(it)
         }
         fakturaserieRepository.findByReferanse(fakturaserieReferanse2).let {
