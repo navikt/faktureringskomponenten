@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
+import com.github.guepardoapps.kulid.ULID
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -27,7 +28,6 @@ import org.springframework.context.annotation.Primary
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.UUID
 
 @ActiveProfiles("itest")
 //@DataJpaTest(showSql = false) // Mangler bare å hindre at ting puttes i Transactional for at vi kan bruke dette
@@ -83,7 +83,7 @@ class FakturaBestillingServiceIT(
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(
                     Faktura(
-                        referanseNr = UUID.randomUUID().toString(),
+                        referanseNr = ULID.random(),
                         datoBestilt = LocalDate.now().plusDays(-1),
                         fakturaLinje = mutableListOf(
                             FakturaLinje(

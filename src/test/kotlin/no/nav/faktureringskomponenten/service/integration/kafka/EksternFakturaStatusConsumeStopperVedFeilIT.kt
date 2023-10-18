@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
+import com.github.guepardoapps.kulid.ULID
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
@@ -11,7 +12,6 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.awaitility.kotlin.await
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -21,7 +21,6 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.ActiveProfiles
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("itest", "embeded-kafka")
@@ -38,7 +37,7 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
 
     @Test // Kan kun være denne testen i klassen siden offset vil stå på den feilede meldingen etter kjøring
     fun `les faktura fra kafka kø skal stoppe ved feil og ikke avansere offset`() {
-        val fakturaReferanseNr = UUID.randomUUID().toString()
+        val fakturaReferanseNr = ULID.random()
         val (_, faktura) = (1..2).map {
             lagFakturaMedSerie(
                 faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT, referanseNr = fakturaReferanseNr),

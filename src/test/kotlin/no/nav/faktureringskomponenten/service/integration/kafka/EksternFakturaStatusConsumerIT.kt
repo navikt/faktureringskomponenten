@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
+import com.github.guepardoapps.kulid.ULID
 import io.kotest.matchers.bigdecimal.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -9,7 +10,6 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.awaitility.kotlin.await
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -19,10 +19,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("itest", "embeded-kafka")
@@ -34,7 +32,7 @@ class EksternFakturaStatusConsumerIT(
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired @Qualifier("fakturaMottatt") private var kafkaTemplate: KafkaTemplate<String, EksternFakturaStatusDto>,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
-    val fakturaReferanseNr = UUID.randomUUID().toString()
+    val fakturaReferanseNr = ULID.random()
 
     @Test
     fun `les faktura fra kafka kø og lagre melding fra OEBS i DB`(){

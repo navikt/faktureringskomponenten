@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
+import com.github.guepardoapps.kulid.ULID
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
@@ -9,7 +10,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
 
 @EmbeddedKafka(
     count = 1, controlledShutdown = true, partitions = 1,
@@ -23,7 +23,7 @@ open class EmbeddedKafkaBase(
 ) : PostgresTestContainerBase() {
 
     @Transactional
-    protected open fun lagFakturaMedSerie(faktura: Faktura, referanse: String = UUID.randomUUID().toString()): Faktura =
+    protected open fun lagFakturaMedSerie(faktura: Faktura, referanse: String = ULID.random()): Faktura =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
                 referanse = referanse,

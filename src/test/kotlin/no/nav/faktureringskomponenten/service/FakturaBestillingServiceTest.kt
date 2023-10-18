@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
+import com.github.guepardoapps.kulid.ULID
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.mockk.*
 import no.nav.faktureringskomponenten.domain.models.*
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.temporal.IsoFields
-import java.util.UUID
 
 class FakturaBestillingServiceTest {
 
@@ -24,7 +24,7 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Bestiller bestillingsklare faktura og lagrer i databasen`() {
-        val fakturaReferanseNr = UUID.randomUUID().toString()
+        val fakturaReferanseNr = ULID.random()
         val faktura = lagFaktura(fakturaReferanseNr)
 
         every {
@@ -56,7 +56,7 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Bestiller bestillingsklare faktura med riktig data`() {
-        val fakturaReferanseNr = UUID.randomUUID().toString()
+        val fakturaReferanseNr = ULID.random()
         val faktura = lagFaktura(fakturaReferanseNr)
         val fakturaBestiltDtoCapturingSlot = slot<FakturaBestiltDto>()
         val nå = LocalDate.now()
@@ -108,7 +108,7 @@ class FakturaBestillingServiceTest {
         fakturaBestillingService.bestillFaktura(fakturaReferanseNr)
     }
 
-    private fun lagFaktura(fakturaReferanseNr: String? = UUID.randomUUID().toString()): Faktura {
+    private fun lagFaktura(fakturaReferanseNr: String? = ULID.random()): Faktura {
         return Faktura(
             id = null,
             referanseNr = fakturaReferanseNr!!,

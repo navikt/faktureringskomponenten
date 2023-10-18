@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
+import com.github.guepardoapps.kulid.ULID
 import io.getunleash.FakeUnleash
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.shouldBe
@@ -13,7 +14,6 @@ import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 private const val OPPRINNELIG_REF = "123"
 private const val NY_REF = "456"
@@ -151,7 +151,7 @@ class FakturaserieServiceTest {
     }
 
     private fun lagFakturaserieDto(
-        referanse: String = UUID.randomUUID().toString(),
+        referanse: String = ULID.random(),
         fodselsnummer: String = "12345678911",
         fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
         referanseBruker: String = "Nasse Nøff",
