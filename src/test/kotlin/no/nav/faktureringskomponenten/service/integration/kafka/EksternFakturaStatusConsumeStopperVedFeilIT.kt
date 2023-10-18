@@ -37,15 +37,14 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
 
     @Test // Kan kun være denne testen i klassen siden offset vil stå på den feilede meldingen etter kjøring
     fun `les faktura fra kafka kø skal stoppe ved feil og ikke avansere offset`() {
-        val fakturaReferanseNr = ULID.randomULID()
         val (_, faktura) = (1..2).map {
             lagFakturaMedSerie(
-                faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT, referanseNr = fakturaReferanseNr),
+                faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT, referanseNr = ULID.randomULID()),
                 referanse = "MEL-$it-$it"
             ).apply {
                 kafkaTemplate.send(
                     kafkaTopic, EksternFakturaStatusDto(
-                        fakturaReferanseNr = "$fakturaReferanseNr 123",
+                        fakturaReferanseNr = "${ULID.randomULID()} 123",
                         fakturaNummer = "82",
                         dato = LocalDate.now(),
                         status = FakturaStatus.INNE_I_OEBS,
@@ -66,7 +65,7 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
         fakturaMottakFeilRepository.findAll()
             .shouldHaveSize(1)
             .first().apply {
-                error.shouldStartWith("Finner ikke faktura med faktura referanse nr $fakturaReferanseNr")
+                error.shouldStartWith("Finner ikke faktura med faktura referanse nr")
                 kafkaOffset.shouldBe(0)
             }
 
@@ -85,6 +84,6 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
             fakturaMottakFeilRepository.findAll().size == 2
         }
         // FakturaStatus blir BETALT om neste kafka melding blir prosessert
-        fakturaRepository.findByReferanseNr(faktura.id.toString())?.status.shouldBe(FakturaStatus.BESTILT)
+        fakturaRepository.findByReferanseNr(faktura.referanseNr)?.status.shouldBe(FakturaStatus.BESTILT)
     }
 }
