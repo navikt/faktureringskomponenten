@@ -1,9 +1,9 @@
 package no.nav.faktureringskomponenten.controller.mapper
 
-import com.github.guepardoapps.kulid.ULID
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaserieDto
+import ulid.ULID
 
 val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
@@ -23,7 +23,7 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
 
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
     get() = FakturaserieDto(
-        fakturaserieReferanse = ULID.random(),
+        fakturaserieReferanse = ULID.randomULID(),
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,

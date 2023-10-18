@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.service
 
-import com.github.guepardoapps.kulid.ULID
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.mockk.*
 import no.nav.faktureringskomponenten.domain.models.*
@@ -10,6 +9,7 @@ import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltPr
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import org.junit.jupiter.api.Test
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.temporal.IsoFields
@@ -24,7 +24,7 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Bestiller bestillingsklare faktura og lagrer i databasen`() {
-        val fakturaReferanseNr = ULID.random()
+        val fakturaReferanseNr = ULID.randomULID()
         val faktura = lagFaktura(fakturaReferanseNr)
 
         every {
@@ -56,7 +56,7 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Bestiller bestillingsklare faktura med riktig data`() {
-        val fakturaReferanseNr = ULID.random()
+        val fakturaReferanseNr = ULID.randomULID()
         val faktura = lagFaktura(fakturaReferanseNr)
         val fakturaBestiltDtoCapturingSlot = slot<FakturaBestiltDto>()
         val nå = LocalDate.now()
@@ -108,7 +108,7 @@ class FakturaBestillingServiceTest {
         fakturaBestillingService.bestillFaktura(fakturaReferanseNr)
     }
 
-    private fun lagFaktura(fakturaReferanseNr: String? = ULID.random()): Faktura {
+    private fun lagFaktura(fakturaReferanseNr: String? = ULID.randomULID()): Faktura {
         return Faktura(
             id = null,
             referanseNr = fakturaReferanseNr!!,

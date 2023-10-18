@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.service
 
-import com.github.guepardoapps.kulid.ULID
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -26,6 +25,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.test.context.ActiveProfiles
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -83,7 +83,7 @@ class FakturaBestillingServiceIT(
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(
                     Faktura(
-                        referanseNr = ULID.random(),
+                        referanseNr = ULID.randomULID(),
                         datoBestilt = LocalDate.now().plusDays(-1),
                         fakturaLinje = mutableListOf(
                             FakturaLinje(

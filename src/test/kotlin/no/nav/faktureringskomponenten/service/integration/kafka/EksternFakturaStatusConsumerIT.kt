@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
-import com.github.guepardoapps.kulid.ULID
 import io.kotest.matchers.bigdecimal.shouldBeLessThan
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -19,6 +18,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.ActiveProfiles
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
@@ -32,7 +32,7 @@ class EksternFakturaStatusConsumerIT(
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired @Qualifier("fakturaMottatt") private var kafkaTemplate: KafkaTemplate<String, EksternFakturaStatusDto>,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
-    val fakturaReferanseNr = ULID.random()
+    val fakturaReferanseNr = ULID.randomULID()
 
     @Test
     fun `les faktura fra kafka kø og lagre melding fra OEBS i DB`(){

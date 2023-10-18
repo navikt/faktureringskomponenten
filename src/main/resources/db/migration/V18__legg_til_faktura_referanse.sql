@@ -1,1 +1,1 @@
-ALTER TABLE faktura ADD COLUMN referanse_nr varchar(40)
+ALTER TABLE faktura ADD COLUMN referanse_nr varchar(40) NOT NULL;

@@ -1,12 +1,12 @@
 package no.nav.faktureringskomponenten.service
 
-import com.github.guepardoapps.kulid.ULID
 import io.getunleash.Unleash
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.springframework.stereotype.Component
+import ulid.ULID
 import java.time.LocalDate
 import java.time.Month
 import java.time.temporal.IsoFields
@@ -94,11 +94,11 @@ class FakturaGenerator (
     private fun tilFaktura(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
         val korrigertDatoBestilt = if (datoBestilt <= dagensDato()) dagensDato()
             .plusDays(BESTILT_DATO_FORSINKES_MED_DAGER) else datoBestilt
-        return Faktura(null, referanseNr = ULID.random(), datoBestilt = korrigertDatoBestilt, sistOppdatert = korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
+        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = korrigertDatoBestilt, sistOppdatert = korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
     }
 
     private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
-        return Faktura(null, referanseNr = ULID.random(), datoBestilt = dagensDato(), sistOppdatert = dagensDato(), fakturaLinje = fakturaLinjer)
+        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = dagensDato(), sistOppdatert = dagensDato(), fakturaLinje = fakturaLinjer)
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()
