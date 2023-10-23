@@ -1,6 +1,8 @@
 package no.nav.faktureringskomponenten.service.avregning
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.matchers.collections.shouldBeIn
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
@@ -153,11 +155,12 @@ class AvregningIT(
         // Tester første avregning
         val fakturaer2 = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse2)
         val avregningsfaktura = fakturaer2.single { it.erAvregningsfaktura() }
+
         avregningsfaktura.fakturaLinje shouldBe listOf(
             FakturaLinje(
                 periodeFra = LocalDate.of(2024, 1, 1),
                 periodeTil = LocalDate.of(2024, 3, 31),
-                beskrivelse = "nytt beløp: 10000,00 - tidligere beløp: 9000,00",
+                beskrivelse = "Tidligere fakturanummer: 8272123, nytt beløp: 10000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal("1.00"),
                 enhetsprisPerManed = BigDecimal("1000.00"),
                 avregningNyttBeloep = BigDecimal("10000.00"),
@@ -167,7 +170,7 @@ class AvregningIT(
             FakturaLinje(
                 periodeFra = LocalDate.of(2024, 4, 1),
                 periodeTil = LocalDate.of(2024, 6, 30),
-                beskrivelse = "nytt beløp: 12000,00 - tidligere beløp: 9000,00",
+                beskrivelse = "Tidligere fakturanummer: 8272124, nytt beløp: 12000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal("1.00"),
                 enhetsprisPerManed = BigDecimal("3000.00"),
                 avregningNyttBeloep = BigDecimal("12000.00"),
@@ -212,7 +215,7 @@ class AvregningIT(
                     referertFakturaVedAvregning = null, //bør testes
                     periodeFra = LocalDate.of(2024, 1, 1),
                     periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "nytt beløp: 11000,00 - tidligere beløp: 10000,00",
+                    beskrivelse = "Tidligere fakturanummer: ${avregningsfaktura.eksternFakturaNummer}, nytt beløp: 11000,00 - tidligere beløp: 10000,00",
                     antall = BigDecimal("1.00"),
                     enhetsprisPerManed = BigDecimal("1000.00"),
                     avregningNyttBeloep = BigDecimal("11000.00"),

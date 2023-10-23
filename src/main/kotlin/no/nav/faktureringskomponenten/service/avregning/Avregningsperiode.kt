@@ -9,7 +9,7 @@ data class Avregningsperiode(
     val periodeTil: LocalDate,
     val bestilteFaktura: Faktura?,
     val tidligereBeløp: BigDecimal,
-    val nyttBeløp: BigDecimal
-
+    val nyttBeløp: BigDecimal,
+    val beskrivelse: String? = ""
 ) {
 }
