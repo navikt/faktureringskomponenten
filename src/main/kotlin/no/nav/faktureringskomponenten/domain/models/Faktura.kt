@@ -38,7 +38,7 @@ class Faktura(
     @JoinColumn(name = "faktura_id")
     var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
 
-    @Column(name="ekstern_faktura_nummer", nullable = false, unique = true)
+    @Column(name="eksternt_fakturanummer", nullable = false, unique = true)
     var eksternFakturaNummer: String = "",
 ) {
 

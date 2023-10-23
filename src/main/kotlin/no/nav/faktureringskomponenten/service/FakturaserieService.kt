@@ -53,7 +53,7 @@ class FakturaserieService(
 
         if(fakturaserieHarStatusBestiltOgUtenFakturaNummer) {
             throw RessursIkkeFunnetException(
-                field = "ekstern_faktura_nummer",
+                field = "eksternt_fakturanummer",
                 message = "Det finnes faktura uten fakturanummer i den opprinnelige fakturaserien. Vent til det kommer et fakturanummer")
         }
 
