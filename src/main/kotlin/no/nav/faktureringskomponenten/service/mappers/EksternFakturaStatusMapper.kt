@@ -13,7 +13,6 @@ class EksternFakturaStatusMapper {
         faktura: Faktura
     ): EksternFakturaStatus = EksternFakturaStatus(
         id = null,
-        fakturaNummer = eksternFakturaStatus.fakturaNummer,
         dato = eksternFakturaStatus.dato,
         status = eksternFakturaStatus.status,
         fakturaBelop = eksternFakturaStatus.fakturaBelop,

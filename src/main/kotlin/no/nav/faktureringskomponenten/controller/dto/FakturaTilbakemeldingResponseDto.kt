@@ -10,5 +10,4 @@ data class FakturaTilbakemeldingResponseDto(
     val fakturaBelop: BigDecimal?,
     val ubetaltBelop: BigDecimal?,
     val feilmelding: String?,
-    val fakturaNummer: String?,
 )

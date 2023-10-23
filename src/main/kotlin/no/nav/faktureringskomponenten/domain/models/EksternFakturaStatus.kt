@@ -12,9 +12,6 @@ class EksternFakturaStatus(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name = "faktura_nummer", nullable = true)
-    val fakturaNummer: String? = null,
-
     @Column(name = "dato", nullable = false)
     val dato: LocalDate? = null,
 

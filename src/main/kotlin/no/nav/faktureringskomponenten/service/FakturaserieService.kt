@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
@@ -45,6 +46,17 @@ class FakturaserieService(
                 field = "referanse",
                 message = "Fant ikke opprinnelig fakturaserie med referanse $opprinneligReferanse"
             )
+
+        val fakturaserieHarStatusBestiltOgUtenFakturaNummer = opprinneligFakturaserie.faktura.any{
+            it.eksternFakturaNummer.isNullOrEmpty() && it.status === FakturaStatus.BESTILT
+        }
+
+        if(fakturaserieHarStatusBestiltOgUtenFakturaNummer) {
+            throw RessursIkkeFunnetException(
+                field = "ekstern_faktura_nummer",
+                message = "Det finnes faktura uten fakturanummer i den opprinnelige fakturaserien. Vent til det kommer et fakturanummer")
+        }
+
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes"}
 
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
