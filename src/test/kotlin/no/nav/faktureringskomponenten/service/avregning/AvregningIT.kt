@@ -86,7 +86,7 @@ class AvregningIT(
             )
         )
 
-        postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isBadRequest
+        postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isNotFound
 
         //Prøver igjen, denne gangen med faktura nummer mottatt fra OEBS
         opprinneligeFakturaer[0].let {
