@@ -65,12 +65,12 @@ private val Faktura.tilResponseDto: FakturaResponseDto
         fakturaLinje = this.fakturaLinje.map { it.tilResponseDto },
         periodeFra = this.getPeriodeFra(),
         periodeTil = this.getPeriodeTil(),
-        eksternFakturaStatus = this.eksternFakturaStatus.map { it.tilResponseDto }
+        eksternFakturaStatus = this.eksternFakturaStatus.map { it.tilResponseDto },
+        eksternFakturaNummer = this.eksternFakturaNummer
     )
 
 private val EksternFakturaStatus.tilResponseDto: FakturaTilbakemeldingResponseDto
     get() = FakturaTilbakemeldingResponseDto(
-        fakturaNummer = this.fakturaNummer,
         dato = this.dato,
         status = this.status,
         fakturaBelop = this.fakturaBelop,

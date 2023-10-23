@@ -45,8 +45,9 @@ class AvregningIT(
         }
     }
 
+
     @Test
-    fun `erstatt fakturaserie med endringer tilbake i tid, sjekk avregning`() {
+    fun `erstatt fakturaserie med endringer tilbake i tid, uten fakturanummer, får feil, prøver igjen, OK`() {
         // Opprinnelig serie
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
@@ -69,6 +70,67 @@ class AvregningIT(
             it.status = FakturaStatus.BESTILT
             fakturaRepository.save(it)
         }
+
+        fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).let {
+            it!!.status = FakturaserieStatus.UNDER_BESTILLING
+            fakturaserieRepository.save(it)
+        }
+
+        // Serie 2 med avregning
+        val fakturaserieDto2 = lagFakturaserieDto(
+            referanseId = opprinneligFakturaserieReferanse,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(1000, "2024-01-01", "2024-12-31", "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"),
+                FakturaseriePeriodeDto(2000, "2024-01-01", "2024-02-29", "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"),
+                FakturaseriePeriodeDto(3000, "2024-03-01", "2024-12-31", "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"),
+            )
+        )
+
+        postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isNotFound
+
+        //Prøver igjen, denne gangen med faktura nummer mottatt fra OEBS
+        opprinneligeFakturaer[0].let {
+            it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "123"
+            fakturaRepository.save(it)
+        }
+        opprinneligeFakturaer[1].let {
+            it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "124"
+            fakturaRepository.save(it)
+        }
+
+        postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk
+    }
+
+
+    @Test
+    fun `erstatt fakturaserie med endringer tilbake i tid, sjekk avregning`() {
+        // Opprinnelig serie
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(1000, "2024-01-01", "2024-12-31", "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"),
+                FakturaseriePeriodeDto(2000, "2024-01-01", "2024-12-31", "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"),
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        // Dette svarer til 2 fakturaer bestilt og mottatt hos OEBS
+        val opprinneligeFakturaer = fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
+        opprinneligeFakturaer[0].let {
+            it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "8272123"
+            fakturaRepository.save(it)
+        }
+        opprinneligeFakturaer[1].let {
+            it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "8272124"
+            fakturaRepository.save(it)
+        }
+
         fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).let {
             it!!.status = FakturaserieStatus.UNDER_BESTILLING
             fakturaserieRepository.save(it)
@@ -86,6 +148,7 @@ class AvregningIT(
 
         val fakturaserieReferanse2 = postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
             .returnResult().responseBody!!.fakturaserieReferanse
+
 
         // Tester første avregning
         val fakturaer2 = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse2)
@@ -116,10 +179,12 @@ class AvregningIT(
         // Bestiller avregningsfaktura og 1 faktura fra 2. serie
         avregningsfaktura.let {
             it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "1234"
             fakturaRepository.save(it)
         }
         fakturaer2[0].let {
             it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "12345"
             fakturaRepository.save(it)
         }
         fakturaserieRepository.findByReferanse(fakturaserieReferanse2).let {

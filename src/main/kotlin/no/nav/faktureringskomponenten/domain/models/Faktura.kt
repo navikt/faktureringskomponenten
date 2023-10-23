@@ -37,6 +37,9 @@ class Faktura(
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "faktura_id")
     var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
+
+    @Column(name="eksternt_fakturanummer", nullable = false, unique = true)
+    var eksternFakturaNummer: String = "",
 ) {
 
     override fun toString(): String {

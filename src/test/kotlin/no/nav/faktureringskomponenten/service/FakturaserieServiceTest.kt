@@ -94,6 +94,7 @@ class FakturaserieServiceTest {
                     id = 1,
                     datoBestilt = LocalDate.of(2023, 12, 19),
                     status = FakturaStatus.BESTILT,
+                    eksternFakturaNummer = "8272123",
                     fakturaLinje = listOf(
                                 FakturaLinje(
                                     id = 1,
@@ -119,6 +120,7 @@ class FakturaserieServiceTest {
                     id = 2,
                     datoBestilt = LocalDate.of(2024, 3, 19),
                     status = FakturaStatus.BESTILT,
+                    eksternFakturaNummer = "8272123",
                     fakturaLinje = listOf(
                         FakturaLinje(
                             id = 3,
