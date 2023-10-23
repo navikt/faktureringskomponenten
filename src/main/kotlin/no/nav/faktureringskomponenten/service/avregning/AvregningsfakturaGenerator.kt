@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.service.avregning
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import org.springframework.stereotype.Component
+import ulid.ULID
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
@@ -28,6 +29,6 @@ class AvregningsfakturaGenerator {
                 belop = it.nyttBeløp - it.tidligereBeløp,
             )
         }
-        return Faktura(fakturaLinje = fakturaLinjer)
+        return Faktura(referanseNr = ULID.randomULID(), fakturaLinje = fakturaLinjer)
     }
 }
