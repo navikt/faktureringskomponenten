@@ -47,14 +47,12 @@ private val Fullmektig.tilDto: FullmektigDto
     get() = FullmektigDto(
         fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,
-        kontaktperson = this.kontaktperson
     )
 
 private val FullmektigDto.tilFullmektig: Fullmektig
     get() = Fullmektig(
         fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,
-        kontaktperson = this.kontaktperson
     )
 
 private val Faktura.tilResponseDto: FakturaResponseDto

@@ -483,7 +483,6 @@ class FakturaserieGeneratorTest {
                 fullmektig = Fullmektig(
                     fodselsnummer = null,
                     organisasjonsnummer = "999999999",
-                    kontaktperson = "Test person"
                 ),
                 referanseBruker = "2023-01-19T11:39:48.680364Z", // Hvorfor får vi dagens dato her?
                 referanseNAV = "Medlemskap og avgift",

@@ -146,7 +146,6 @@ class FakturaserieServiceTest {
             fodselsnummer = "12345678911",
             fullmektig = Fullmektig(
                 fodselsnummer = "12129012345",
-                kontaktperson = "Test",
                 organisasjonsnummer = ""
             ),
         )
@@ -155,7 +154,7 @@ class FakturaserieServiceTest {
     private fun lagFakturaserieDto(
         referanse: String = ULID.randomULID(),
         fodselsnummer: String = "12345678911",
-        fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
+        fullmektig: Fullmektig = Fullmektig("11987654321", "123456789"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "Referanse NAV",
         fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,

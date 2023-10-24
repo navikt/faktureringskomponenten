@@ -1,0 +1,1 @@
+ALTER TABLE fakturaserie DROP COLUMN fullmektig_kontaktperson;
