@@ -51,7 +51,7 @@ class FakturaBestiltDtoMapper {
         return when (fakturaGjelder) {
             Innbetalingstype.TRYGDEAVGIFT -> {
                 if (erAvregning) {
-                    return "Faktura for endring av tidligere fakturert trygdeavgift"
+                    return "Faktura for avregning mot tidligere fakturert trygdeavgift"
                 }
 
                 val nå = LocalDate.now()

@@ -55,7 +55,7 @@ class FakturaBestiltDtoMapperTest {
             Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
         )
 
-        fakturaBestiltDto.beskrivelse shouldBe "Faktura for endring av tidligere fakturert trygdeavgift"
+        fakturaBestiltDto.beskrivelse shouldBe "Faktura for avregning mot tidligere fakturert trygdeavgift"
     }
 
     @Test

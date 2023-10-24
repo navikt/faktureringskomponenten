@@ -160,7 +160,7 @@ class AvregningIT(
             FakturaLinje(
                 periodeFra = LocalDate.of(2024, 1, 1),
                 periodeTil = LocalDate.of(2024, 3, 31),
-                beskrivelse = "Tidligere fakturanummer: 8272123, nytt beløp: 10000,00 - tidligere beløp: 9000,00",
+                beskrivelse = "Tidligere fakturanummer: 8272123\nPeriode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal("1.00"),
                 enhetsprisPerManed = BigDecimal("1000.00"),
                 avregningNyttBeloep = BigDecimal("10000.00"),
@@ -170,7 +170,7 @@ class AvregningIT(
             FakturaLinje(
                 periodeFra = LocalDate.of(2024, 4, 1),
                 periodeTil = LocalDate.of(2024, 6, 30),
-                beskrivelse = "Tidligere fakturanummer: 8272124, nytt beløp: 12000,00 - tidligere beløp: 9000,00",
+                beskrivelse = "Tidligere fakturanummer: 8272124\nPeriode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal("1.00"),
                 enhetsprisPerManed = BigDecimal("3000.00"),
                 avregningNyttBeloep = BigDecimal("12000.00"),
@@ -215,7 +215,7 @@ class AvregningIT(
                     referertFakturaVedAvregning = null, //bør testes
                     periodeFra = LocalDate.of(2024, 1, 1),
                     periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Tidligere fakturanummer: ${avregningsfaktura.eksternFakturaNummer}, nytt beløp: 11000,00 - tidligere beløp: 10000,00",
+                    beskrivelse = "Tidligere fakturanummer: ${avregningsfaktura.eksternFakturaNummer}\nPeriode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
                     antall = BigDecimal("1.00"),
                     enhetsprisPerManed = BigDecimal("1000.00"),
                     avregningNyttBeloep = BigDecimal("11000.00"),
