@@ -208,7 +208,7 @@ class FakturaserieControllerIT(
     fun lagFakturaserieDto(
         referanseId: String? = null,
         fodselsnummer: String = "12345678911",
-        fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789", "Ole Brum"),
+        fullmektig: FullmektigDto = FullmektigDto("11987654321", "123456789"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "NAV referanse",
         fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
