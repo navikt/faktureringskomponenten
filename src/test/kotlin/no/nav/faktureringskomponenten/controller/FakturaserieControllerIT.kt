@@ -145,7 +145,7 @@ class FakturaserieControllerIT(
         response.faktura.size.shouldBe(1)
         response.faktura[0].fakturaLinje.map { it.periodeFra }.shouldContainOnly(startDato)
         response.faktura[0].fakturaLinje.map { it.periodeTil }.shouldContainOnly(sluttDato)
-        response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactly("Inntekt fra utlandet", "Misjonær")
+        response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactly("Periode: 01.01.2023 - 31.03.2023\nInntekt fra utlandet", "Periode: 01.01.2023 - 31.03.2023\nMisjonær")
     }
 
     @Test
