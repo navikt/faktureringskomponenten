@@ -141,7 +141,6 @@ class FakturaBestillingServiceTest {
                     faktura = mutableListOf(),
                     fullmektig = Fullmektig(
                         fodselsnummer = "12129012345",
-                        kontaktperson = "Test",
                         organisasjonsnummer = ""
                     ),
                     fodselsnummer = "12345678911"
