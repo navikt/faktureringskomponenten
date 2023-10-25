@@ -42,8 +42,7 @@ class FakturaBestiltDtoMapperTest {
             Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
         )
 
-        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe
-                linje.beskrivelse
+        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe linje.beskrivelse
     }
 
     @Test
