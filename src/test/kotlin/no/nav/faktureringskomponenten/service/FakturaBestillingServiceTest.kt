@@ -121,7 +121,7 @@ class FakturaBestillingServiceTest {
                     referertFakturaVedAvregning = null,
                     periodeFra = LocalDate.of(2023, 1, 1),
                     periodeTil = LocalDate.of(2023, 5, 1),
-                    beskrivelse = "Periode: 01.01.2023 - 01.05.2023, En beskrivelse",
+                    beskrivelse = "En beskrivelse",
                     belop = BigDecimal(90000),
                     antall = BigDecimal(1),
                     enhetsprisPerManed = BigDecimal(18000)
