@@ -64,7 +64,7 @@ class FakturaserieController @Autowired constructor(
     }
 
     @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
-    @PostMapping
+    @PutMapping
     fun oppdaterFakturaMottaker(
         @RequestBody @Validated fakturamottakerRequestDto: FakturamottakerRequestDto,
         bindingResult: BindingResult
