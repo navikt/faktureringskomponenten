@@ -6,6 +6,7 @@ import no.nav.faktureringskomponenten.service.beregning.AntallMdBeregner
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Component
 class FakturaLinjeGenerator {
@@ -18,7 +19,6 @@ class FakturaLinjeGenerator {
         return perioder.filter {
             it.startDato <= faktureringTil && it.sluttDato >= faktureringFra
         }.map {
-
             val fakturaLinjerPeriodeFra = if (it.startDato < faktureringFra) faktureringFra else it.startDato
             val fakturaLinjerPeriodeTil = if (it.sluttDato >= faktureringTil) faktureringTil else it.sluttDato
 

@@ -148,6 +148,29 @@ class FakturaserieControllerIT(
         response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactly("Inntekt fra utlandet", "Misjonær")
     }
 
+    @Test
+    fun `lagNyFaktura lager ny fakturaserie med verdier utenfra`() {
+        val startDato = LocalDate.parse("2023-01-01")
+        val sluttDato = LocalDate.parse("2023-03-31")
+        val fakturaSerieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(12000), startDato, sluttDato, "Periode: 01.01.2023 - 31.03.2023, Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"),
+            )
+        )
+
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
+
+        val response = hentFakturaserieRequest(fakturaserieReferanse)
+            .expectStatus().isOk
+            .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
+
+        response.shouldNotBeNull()
+        response.faktura.size.shouldBe(1)
+        response.faktura[0].fakturaLinje.map { it.periodeFra }.shouldContainOnly(startDato)
+        response.faktura[0].fakturaLinje.map { it.periodeTil }.shouldContainOnly(sluttDato)
+        response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactly("Periode: 01.01.2023 - 31.03.2023, Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %")
+    }
+
     @ParameterizedTest(name = "{0} gir feilmelding \"{3}\"")
     @MethodSource("fakturaserieDTOsMedValideringsfeil")
     fun `lagNyFaktura validerer input riktig`(

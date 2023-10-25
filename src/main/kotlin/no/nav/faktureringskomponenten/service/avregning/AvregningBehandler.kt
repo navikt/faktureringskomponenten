@@ -65,6 +65,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             bestilteFaktura = faktura,
             tidligereBeløp = tidligereLinje.avregningNyttBeloep!!,
             nyttBeløp = nyttBeløp,
+            beskrivelse = tidligereLinje.beskrivelse
         )
     }
 

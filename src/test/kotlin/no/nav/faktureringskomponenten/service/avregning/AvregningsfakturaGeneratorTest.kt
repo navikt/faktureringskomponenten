@@ -20,13 +20,13 @@ class AvregningsfakturaGeneratorTest {
 
     @Test
     fun lagFaktura() {
-        val bestilteFaktura = Faktura()
+        val bestilteFaktura = Faktura(eksternFakturaNummer = "123")
         val avregningsperiode = Avregningsperiode(
             bestilteFaktura = bestilteFaktura,
             periodeFra = LocalDate.of(2024, 1, 1),
             periodeTil = LocalDate.of(2024, 3, 31),
             tidligereBeløp = BigDecimal("2000"),
-            nyttBeløp = BigDecimal("1000")
+            nyttBeløp = BigDecimal("1000"),
         )
 
         val faktura = generator.lagFaktura(listOf(avregningsperiode))
@@ -37,7 +37,7 @@ class AvregningsfakturaGeneratorTest {
             referertFakturaVedAvregning = bestilteFaktura,
             periodeFra = LocalDate.of(2024, 1, 1),
             periodeTil = LocalDate.of(2024, 3, 31),
-            beskrivelse = "nytt beløp: 1000,00 - tidligere beløp: 2000,00",
+            beskrivelse = "Tidligere fakturanummer: ${bestilteFaktura.eksternFakturaNummer}\nPeriode: 01.01.2024 - 31.03.2024\nNytt beløp: 1000,00 - tidligere beløp: 2000,00",
             antall = BigDecimal(1),
             enhetsprisPerManed = BigDecimal(-1000),
             avregningForrigeBeloep = avregningsperiode.tidligereBeløp,

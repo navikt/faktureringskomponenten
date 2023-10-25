@@ -40,10 +40,7 @@ class FakturaBestiltDtoMapper {
     private fun lagBestiltLinjeBeskrivelse(fakturaLinje: FakturaLinje, erAvregning: Boolean): String {
         val prefiks = if (erAvregning) "Avregning mot fakturanummer ${fakturaLinje.referertFakturaVedAvregning?.id}, " else ""
 
-        val periodeFraFormatert = fakturaLinje.periodeFra.format(FORMATTER)
-        val periodeTilFormatert = fakturaLinje.periodeTil.format(FORMATTER)
-
-        return prefiks + "Periode: $periodeFraFormatert - ${periodeTilFormatert}, ${fakturaLinje.beskrivelse}"
+        return prefiks + fakturaLinje.beskrivelse
     }
 
 
@@ -51,7 +48,7 @@ class FakturaBestiltDtoMapper {
         return when (fakturaGjelder) {
             Innbetalingstype.TRYGDEAVGIFT -> {
                 if (erAvregning) {
-                    return "Faktura for endring av tidligere fakturert trygdeavgift"
+                    return "Faktura for avregning mot tidligere fakturert trygdeavgift"
                 }
 
                 val nå = LocalDate.now()

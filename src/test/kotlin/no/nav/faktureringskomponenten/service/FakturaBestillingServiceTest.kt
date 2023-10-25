@@ -95,7 +95,7 @@ class FakturaBestillingServiceTest {
                     faktureringsDato = LocalDate.of(2022, 5, 1),
                     fakturaLinjer = listOf(
                         FakturaBestiltLinjeDto(
-                            beskrivelse = "Periode: 01.01.2023 - 01.05.2023, En beskrivelse",
+                            beskrivelse = "En beskrivelse",
                             antall = BigDecimal(1),
                             enhetspris = BigDecimal(18000),
                             belop = BigDecimal(90000)
