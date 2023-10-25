@@ -5,9 +5,11 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.controller.dto.FakturamottakerRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.mapper.tilFakturamottakerDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory
@@ -61,6 +63,25 @@ class FakturaserieController @Autowired constructor(
         return ResponseEntity.ok(NyFakturaserieResponseDto(referanse))
     }
 
+    @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
+    @PostMapping
+    fun oppdaterFakturaMottaker(
+        @RequestBody @Validated fakturamottakerRequestDto: FakturamottakerRequestDto,
+        bindingResult: BindingResult
+    ): ResponseEntity<Any> {
+        log.info("Mottatt spørsmål om endring av fakturamottaker for ${fakturamottakerRequestDto.fakturaserieReferanse}")
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ProblemDetailFactory.of(bindingResult))
+        }
+
+        val fakturamottakerDto = fakturamottakerRequestDto.tilFakturamottakerDto
+        faktureringService.endreFakturaMottaker(fakturamottakerDto)
+
+
+        return ResponseEntity.ok(fakturamottakerDto.fakturaserieReferanse)
+    }
+
     @Operation(summary = "Henter fakturaserie på referanse")
     @ApiResponses(
         value = [
@@ -75,7 +96,7 @@ class FakturaserieController @Autowired constructor(
     @GetMapping
     fun hentFakturaserier(
         @RequestParam("referanse") referanse: String,
-): List<FakturaserieResponseDto> {
+    ): List<FakturaserieResponseDto> {
         return faktureringService.hentFakturaserier(referanse).map { it.tilFakturaserieResponseDto }
     }
 }

@@ -81,4 +81,20 @@ class FakturaserieService(
     fun finnesReferanse(referanse: String): Boolean {
         return fakturaserieRepository.findByReferanse(referanse) != null
     }
+
+    @Transactional
+    fun endreFakturaMottaker(fakturamottakerDto: FakturamottakerDto) {
+        val fakturaserie = hentFakturaserie(fakturamottakerDto.fakturaserieReferanse)
+        val gjenståendeFakturaer = fakturaserie.planlagteFakturaer()
+
+        if (!mottakerErEndret(fakturaserie, fakturamottakerDto) || gjenståendeFakturaer.isEmpty()) {
+            return
+        }
+
+        fakturaserie.fullmektig = fakturamottakerDto.fullmektig
+        fakturaserieRepository.save(fakturaserie)
+    }
+
+    private fun mottakerErEndret(fakturaserie: Fakturaserie, fakturamottakerDto: FakturamottakerDto) =
+        fakturamottakerDto.fullmektig != fakturaserie.fullmektig
 }

@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.controller.mapper
 
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import ulid.ULID
 
@@ -49,7 +50,7 @@ private val Fullmektig.tilDto: FullmektigDto
         organisasjonsnummer = this.organisasjonsnummer,
     )
 
-private val FullmektigDto.tilFullmektig: Fullmektig
+val FullmektigDto.tilFullmektig: Fullmektig
     get() = Fullmektig(
         fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,
@@ -87,3 +88,8 @@ private val FakturaLinje.tilResponseDto: FakturaLinjeResponseDto
         enhetsprisPerManed = this.enhetsprisPerManed
     )
 
+val FakturamottakerRequestDto.tilFakturamottakerDto: FakturamottakerDto
+    get() = FakturamottakerDto(
+        fakturaserieReferanse = ULID.randomULID(),
+        fullmektig = this.fullmektig?.tilFullmektig,
+    )
