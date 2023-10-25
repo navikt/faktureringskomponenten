@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 class FakturaserieGeneratorTest {
@@ -557,12 +556,8 @@ class FakturaserieGeneratorTest {
         val beskrivelse: String,
     ) {
 
-        companion object {
-            val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-        }
-
         constructor(fra: String, til: String, beløp: String, beskrivelse: String)
-                : this(LocalDate.parse(fra), LocalDate.parse(til), BigDecimal(beløp), "Periode: ${LocalDate.parse(fra).format(FORMATTER)} - ${LocalDate.parse(til).format(FORMATTER)}\n$beskrivelse")
+                : this(LocalDate.parse(fra), LocalDate.parse(til), BigDecimal(beløp), beskrivelse)
 
         override fun toString() = "\n    fra=$fra, til:$til, beløp:$beløp, $beskrivelse"
         fun toTestCode(): String = "           Linje(\n" +

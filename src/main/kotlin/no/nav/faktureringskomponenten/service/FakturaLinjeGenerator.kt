@@ -19,7 +19,6 @@ class FakturaLinjeGenerator {
         return perioder.filter {
             it.startDato <= faktureringTil && it.sluttDato >= faktureringFra
         }.map {
-            val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
             val fakturaLinjerPeriodeFra = if (it.startDato < faktureringFra) faktureringFra else it.startDato
             val fakturaLinjerPeriodeTil = if (it.sluttDato >= faktureringTil) faktureringTil else it.sluttDato
 
@@ -35,7 +34,7 @@ class FakturaLinjeGenerator {
                     fakturaLinjerPeriodeTil
                 ),
                 antall = AntallMdBeregner(fakturaLinjerPeriodeFra, fakturaLinjerPeriodeTil).beregn(),
-                beskrivelse = "Periode: ${fakturaLinjerPeriodeFra.format(FORMATTER)} - ${fakturaLinjerPeriodeTil.format(FORMATTER)}\n${it.beskrivelse}",
+                beskrivelse = it.beskrivelse,
                 enhetsprisPerManed = it.enhetsprisPerManed
             )
         }.toList()
