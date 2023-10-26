@@ -9,8 +9,6 @@ enum class FakturaStatus {
     OPPRETTET,
     BESTILLT,
     KANSELLERT,
-    BETALT,
-    DELVIS_BETALT,
     FEIL,
     INNE_I_OEBS,
     MANGLENDE_INNBETALING
