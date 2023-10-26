@@ -69,13 +69,13 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
                 kafkaOffset.shouldBe(0)
             }
 
-        val listenerContainer = eksternFakturaStatusConsumer.EksternFakturaStatusListenerContainer()
+        val listenerContainer = eksternFakturaStatusConsumer.eksternFakturaStatusListenerContainer()
         await.timeout(20, TimeUnit.SECONDS).until { !listenerContainer.isRunning }
 
         await.timeout(5, TimeUnit.SECONDS).until {
             if (!listenerContainer.isRunning) {
                 // fungerer ikke å starte på utsiden av await
-                eksternFakturaStatusConsumer.EksternFakturaStatusListenerContainer().start()
+                eksternFakturaStatusConsumer.eksternFakturaStatusListenerContainer().start()
             }
             listenerContainer.isRunning
         }

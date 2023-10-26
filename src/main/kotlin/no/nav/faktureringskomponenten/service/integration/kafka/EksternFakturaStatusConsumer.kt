@@ -4,9 +4,11 @@ import mu.KotlinLogging
 import no.nav.faktureringskomponenten.service.EksternFakturaStatusService
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.common.TopicPartition
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.kafka.listener.AbstractConsumerSeekAware
+import org.springframework.kafka.listener.ConsumerSeekAware
 import org.springframework.kafka.listener.MessageListenerContainer
 import org.springframework.stereotype.Component
 
@@ -43,8 +45,25 @@ class EksternFakturaStatusConsumer(
         }
     }
 
-    fun EksternFakturaStatusListenerContainer(): MessageListenerContainer {
+    fun eksternFakturaStatusListenerContainer(): MessageListenerContainer {
         return kafkaListenerEndpointRegistry.getListenerContainer("fakturaMottatt")!!
+    }
+
+
+    fun start() {
+        eksternFakturaStatusListenerContainer().start()
+    }
+
+    fun stop() {
+        eksternFakturaStatusListenerContainer().stop()
+    }
+
+    fun settSpesifiktOffsetPåConsumer(offset: Long) {
+        log.info("settSpesifiktOffsetPåConsumer til $offset")
+        seekCallbacks.forEach { (tp: TopicPartition, callback: ConsumerSeekAware.ConsumerSeekCallback) ->
+            log.info("tp:${tp.topic()} seek to:$offset")
+            callback.seek(tp.topic(), tp.partition(), offset)
+        }
     }
 
 }
