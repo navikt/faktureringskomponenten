@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.controller.mapper
 
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import ulid.ULID
 
@@ -87,3 +88,7 @@ private val FakturaLinje.tilResponseDto: FakturaLinjeResponseDto
         enhetsprisPerManed = this.enhetsprisPerManed
     )
 
+val FakturamottakerRequestDto.tilFakturamottakerDto: FakturamottakerDto
+    get() = FakturamottakerDto(
+        fullmektig = this.fullmektig?.tilFullmektig,
+    )

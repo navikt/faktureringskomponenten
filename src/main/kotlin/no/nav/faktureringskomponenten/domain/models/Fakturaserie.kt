@@ -23,7 +23,7 @@ class Fakturaserie(
     val fodselsnummer: String = "",
 
     @Embedded
-    val fullmektig: Fullmektig? = null,
+    var fullmektig: Fullmektig? = null,
 
     @Column(name = "referanse_bruker", nullable = false)
     val referanseBruker: String = "",

@@ -30,7 +30,7 @@ class FakturaserieService(
 
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto, forrigeReferanse: String? = null): String {
-        if(!forrigeReferanse.isNullOrEmpty()){
+        if (!forrigeReferanse.isNullOrEmpty()) {
             return erstattFakturaserie(forrigeReferanse, fakturaserieDto)
         }
 
@@ -47,22 +47,26 @@ class FakturaserieService(
                 message = "Fant ikke opprinnelig fakturaserie med referanse $opprinneligReferanse"
             )
 
-        val fakturaserieHarStatusBestiltOgUtenFakturaNummer = opprinneligFakturaserie.faktura.any{
+        val fakturaserieHarStatusBestiltOgUtenFakturaNummer = opprinneligFakturaserie.faktura.any {
             it.eksternFakturaNummer.isNullOrEmpty() && it.status === FakturaStatus.BESTILT
         }
 
-        if(fakturaserieHarStatusBestiltOgUtenFakturaNummer) {
+        if (fakturaserieHarStatusBestiltOgUtenFakturaNummer) {
             throw RessursIkkeFunnetException(
                 field = "eksternt_fakturanummer",
-                message = "Det finnes faktura uten fakturanummer i den opprinnelige fakturaserien. Vent til det kommer et fakturanummer")
+                message = "Det finnes faktura uten fakturanummer i den opprinnelige fakturaserien. Vent til det kommer et fakturanummer"
+            )
         }
 
-        check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes"}
+        check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes" }
 
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
             fakturaserieDto,
             finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
-            avregningBehandler.lagAvregningsfaktura(fakturaserieDto.perioder, opprinneligFakturaserie.bestilteFakturaer())
+            avregningBehandler.lagAvregningsfaktura(
+                fakturaserieDto.perioder,
+                opprinneligFakturaserie.bestilteFakturaer()
+            )
         )
         fakturaserieRepository.save(nyFakturaserie)
 
@@ -81,4 +85,22 @@ class FakturaserieService(
     fun finnesReferanse(referanse: String): Boolean {
         return fakturaserieRepository.findByReferanse(referanse) != null
     }
+
+    @Transactional
+    fun endreFakturaMottaker(fakturaserieReferanse: String, fakturamottakerDto: FakturamottakerDto) {
+        val fakturaserie = hentFakturaserie(fakturaserieReferanse)
+        val gjenståendeFakturaer = fakturaserie.planlagteFakturaer()
+
+        if (!mottakerErEndret(fakturaserie, fakturamottakerDto) || gjenståendeFakturaer.isEmpty()) {
+            log.info("Fakturamottaker ikke endret på fakturaserie: $fakturaserieReferanse")
+            return
+        }
+
+        fakturaserie.fullmektig = fakturamottakerDto.fullmektig
+        log.info("Fakturamottaker endret på fakturaserie: $fakturaserieReferanse")
+        fakturaserieRepository.save(fakturaserie)
+    }
+
+    private fun mottakerErEndret(fakturaserie: Fakturaserie, fakturamottakerDto: FakturamottakerDto) =
+        fakturamottakerDto.fullmektig != fakturaserie.fullmektig
 }
