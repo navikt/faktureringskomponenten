@@ -4,6 +4,5 @@ import io.swagger.v3.oas.annotations.media.Schema
 
 @Schema(description = "DTO for endring av fakturamottaker")
 data class FakturamottakerRequestDto(
-    var fakturaserieReferanse: String,
-    val fullmektig: FullmektigDto?,
+     val fullmektig: FullmektigDto?,
 )

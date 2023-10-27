@@ -90,6 +90,5 @@ private val FakturaLinje.tilResponseDto: FakturaLinjeResponseDto
 
 val FakturamottakerRequestDto.tilFakturamottakerDto: FakturamottakerDto
     get() = FakturamottakerDto(
-        fakturaserieReferanse = ULID.randomULID(),
         fullmektig = this.fullmektig?.tilFullmektig,
     )

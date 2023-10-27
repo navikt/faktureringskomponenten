@@ -64,22 +64,23 @@ class FakturaserieController @Autowired constructor(
     }
 
     @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
-    @PutMapping
+    @PutMapping("/{referanse}/mottaker")
     fun oppdaterFakturaMottaker(
         @RequestBody @Validated fakturamottakerRequestDto: FakturamottakerRequestDto,
+        @PathVariable("referanse", required = true) referanse: String,
         bindingResult: BindingResult
     ): ResponseEntity<Any> {
-        log.info("Mottatt spørsmål om endring av fakturamottaker for ${fakturamottakerRequestDto.fakturaserieReferanse}")
+        log.info("Mottatt spørsmål om endring av fakturamottaker for ${referanse}")
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ProblemDetailFactory.of(bindingResult))
         }
 
         val fakturamottakerDto = fakturamottakerRequestDto.tilFakturamottakerDto
-        faktureringService.endreFakturaMottaker(fakturamottakerDto)
+        faktureringService.endreFakturaMottaker(referanse, fakturamottakerDto)
 
 
-        return ResponseEntity.ok(fakturamottakerDto.fakturaserieReferanse)
+        return ResponseEntity.ok().build()
     }
 
     @Operation(summary = "Henter fakturaserie på referanse")

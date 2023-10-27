@@ -83,8 +83,8 @@ class FakturaserieService(
     }
 
     @Transactional
-    fun endreFakturaMottaker(fakturamottakerDto: FakturamottakerDto) {
-        val fakturaserie = hentFakturaserie(fakturamottakerDto.fakturaserieReferanse)
+    fun endreFakturaMottaker(fakturaserieReferanse: String, fakturamottakerDto: FakturamottakerDto) {
+        val fakturaserie = hentFakturaserie(fakturaserieReferanse)
         val gjenståendeFakturaer = fakturaserie.planlagteFakturaer()
 
         if (!mottakerErEndret(fakturaserie, fakturamottakerDto) || gjenståendeFakturaer.isEmpty()) {
