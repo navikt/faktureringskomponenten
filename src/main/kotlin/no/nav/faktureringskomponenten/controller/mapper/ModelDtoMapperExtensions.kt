@@ -50,7 +50,7 @@ private val Fullmektig.tilDto: FullmektigDto
         organisasjonsnummer = this.organisasjonsnummer,
     )
 
-val FullmektigDto.tilFullmektig: Fullmektig
+private val FullmektigDto.tilFullmektig: Fullmektig
     get() = Fullmektig(
         fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,

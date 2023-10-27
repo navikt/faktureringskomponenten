@@ -2,10 +2,13 @@ package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
 import io.kotest.inspectors.forExactly
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
@@ -43,7 +46,7 @@ class FakturaserieServiceTest {
 
         val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
 
-        opprinneligFakturaserie.status shouldBe  FakturaserieStatus.ERSTATTET
+        opprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
         opprinneligFakturaserie.erstattetMed shouldNotBe null
         opprinneligFakturaserie.erstattetMed!!.referanse shouldBe nyFakturaserie.referanse
 
@@ -78,6 +81,51 @@ class FakturaserieServiceTest {
         }
     }
 
+    @Test
+    fun `Endrer faktura-mottaker, finnes ikke gjenstående fakturaer, gjør ingenting`() {
+        every { fakturaserieRepository.findByReferanse(OPPRINNELIG_REF) } returns Fakturaserie(
+            faktura = mutableListOf(Faktura().apply { status = FakturaStatus.BESTILT })
+        )
+
+
+        fakturaserieService.endreFakturaMottaker(OPPRINNELIG_REF, FakturamottakerDto(Fullmektig()))
+
+
+        verify { fakturaserieRepository.save(any()) wasNot Called }
+    }
+
+    @Test
+    fun `Endrer faktura-mottaker, mottaker har ikke endret seg, gjør ingenting`() {
+        every { fakturaserieRepository.findByReferanse(OPPRINNELIG_REF) } returns Fakturaserie(
+            faktura = mutableListOf(Faktura().apply { status = FakturaStatus.OPPRETTET }),
+            fullmektig = Fullmektig("123", null)
+        )
+
+
+        fakturaserieService.endreFakturaMottaker(OPPRINNELIG_REF, FakturamottakerDto(Fullmektig("123", null)))
+
+
+        verify { fakturaserieRepository.save(any()) wasNot Called }
+    }
+
+    @Test
+    fun `Endrer faktura-mottaker, motter er ny, endrer fullmektig i fakturaserie`() {
+        val fakturaserie = Fakturaserie(
+            faktura = mutableListOf(Faktura().apply { status = FakturaStatus.OPPRETTET }),
+            fullmektig = Fullmektig("123", null)
+        )
+        val lagretFakturaserie = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.findByReferanse(OPPRINNELIG_REF) } returns fakturaserie
+        every { fakturaserieRepository.save(capture(lagretFakturaserie)) } returns mockk()
+
+
+        fakturaserieService.endreFakturaMottaker(OPPRINNELIG_REF, FakturamottakerDto(null))
+
+
+        verify { fakturaserieRepository.save(any()) }
+        fakturaserie.fullmektig.shouldBeNull()
+    }
+
     private fun lagOpprinneligFakturaserie(): Fakturaserie {
         return Fakturaserie(
             id = 100,
@@ -96,25 +144,25 @@ class FakturaserieServiceTest {
                     status = FakturaStatus.BESTILT,
                     eksternFakturaNummer = "8272123",
                     fakturaLinje = listOf(
-                                FakturaLinje(
-                                    id = 1,
-                                    periodeFra = LocalDate.of(2024, 1, 1),
-                                    periodeTil = LocalDate.of(2024, 3, 31),
-                                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                                    antall = BigDecimal(3),
-                                    enhetsprisPerManed = BigDecimal(1000),
-                                    belop = BigDecimal(3000),
-                                ),
-                                FakturaLinje(
-                                    id = 2,
-                                    periodeFra = LocalDate.of(2024, 1, 1),
-                                    periodeTil = LocalDate.of(2024, 3, 31),
-                                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                                    antall = BigDecimal(3),
-                                    enhetsprisPerManed = BigDecimal(2000),
-                                    belop = BigDecimal(6000),
-                                ),
-                            )
+                        FakturaLinje(
+                            id = 1,
+                            periodeFra = LocalDate.of(2024, 1, 1),
+                            periodeTil = LocalDate.of(2024, 3, 31),
+                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                            antall = BigDecimal(3),
+                            enhetsprisPerManed = BigDecimal(1000),
+                            belop = BigDecimal(3000),
+                        ),
+                        FakturaLinje(
+                            id = 2,
+                            periodeFra = LocalDate.of(2024, 1, 1),
+                            periodeTil = LocalDate.of(2024, 3, 31),
+                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                            antall = BigDecimal(3),
+                            enhetsprisPerManed = BigDecimal(2000),
+                            belop = BigDecimal(6000),
+                        ),
+                    )
                 ),
                 Faktura(
                     id = 2,
