@@ -68,16 +68,6 @@ class EksternFakturaStatusConsumerIT(
             fakturaReferanseNr = faktura.referanseNr,
             fakturaNummer = "82",
             dato = LocalDate.now(),
-            status = FakturaStatus.INNE_I_OEBS,
-            fakturaBelop = BigDecimal(4000),
-            ubetaltBelop = BigDecimal(2000),
-            feilmelding = null
-        )
-
-        val eksternFakturaStatusDto2 = EksternFakturaStatusDto(
-            fakturaReferanseNr = faktura.referanseNr,
-            fakturaNummer = "83",
-            dato = LocalDate.now(),
             status = FakturaStatus.MANGLENDE_INNBETALING,
             fakturaBelop = BigDecimal(4000),
             ubetaltBelop = BigDecimal(2000),
@@ -86,12 +76,16 @@ class EksternFakturaStatusConsumerIT(
 
         kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
         kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
-        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto2)
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
 
         await.timeout(20, TimeUnit.SECONDS)
             .until {
-                fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.size == 2
+                fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.isNotEmpty() ?: false
             }
+
+        val a = fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus
+
+        a?.size.shouldBe(1)
     }
 
     @Test

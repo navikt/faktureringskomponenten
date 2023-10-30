@@ -40,7 +40,7 @@ class EksternFakturaStatusService(
 
     private fun produserBestillingsmeldingOgOppdater(faktura: Faktura, eksternFakturaStatus: EksternFakturaStatus, eksternFakturaStatusDto: EksternFakturaStatusDto){
         try {
-            if (sjekkDuplikat(faktura, eksternFakturaStatus)) return
+            if (erDuplikat(faktura, eksternFakturaStatus)) return
 
             if(eksternFakturaStatus.status == FakturaStatus.MANGLENDE_INNBETALING) {
                 manglendeFakturabetalingProducer.produserBestillingsmelding(
@@ -71,15 +71,15 @@ class EksternFakturaStatusService(
         }
     }
 
-    private fun sjekkDuplikat(
+    private fun erDuplikat(
         faktura: Faktura,
         eksternFakturaStatus: EksternFakturaStatus
     ): Boolean {
         if (faktura.eksternFakturaStatus.any {
                 it.status == eksternFakturaStatus.status
-                        && it.fakturaBelop == eksternFakturaStatus.fakturaBelop
-                        && it.ubetaltBelop == eksternFakturaStatus.ubetaltBelop
-                        && it.faktura?.id == eksternFakturaStatus.faktura?.id
+                && it.fakturaBelop == eksternFakturaStatus.fakturaBelop
+                && it.ubetaltBelop == eksternFakturaStatus.ubetaltBelop
+                && it.faktura?.id == eksternFakturaStatus.faktura?.id
             }) {
             log.info("EksternFakturaStatus er duplikat, ikke lagre med referanse: {}", faktura.referanseNr)
             return true
