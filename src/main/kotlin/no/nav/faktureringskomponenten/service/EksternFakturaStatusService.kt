@@ -41,7 +41,6 @@ class EksternFakturaStatusService(
 
     private fun produserBestillingsmeldingOgOppdater(faktura: Faktura, eksternFakturaStatus: EksternFakturaStatus, eksternFakturaStatusDto: EksternFakturaStatusDto){
         try {
-            println("test")
             if (erDuplikat(faktura, eksternFakturaStatus)) return
 
             if(eksternFakturaStatus.status == FakturaStatus.MANGLENDE_INNBETALING) {
