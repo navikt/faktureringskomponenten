@@ -83,9 +83,7 @@ class EksternFakturaStatusConsumerIT(
                 fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.isNotEmpty() ?: false
             }
 
-        val a = fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus
-
-        a?.size.shouldBe(1)
+        fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.size.shouldBe(1)
     }
 
     @Test
