@@ -47,17 +47,6 @@ class FakturaserieService(
                 message = "Fant ikke opprinnelig fakturaserie med referanse $opprinneligReferanse"
             )
 
-        val fakturaserieHarStatusBestiltOgUtenFakturaNummer = opprinneligFakturaserie.faktura.any {
-            it.eksternFakturaNummer.isNullOrEmpty() && it.status === FakturaStatus.BESTILT
-        }
-
-        if (fakturaserieHarStatusBestiltOgUtenFakturaNummer) {
-            throw RessursIkkeFunnetException(
-                field = "eksternt_fakturanummer",
-                message = "Det finnes faktura uten fakturanummer i den opprinnelige fakturaserien. Vent til det kommer et fakturanummer"
-            )
-        }
-
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes" }
 
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(

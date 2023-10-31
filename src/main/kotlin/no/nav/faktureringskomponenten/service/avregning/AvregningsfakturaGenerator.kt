@@ -25,7 +25,7 @@ class AvregningsfakturaGenerator {
                 referertFakturaVedAvregning = it.bestilteFaktura,
                 periodeFra = it.periodeFra,
                 periodeTil = it.periodeTil,
-                beskrivelse = "Tidligere fakturanummer: ${it.bestilteFaktura?.eksternFakturaNummer}\nPeriode: ${it.periodeFra.format(dateFormat)} - ${it.periodeTil.format(dateFormat)}\nNytt beløp: ${decimalFormat.format(it.nyttBeløp)} - tidligere beløp: ${decimalFormat.format(it.tidligereBeløp)}",
+                beskrivelse = "Periode: ${it.periodeFra.format(dateFormat)} - ${it.periodeTil.format(dateFormat)}\nNytt beløp: ${decimalFormat.format(it.nyttBeløp)} - tidligere beløp: ${decimalFormat.format(it.tidligereBeløp)}",
                 antall = BigDecimal(1),
                 enhetsprisPerManed = it.nyttBeløp - it.tidligereBeløp,
                 avregningForrigeBeloep = it.tidligereBeløp,
