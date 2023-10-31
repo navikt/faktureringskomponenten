@@ -59,6 +59,34 @@ class EksternFakturaStatusConsumerIT(
     }
 
     @Test
+    fun `les faktura fra kafka kø og lagre dersom ikke duplikat`(){
+        val faktura = lagFakturaMedSerie(
+            Faktura(referanseNr = fakturaReferanseNr)
+        )
+
+        val eksternFakturaStatusDto = EksternFakturaStatusDto(
+            fakturaReferanseNr = faktura.referanseNr,
+            fakturaNummer = "82",
+            dato = LocalDate.now(),
+            status = FakturaStatus.MANGLENDE_INNBETALING,
+            fakturaBelop = BigDecimal(4000),
+            ubetaltBelop = BigDecimal(2000),
+            feilmelding = null
+        )
+
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
+
+        await.timeout(20, TimeUnit.SECONDS)
+            .until {
+                fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.isNotEmpty() ?: false
+            }
+
+        fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.size.shouldBe(1)
+    }
+
+    @Test
     fun `les faktura fra kafka kø og lagre melding fra OEBS i DB, sjekk feilmelding finnes`(){
         val faktura = lagFakturaMedSerie(
             Faktura(referanseNr = fakturaReferanseNr)

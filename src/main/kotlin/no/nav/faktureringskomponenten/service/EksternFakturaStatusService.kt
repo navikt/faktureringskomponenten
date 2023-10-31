@@ -12,6 +12,7 @@ import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFak
 import no.nav.faktureringskomponenten.service.mappers.EksternFakturaStatusMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.math.RoundingMode
 
 private val log = KotlinLogging.logger { }
 
@@ -40,6 +41,8 @@ class EksternFakturaStatusService(
 
     private fun produserBestillingsmeldingOgOppdater(faktura: Faktura, eksternFakturaStatus: EksternFakturaStatus, eksternFakturaStatusDto: EksternFakturaStatusDto){
         try {
+            if (erDuplikat(faktura, eksternFakturaStatus)) return
+
             if(eksternFakturaStatus.status == FakturaStatus.MANGLENDE_INNBETALING) {
                 manglendeFakturabetalingProducer.produserBestillingsmelding(
                     ManglendeFakturabetalingDto(
@@ -67,5 +70,21 @@ class EksternFakturaStatusService(
                 "Kunne ikke produsere melding om faktura mottatt bestilt for fakturaserieReferanse ${faktura.fakturaserie!!.referanse}", e
             )
         }
+    }
+
+    private fun erDuplikat(
+        faktura: Faktura,
+        eksternFakturaStatus: EksternFakturaStatus
+    ): Boolean {
+        if (faktura.eksternFakturaStatus.any {
+                it.status == eksternFakturaStatus.status
+                && it.fakturaBelop == eksternFakturaStatus.fakturaBelop?.setScale(2, RoundingMode.DOWN)
+                && it.ubetaltBelop == eksternFakturaStatus.ubetaltBelop?.setScale(2, RoundingMode.DOWN)
+                && it.faktura?.id == eksternFakturaStatus.faktura?.id
+            }) {
+            log.info("EksternFakturaStatus er duplikat, ikke lagre med referanse: {}", faktura.referanseNr)
+            return true
+        }
+        return false
     }
 }
