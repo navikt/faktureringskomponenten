@@ -29,18 +29,16 @@ class EksternFakturaStatusService(
 
         if (eksternFakturaStatusDto.status == FakturaStatus.FEIL) throw RessursIkkeFunnetException(
             field = "eksternFakturaStatusDto.status",
-            message = "Mottatt feilmelding fra OEBS: ${eksternFakturaStatusDto.feilmelding}"
+            message = "Finner ikke faktura med faktura referanse nr ${eksternFakturaStatusDto.feilmelding}"
         )
 
         val faktura = fakturaRepository.findByReferanseNr(eksternFakturaStatusDto.fakturaReferanseNr)
-
         faktura ?: throw RessursIkkeFunnetException(
             field = "faktura.referanseNr",
             message = "Finner ikke faktura med faktura referanse nr ${eksternFakturaStatusDto.fakturaReferanseNr}"
         )
 
         val eksternFakturaStatus = eksternFakturaStatusMapper.tilEksternFakturaStatus(eksternFakturaStatusDto, faktura)
-
         produserBestillingsmeldingOgOppdater(faktura, eksternFakturaStatus, eksternFakturaStatusDto)
     }
 

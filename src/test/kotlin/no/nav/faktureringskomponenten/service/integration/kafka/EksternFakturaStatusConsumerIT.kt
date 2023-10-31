@@ -6,10 +6,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.awaitility.kotlin.await
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
@@ -56,6 +58,26 @@ class EksternFakturaStatusConsumerIT(
             .until {
                 fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.isNotEmpty() ?: false
             }
+    }
+
+    @Test
+    fun `les fakturastatus fra kafka kø, fakturastatus er feil, kaster feilmelding`(){
+        val faktura = lagFakturaMedSerie(
+            Faktura(referanseNr = fakturaReferanseNr)
+        )
+
+        val eksternFakturaStatusDto = EksternFakturaStatusDto(
+            fakturaReferanseNr = faktura.referanseNr,
+            fakturaNummer = "82",
+            dato = LocalDate.now(),
+            status = FakturaStatus.FEIL,
+            fakturaBelop = BigDecimal(4000),
+            ubetaltBelop = BigDecimal(2000),
+            feilmelding = "Feilmelding fra OEBS"
+        )
+
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
+
     }
 
     @Test
