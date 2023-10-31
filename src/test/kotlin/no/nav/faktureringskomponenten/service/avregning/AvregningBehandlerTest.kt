@@ -25,18 +25,6 @@ class AvregningBehandlerTest {
         avregningsfaktura.fakturaLinje shouldBe listOf(
             FakturaLinje(
                 id = null,
-                referertFakturaVedAvregning = faktura1,
-                periodeFra = LocalDate.of(2024, 1, 1),
-                periodeTil = LocalDate.of(2024, 3, 31),
-                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
-                antall = BigDecimal(1),
-                enhetsprisPerManed = BigDecimal("1000.00"),
-                avregningForrigeBeloep = BigDecimal("9000.00"),
-                avregningNyttBeloep = BigDecimal("10000.00"),
-                belop = BigDecimal("1000.00"),
-            ),
-            FakturaLinje(
-                id = null,
                 referertFakturaVedAvregning = faktura2,
                 periodeFra = LocalDate.of(2024, 4, 1),
                 periodeTil = LocalDate.of(2024, 6, 30),
@@ -46,6 +34,18 @@ class AvregningBehandlerTest {
                 avregningForrigeBeloep = BigDecimal("9000.00"),
                 avregningNyttBeloep = BigDecimal("12000.00"),
                 belop = BigDecimal("3000.00"),
+            ),
+            FakturaLinje(
+                id = null,
+                referertFakturaVedAvregning = faktura1,
+                periodeFra = LocalDate.of(2024, 1, 1),
+                periodeTil = LocalDate.of(2024, 3, 31),
+                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
+                antall = BigDecimal(1),
+                enhetsprisPerManed = BigDecimal("1000.00"),
+                avregningForrigeBeloep = BigDecimal("9000.00"),
+                avregningNyttBeloep = BigDecimal("10000.00"),
+                belop = BigDecimal("1000.00"),
             ),
         )
     }
