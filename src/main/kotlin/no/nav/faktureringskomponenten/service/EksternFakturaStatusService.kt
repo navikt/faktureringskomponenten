@@ -27,6 +27,11 @@ class EksternFakturaStatusService(
     fun lagreEksternFakturaStatusMelding(eksternFakturaStatusDto: EksternFakturaStatusDto) {
         log.info("Mottatt $eksternFakturaStatusDto")
 
+        if (eksternFakturaStatusDto.status == FakturaStatus.FEIL) throw RessursIkkeFunnetException(
+            field = "eksternFakturaStatusDto.status",
+            message = "Mottatt feilmelding fra OEBS: ${eksternFakturaStatusDto.feilmelding}"
+        )
+
         val faktura = fakturaRepository.findByReferanseNr(eksternFakturaStatusDto.fakturaReferanseNr)
 
         faktura ?: throw RessursIkkeFunnetException(
