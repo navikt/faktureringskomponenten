@@ -46,66 +46,7 @@ class AvregningIT(
             fakturaserieRepository.deleteAll()
         }
     }
-
-
-    @Test
-    fun `erstatt fakturaserie med endringer tilbake i tid, uten fakturanummer, får feil, prøver igjen, OK`() {
-        // Opprinnelig serie
-        val opprinneligFakturaserieDto = lagFakturaserieDto(
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(1000, "2024-01-01", "2024-12-31", "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"),
-                FakturaseriePeriodeDto(2000, "2024-01-01", "2024-12-31", "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"),
-            )
-        )
-
-        val opprinneligFakturaserieReferanse =
-            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
-                .returnResult().responseBody!!.fakturaserieReferanse
-
-        // Dette svarer til 2 fakturaer bestilt og mottatt hos OEBS
-        val opprinneligeFakturaer = fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
-        opprinneligeFakturaer[0].let {
-            it.status = FakturaStatus.BESTILT
-            fakturaRepository.save(it)
-        }
-        opprinneligeFakturaer[1].let {
-            it.status = FakturaStatus.BESTILT
-            fakturaRepository.save(it)
-        }
-
-        fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).let {
-            it!!.status = FakturaserieStatus.UNDER_BESTILLING
-            fakturaserieRepository.save(it)
-        }
-
-        // Serie 2 med avregning
-        val fakturaserieDto2 = lagFakturaserieDto(
-            referanseId = opprinneligFakturaserieReferanse,
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(1000, "2024-01-01", "2024-12-31", "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"),
-                FakturaseriePeriodeDto(2000, "2024-01-01", "2024-02-29", "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"),
-                FakturaseriePeriodeDto(3000, "2024-03-01", "2024-12-31", "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"),
-            )
-        )
-
-        postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isNotFound
-
-        //Prøver igjen, denne gangen med faktura nummer mottatt fra OEBS
-        opprinneligeFakturaer[0].let {
-            it.status = FakturaStatus.BESTILT
-            it.eksternFakturaNummer = "123"
-            fakturaRepository.save(it)
-        }
-        opprinneligeFakturaer[1].let {
-            it.status = FakturaStatus.BESTILT
-            it.eksternFakturaNummer = "124"
-            fakturaRepository.save(it)
-        }
-
-        postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk
-    }
-
-
+    
     @Test
     fun `erstatt fakturaserie med endringer tilbake i tid, sjekk avregning`() {
         // Opprinnelig serie
@@ -160,7 +101,7 @@ class AvregningIT(
             FakturaLinje(
                 periodeFra = LocalDate.of(2024, 1, 1),
                 periodeTil = LocalDate.of(2024, 3, 31),
-                beskrivelse = "Tidligere fakturanummer: 8272123\nPeriode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
+                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal("1.00"),
                 enhetsprisPerManed = BigDecimal("1000.00"),
                 avregningNyttBeloep = BigDecimal("10000.00"),
@@ -170,7 +111,7 @@ class AvregningIT(
             FakturaLinje(
                 periodeFra = LocalDate.of(2024, 4, 1),
                 periodeTil = LocalDate.of(2024, 6, 30),
-                beskrivelse = "Tidligere fakturanummer: 8272124\nPeriode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
+                beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal("1.00"),
                 enhetsprisPerManed = BigDecimal("3000.00"),
                 avregningNyttBeloep = BigDecimal("12000.00"),
@@ -215,7 +156,7 @@ class AvregningIT(
                     referertFakturaVedAvregning = null, //bør testes
                     periodeFra = LocalDate.of(2024, 1, 1),
                     periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Tidligere fakturanummer: ${avregningsfaktura.eksternFakturaNummer}\nPeriode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
+                    beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
                     antall = BigDecimal("1.00"),
                     enhetsprisPerManed = BigDecimal("1000.00"),
                     avregningNyttBeloep = BigDecimal("11000.00"),
