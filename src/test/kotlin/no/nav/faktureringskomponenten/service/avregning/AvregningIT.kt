@@ -99,16 +99,6 @@ class AvregningIT(
 
         avregningsfaktura.fakturaLinje shouldBe listOf(
             FakturaLinje(
-                periodeFra = LocalDate.of(2024, 1, 1),
-                periodeTil = LocalDate.of(2024, 3, 31),
-                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
-                antall = BigDecimal("1.00"),
-                enhetsprisPerManed = BigDecimal("1000.00"),
-                avregningNyttBeloep = BigDecimal("10000.00"),
-                avregningForrigeBeloep = BigDecimal("9000.00"),
-                belop = BigDecimal("1000.00"),
-            ),
-            FakturaLinje(
                 periodeFra = LocalDate.of(2024, 4, 1),
                 periodeTil = LocalDate.of(2024, 6, 30),
                 beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
@@ -118,6 +108,16 @@ class AvregningIT(
                 avregningForrigeBeloep = BigDecimal("9000.00"),
                 belop = BigDecimal("3000.00"),
             ),
+            FakturaLinje(
+                periodeFra = LocalDate.of(2024, 1, 1),
+                periodeTil = LocalDate.of(2024, 3, 31),
+                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
+                antall = BigDecimal("1.00"),
+                enhetsprisPerManed = BigDecimal("1000.00"),
+                avregningNyttBeloep = BigDecimal("10000.00"),
+                avregningForrigeBeloep = BigDecimal("9000.00"),
+                belop = BigDecimal("1000.00"),
+            )
         )
 
         // Bestiller avregningsfaktura og 1 faktura fra 2. serie

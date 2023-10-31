@@ -33,6 +33,6 @@ class AvregningsfakturaGenerator {
                 belop = it.nyttBeløp - it.tidligereBeløp,
             )
         }
-        return Faktura(referanseNr = ULID.randomULID(), fakturaLinje = fakturaLinjer)
+        return Faktura(referanseNr = ULID.randomULID(), fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 }
