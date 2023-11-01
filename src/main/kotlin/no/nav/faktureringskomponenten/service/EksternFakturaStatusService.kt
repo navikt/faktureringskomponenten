@@ -5,6 +5,7 @@ import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
+import no.nav.faktureringskomponenten.exceptions.EksternFeilException
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
@@ -27,9 +28,8 @@ class EksternFakturaStatusService(
     fun lagreEksternFakturaStatusMelding(eksternFakturaStatusDto: EksternFakturaStatusDto) {
         log.info("Mottatt $eksternFakturaStatusDto")
 
-        if (eksternFakturaStatusDto.status == FakturaStatus.FEIL) throw RessursIkkeFunnetException(
-            field = "eksternFakturaStatusDto.status",
-            message = "Finner ikke faktura med faktura referanse nr ${eksternFakturaStatusDto.feilmelding}"
+        if (eksternFakturaStatusDto.status == FakturaStatus.FEIL) throw EksternFeilException(
+            "Feil fra OEBS: ${eksternFakturaStatusDto.feilmelding} FakturaReferanseNr: ${eksternFakturaStatusDto.fakturaReferanseNr}"
         )
 
         val faktura = fakturaRepository.findByReferanseNr(eksternFakturaStatusDto.fakturaReferanseNr)
