@@ -11,5 +11,7 @@ class MetrikkNavn {
         val FAKTURA_IKKE_BETALT_STATUS = "${METRIKKER_NAMESPACE}.faktura.ikkebetalt"
 
         val FAKTURASERIE_SYSTEM = "${METRIKKER_NAMESPACE}.fakturaserier.system"
+
+        val EKSTERN_FEIL_FRA_OEBS = "${METRIKKER_NAMESPACE}.ekstern.feil"
     }
 }

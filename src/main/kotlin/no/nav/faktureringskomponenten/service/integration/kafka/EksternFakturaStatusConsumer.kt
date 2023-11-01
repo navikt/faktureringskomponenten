@@ -1,8 +1,10 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
+import io.micrometer.core.instrument.Metrics
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.exceptions.EksternFeilException
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.EksternFakturaStatusService
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -40,6 +42,7 @@ class EksternFakturaStatusConsumer(
                         "offset=${consumerRecord.offset()}\n" +
                         "Error:${e.message}", e
             )
+            Metrics.counter(MetrikkNavn.EKSTERN_FEIL_FRA_OEBS).increment()
             throw EksternFakturaStatusConsumerException(
                 e.message!!,
                 consumerRecord.offset(), e
@@ -50,6 +53,7 @@ class EksternFakturaStatusConsumer(
                         "offset=${consumerRecord.offset()}\n" +
                         "Error:${e.message}", e
             )
+            Metrics.counter(MetrikkNavn.EKSTERN_FEIL_FRA_OEBS).increment()
             throw EksternFakturaStatusConsumerException(
                 "Feil ved lagring av faktura: ${eksternFakturaStatusDto.fakturaReferanseNr}",
                 consumerRecord.offset(), e
