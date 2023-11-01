@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.controller
 
+import no.nav.faktureringskomponenten.domain.models.ErrorTypes
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.EksternFakturaStatusConsumer
@@ -23,6 +24,11 @@ class AdminController(
         val groupBy: Map<Long?, List<FakturaMottakFeil>> =
             fakturaMottakFeilRepository.findAll().groupBy { it.kafkaOffset ?: -1 }
         return ResponseEntity.ok(groupBy.toSortedMap(compareBy { it }))
+    }
+
+    @GetMapping("/faktura/mottak/feil/{errorType}")
+    fun hentFakturaMottakFeil(@PathVariable errorType: ErrorTypes): ResponseEntity<List<FakturaMottakFeil>> {
+        return ResponseEntity.ok(fakturaMottakFeilRepository.findAllByErrorTypeOrderByCreatedAt(errorType))
     }
 
     @PostMapping("/faktura/mottak/consumer/stop")

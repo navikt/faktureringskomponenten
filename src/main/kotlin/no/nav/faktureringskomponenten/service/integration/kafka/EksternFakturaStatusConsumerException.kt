@@ -6,5 +6,6 @@ class EksternFakturaStatusConsumerException(
     message: String,
     val offset: Long,
     val errorType: ErrorTypes,
+    val fakturaReferanseNr: String,
     cause: Throwable?
 ) : RuntimeException(message, cause)

@@ -1,6 +1,9 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import jakarta.persistence.*
+import org.hibernate.annotations.CreationTimestamp
+import java.time.Instant
+import java.time.LocalDate
 
 @Entity
 @Table(name = "faktura_mottak_feil")
@@ -25,6 +28,12 @@ class FakturaMottakFeil(
 
     @Column(name = "kafka_offset")
     val kafkaOffset: Long? = null,
+
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    val createdAt: Instant = Instant.now()
+
 ) {
     override fun toString(): String {
         return "id= $id fakturaReferanseNr= $fakturaReferanseNr\nError= $error"

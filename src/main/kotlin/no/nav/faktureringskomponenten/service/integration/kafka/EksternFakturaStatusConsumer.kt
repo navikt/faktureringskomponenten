@@ -46,7 +46,8 @@ class EksternFakturaStatusConsumer(
             Metrics.counter(MetrikkNavn.EKSTERN_FEIL_FRA_OEBS).increment()
             throw EksternFakturaStatusConsumerException(
                 e.message!!,
-                consumerRecord.offset(), ErrorTypes.MANGLENDE_OPPLYSNINGER, e
+                consumerRecord.offset(), ErrorTypes.MANGLENDE_OPPLYSNINGER,
+                eksternFakturaStatusDto.fakturaReferanseNr, e
             )
         } catch (e: RessursIkkeFunnetException) {
             log.error(
@@ -59,7 +60,7 @@ class EksternFakturaStatusConsumer(
                 "Feil ved lagring av faktura: ${eksternFakturaStatusDto.fakturaReferanseNr}",
                 consumerRecord.offset(),
                 ErrorTypes.FAKTURA_FINNES_IKKE,
-                e
+                eksternFakturaStatusDto.fakturaReferanseNr, e
             )
         }
     }
