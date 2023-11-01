@@ -52,6 +52,7 @@ class ContainerStoppingErrorSavingHandler(
                 error = getErrorStack(thrownException), //thrownException.cause?.message ?: thrownException.message,
                 kafkaMelding = valueDeserializer.json,
                 kafkaOffset = offset,
+                errorType = eksternFakturaStatusConsumerException?.errorType
             )
         )
     }

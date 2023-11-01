@@ -13,6 +13,10 @@ class FakturaMottakFeil(
     @Column(name = "error")
     val error: String? = null,
 
+    @Column(name = "error_type")
+    @Enumerated(EnumType.STRING)
+    val errorType: ErrorTypes? = null,
+
     @Column(name = "kafka_melding")
     val kafkaMelding: String? = null,
 
