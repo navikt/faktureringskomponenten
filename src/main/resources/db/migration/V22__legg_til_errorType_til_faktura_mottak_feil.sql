@@ -1,8 +1,3 @@
-CREATE TYPE error_type AS ENUM (
-    'MANGLENDE_OPPLYSNINGER',
-    'FAKTURA_FINNES_IKKE'
-);
 
-CREATE CAST (character varying as error_type) WITH INOUT AS IMPLICIT;
-
-ALTER TABLE faktura_mottak_feil ADD COLUMN error_type error_type;
+ALTER TABLE faktura_mottak_feil ADD COLUMN error_type VARCHAR(40);
+ALTER TABLE faktura_mottak_feil ALTER COLUMN faktura_referanse_nr TYPE VARCHAR(40);
