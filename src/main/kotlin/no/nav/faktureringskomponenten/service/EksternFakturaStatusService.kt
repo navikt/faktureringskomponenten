@@ -54,7 +54,7 @@ class EksternFakturaStatusService(
                         fakturaserieReferanse = faktura.fakturaserie!!.referanse,
                         betalingstatus = betalingstatus,
                         datoMottatt = eksternFakturaStatus.dato!!,
-                        faktura.datoBestilt
+                        eksternFakturaStatus.fakturaNummer!!
                     )
                 )
                 eksternFakturaStatus.apply { sendt = true }

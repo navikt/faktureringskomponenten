@@ -6,5 +6,5 @@ data class ManglendeFakturabetalingDto(
     var fakturaserieReferanse: String,
     var betalingstatus: Betalingstatus,
     var datoMottatt: LocalDate,
-    var datoFakturaBestilt: LocalDate
+    var fakturanummer: String
 )
