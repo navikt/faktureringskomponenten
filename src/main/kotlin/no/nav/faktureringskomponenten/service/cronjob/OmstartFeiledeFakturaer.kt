@@ -29,10 +29,9 @@ class OmstartFeiledeFakturaer(
                     if (referanseNr != null) {
                         try {
                             fakturaBestillingService.bestillFaktura(referanseNr)
+                            fakturaMottakFeilRepository.delete(faktura)
                         } catch (e: Exception) {
                             log.error("Feil ved bestilling av faktura med referanseNr: $referanseNr", e)
-                        } finally {
-                            fakturaMottakFeilRepository.delete(faktura)
                         }
                     }
                 }
