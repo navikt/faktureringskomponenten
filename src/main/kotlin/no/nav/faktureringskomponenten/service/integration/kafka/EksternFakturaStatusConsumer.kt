@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
+import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tag
 import mu.KotlinLogging
@@ -24,7 +25,7 @@ class EksternFakturaStatusConsumer(
     private val kafkaListenerEndpointRegistry: KafkaListenerEndpointRegistry
 ) : AbstractConsumerSeekAware() {
 
-    var x = 0;
+    val gauge = Metrics.gauge(MetrikkNavn.FEIL_FRA_EKSTERN, 0)
 
     @KafkaListener(
         id = "fakturaMottatt",
@@ -44,9 +45,8 @@ class EksternFakturaStatusConsumer(
                         "offset=${consumerRecord.offset()}\n" +
                         "Error:${e.message}", e
             )
-
-            Metrics.counter(MetrikkNavn.FEIL_FRA_EKSTERN, listOf(Tag.of("Faktura_referanse_nummer", eksternFakturaStatusDto.fakturaReferanseNr), Tag.of("feilmelding", eksternFakturaStatusDto.feilmelding!!))).increment()
-            //Metrics.gauge(MetrikkNavn.FEIL_FRA_EKSTERN, listOf(Tag.of("Faktura_referanse_nummer", eksternFakturaStatusDto.fakturaReferanseNr), Tag.of("feilmelding", eksternFakturaStatusDto.feilmelding!!)), x++)
+            gauge?.inc()
+            //Metrics.counter(MetrikkNavn.FEIL_FRA_EKSTERN, listOf(Tag.of("Faktura_referanse_nummer", eksternFakturaStatusDto.fakturaReferanseNr), Tag.of("feilmelding", eksternFakturaStatusDto.feilmelding!!))).increment()
         } catch (e: Exception) {
             log.error(
                 "Feil ved lagring av faktura ved mottak av kafka melding\n" +
