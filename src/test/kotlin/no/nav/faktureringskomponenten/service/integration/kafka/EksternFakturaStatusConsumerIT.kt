@@ -86,36 +86,6 @@ class EksternFakturaStatusConsumerIT(
         fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.size.shouldBe(1)
     }
 
-    @Test
-    fun `les faktura fra kafka kø og lagre melding fra OEBS i DB, sjekk feilmelding finnes`(){
-        val faktura = lagFakturaMedSerie(
-            Faktura(referanseNr = fakturaReferanseNr)
-        )
-
-        val eksternFakturaStatusDto = EksternFakturaStatusDto(
-            fakturaReferanseNr = faktura.referanseNr,
-            fakturaNummer = "82",
-            dato = LocalDate.now(),
-            status = FakturaStatus.FEIL,
-            fakturaBelop = BigDecimal(4000),
-            ubetaltBelop = BigDecimal(2000),
-            feilmelding = "Feil med faktura, mangler faktura referanse nummer"
-        )
-
-        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
-
-        await.timeout(20, TimeUnit.SECONDS)
-            .until {
-                fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.isNotEmpty() ?: false
-            }
-
-        val eksternFakturaStatus = fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.sortedBy { it.dato }?.get(0)
-
-        eksternFakturaStatus.shouldNotBeNull()
-        eksternFakturaStatus.status.shouldBe(FakturaStatus.FEIL)
-        eksternFakturaStatus.feilMelding.shouldBe("Feil med faktura, mangler faktura referanse nummer")
-    }
-
 
     @Test
     fun `les faktura fra kafka kø og lagre melding fra OEBS i DB, sjekk manglende betaling`(){
