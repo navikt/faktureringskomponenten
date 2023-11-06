@@ -24,6 +24,8 @@ class EksternFakturaStatusConsumer(
     private val kafkaListenerEndpointRegistry: KafkaListenerEndpointRegistry
 ) : AbstractConsumerSeekAware() {
 
+    var x = 0;
+
     @KafkaListener(
         id = "fakturaMottatt",
         clientIdPrefix = "melosys-faktureringskomponenten-fakturaMottatt",
@@ -44,7 +46,7 @@ class EksternFakturaStatusConsumer(
             )
 
             //Metrics.counter(MetrikkNavn.FEIL_FRA_EKSTERN, listOf(Tag.of("Faktura_referanse_nummer", eksternFakturaStatusDto.fakturaReferanseNr), Tag.of("feilmelding", eksternFakturaStatusDto.feilmelding!!))).increment()
-            Metrics.gauge(MetrikkNavn.FEIL_FRA_EKSTERN, listOf(Tag.of("Faktura_referanse_nummer", eksternFakturaStatusDto.fakturaReferanseNr), Tag.of("feilmelding", eksternFakturaStatusDto.feilmelding!!)), 1)
+            Metrics.gauge(MetrikkNavn.FEIL_FRA_EKSTERN, listOf(Tag.of("Faktura_referanse_nummer", eksternFakturaStatusDto.fakturaReferanseNr), Tag.of("feilmelding", eksternFakturaStatusDto.feilmelding!!)), x++)
         } catch (e: Exception) {
             log.error(
                 "Feil ved lagring av faktura ved mottak av kafka melding\n" +
