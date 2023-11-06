@@ -18,7 +18,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.ActiveProfiles
-import org.springframework.transaction.annotation.Transactional
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
@@ -32,15 +32,16 @@ class EksternFakturaStatusConsumerIT(
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired @Qualifier("fakturaMottatt") private var kafkaTemplate: KafkaTemplate<String, EksternFakturaStatusDto>,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
+    val fakturaReferanseNr = ULID.randomULID()
 
     @Test
     fun `les faktura fra kafka kø og lagre melding fra OEBS i DB`(){
         val faktura = lagFakturaMedSerie(
-            Faktura()
+            Faktura(referanseNr = fakturaReferanseNr)
         )
 
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
-            fakturaReferanseNr = faktura.id.toString(),
+            fakturaReferanseNr = faktura.referanseNr,
             fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaStatus.INNE_I_OEBS,
@@ -58,13 +59,41 @@ class EksternFakturaStatusConsumerIT(
     }
 
     @Test
-    fun `les faktura fra kafka kø og lagre melding fra OEBS i DB, sjekk feilmelding finnes`(){
+    fun `les faktura fra kafka kø og lagre dersom ikke duplikat`(){
         val faktura = lagFakturaMedSerie(
-            Faktura()
+            Faktura(referanseNr = fakturaReferanseNr)
         )
 
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
-            fakturaReferanseNr = faktura.id.toString(),
+            fakturaReferanseNr = faktura.referanseNr,
+            fakturaNummer = "82",
+            dato = LocalDate.now(),
+            status = FakturaStatus.MANGLENDE_INNBETALING,
+            fakturaBelop = BigDecimal(4000),
+            ubetaltBelop = BigDecimal(2000),
+            feilmelding = null
+        )
+
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
+
+        await.timeout(20, TimeUnit.SECONDS)
+            .until {
+                fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.isNotEmpty() ?: false
+            }
+
+        fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.size.shouldBe(1)
+    }
+
+    @Test
+    fun `les faktura fra kafka kø og lagre melding fra OEBS i DB, sjekk feilmelding finnes`(){
+        val faktura = lagFakturaMedSerie(
+            Faktura(referanseNr = fakturaReferanseNr)
+        )
+
+        val eksternFakturaStatusDto = EksternFakturaStatusDto(
+            fakturaReferanseNr = faktura.referanseNr,
             fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaStatus.FEIL,
@@ -94,7 +123,7 @@ class EksternFakturaStatusConsumerIT(
             Faktura()
         )
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
-            fakturaReferanseNr = faktura.id.toString(),
+            fakturaReferanseNr = faktura.referanseNr,
             fakturaNummer = "82",
             dato = LocalDate.now(),
             status = FakturaStatus.MANGLENDE_INNBETALING,

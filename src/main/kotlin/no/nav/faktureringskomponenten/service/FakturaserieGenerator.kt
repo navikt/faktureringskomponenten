@@ -41,7 +41,6 @@ class FakturaserieGenerator(
             return Fullmektig(
                 fodselsnummer = fullmektigDto.fodselsnummer,
                 organisasjonsnummer = fullmektigDto.organisasjonsnummer,
-                kontaktperson = fullmektigDto.kontaktperson
             )
         }
         return null

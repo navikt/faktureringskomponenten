@@ -2,8 +2,9 @@ package no.nav.faktureringskomponenten.controller.mapper
 
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.service.FakturaserieDto
-import java.util.*
+import ulid.ULID
 
 val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
@@ -19,12 +20,11 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
         intervall = this.intervall,
         opprettetTidspunkt = this.opprettetTidspunkt,
         faktura = this.faktura.map { it.tilResponseDto },
-        erstattetMed = this.erstattetMed?.id
     )
 
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
     get() = FakturaserieDto(
-        fakturaserieReferanse = UUID.randomUUID().toString(),
+        fakturaserieReferanse = ULID.randomULID(),
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,
@@ -48,31 +48,28 @@ private val Fullmektig.tilDto: FullmektigDto
     get() = FullmektigDto(
         fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,
-        kontaktperson = this.kontaktperson
     )
 
 private val FullmektigDto.tilFullmektig: Fullmektig
     get() = Fullmektig(
         fodselsnummer = this.fodselsnummer,
         organisasjonsnummer = this.organisasjonsnummer,
-        kontaktperson = this.kontaktperson
     )
 
 private val Faktura.tilResponseDto: FakturaResponseDto
     get() = FakturaResponseDto(
-        id = this.id,
         datoBestilt = this.datoBestilt,
         sistOppdatert = this.sistOppdatert,
         status = this.status,
         fakturaLinje = this.fakturaLinje.map { it.tilResponseDto },
         periodeFra = this.getPeriodeFra(),
         periodeTil = this.getPeriodeTil(),
-        eksternFakturaStatus = this.eksternFakturaStatus.map { it.tilResponseDto }
+        eksternFakturaStatus = this.eksternFakturaStatus.map { it.tilResponseDto },
+        eksternFakturaNummer = this.eksternFakturaNummer
     )
 
 private val EksternFakturaStatus.tilResponseDto: FakturaTilbakemeldingResponseDto
     get() = FakturaTilbakemeldingResponseDto(
-        fakturaNummer = this.fakturaNummer,
         dato = this.dato,
         status = this.status,
         fakturaBelop = this.fakturaBelop,
@@ -91,3 +88,7 @@ private val FakturaLinje.tilResponseDto: FakturaLinjeResponseDto
         enhetsprisPerManed = this.enhetsprisPerManed
     )
 
+val FakturamottakerRequestDto.tilFakturamottakerDto: FakturamottakerDto
+    get() = FakturamottakerDto(
+        fullmektig = this.fullmektig?.tilFullmektig,
+    )

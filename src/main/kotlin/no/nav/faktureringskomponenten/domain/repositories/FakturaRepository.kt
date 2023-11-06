@@ -10,8 +10,8 @@ interface FakturaRepository : JpaRepository<Faktura, String> {
     @Query("SELECT f FROM Faktura f WHERE f.datoBestilt <= ?1 AND f.status = 'OPPRETTET'")
     fun findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestiltDato: LocalDate): List<Faktura>
 
-    fun findById(id: Long): Faktura?
-
     @EntityGraph(attributePaths = ["fakturaLinje"])
     fun findByFakturaserieReferanse(fakturaserieRef: String): List<Faktura>
+
+    fun findByReferanseNr(referanseNr: String): Faktura?
 }

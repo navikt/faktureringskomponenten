@@ -1,6 +1,8 @@
 package no.nav.faktureringskomponenten.service.avregning
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.matchers.collections.shouldBeIn
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
@@ -44,7 +46,7 @@ class AvregningIT(
             fakturaserieRepository.deleteAll()
         }
     }
-
+    
     @Test
     fun `erstatt fakturaserie med endringer tilbake i tid, sjekk avregning`() {
         // Opprinnelig serie
@@ -62,13 +64,16 @@ class AvregningIT(
         // Dette svarer til 2 fakturaer bestilt og mottatt hos OEBS
         val opprinneligeFakturaer = fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
         opprinneligeFakturaer[0].let {
-            it.status = FakturaStatus.BESTILLT
+            it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "8272123"
             fakturaRepository.save(it)
         }
         opprinneligeFakturaer[1].let {
-            it.status = FakturaStatus.BESTILLT
+            it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "8272124"
             fakturaRepository.save(it)
         }
+
         fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).let {
             it!!.status = FakturaserieStatus.UNDER_BESTILLING
             fakturaserieRepository.save(it)
@@ -87,39 +92,43 @@ class AvregningIT(
         val fakturaserieReferanse2 = postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
             .returnResult().responseBody!!.fakturaserieReferanse
 
+
         // Tester første avregning
         val fakturaer2 = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse2)
         val avregningsfaktura = fakturaer2.single { it.erAvregningsfaktura() }
+
         avregningsfaktura.fakturaLinje shouldBe listOf(
-            FakturaLinje(
-                periodeFra = LocalDate.of(2024, 1, 1),
-                periodeTil = LocalDate.of(2024, 3, 31),
-                beskrivelse = "nytt beløp: 10000,00 - tidligere beløp: 9000,00",
-                antall = BigDecimal("1.00"),
-                enhetsprisPerManed = BigDecimal("1000.00"),
-                avregningNyttBeloep = BigDecimal("10000.00"),
-                avregningForrigeBeloep = BigDecimal("9000.00"),
-                belop = BigDecimal("1000.00"),
-            ),
             FakturaLinje(
                 periodeFra = LocalDate.of(2024, 4, 1),
                 periodeTil = LocalDate.of(2024, 6, 30),
-                beskrivelse = "nytt beløp: 12000,00 - tidligere beløp: 9000,00",
+                beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
                 antall = BigDecimal("1.00"),
                 enhetsprisPerManed = BigDecimal("3000.00"),
                 avregningNyttBeloep = BigDecimal("12000.00"),
                 avregningForrigeBeloep = BigDecimal("9000.00"),
                 belop = BigDecimal("3000.00"),
             ),
+            FakturaLinje(
+                periodeFra = LocalDate.of(2024, 1, 1),
+                periodeTil = LocalDate.of(2024, 3, 31),
+                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
+                antall = BigDecimal("1.00"),
+                enhetsprisPerManed = BigDecimal("1000.00"),
+                avregningNyttBeloep = BigDecimal("10000.00"),
+                avregningForrigeBeloep = BigDecimal("9000.00"),
+                belop = BigDecimal("1000.00"),
+            )
         )
 
         // Bestiller avregningsfaktura og 1 faktura fra 2. serie
         avregningsfaktura.let {
-            it.status = FakturaStatus.BESTILLT
+            it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "1234"
             fakturaRepository.save(it)
         }
         fakturaer2[0].let {
-            it.status = FakturaStatus.BESTILLT
+            it.status = FakturaStatus.BESTILT
+            it.eksternFakturaNummer = "12345"
             fakturaRepository.save(it)
         }
         fakturaserieRepository.findByReferanse(fakturaserieReferanse2).let {
@@ -147,7 +156,7 @@ class AvregningIT(
                     referertFakturaVedAvregning = null, //bør testes
                     periodeFra = LocalDate.of(2024, 1, 1),
                     periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "nytt beløp: 11000,00 - tidligere beløp: 10000,00",
+                    beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
                     antall = BigDecimal("1.00"),
                     enhetsprisPerManed = BigDecimal("1000.00"),
                     avregningNyttBeloep = BigDecimal("11000.00"),

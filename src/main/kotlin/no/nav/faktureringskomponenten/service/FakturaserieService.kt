@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
@@ -29,7 +30,7 @@ class FakturaserieService(
 
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto, forrigeReferanse: String? = null): String {
-        if(!forrigeReferanse.isNullOrEmpty()){
+        if (!forrigeReferanse.isNullOrEmpty()) {
             return erstattFakturaserie(forrigeReferanse, fakturaserieDto)
         }
 
@@ -45,12 +46,16 @@ class FakturaserieService(
                 field = "referanse",
                 message = "Fant ikke opprinnelig fakturaserie med referanse $opprinneligReferanse"
             )
-        check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes"}
+
+        check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes" }
 
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
             fakturaserieDto,
             finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
-            avregningBehandler.lagAvregningsfaktura(fakturaserieDto.perioder, opprinneligFakturaserie.bestilteFakturaer())
+            avregningBehandler.lagAvregningsfaktura(
+                fakturaserieDto.perioder,
+                opprinneligFakturaserie.bestilteFakturaer()
+            )
         )
         fakturaserieRepository.save(nyFakturaserie)
 
@@ -69,4 +74,22 @@ class FakturaserieService(
     fun finnesReferanse(referanse: String): Boolean {
         return fakturaserieRepository.findByReferanse(referanse) != null
     }
+
+    @Transactional
+    fun endreFakturaMottaker(fakturaserieReferanse: String, fakturamottakerDto: FakturamottakerDto) {
+        val fakturaserie = hentFakturaserie(fakturaserieReferanse)
+        val gjenståendeFakturaer = fakturaserie.planlagteFakturaer()
+
+        if (!mottakerErEndret(fakturaserie, fakturamottakerDto) || gjenståendeFakturaer.isEmpty()) {
+            log.info("Fakturamottaker ikke endret på fakturaserie: $fakturaserieReferanse")
+            return
+        }
+
+        fakturaserie.fullmektig = fakturamottakerDto.fullmektig
+        log.info("Fakturamottaker endret på fakturaserie: $fakturaserieReferanse")
+        fakturaserieRepository.save(fakturaserie)
+    }
+
+    private fun mottakerErEndret(fakturaserie: Fakturaserie, fakturamottakerDto: FakturamottakerDto) =
+        fakturamottakerDto.fullmektig != fakturaserie.fullmektig
 }

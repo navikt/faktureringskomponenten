@@ -42,8 +42,7 @@ class FakturaBestiltDtoMapperTest {
             Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
         )
 
-        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe
-                "Periode: 01.01.2024 - 31.03.2024, ${linje.beskrivelse}"
+        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe linje.beskrivelse
     }
 
     @Test
@@ -55,7 +54,7 @@ class FakturaBestiltDtoMapperTest {
             Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
         )
 
-        fakturaBestiltDto.beskrivelse shouldBe "Faktura for endring av tidligere fakturert trygdeavgift"
+        fakturaBestiltDto.beskrivelse shouldBe "Faktura for avregning mot tidligere fakturert trygdeavgift"
     }
 
     @Test
@@ -68,8 +67,8 @@ class FakturaBestiltDtoMapperTest {
             Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
         )
 
-        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe         // FIXME skal være fakturanummer her
-                "Avregning mot fakturanummer ${linje.referertFakturaVedAvregning!!.id}, Periode: 01.01.2024 - 31.03.2024, ${linje.beskrivelse}"
+        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe
+                "Avregning mot fakturanummer ${linje.referertFakturaVedAvregning!!.id}, ${linje.beskrivelse}"
     }
 
     private fun lagFakturaLinje(erAvregning: Boolean): FakturaLinje = FakturaLinje(

@@ -21,7 +21,7 @@ class FakturaBestillCronjob(
         log.info("Kjører cronjob for å bestille ${alleFaktura.size} fakturaer")
         alleFaktura.forEach { faktura ->
             faktura.let {
-                faktura.id?.let { fakturaId -> fakturaBestillingService.bestillFaktura(fakturaId) }
+                faktura.referanseNr.let { referanseNr -> fakturaBestillingService.bestillFaktura(referanseNr) }
             }
         }
     }

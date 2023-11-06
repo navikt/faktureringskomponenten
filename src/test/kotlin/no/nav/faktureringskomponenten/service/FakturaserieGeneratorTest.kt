@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 class FakturaserieGeneratorTest {
@@ -49,13 +50,13 @@ class FakturaserieGeneratorTest {
                         fra = "2022-11-01", til = "2022-12-01",
                         listOf(
                             Linje(
-                                "2022-11-01", "2022-11-30", "25470.00",
-                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                            ),
-                            Linje(
                                 "2022-12-01", "2022-12-01", "764.10",
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
+                            Linje(
+                                "2022-11-01", "2022-11-30", "25470.00",
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                            )
                         )
                     )
                 )
@@ -87,7 +88,7 @@ class FakturaserieGeneratorTest {
                         fra = "2022-06-01", til = "2022-12-31",
                         listOf(
                             Linje(
-                                "2022-06-01", "2022-06-30", "10000.00",
+                                "2022-10-01", "2022-12-31", "30000.00",
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
@@ -95,7 +96,7 @@ class FakturaserieGeneratorTest {
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2022-10-01", "2022-12-31", "30000.00",
+                                "2022-06-01", "2022-06-30", "10000.00",
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                         )
@@ -104,13 +105,13 @@ class FakturaserieGeneratorTest {
                         fra = "2023-01-01", til = "2023-03-31",
                         listOf(
                             Linje(
-                                "2023-01-01", "2023-01-24", "7700.00",
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                            ),
-                            Linje(
                                 "2023-01-25", "2023-03-31", "22300.00",
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
+                            Linje(
+                                "2023-01-01", "2023-01-24", "7700.00",
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            )
                         )
                     ),
                     FakturaMedLinjer(
@@ -146,11 +147,11 @@ class FakturaserieGeneratorTest {
                         fra = "2023-01-01", til = "2023-02-01",
                         listOf(
                             Linje(
-                                "2023-01-01", til = "2023-01-31", "10000.00",
+                                "2023-02-01", "2023-02-01", "400.00",
                                 "periode - 1"
                             ),
                             Linje(
-                                "2023-02-01", "2023-02-01", "400.00",
+                                "2023-01-01", til = "2023-01-31", "10000.00",
                                 "periode - 1"
                             ),
                         )
@@ -178,13 +179,13 @@ class FakturaserieGeneratorTest {
                         fra = "2022-11-01", til = "2022-12-31",
                         listOf(
                             Linje(
-                                "2022-11-01", "2022-11-30", "25470.00",
-                                "periode 1"
-                            ),
-                            Linje(
                                 "2022-12-01", "2022-12-31", "25470.00",
                                 "periode 1"
                             ),
+                            Linje(
+                                "2022-11-01", "2022-11-30", "25470.00",
+                                "periode 1"
+                            )
                         )
                     )
                 )
@@ -210,15 +211,14 @@ class FakturaserieGeneratorTest {
                         fra = "2022-03-01", til = "2022-04-30",
                         listOf(
                             Linje(
-                                "2022-03-01", "2022-03-31", "25470.00",
-                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                            ),
-                            Linje(
                                 "2022-04-01", "2022-04-30", "25470.00",
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
-
+                            Linje(
+                                "2022-03-01", "2022-03-31", "25470.00",
+                                "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             )
+                        )
                     ),
                     FakturaMedLinjer(
                         fra = "2022-05-01", til = "2022-05-01",
@@ -267,13 +267,13 @@ class FakturaserieGeneratorTest {
                         fra = "2023-01-01", til = "2023-01-31",
                         listOf(
                             Linje(
-                                "2023-01-01", "2023-01-22", "18083.70",
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                            ),
-                            Linje(
                                 "2023-01-23", "2023-01-31", "7386.30",
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
+                            Linje(
+                                "2023-01-01", "2023-01-22", "18083.70",
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            )
                         )
                     ),
                     FakturaMedLinjer(
@@ -314,23 +314,7 @@ class FakturaserieGeneratorTest {
                         fra = "2022-06-01", til = "2022-12-31",
                         listOf(
                             Linje(
-                                "2022-06-01", "2022-06-30", "10000.00",
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                            ),
-                            Linje(
-                                "2022-07-01", "2022-07-31", "10000.00",
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                            ),
-                            Linje(
-                                "2022-08-01", "2022-08-31", "10000.00",
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                            ),
-                            Linje(
-                                "2022-09-01", "2022-09-30", "10000.00",
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                            ),
-                            Linje(
-                                "2022-10-01", "2022-10-31", "10000.00",
+                                "2022-12-01", "2022-12-31", "10000.00",
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
@@ -338,22 +322,38 @@ class FakturaserieGeneratorTest {
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2022-12-01", "2022-12-31", "10000.00",
+                                "2022-10-01", "2022-10-31", "10000.00",
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
+                            Linje(
+                                "2022-09-01", "2022-09-30", "10000.00",
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2022-08-01", "2022-08-31", "10000.00",
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2022-07-01", "2022-07-31", "10000.00",
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            ),
+                            Linje(
+                                "2022-06-01", "2022-06-30", "10000.00",
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            )
                         )
                     ),
                     FakturaMedLinjer(
                         fra = "2023-01-01", til = "2023-01-31",
                         listOf(
                             Linje(
-                                "2023-01-01", "2023-01-24", "7700.00",
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                            ),
-                            Linje(
                                 "2023-01-25", "2023-01-31", "2300.00",
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
+                            Linje(
+                                "2023-01-01", "2023-01-24", "7700.00",
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            )
                         )
                     ),
                     FakturaMedLinjer(
@@ -430,7 +430,7 @@ class FakturaserieGeneratorTest {
                         fra = "2022-06-01", til = "2022-12-31",
                         listOf(
                             Linje(
-                                "2022-06-01", "2022-06-30", "10000.00",
+                                "2022-10-01", "2022-12-31", "30000.00",
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
@@ -438,22 +438,22 @@ class FakturaserieGeneratorTest {
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
                             ),
                             Linje(
-                                "2022-10-01", "2022-12-31", "30000.00",
+                                "2022-06-01", "2022-06-30", "10000.00",
                                 "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                            ),
+                            )
                         )
                     ),
                     FakturaMedLinjer(
                         fra = "2023-01-01", til = "2023-03-31",
                         listOf(
                             Linje(
-                                "2023-01-01", "2023-01-24", "7700.00",
-                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                            ),
-                            Linje(
                                 "2023-01-25", "2023-03-31", "22300.00",
                                 "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                             ),
+                            Linje(
+                                "2023-01-01", "2023-01-24", "7700.00",
+                                "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
+                            )
                         )
                     ),
                     FakturaMedLinjer(
@@ -483,7 +483,6 @@ class FakturaserieGeneratorTest {
                 fullmektig = Fullmektig(
                     fodselsnummer = null,
                     organisasjonsnummer = "999999999",
-                    kontaktperson = "Test person"
                 ),
                 referanseBruker = "2023-01-19T11:39:48.680364Z", // Hvorfor får vi dagens dato her?
                 referanseNAV = "Medlemskap og avgift",
@@ -557,8 +556,12 @@ class FakturaserieGeneratorTest {
         val beskrivelse: String,
     ) {
 
+        companion object {
+            val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        }
+
         constructor(fra: String, til: String, beløp: String, beskrivelse: String)
-                : this(LocalDate.parse(fra), LocalDate.parse(til), BigDecimal(beløp), beskrivelse)
+                : this(LocalDate.parse(fra), LocalDate.parse(til), BigDecimal(beløp), "Periode: ${LocalDate.parse(fra).format(FORMATTER)} - ${LocalDate.parse(til).format(FORMATTER)}\n$beskrivelse")
 
         override fun toString() = "\n    fra=$fra, til:$til, beløp:$beløp, $beskrivelse"
         fun toTestCode(): String = "           Linje(\n" +

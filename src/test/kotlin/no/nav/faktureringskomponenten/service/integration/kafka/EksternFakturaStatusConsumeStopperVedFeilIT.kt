@@ -11,7 +11,6 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.awaitility.kotlin.await
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -19,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.ActiveProfiles
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.concurrent.TimeUnit
@@ -39,12 +39,12 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
     fun `les faktura fra kafka kø skal stoppe ved feil og ikke avansere offset`() {
         val (_, faktura) = (1..2).map {
             lagFakturaMedSerie(
-                faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILLT),
+                faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT, referanseNr = ULID.randomULID()),
                 referanse = "MEL-$it-$it"
             ).apply {
                 kafkaTemplate.send(
                     kafkaTopic, EksternFakturaStatusDto(
-                        fakturaReferanseNr = "123",
+                        fakturaReferanseNr = "${ULID.randomULID()} 123",
                         fakturaNummer = "82",
                         dato = LocalDate.now(),
                         status = FakturaStatus.INNE_I_OEBS,
@@ -65,17 +65,17 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
         fakturaMottakFeilRepository.findAll()
             .shouldHaveSize(1)
             .first().apply {
-                error.shouldStartWith("Finner ikke faktura med faktura id")
+                error.shouldStartWith("Finner ikke faktura med faktura referanse nr")
                 kafkaOffset.shouldBe(0)
             }
 
-        val listenerContainer = eksternFakturaStatusConsumer.EksternFakturaStatusListenerContainer()
+        val listenerContainer = eksternFakturaStatusConsumer.eksternFakturaStatusListenerContainer()
         await.timeout(20, TimeUnit.SECONDS).until { !listenerContainer.isRunning }
 
         await.timeout(5, TimeUnit.SECONDS).until {
             if (!listenerContainer.isRunning) {
                 // fungerer ikke å starte på utsiden av await
-                eksternFakturaStatusConsumer.EksternFakturaStatusListenerContainer().start()
+                eksternFakturaStatusConsumer.eksternFakturaStatusListenerContainer().start()
             }
             listenerContainer.isRunning
         }
@@ -84,6 +84,6 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
             fakturaMottakFeilRepository.findAll().size == 2
         }
         // FakturaStatus blir BETALT om neste kafka melding blir prosessert
-        fakturaRepository.findById(faktura.id!!)?.status.shouldBe(FakturaStatus.BESTILLT)
+        fakturaRepository.findByReferanseNr(faktura.referanseNr)?.status.shouldBe(FakturaStatus.BESTILT)
     }
 }

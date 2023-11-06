@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    val kotlinVersion = "1.6.21"
+    val kotlinVersion = "1.9.10"
 
     id("org.springframework.boot") version "3.1.2"
     id("io.spring.dependency-management") version "1.1.0"
@@ -14,6 +14,7 @@ plugins {
 group = "no.nav"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_17
+
 
 repositories {
     mavenCentral()
@@ -42,7 +43,7 @@ object dependencyVersions {
     const val micrometerVersion = "1.10.5"
     const val threeTenExtraVersion = "1.7.2"
     const val unleashVersion = "8.3.0"
-
+    const val ULIDVersion = "1.3.0"
 }
 
 dependencies {
@@ -68,6 +69,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.threeten:threeten-extra:${dependencyVersions.threeTenExtraVersion}")
+    implementation("com.aallam.ulid:ulid-kotlin:${dependencyVersions.ULIDVersion}")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.junit.jupiter:junit-jupiter")

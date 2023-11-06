@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.test.context.ActiveProfiles
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -40,7 +41,7 @@ class FakturaBestillingServiceIT(
     @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
 ) : PostgresTestContainerBase() {
 
-    private var fakturaId: Long? = null
+    private var fakturaReferanseNr: String = ""
 
     private object TestQueue {
         val fakturaBestiltMeldinger = mutableListOf<FakturaBestiltDto>()
@@ -72,16 +73,17 @@ class FakturaBestillingServiceIT(
 
     @BeforeEach
     fun before() {
-        fakturaId = lagFakturaSerie()
+        fakturaReferanseNr = lagFakturaSerie()
     }
 
-    private fun lagFakturaSerie(): Long =
+    private fun lagFakturaSerie(): String =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
                 referanse = "MEL-1-1",
                 fodselsnummer = "01234567890",
                 faktura = mutableListOf(
                     Faktura(
+                        referanseNr = ULID.randomULID(),
                         datoBestilt = LocalDate.now().plusDays(-1),
                         fakturaLinje = mutableListOf(
                             FakturaLinje(
@@ -95,15 +97,15 @@ class FakturaBestillingServiceIT(
             ).apply { faktura.forEach { it.fakturaserie = this } }
         ).faktura.first().apply {
             addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
-        }.id!!
+        }.referanseNr
 
     @Test
     fun `test at melding blir sent på kø`() {
         fakturaBestillCronjob.bestillFaktura()
 
         TestQueue.fakturaBestiltMeldinger.shouldHaveSize(1)
-        fakturaRepository.findById(fakturaId!!)?.status
-            .shouldBe(FakturaStatus.BESTILLT)
+        fakturaRepository.findByReferanseNr(fakturaReferanseNr)?.status
+            .shouldBe(FakturaStatus.BESTILT)
     }
 
     @Test
@@ -114,7 +116,7 @@ class FakturaBestillingServiceIT(
             fakturaBestillCronjob.bestillFaktura()
         }.message.shouldBe("Klarte ikke å legge melding på kø")
 
-        fakturaRepository.findById(fakturaId!!)!!.status
+        fakturaRepository.findByReferanseNr(fakturaReferanseNr)!!.status
             .shouldBe(FakturaStatus.OPPRETTET)
         TestQueue.fakturaBestiltMeldinger.shouldBeEmpty()
     }

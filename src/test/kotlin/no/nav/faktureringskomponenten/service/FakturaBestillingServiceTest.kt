@@ -1,10 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.slot
-import io.mockk.verifySequence
+import io.mockk.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
@@ -12,6 +9,7 @@ import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltPr
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import org.junit.jupiter.api.Test
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.temporal.IsoFields
@@ -26,10 +24,11 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Bestiller bestillingsklare faktura og lagrer i databasen`() {
-        val faktura = lagFaktura(1)
+        val fakturaReferanseNr = ULID.randomULID()
+        val faktura = lagFaktura(fakturaReferanseNr)
 
         every {
-            fakturaRepository.findById(1)
+            fakturaRepository.findByReferanseNr(fakturaReferanseNr)
         } returns faktura
 
         every {
@@ -44,12 +43,10 @@ class FakturaBestillingServiceTest {
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
         } returns faktura.fakturaserie!!
 
-
-        fakturaBestillingService.bestillFaktura(1)
-
+        fakturaBestillingService.bestillFaktura(fakturaReferanseNr)
 
         verifySequence {
-            fakturaRepository.findById(1)
+            fakturaRepository.findByReferanseNr(fakturaReferanseNr)
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
             fakturaserieRepository.save(faktura.fakturaserie!!)
             fakturaRepository.save(faktura)
@@ -59,12 +56,13 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Bestiller bestillingsklare faktura med riktig data`() {
-        val faktura = lagFaktura(1)
+        val fakturaReferanseNr = ULID.randomULID()
+        val faktura = lagFaktura(fakturaReferanseNr)
         val fakturaBestiltDtoCapturingSlot = slot<FakturaBestiltDto>()
         val nå = LocalDate.now()
 
         every {
-            fakturaRepository.findById(1)
+            fakturaRepository.findByReferanseNr(fakturaReferanseNr)
         } returns faktura
 
         every {
@@ -88,7 +86,7 @@ class FakturaBestillingServiceTest {
                     fullmektigOrgnr = "",
                     fullmektigFnr = "12129012345",
                     fakturaserieReferanse = "MEL-1",
-                    fakturaReferanseNr = "1",
+                    fakturaReferanseNr = fakturaReferanseNr,
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
@@ -97,7 +95,7 @@ class FakturaBestillingServiceTest {
                     faktureringsDato = LocalDate.of(2022, 5, 1),
                     fakturaLinjer = listOf(
                         FakturaBestiltLinjeDto(
-                            beskrivelse = "Periode: 01.01.2023 - 01.05.2023, En beskrivelse",
+                            beskrivelse = "En beskrivelse",
                             antall = BigDecimal(1),
                             enhetspris = BigDecimal(18000),
                             belop = BigDecimal(90000)
@@ -107,12 +105,13 @@ class FakturaBestillingServiceTest {
             )
         }
 
-        fakturaBestillingService.bestillFaktura(1)
+        fakturaBestillingService.bestillFaktura(fakturaReferanseNr)
     }
 
-    private fun lagFaktura(id: Long? = 1): Faktura {
+    private fun lagFaktura(fakturaReferanseNr: String? = ULID.randomULID()): Faktura {
         return Faktura(
-            id,
+            id = null,
+            referanseNr = fakturaReferanseNr!!,
             LocalDate.of(2022, 5, 1),
             LocalDate.of(2022, 5, 1),
             FakturaStatus.OPPRETTET,
@@ -142,7 +141,6 @@ class FakturaBestillingServiceTest {
                     faktura = mutableListOf(),
                     fullmektig = Fullmektig(
                         fodselsnummer = "12129012345",
-                        kontaktperson = "Test",
                         organisasjonsnummer = ""
                     ),
                     fodselsnummer = "12345678911"

@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
+import ulid.ULID
 
 @EmbeddedKafka(
     count = 1, controlledShutdown = true, partitions = 1,
@@ -23,7 +23,7 @@ open class EmbeddedKafkaBase(
 ) : PostgresTestContainerBase() {
 
     @Transactional
-    protected open fun lagFakturaMedSerie(faktura: Faktura, referanse: String = UUID.randomUUID().toString()): Faktura =
+    protected open fun lagFakturaMedSerie(faktura: Faktura, referanse: String = ULID.randomULID()): Faktura =
         fakturaserieRepository.saveAndFlush(
             Fakturaserie(
                 referanse = referanse,

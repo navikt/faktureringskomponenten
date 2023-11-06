@@ -2,18 +2,21 @@ package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
 import io.kotest.inspectors.forExactly
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.Called
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import org.junit.jupiter.api.Test
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.*
 
 private const val OPPRINNELIG_REF = "123"
 private const val NY_REF = "456"
@@ -43,7 +46,7 @@ class FakturaserieServiceTest {
 
         val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
 
-        opprinneligFakturaserie.status shouldBe  FakturaserieStatus.ERSTATTET
+        opprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
         opprinneligFakturaserie.erstattetMed shouldNotBe null
         opprinneligFakturaserie.erstattetMed!!.referanse shouldBe nyFakturaserie.referanse
 
@@ -78,6 +81,51 @@ class FakturaserieServiceTest {
         }
     }
 
+    @Test
+    fun `Endrer faktura-mottaker, finnes ikke gjenstående fakturaer, gjør ingenting`() {
+        every { fakturaserieRepository.findByReferanse(OPPRINNELIG_REF) } returns Fakturaserie(
+            faktura = mutableListOf(Faktura().apply { status = FakturaStatus.BESTILT })
+        )
+
+
+        fakturaserieService.endreFakturaMottaker(OPPRINNELIG_REF, FakturamottakerDto(Fullmektig()))
+
+
+        verify { fakturaserieRepository.save(any()) wasNot Called }
+    }
+
+    @Test
+    fun `Endrer faktura-mottaker, mottaker har ikke endret seg, gjør ingenting`() {
+        every { fakturaserieRepository.findByReferanse(OPPRINNELIG_REF) } returns Fakturaserie(
+            faktura = mutableListOf(Faktura().apply { status = FakturaStatus.OPPRETTET }),
+            fullmektig = Fullmektig("123", null)
+        )
+
+
+        fakturaserieService.endreFakturaMottaker(OPPRINNELIG_REF, FakturamottakerDto(Fullmektig("123", null)))
+
+
+        verify { fakturaserieRepository.save(any()) wasNot Called }
+    }
+
+    @Test
+    fun `Endrer faktura-mottaker, motter er ny, endrer fullmektig i fakturaserie`() {
+        val fakturaserie = Fakturaserie(
+            faktura = mutableListOf(Faktura().apply { status = FakturaStatus.OPPRETTET }),
+            fullmektig = Fullmektig("123", null)
+        )
+        val lagretFakturaserie = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.findByReferanse(OPPRINNELIG_REF) } returns fakturaserie
+        every { fakturaserieRepository.save(capture(lagretFakturaserie)) } returns mockk()
+
+
+        fakturaserieService.endreFakturaMottaker(OPPRINNELIG_REF, FakturamottakerDto(null))
+
+
+        verify { fakturaserieRepository.save(any()) }
+        fakturaserie.fullmektig.shouldBeNull()
+    }
+
     private fun lagOpprinneligFakturaserie(): Fakturaserie {
         return Fakturaserie(
             id = 100,
@@ -93,32 +141,34 @@ class FakturaserieServiceTest {
                 Faktura(
                     id = 1,
                     datoBestilt = LocalDate.of(2023, 12, 19),
-                    status = FakturaStatus.BESTILLT,
+                    status = FakturaStatus.BESTILT,
+                    eksternFakturaNummer = "8272123",
                     fakturaLinje = listOf(
-                                FakturaLinje(
-                                    id = 1,
-                                    periodeFra = LocalDate.of(2024, 1, 1),
-                                    periodeTil = LocalDate.of(2024, 3, 31),
-                                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                                    antall = BigDecimal(3),
-                                    enhetsprisPerManed = BigDecimal(1000),
-                                    belop = BigDecimal(3000),
-                                ),
-                                FakturaLinje(
-                                    id = 2,
-                                    periodeFra = LocalDate.of(2024, 1, 1),
-                                    periodeTil = LocalDate.of(2024, 3, 31),
-                                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                                    antall = BigDecimal(3),
-                                    enhetsprisPerManed = BigDecimal(2000),
-                                    belop = BigDecimal(6000),
-                                ),
-                            )
+                        FakturaLinje(
+                            id = 1,
+                            periodeFra = LocalDate.of(2024, 1, 1),
+                            periodeTil = LocalDate.of(2024, 3, 31),
+                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                            antall = BigDecimal(3),
+                            enhetsprisPerManed = BigDecimal(1000),
+                            belop = BigDecimal(3000),
+                        ),
+                        FakturaLinje(
+                            id = 2,
+                            periodeFra = LocalDate.of(2024, 1, 1),
+                            periodeTil = LocalDate.of(2024, 3, 31),
+                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                            antall = BigDecimal(3),
+                            enhetsprisPerManed = BigDecimal(2000),
+                            belop = BigDecimal(6000),
+                        ),
+                    )
                 ),
                 Faktura(
                     id = 2,
                     datoBestilt = LocalDate.of(2024, 3, 19),
-                    status = FakturaStatus.BESTILLT,
+                    status = FakturaStatus.BESTILT,
+                    eksternFakturaNummer = "8272123",
                     fakturaLinje = listOf(
                         FakturaLinje(
                             id = 3,
@@ -144,16 +194,15 @@ class FakturaserieServiceTest {
             fodselsnummer = "12345678911",
             fullmektig = Fullmektig(
                 fodselsnummer = "12129012345",
-                kontaktperson = "Test",
                 organisasjonsnummer = ""
             ),
         )
     }
 
     private fun lagFakturaserieDto(
-        referanse: String = UUID.randomUUID().toString(),
+        referanse: String = ULID.randomULID(),
         fodselsnummer: String = "12345678911",
-        fullmektig: Fullmektig = Fullmektig("11987654321", "123456789", "Ole Brum"),
+        fullmektig: Fullmektig = Fullmektig("11987654321", "123456789"),
         referanseBruker: String = "Nasse Nøff",
         referanseNav: String = "Referanse NAV",
         fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,

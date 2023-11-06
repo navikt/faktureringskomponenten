@@ -6,6 +6,7 @@ import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.springframework.stereotype.Component
+import ulid.ULID
 import java.time.LocalDate
 import java.time.Month
 import java.time.temporal.IsoFields
@@ -93,11 +94,11 @@ class FakturaGenerator (
     private fun tilFaktura(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
         val korrigertDatoBestilt = if (datoBestilt <= dagensDato()) dagensDato()
             .plusDays(BESTILT_DATO_FORSINKES_MED_DAGER) else datoBestilt
-        return Faktura(null, datoBestilt = korrigertDatoBestilt, sistOppdatert = korrigertDatoBestilt, fakturaLinje = fakturaLinjer)
+        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = korrigertDatoBestilt, sistOppdatert = korrigertDatoBestilt, fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
     private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
-        return Faktura(null, datoBestilt = dagensDato(), sistOppdatert = dagensDato(), fakturaLinje = fakturaLinjer)
+        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = dagensDato(), sistOppdatert = dagensDato(), fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()
