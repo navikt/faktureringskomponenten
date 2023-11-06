@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import io.micrometer.core.instrument.Metrics
+import io.micrometer.core.instrument.Tag
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.exceptions.ExternalErrorException
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
@@ -41,7 +42,8 @@ class EksternFakturaStatusConsumer(
                         "offset=${consumerRecord.offset()}\n" +
                         "Error:${e.message}", e
             )
-            Metrics.counter(MetrikkNavn.FEIL_FRA_EKSTERN).increment()
+
+            Metrics.counter(MetrikkNavn.FEIL_FRA_EKSTERN, listOf(Tag.of("Faktura_referanse_nummer", eksternFakturaStatusDto.fakturaReferanseNr))).increment()
         } catch (e: Exception) {
             log.error(
                 "Feil ved lagring av faktura ved mottak av kafka melding\n" +
