@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.domain.models
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -40,7 +39,7 @@ class Faktura(
 
     @Column(name="eksternt_fakturanummer", nullable = false, unique = true)
     var eksternFakturaNummer: String = "",
-) {
+) : BaseEntity() {
 
     override fun toString(): String {
         return "id: $id, datoBestilt: $datoBestilt, status: $status"
