@@ -67,8 +67,7 @@ class FakturaBestiltDtoMapperTest {
             Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
         )
 
-        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe
-                "Avregning mot fakturanummer ${linje.referertFakturaVedAvregning!!.id}, ${linje.beskrivelse}"
+        fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe linje.beskrivelse
     }
 
     private fun lagFakturaLinje(erAvregning: Boolean): FakturaLinje = FakturaLinje(
