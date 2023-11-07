@@ -38,8 +38,6 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
 
     @BeforeEach
     fun setup() {
-        //eksternFakturaStatusConsumer.eksternFakturaStatusListenerContainer().start()
-        //wipe fakturamottakfeil
         fakturaMottakFeilRepository.deleteAll()
     }
 
