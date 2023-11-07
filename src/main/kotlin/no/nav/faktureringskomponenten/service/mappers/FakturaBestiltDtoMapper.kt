@@ -28,7 +28,7 @@ class FakturaBestiltDtoMapper {
             faktureringsDato = faktura.datoBestilt,
             fakturaLinjer = faktura.fakturaLinje.map {
                 FakturaBestiltLinjeDto(
-                    beskrivelse = lagBestiltLinjeBeskrivelse(it, faktura.erAvregningsfaktura()),
+                    beskrivelse = it.beskrivelse,
                     antall = it.antall,
                     enhetspris = it.enhetsprisPerManed,
                     belop = it.belop
@@ -36,13 +36,6 @@ class FakturaBestiltDtoMapper {
             }
         )
     }
-
-    private fun lagBestiltLinjeBeskrivelse(fakturaLinje: FakturaLinje, erAvregning: Boolean): String {
-        val prefiks = if (erAvregning) "Avregning mot fakturanummer ${fakturaLinje.referertFakturaVedAvregning?.id}, " else ""
-
-        return prefiks + fakturaLinje.beskrivelse
-    }
-
 
     private fun mapFakturaBeskrivelse(fakturaGjelder: Innbetalingstype, intervall: FakturaserieIntervall, erAvregning: Boolean): String {
         return when (fakturaGjelder) {
