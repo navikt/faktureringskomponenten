@@ -1,11 +1,7 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
-import io.micrometer.core.instrument.Gauge
-import io.micrometer.core.instrument.Metrics
-import io.micrometer.core.instrument.Tag
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.exceptions.ExternalErrorException
-import no.nav.faktureringskomponenten.metrics.MetrikkNavn
+import no.nav.faktureringskomponenten.exceptions.EksternFeilException
 import no.nav.faktureringskomponenten.service.EksternFakturaStatusService
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -37,7 +33,7 @@ class EksternFakturaStatusConsumer(
         log.info("Mottatt melding {}", consumerRecord)
         try {
             eksternFakturaStatusService.lagreEksternFakturaStatusMelding(eksternFakturaStatusDto)
-        } catch (e: ExternalErrorException) {
+        } catch (e: EksternFeilException) {
             log.error(
                 "Feil ved mottak av faktura ved mottak av kafka melding\n" +
                         "offset=${consumerRecord.offset()}\n" +

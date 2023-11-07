@@ -5,7 +5,7 @@ import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
-import no.nav.faktureringskomponenten.exceptions.ExternalErrorException
+import no.nav.faktureringskomponenten.exceptions.EksternFeilException
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
@@ -29,7 +29,7 @@ class EksternFakturaStatusService(
         log.info("Mottatt $eksternFakturaStatusDto")
 
         if (eksternFakturaStatusDto.status == FakturaStatus.FEIL) {
-            throw ExternalErrorException("EksternFakturaStatus er FEIL. Feilmelding fra OEBS: ${eksternFakturaStatusDto.feilmelding}")
+            throw EksternFeilException("EksternFakturaStatus er FEIL. Feilmelding fra OEBS: ${eksternFakturaStatusDto.feilmelding}")
         }
 
         val faktura = fakturaRepository.findByReferanseNr(eksternFakturaStatusDto.fakturaReferanseNr)
