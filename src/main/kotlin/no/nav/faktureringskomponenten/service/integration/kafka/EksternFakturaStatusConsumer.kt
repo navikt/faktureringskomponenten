@@ -25,7 +25,7 @@ class EksternFakturaStatusConsumer(
     private val kafkaListenerEndpointRegistry: KafkaListenerEndpointRegistry
 ) : AbstractConsumerSeekAware() {
 
-    val gauge = Metrics.gauge(MetrikkNavn.FEIL_FRA_EKSTERN, 0)
+    var gauge = Metrics.gauge(MetrikkNavn.FEIL_FRA_EKSTERN, 0)
 
     @KafkaListener(
         id = "fakturaMottatt",
@@ -45,7 +45,7 @@ class EksternFakturaStatusConsumer(
                         "offset=${consumerRecord.offset()}\n" +
                         "Error:${e.message}", e
             )
-            gauge?.inc()
+            gauge = gauge?.inc()
             //Metrics.counter(MetrikkNavn.FEIL_FRA_EKSTERN, listOf(Tag.of("Faktura_referanse_nummer", eksternFakturaStatusDto.fakturaReferanseNr), Tag.of("feilmelding", eksternFakturaStatusDto.feilmelding!!))).increment()
         } catch (e: Exception) {
             log.error(
