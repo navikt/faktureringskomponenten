@@ -11,6 +11,7 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.awaitility.kotlin.await
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -34,6 +35,11 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
     @Autowired private val fakturaMottakFeilRepository: FakturaMottakFeilRepository,
     @Autowired private val eksternFakturaStatusConsumer: EksternFakturaStatusConsumer
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
+
+    @BeforeEach
+    fun setup() {
+        fakturaMottakFeilRepository.deleteAll()
+    }
 
     @Test // Kan kun være denne testen i klassen siden offset vil stå på den feilede meldingen etter kjøring
     fun `les faktura fra kafka kø skal stoppe ved feil og ikke avansere offset`() {
