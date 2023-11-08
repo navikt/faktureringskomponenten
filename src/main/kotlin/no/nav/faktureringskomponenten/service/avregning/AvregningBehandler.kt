@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service.avregning
 
+import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
@@ -9,6 +10,8 @@ import org.threeten.extra.LocalDateRange
 import java.math.BigDecimal
 import java.time.LocalDate
 
+private val log = KotlinLogging.logger { }
+
 private data class AvregningsfakturaLinjeOgNyePerioder(val faktura: Faktura, val fakturaLinje: FakturaLinje, val nyePerioder: List<FakturaseriePeriode>)
 private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: List<FakturaseriePeriode>)
 
@@ -16,9 +19,13 @@ private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: L
 class AvregningBehandler(private val avregningsfakturaGenerator: AvregningsfakturaGenerator) {
     fun lagAvregningsfaktura(fakturaseriePerioder: List<FakturaseriePeriode>, bestilteFakturaer: List<Faktura>): Faktura? {
         if (bestilteFakturaer.isEmpty()) return null
+        log.debug { "Lager avregningsfaktura for fakturaseriePerioder: $fakturaseriePerioder" }
+        log.debug { "Bestilte fakturaer: ${bestilteFakturaer}" }
+        bestilteFakturaer.sortedBy { it.getPeriodeFra() }.forEachIndexed { index, linje -> log.debug { "Faktura ${index+1} " + linje.getLinesAsString() } }
 
         val avregningsperioder = lagEventuelleAvregningsperioder(bestilteFakturaer, fakturaseriePerioder)
         if (avregningsperioder.isEmpty()) return null
+        log.debug("Avregningsperioder generert: $avregningsperioder")
 
         return avregningsfakturaGenerator.lagFaktura(avregningsperioder)
     }

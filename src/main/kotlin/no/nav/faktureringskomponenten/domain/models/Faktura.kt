@@ -42,7 +42,11 @@ class Faktura(
 ) : BaseEntity() {
 
     override fun toString(): String {
-        return "id: $id, datoBestilt: $datoBestilt, status: $status"
+        return "referanseNr: $referanseNr, datoBestilt: $datoBestilt, status: $status"
+    }
+
+    fun getLinesAsString(): String {
+        return fakturaLinje.sortedBy(FakturaLinje::periodeFra).map(FakturaLinje::toString).reduce { acc, s ->  acc + "\n" + s}
     }
 
     fun getPeriodeFra(): LocalDate {
