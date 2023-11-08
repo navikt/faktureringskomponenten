@@ -42,7 +42,6 @@ class FakturaserieController @Autowired constructor(
             ApiResponse(responseCode = "400", description = "Feil med validering av felter")
         ]
     )
-
     @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
     @PostMapping
     fun lagNyFakturaserie(
@@ -61,6 +60,16 @@ class FakturaserieController @Autowired constructor(
         Metrics.counter(MetrikkNavn.FAKTURASERIE_OPPRETTET).increment()
 
         return ResponseEntity.ok(NyFakturaserieResponseDto(referanse))
+    }
+
+    @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
+    @PostMapping("/{referanse}/kanseller")
+    fun kansellerFakturaserie(
+        @PathVariable("referanse", required = true) referanse: String,
+    ): FakturaserieResponseDto {
+        log.info("Mottatt spørsmål om kansellering av fakturaserie: ${referanse}")
+
+        return faktureringService.kansellerFakturaserie(referanse).tilFakturaserieResponseDto
     }
 
     @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])

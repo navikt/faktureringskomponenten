@@ -32,7 +32,7 @@ class FakturaserieGenerator(
             startdato = startDatoForSamletPeriode,
             sluttdato = sluttDatoForSamletPeriode,
             intervall = fakturaserieDto.intervall,
-            faktura = fakturaerForSamletPeriode + listOfNotNull(avregningsfaktura)
+            faktura = (fakturaerForSamletPeriode + listOfNotNull(avregningsfaktura)) as MutableList<Faktura>
         )
     }
 

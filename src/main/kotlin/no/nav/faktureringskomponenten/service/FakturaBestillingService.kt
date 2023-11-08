@@ -27,6 +27,9 @@ class FakturaBestillingService(
     fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> =
         fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
 
+    fun hentKrediteringsklareFaktura(): List<Faktura> =
+        fakturaRepository.findAllByStatusEquals(FakturaStatus.KLAR_TIL_KREDITERING)
+
     @Transactional
     fun bestillFaktura(fakturaReferanseNr: String) {
         val faktura = fakturaRepository.findByReferanseNr(fakturaReferanseNr) ?: throw RessursIkkeFunnetException(
@@ -55,5 +58,22 @@ class FakturaBestillingService(
 
         fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
         Metrics.counter(MetrikkNavn.FAKTURA_BESTILT).increment()
+    }
+
+    @Transactional
+    fun krediterFaktura(fakturaReferanseNr: String) {
+        val faktura = fakturaRepository.findByReferanseNr(fakturaReferanseNr) ?: throw RessursIkkeFunnetException(
+            field = "fakturaReferanseNr",
+            message = "Finner ikke faktura med faktura referanse nr $fakturaReferanseNr"
+        )
+
+        faktura.status = FakturaStatus.BESTILT_KREDITERING
+
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(faktura, faktura.fakturaserie!!)
+
+        fakturaRepository.save(faktura)
+
+        fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
+        Metrics.counter(MetrikkNavn.FAKTURA_BESTILT_KREDITERING).increment()
     }
 }

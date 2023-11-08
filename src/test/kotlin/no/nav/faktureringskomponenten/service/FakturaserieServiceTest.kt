@@ -29,6 +29,27 @@ class FakturaserieServiceTest {
     private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieGenerator, avregningBehandler)
 
     @Test
+    fun `Kansellerer fakturaserie, setter status til kansellert for fakturaserien og fakturaer`() {
+        val opprinneligFakturaserie = lagOpprinneligFakturaserie(fakturaStatus = FakturaStatus.OPPRETTET, fakturaStatusTo = FakturaStatus.BESTILT, fakturaStatusTre = FakturaStatus.KLAR_TIL_KREDITERING)
+
+        every {
+            fakturaserieRepository.findByReferanse(OPPRINNELIG_REF)
+        } returns opprinneligFakturaserie
+
+        val fakturaserier = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.save(capture(fakturaserier)) } returns mockk()
+
+
+        fakturaserieService.kansellerFakturaserie(OPPRINNELIG_REF)
+
+
+        opprinneligFakturaserie.status shouldBe FakturaserieStatus.KANSELLERT
+        opprinneligFakturaserie.faktura[0].status shouldBe FakturaStatus.KANSELLERT
+        opprinneligFakturaserie.faktura[1].status shouldBe FakturaStatus.KLAR_TIL_KREDITERING
+        opprinneligFakturaserie.faktura[2].status shouldBe FakturaStatus.KLAR_TIL_KREDITERING
+    }
+
+    @Test
     fun `Endrer fakturaserie, erstatter opprinnelig og lager ny`() {
         val opprinneligFakturaserie = lagOpprinneligFakturaserie()
         every {
@@ -126,7 +147,7 @@ class FakturaserieServiceTest {
         fakturaserie.fullmektig.shouldBeNull()
     }
 
-    private fun lagOpprinneligFakturaserie(): Fakturaserie {
+    private fun lagOpprinneligFakturaserie(fakturaStatus: FakturaStatus = FakturaStatus.BESTILT, fakturaStatusTo: FakturaStatus = FakturaStatus.BESTILT, fakturaStatusTre: FakturaStatus = FakturaStatus.BESTILT): Fakturaserie {
         return Fakturaserie(
             id = 100,
             referanse = OPPRINNELIG_REF,
@@ -141,7 +162,7 @@ class FakturaserieServiceTest {
                 Faktura(
                     id = 1,
                     datoBestilt = LocalDate.of(2023, 12, 19),
-                    status = FakturaStatus.BESTILT,
+                    status = fakturaStatus,
                     eksternFakturaNummer = "8272123",
                     fakturaLinje = listOf(
                         FakturaLinje(
@@ -167,7 +188,33 @@ class FakturaserieServiceTest {
                 Faktura(
                     id = 2,
                     datoBestilt = LocalDate.of(2024, 3, 19),
-                    status = FakturaStatus.BESTILT,
+                    status = fakturaStatusTo,
+                    eksternFakturaNummer = "8272123",
+                    fakturaLinje = listOf(
+                        FakturaLinje(
+                            id = 3,
+                            periodeFra = LocalDate.of(2024, 4, 1),
+                            periodeTil = LocalDate.of(2024, 6, 30),
+                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                            antall = BigDecimal(3),
+                            enhetsprisPerManed = BigDecimal(1000),
+                            belop = BigDecimal(6000),
+                        ),
+                        FakturaLinje(
+                            id = 4,
+                            periodeFra = LocalDate.of(2024, 4, 1),
+                            periodeTil = LocalDate.of(2024, 6, 30),
+                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                            antall = BigDecimal(3),
+                            enhetsprisPerManed = BigDecimal(2000),
+                            belop = BigDecimal(6000),
+                        ),
+                    )
+                ),
+                Faktura(
+                    id = 3,
+                    datoBestilt = LocalDate.of(2024, 3, 19),
+                    status = fakturaStatusTre,
                     eksternFakturaNummer = "8272123",
                     fakturaLinje = listOf(
                         FakturaLinje(

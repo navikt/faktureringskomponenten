@@ -106,6 +106,40 @@ class FakturaserieControllerIT(
     }
 
     @Test
+    fun `kanseller fakturaserie basert på referanseId`() {
+        val startDato = LocalDate.parse("2023-01-01")
+        val sluttDato = LocalDate.parse("2024-03-31")
+        val fakturaSerieDto = lagFakturaserieDto(
+            referanseId = "",
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(12000), startDato, sluttDato, "Inntekt fra utlandet"),
+                FakturaseriePeriodeDto(BigDecimal(500), startDato, sluttDato, "Misjonær"),
+                FakturaseriePeriodeDto(BigDecimal(2000), startDato, sluttDato, "Misjonær")
+            )
+        )
+
+        val fakturaserieResponseReferanse =
+            postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java)
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        kansellerFakturaserierRequest(fakturaserieResponseReferanse)
+            .expectStatus().isOk
+            .expectBody(FakturaserieResponseDto::class.java)
+            .returnResult().responseBody!!
+
+        val responseFakturaserieKansellert = hentFakturaserieRequest(fakturaserieResponseReferanse)
+            .expectStatus().isOk
+            .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
+
+        responseFakturaserieKansellert.shouldNotBeNull()
+        responseFakturaserieKansellert.status.shouldBe(FakturaserieStatus.KANSELLERT)
+        responseFakturaserieKansellert.faktura.forEach {
+            it.status.shouldBe(FakturaStatus.KANSELLERT)
+        }
+    }
+
+
+    @Test
     fun `hent fakturaserier basert på referanseId`() {
         val startDato = LocalDate.parse("2023-01-01")
         val sluttDato = LocalDate.parse("2024-03-31")
@@ -369,6 +403,18 @@ class FakturaserieControllerIT(
         webClient.get()
             .uri("/fakturaserier/$referanseId")
             .accept(MediaType.APPLICATION_JSON)
+            .headers {
+                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
+
+    private fun kansellerFakturaserierRequest(referanse: String): WebTestClient.ResponseSpec =
+        webClient.post()
+            .uri("/fakturaserier/$referanse/kanseller")
+            .accept(MediaType.APPLICATION_JSON)
+            .contentType(MediaType.APPLICATION_JSON)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())

@@ -1,13 +1,16 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import ulid.ULID
 
 private val log = KotlinLogging.logger { }
 
@@ -17,6 +20,28 @@ class FakturaserieService(
     private val fakturaserieGenerator: FakturaserieGenerator,
     private val avregningBehandler: AvregningBehandler,
 ) {
+
+    fun kansellerFakturaserie(referanse: String): Fakturaserie {
+        val fakturaserie = fakturaserieRepository.findByReferanse(referanse) ?: throw RessursIkkeFunnetException(
+            field = "referanse",
+            message = "Fant ikke fakturaserie på: $referanse"
+        )
+
+        fakturaserie.apply {
+            status = FakturaserieStatus.KANSELLERT
+            faktura.map {
+                if(it.erPlanlagtFaktura()) {
+                    it.status = FakturaStatus.KANSELLERT
+                } else if(!it.erAleredeKansellert()) {
+                    it.kreditReferanseNr = ULID.randomULID()
+                    it.status = FakturaStatus.KLAR_TIL_KREDITERING
+                }
+            }
+        }
+
+        fakturaserieRepository.save(fakturaserie)
+        return fakturaserie
+    }
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
         fakturaserieRepository.findByReferanse(referanse) ?: throw RessursIkkeFunnetException(

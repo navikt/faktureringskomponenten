@@ -39,8 +39,10 @@ class Faktura(
 
     @Column(name="eksternt_fakturanummer", nullable = false, unique = true)
     var eksternFakturaNummer: String = "",
-) : BaseEntity() {
 
+    @Column(name="kredit_referanse_nr", nullable = true, unique = true)
+    var kreditReferanseNr: String = "",
+) {
     override fun toString(): String {
         return "referanseNr: $referanseNr, datoBestilt: $datoBestilt, status: $status"
     }
@@ -67,5 +69,13 @@ class Faktura(
 
     fun erAvregningsfaktura() : Boolean {
         return fakturaLinje.any { it.referertFakturaVedAvregning != null }
+    }
+
+    fun erPlanlagtFaktura() : Boolean {
+        return status == FakturaStatus.OPPRETTET
+    }
+
+    fun erAleredeKansellert() : Boolean {
+        return status == FakturaStatus.KLAR_TIL_KREDITERING || status == FakturaStatus.BESTILT_KREDITERING
     }
 }
