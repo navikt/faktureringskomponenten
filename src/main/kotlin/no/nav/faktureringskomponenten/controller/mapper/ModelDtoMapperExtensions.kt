@@ -5,6 +5,8 @@ import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import ulid.ULID
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
     get() = FakturaserieResponseDto(
@@ -18,7 +20,7 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
         sluttdato = this.sluttdato,
         status = this.status,
         intervall = this.intervall,
-        opprettetTidspunkt = this.opprettetTidspunkt,
+        opprettetTidspunkt = LocalDateTime.ofInstant(this.opprettetTidspunkt, ZoneId.systemDefault()),
         faktura = this.faktura.map { it.tilResponseDto },
     )
 

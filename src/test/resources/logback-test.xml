@@ -6,7 +6,7 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 
@@ -17,5 +17,7 @@
     <logger name="org.hibernate" level="WARN"/>
     <logger name="kafka" level="WARN"/>
     <logger name="springfox" level="WARN"/>
+
+    <logger name="no.nav.faktureringskomponenten.service.avregning" level="DEBUG"/>
 
 </configuration>

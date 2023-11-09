@@ -21,7 +21,7 @@ class FakturaMottakFeil(
 
     @Column(name = "kafka_offset")
     val kafkaOffset: Long? = null,
-) {
+) : BaseEntity() {
     override fun toString(): String {
         return "id= $id fakturaReferanseNr= $fakturaReferanseNr\nError= $error"
     }
