@@ -13,11 +13,14 @@ spec:
     timeout: 5
   gcp:
     sqlInstances:
-      - type: POSTGRES_12
+      - type: POSTGRES_15
         diskAutoresize: true
         databases:
           - name: {{database_name}}
             envVarPrefix: DB
+        flags:
+          - name: timezone
+            value: "Europe/Oslo"
   image: {{image}}
   port: 8080
   replicas:
