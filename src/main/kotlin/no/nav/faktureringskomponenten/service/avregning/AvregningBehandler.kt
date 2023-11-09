@@ -20,12 +20,14 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
     fun lagAvregningsfaktura(fakturaseriePerioder: List<FakturaseriePeriode>, bestilteFakturaer: List<Faktura>): Faktura? {
         if (bestilteFakturaer.isEmpty()) return null
         log.debug { "Lager avregningsfaktura for fakturaseriePerioder: $fakturaseriePerioder" }
-        log.debug { "Bestilte fakturaer: ${bestilteFakturaer}" }
-        bestilteFakturaer.sortedBy { it.getPeriodeFra() }.forEachIndexed { index, linje -> log.debug { "Faktura ${index+1} " + linje.getLinesAsString() } }
+        log.debug { "Bestilte fakturaer: $bestilteFakturaer" }
+        if (log.isDebugEnabled) {
+            bestilteFakturaer.sortedBy { it.getPeriodeFra() }.forEachIndexed { index, linje -> log.debug { "Faktura ${index+1} " + linje.getLinesAsString() } }
+        }
 
         val avregningsperioder = lagEventuelleAvregningsperioder(bestilteFakturaer, fakturaseriePerioder)
         if (avregningsperioder.isEmpty()) return null
-        log.debug("Avregningsperioder generert: $avregningsperioder")
+        log.debug {"Avregningsperioder generert: $avregningsperioder"}
 
         return avregningsfakturaGenerator.lagFaktura(avregningsperioder)
     }
