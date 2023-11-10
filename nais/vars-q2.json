@@ -5,7 +5,7 @@
   "ingress": "https://faktureringskomponenten-q2.intern.dev.nav.no",
   "tenant": "trygdeetaten.no",
   "kafka_pool": "nav-dev",
-  "cluster_name": "dev-fss",
+  "melosys_web_api_cluster": "dev-fss",
   "app_name_melosys_api": "melosys",
   "app_name_melosys_web": "melosys-web",
   "kafka_topic_name_faktura_bestilt": "teammelosys.faktura-bestilt.v1-q2",
