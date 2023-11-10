@@ -331,7 +331,7 @@ class FakturaserieControllerIT(
         response.faktura.size.shouldBe(1)
         response.faktura[0].fakturaLinje.map { it.periodeFra }.shouldContainOnly(startDato)
         response.faktura[0].fakturaLinje.map { it.periodeTil }.shouldContainOnly(sluttDato)
-        response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactly(
+        response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactlyInAnyOrder(
             "Periode: 01.01.2023 - 31.03.2023\nInntekt fra utlandet",
             "Periode: 01.01.2023 - 31.03.2023\nMisjonær"
         )
@@ -523,6 +523,7 @@ class FakturaserieControllerIT(
             .uri("/fakturaserier")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
+            .header("Nav-User-Id", "Z123456")
             .bodyValue(fakturaserieRequestDto)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")

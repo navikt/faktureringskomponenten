@@ -186,6 +186,7 @@ class AvregningIT(
             .uri("/fakturaserier")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
+            .header("Nav-User-Id", "Z123456")
             .bodyValue(fakturaserieRequestDto)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")

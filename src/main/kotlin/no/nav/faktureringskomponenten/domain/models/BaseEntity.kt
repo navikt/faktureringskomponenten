@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.domain.models
 import jakarta.persistence.Column
 import jakarta.persistence.EntityListeners
 import jakarta.persistence.MappedSuperclass
+import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.Instant
@@ -14,4 +15,12 @@ abstract class BaseEntity {
     @Column(name = "opprettet_tidspunkt", nullable = false, updatable = false)
     @CreatedDate
     internal var opprettetTidspunkt : Instant = Instant.now()
+}
+
+@MappedSuperclass
+abstract class AuditableEntity : BaseEntity() {
+
+    @Column(name = "opprettet_av", nullable = false, updatable = false)
+    @CreatedBy
+    internal var opprettetAv : String = ""
 }
