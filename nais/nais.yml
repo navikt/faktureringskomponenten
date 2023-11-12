@@ -75,6 +75,8 @@ spec:
       value: {{kafka_topic_name_manglende_fakturabetaling}}
     - name: app_name
       value: {{app_name}}
+    - name: CRON_JOB_BESTILL_FAKTURA
+      value: {{cron_job_bestill_faktura}}
   envFrom:
     - secret: faktureringskomponenten
     - secret: {{app_name}}-unleash-api-token

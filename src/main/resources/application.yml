@@ -34,7 +34,7 @@ kafka:
 cron:
   job:
     bestill:
-      faktura:  "0 0 4 * * *" # Kjør hver dag kl 04:00
+      faktura:  ${CRON_JOB_BESTILL_FAKTURA}
 
 #Token-validering
 no.nav.security.jwt.issuer:

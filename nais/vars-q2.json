@@ -10,5 +10,6 @@
   "app_name_melosys_web": "melosys-web",
   "kafka_topic_name_faktura_bestilt": "teammelosys.faktura-bestilt.v1-q2",
   "kafka_topic_name_manglende_fakturabetaling": "teammelosys.manglende-fakturabetaling.v1-q2",
-  "unleash_environment": "development"
+  "unleash_environment": "development",
+  "cron_job_bestill_faktura":  "0 */5 * * * *"
 }
