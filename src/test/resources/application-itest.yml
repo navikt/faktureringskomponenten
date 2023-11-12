@@ -22,3 +22,7 @@ AZURE_APP_CLIENT_ID: faktureringskomponenten-localhost
 
 unleash:
   token: "fake"
+
+cron:
+  job:
+    bestill-faktura:  "0 */5 * * * *"

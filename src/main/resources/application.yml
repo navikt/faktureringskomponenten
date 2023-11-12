@@ -33,8 +33,7 @@ kafka:
 
 cron:
   job:
-    bestill:
-      faktura:  ${CRON_JOB_BESTILL_FAKTURA}
+    bestill-faktura:  ${CRON_JOB_BESTILL_FAKTURA}
 
 #Token-validering
 no.nav.security.jwt.issuer:
