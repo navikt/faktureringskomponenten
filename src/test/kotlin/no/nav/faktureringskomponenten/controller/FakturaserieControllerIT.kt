@@ -9,9 +9,10 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
-import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
+import no.nav.faktureringskomponenten.service.integration.kafka.EmbeddedKafkaBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -44,14 +45,15 @@ import java.time.LocalDate
 class FakturaserieControllerIT(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val server: MockOAuth2Server,
-    @Autowired private val fakturaserieRepository: FakturaserieRepositoryForTesting,
+    @Autowired private val fakturaserieRepositoryForTesting: FakturaserieRepositoryForTesting,
+    @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
-) : PostgresTestContainerBase() {
+) : EmbeddedKafkaBase(fakturaserieRepository) {
 
     @AfterEach
     fun cleanUp() {
         addCleanUpAction {
-            fakturaserieRepository.deleteAll()
+            fakturaserieRepositoryForTesting.deleteAll()
         }
     }
 
@@ -90,9 +92,9 @@ class FakturaserieControllerIT(
         ).returnResult().responseBody!!.fakturaserieReferanse
 
 
-        val nyFakturaserie = fakturaserieRepository.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
+        val nyFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
         val oppdatertOpprinneligFakturaserie =
-            fakturaserieRepository.findByReferanseEagerly(opprinneligFakturaserieReferanse)
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
 
         oppdatertOpprinneligFakturaserie.shouldNotBeNull().erstattetMed!!.id shouldBe nyFakturaserie.id
         oppdatertOpprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
@@ -146,9 +148,9 @@ class FakturaserieControllerIT(
 
         fakturaBestillCronjob.bestillFaktura()
 
-        val nyFakturaserie = fakturaserieRepository.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
+        val nyFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
         val oppdatertOpprinneligFakturaserie =
-            fakturaserieRepository.findByReferanseEagerly(opprinneligFakturaserieReferanse)
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
 
 
         oppdatertOpprinneligFakturaserie.shouldNotBeNull().erstattetMed!!.id shouldBe nyFakturaserie.id
@@ -174,7 +176,7 @@ class FakturaserieControllerIT(
     }
 
     @Test
-    fun `erstatt fakturaserie`() {
+    fun `erstatt fakturaserie hvor alt er i fortiden og bestilt - skal kun bli en faktura`() {
         val startDatoOpprinnelig = LocalDate.of(2016, 1, 1)
         val sluttDatoOpprinnelig = LocalDate.of(2017, 1, 31)
 
@@ -213,9 +215,9 @@ class FakturaserieControllerIT(
 
         fakturaBestillCronjob.bestillFaktura()
 
-        val nyFakturaserie = fakturaserieRepository.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
+        val nyFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
         val oppdatertOpprinneligFakturaserie =
-            fakturaserieRepository.findByReferanseEagerly(opprinneligFakturaserieReferanse)
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
 
         oppdatertOpprinneligFakturaserie.shouldNotBeNull().erstattetMed!!.id shouldBe nyFakturaserie.id
         oppdatertOpprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
@@ -291,7 +293,7 @@ class FakturaserieControllerIT(
         ).expectStatus().isOk
 
 
-        val oppdatertFakturaserie = fakturaserieRepository.findByReferanseEagerly(referanse).shouldNotBeNull()
+        val oppdatertFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(referanse).shouldNotBeNull()
         oppdatertFakturaserie.shouldNotBeNull().fullmektig.shouldBe(Fullmektig(null, "123123123"))
     }
 
