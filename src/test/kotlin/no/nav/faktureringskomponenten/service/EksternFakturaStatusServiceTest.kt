@@ -21,26 +21,6 @@ class EksternFakturaStatusServiceTest {
     private val service = EksternFakturaStatusService(fakturaRepository, eksternFakturaStatusMapper, manglendeFakturabetalingProducer)
 
     @Test
-    fun `lagreEksternFakturaStatusMelding kaster ExternalErrorException når status er FEIL`() {
-
-        val eksternFakturaStatusDto = EksternFakturaStatusDto(
-            fakturaReferanseNr = "123",
-            fakturaNummer = "82",
-            dato = LocalDate.of(2023, 2, 1),
-            status = FakturaStatus.FEIL,
-            fakturaBelop = null,
-            ubetaltBelop = null,
-            feilmelding = "Feilmelding"
-        )
-
-        val exception = org.junit.jupiter.api.assertThrows<EksternFeilException> {
-            service.lagreEksternFakturaStatusMelding(eksternFakturaStatusDto)
-        }
-
-        exception.message shouldBe "EksternFakturaStatus er FEIL. Feilmelding fra OEBS: Feilmelding"
-    }
-
-    @Test
     fun `lagreEksternFakturaStatusMelding kaster ExternalErrorException når status er FEIL2`() {
         `when`(fakturaRepository.findByReferanseNr("123")).thenReturn(null)
 

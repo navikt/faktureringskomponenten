@@ -28,10 +28,6 @@ class EksternFakturaStatusService(
     fun lagreEksternFakturaStatusMelding(eksternFakturaStatusDto: EksternFakturaStatusDto) {
         log.info("Mottatt $eksternFakturaStatusDto")
 
-        if (eksternFakturaStatusDto.status == FakturaStatus.FEIL) {
-            throw EksternFeilException("EksternFakturaStatus er FEIL. Feilmelding fra OEBS: ${eksternFakturaStatusDto.feilmelding}")
-        }
-
         val faktura = fakturaRepository.findByReferanseNr(eksternFakturaStatusDto.fakturaReferanseNr)
         faktura ?: throw RessursIkkeFunnetException(
             field = "faktura.referanseNr",
@@ -46,6 +42,10 @@ class EksternFakturaStatusService(
     private fun produserBestillingsmeldingOgOppdater(faktura: Faktura, eksternFakturaStatus: EksternFakturaStatus, eksternFakturaStatusDto: EksternFakturaStatusDto){
         try {
             if (erDuplikat(faktura, eksternFakturaStatus)) return
+
+            if (eksternFakturaStatus.status == FakturaStatus.FEIL) {
+                log.error("EksternFakturaStatus er FEIL. Gjelder faktura: ${faktura.referanseNr}. Feilmelding fra OEBS: ${eksternFakturaStatus.feilMelding}")
+            }
 
             if(eksternFakturaStatus.status == FakturaStatus.MANGLENDE_INNBETALING) {
                 manglendeFakturabetalingProducer.produserBestillingsmelding(
@@ -81,12 +81,33 @@ class EksternFakturaStatusService(
         eksternFakturaStatus: EksternFakturaStatus
     ): Boolean {
         if (faktura.eksternFakturaStatus.any {
-                it.status == eksternFakturaStatus.status
-                && it.fakturaBelop == eksternFakturaStatus.fakturaBelop?.setScale(2, RoundingMode.DOWN)
-                && it.ubetaltBelop == eksternFakturaStatus.ubetaltBelop?.setScale(2, RoundingMode.DOWN)
-                && it.faktura?.id == eksternFakturaStatus.faktura?.id
+                val feiletCondition = (it.status == eksternFakturaStatus.status
+                        && it.faktura?.id == eksternFakturaStatus.faktura?.id
+                        && it.feilMelding == eksternFakturaStatus.feilMelding)
+
+                val duplikatCondition = (it.status == eksternFakturaStatus.status
+                        && it.fakturaBelop == eksternFakturaStatus.fakturaBelop?.setScale(2, RoundingMode.DOWN)
+                        && it.ubetaltBelop == eksternFakturaStatus.ubetaltBelop?.setScale(2, RoundingMode.DOWN)
+                        && it.faktura?.id == eksternFakturaStatus.faktura?.id)
+
+                feiletCondition || duplikatCondition
             }) {
             log.info("EksternFakturaStatus er duplikat, ikke lagre med referanse: {}", faktura.referanseNr)
+            return true
+        }
+        return false
+    }
+
+    private fun erDuplikatFeil(
+        faktura: Faktura,
+        eksternFakturaStatus: EksternFakturaStatus
+    ): Boolean {
+        if (faktura.eksternFakturaStatus.any {
+                it.status == eksternFakturaStatus.status
+                && it.faktura?.id == eksternFakturaStatus.faktura?.id
+                && it.feilMelding == eksternFakturaStatus.feilMelding
+            }) {
+            log.info("EksternFakturaStatus er duplikat, feilen er alerede i grafana, ikke logg feilen")
             return true
         }
         return false
