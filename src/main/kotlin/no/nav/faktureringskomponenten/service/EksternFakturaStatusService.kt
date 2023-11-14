@@ -97,19 +97,4 @@ class EksternFakturaStatusService(
         }
         return false
     }
-
-    private fun erDuplikatFeil(
-        faktura: Faktura,
-        eksternFakturaStatus: EksternFakturaStatus
-    ): Boolean {
-        if (faktura.eksternFakturaStatus.any {
-                it.status == eksternFakturaStatus.status
-                && it.faktura?.id == eksternFakturaStatus.faktura?.id
-                && it.feilMelding == eksternFakturaStatus.feilMelding
-            }) {
-            log.info("EksternFakturaStatus er duplikat, feilen er alerede i grafana, ikke logg feilen")
-            return true
-        }
-        return false
-    }
 }
