@@ -37,7 +37,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @Testcontainers
-@ActiveProfiles("itest")
+@ActiveProfiles("itest", "embeded-kafka")
 @AutoConfigureWebTestClient
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
