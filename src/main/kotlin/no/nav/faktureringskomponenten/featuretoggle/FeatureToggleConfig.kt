@@ -34,7 +34,7 @@ class FeatureToggleConfig {
             localUnleash
         } else if (List.of<String>(*environment.activeProfiles).contains("itest")) {
             val fakeUnleash = FakeUnleash()
-            fakeUnleash.enableAll()
+            fakeUnleash.disableAll()
             fakeUnleash
         } else {
             val unleashConfig: UnleashConfig = UnleashConfig.builder()
