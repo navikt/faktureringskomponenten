@@ -82,6 +82,7 @@ class EksternFakturaStatusService(
     ): Boolean {
         if (faktura.eksternFakturaStatus.any {
                 val feiletCondition = (it.status == eksternFakturaStatus.status
+                        && faktura.status == eksternFakturaStatus.status
                         && it.faktura?.id == eksternFakturaStatus.faktura?.id
                         && it.feilMelding == eksternFakturaStatus.feilMelding)
 
