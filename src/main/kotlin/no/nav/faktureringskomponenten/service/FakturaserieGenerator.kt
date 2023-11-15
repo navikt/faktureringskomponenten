@@ -13,7 +13,10 @@ class FakturaserieGenerator(
 ) {
 
     fun lagFakturaserie(fakturaserieDto: FakturaserieDto, startDato: LocalDate? = null, avregningsfaktura: Faktura? = null): Fakturaserie {
-        val startDatoForSamletPeriode = startDato ?: mapStartdato(fakturaserieDto.perioder)
+        val startDatoForSamletPeriode =
+            if (avregningsfaktura != null) avregningsfaktura.getPeriodeTil().plusDays(1) else startDato ?: mapStartdato(
+                fakturaserieDto.perioder
+            )
         val sluttDatoForSamletPeriode = mapSluttdato(fakturaserieDto.perioder)
         val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(
             startDatoForSamletPeriode,

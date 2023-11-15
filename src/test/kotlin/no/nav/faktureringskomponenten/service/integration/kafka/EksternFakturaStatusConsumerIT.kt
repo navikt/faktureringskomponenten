@@ -12,7 +12,6 @@ import org.awaitility.kotlin.await
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -25,7 +24,6 @@ import java.util.concurrent.TimeUnit
 
 @ActiveProfiles("itest", "embeded-kafka")
 @SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @EnableMockOAuth2Server
 class EksternFakturaStatusConsumerIT(
     @Autowired private val fakturaRepository: FakturaRepositoryForTesting,
