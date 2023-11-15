@@ -41,5 +41,5 @@ jobs:
         uses: mikepenz/action-junit-report@v4
         if: success() || failure()
         with:
-          check_name: 'Integration Tests'
+          check_name: 'Tests'
           report_paths: '**/build/test-results/test/TEST-*.xml'
