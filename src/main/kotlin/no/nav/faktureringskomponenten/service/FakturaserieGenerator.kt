@@ -5,7 +5,6 @@ import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import org.springframework.stereotype.Component
-import java.lang.IllegalArgumentException
 import java.time.LocalDate
 
 @Component
@@ -22,9 +21,6 @@ class FakturaserieGenerator(
             fakturaserieDto.perioder,
             fakturaserieDto.intervall
         )
-        if(fakturaserieDto!=null) {
-            throw IllegalArgumentException("noe er feil")
-        }
         return Fakturaserie(
             id = null,
             referanse = fakturaserieDto.fakturaserieReferanse,
