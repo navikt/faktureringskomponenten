@@ -12,10 +12,8 @@ import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.integration.kafka.EmbeddedKafkaBase
-import no.nav.faktureringskomponenten.service.integration.kafka.FakturaRepositoryForTesting
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -29,7 +27,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.http.HttpHeaders
@@ -570,10 +567,10 @@ class FakturaserieControllerIT(
 
     private fun token(subject: String = "faktureringskomponenten-test"): String? =
         server.issueToken(
-            azureActiveDirectory,
+            "aad",
             "faktureringskomponenten-test",
             DefaultOAuth2TokenCallback(
-                azureActiveDirectory,
+                "aad",
                 subject,
                 JOSEObjectType.JWT.type,
                 listOf("faktureringskomponenten-localhost"),
