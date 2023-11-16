@@ -84,6 +84,45 @@ class EksternFakturaStatusConsumerIT(
         fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.size.shouldBe(1)
     }
 
+    @Test
+    fun `les faktura fra kafka kø og lagre dersom ikke duplikat feil`(){
+        val faktura = lagFakturaMedSerie(
+            Faktura(referanseNr = fakturaReferanseNr)
+        )
+
+        val eksternFakturaStatusDto = EksternFakturaStatusDto(
+            fakturaReferanseNr = faktura.referanseNr,
+            fakturaNummer = "82",
+            dato = LocalDate.now(),
+            status = FakturaStatus.FEIL,
+            fakturaBelop = BigDecimal(4000),
+            ubetaltBelop = BigDecimal(2000),
+            feilmelding = "Feilmelding fra OEBS"
+        )
+
+
+        val eksternFakturaStatusDto2 = EksternFakturaStatusDto(
+            fakturaReferanseNr = faktura.referanseNr,
+            fakturaNummer = "82",
+            dato = LocalDate.now(),
+            status = FakturaStatus.FEIL,
+            fakturaBelop = BigDecimal(0),
+            ubetaltBelop = BigDecimal(0),
+            feilmelding = "Feilmelding fra OEBS"
+        )
+
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto2)
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto2)
+
+        await.timeout(20, TimeUnit.SECONDS)
+            .until {
+                fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.isNotEmpty() ?: false
+            }
+
+        fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.size.shouldBe(1)
+    }
+
 
     @Test
     fun `les faktura fra kafka kø og lagre melding fra OEBS i DB, sjekk manglende betaling`(){
@@ -112,6 +151,39 @@ class EksternFakturaStatusConsumerIT(
         eksternFakturaStatus.shouldNotBeNull()
         eksternFakturaStatus.status.shouldBe(FakturaStatus.MANGLENDE_INNBETALING)
         eksternFakturaStatus.ubetaltBelop!!.shouldBeLessThan(eksternFakturaStatus.fakturaBelop!!)
+    }
+
+    @Test
+    fun `les faktura fra kafka kø og lagre melding fra OEBS i DB, får feil fra oebs`(){
+        val faktura = lagFakturaMedSerie(
+            Faktura()
+        )
+
+        val eksternFakturaStatusDto = EksternFakturaStatusDto(
+            fakturaReferanseNr = faktura.referanseNr,
+            fakturaNummer = "82",
+            dato = LocalDate.now(),
+            status = FakturaStatus.FEIL,
+            fakturaBelop = BigDecimal(4000.00),
+            ubetaltBelop = BigDecimal(2000.00),
+            feilmelding = "Feilmelding fra OEBS"
+        )
+
+        kafkaTemplate.send(kafkaTopic, eksternFakturaStatusDto)
+
+        await.timeout(20, TimeUnit.SECONDS)
+            .until {
+                fakturaRepository.findByIdEagerly(faktura.id!!)?.eksternFakturaStatus?.isNotEmpty() ?: false
+            }
+
+        val nyFaktura = fakturaRepository.findByIdEagerly(faktura.id!!)
+        val eksternFakturaStatus = nyFaktura?.eksternFakturaStatus?.sortedBy { it.dato }?.get(0)
+
+        eksternFakturaStatus.shouldNotBeNull()
+        eksternFakturaStatus.status.shouldBe(FakturaStatus.FEIL)
+        eksternFakturaStatus.feilMelding.shouldBe("Feilmelding fra OEBS")
+
+        nyFaktura.status.shouldBe(FakturaStatus.FEIL)
     }
 }
 

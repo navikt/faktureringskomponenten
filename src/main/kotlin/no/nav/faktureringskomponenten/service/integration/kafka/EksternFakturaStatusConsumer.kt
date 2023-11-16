@@ -33,12 +33,6 @@ class EksternFakturaStatusConsumer(
         log.info("Mottatt melding {}", consumerRecord)
         try {
             eksternFakturaStatusService.lagreEksternFakturaStatusMelding(eksternFakturaStatusDto)
-        } catch (e: EksternFeilException) {
-            log.error(
-                "Feil ved mottak av faktura ved mottak av kafka melding\n" +
-                        "offset=${consumerRecord.offset()}\n" +
-                        "Error:${e.message}", e
-            )
         } catch (e: Exception) {
             log.error(
                 "Feil ved lagring av faktura ved mottak av kafka melding\n" +
