@@ -99,31 +99,6 @@ class FakturaBestillingServiceIT(
             addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
         }.referanseNr
 
-    private fun lagFakturaSerieMedFeilIFaktura(): String =
-        fakturaserieRepository.saveAndFlush(
-            Fakturaserie(
-                referanse = ULID.randomULID(),
-                fodselsnummer = "01234567890",
-                faktura = mutableListOf(
-                    Faktura(
-                        referanseNr = ULID.randomULID(),
-                        datoBestilt = LocalDate.now().plusDays(-1),
-                        status = FakturaStatus.FEIL,
-                        fakturaLinje = mutableListOf(
-                            FakturaLinje(
-                                beskrivelse = "test 1",
-                                belop = BigDecimal(1000),
-                                enhetsprisPerManed = BigDecimal(100)
-                            )
-                        )
-                    )
-                )
-            ).apply { faktura.forEach { it.fakturaserie = this } }
-        ).faktura.first().apply {
-            addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
-        }.referanseNr
-
-
     @Test
     fun `test at feilede faktura blir sent på kø`() {
         val fakturaReferanseNrMedFeilFaktura = lagFakturaSerieMedFeilIFaktura()
@@ -167,4 +142,29 @@ class FakturaBestillingServiceIT(
             .shouldBe(FakturaStatus.OPPRETTET)
         TestQueue.fakturaBestiltMeldinger.shouldBeEmpty()
     }
+
+
+    private fun lagFakturaSerieMedFeilIFaktura(): String =
+        fakturaserieRepository.saveAndFlush(
+            Fakturaserie(
+                referanse = ULID.randomULID(),
+                fodselsnummer = "01234567890",
+                faktura = mutableListOf(
+                    Faktura(
+                        referanseNr = ULID.randomULID(),
+                        datoBestilt = LocalDate.now().plusDays(-1),
+                        status = FakturaStatus.FEIL,
+                        fakturaLinje = mutableListOf(
+                            FakturaLinje(
+                                beskrivelse = "test 1",
+                                belop = BigDecimal(1000),
+                                enhetsprisPerManed = BigDecimal(100)
+                            )
+                        )
+                    )
+                )
+            ).apply { faktura.forEach { it.fakturaserie = this } }
+        ).faktura.first().apply {
+            addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
+        }.referanseNr
 }

@@ -81,17 +81,17 @@ class EksternFakturaStatusService(
         eksternFakturaStatus: EksternFakturaStatus
     ): Boolean {
         if (faktura.eksternFakturaStatus.any {
-                val feiletCondition = (it.status == eksternFakturaStatus.status
+                val erDuplikatEksternFakturaStatusFeil = (it.status == eksternFakturaStatus.status
                         && faktura.status == eksternFakturaStatus.status
                         && it.faktura?.id == eksternFakturaStatus.faktura?.id
                         && it.feilMelding == eksternFakturaStatus.feilMelding)
 
-                val duplikatCondition = (it.status == eksternFakturaStatus.status
+                val erDuplikatEksternFakturaStatus = (it.status == eksternFakturaStatus.status
                         && it.fakturaBelop == eksternFakturaStatus.fakturaBelop?.setScale(2, RoundingMode.DOWN)
                         && it.ubetaltBelop == eksternFakturaStatus.ubetaltBelop?.setScale(2, RoundingMode.DOWN)
                         && it.faktura?.id == eksternFakturaStatus.faktura?.id)
 
-                feiletCondition || duplikatCondition
+                erDuplikatEksternFakturaStatusFeil || erDuplikatEksternFakturaStatus
             }) {
             log.info("EksternFakturaStatus er duplikat, ikke lagre med referanse: {}", faktura.referanseNr)
             return true
