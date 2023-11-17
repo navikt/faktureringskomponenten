@@ -18,7 +18,7 @@ class AuditorAwareFilter : Filter {
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         val httpRequest = request as HttpServletRequest
 
-        if (httpRequest.method.equals("POST", false)) {
+        if (httpRequest.method.equals("POST", false) || httpRequest.method.equals("PUT", false)) {
             val auditor = httpRequest.getHeader(NAV_USER_ID)
             if (auditor == null) {
                 val httpResponse = response as HttpServletResponse

@@ -306,6 +306,9 @@ class FakturaserieControllerIT(
 
         val oppdatertFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(referanse).shouldNotBeNull()
         oppdatertFakturaserie.shouldNotBeNull().fullmektig.shouldBe(Fullmektig(null, "123123123"))
+
+        oppdatertFakturaserie.endretAv.shouldBe(NAV_IDENT_ENDRING)
+        oppdatertFakturaserie.endretTidspunkt.shouldNotBeNull()
     }
 
     @Test
@@ -523,7 +526,7 @@ class FakturaserieControllerIT(
             .uri("/fakturaserier")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
-            .header("Nav-User-Id", "Z123456")
+            .header("Nav-User-Id", NAV_IDENT)
             .bodyValue(fakturaserieRequestDto)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -539,6 +542,7 @@ class FakturaserieControllerIT(
             .uri("/fakturaserier/{referanse}/mottaker", referanse)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
+            .header("Nav-User-Id", NAV_IDENT_ENDRING)
             .bodyValue(fakturamottakerRequestDto)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -579,6 +583,11 @@ class FakturaserieControllerIT(
                 3600
             )
         ).serialize()
+
+    companion object {
+        const val NAV_IDENT = "Z123456"
+        const val NAV_IDENT_ENDRING = "T222222"
+    }
 }
 
 /**
