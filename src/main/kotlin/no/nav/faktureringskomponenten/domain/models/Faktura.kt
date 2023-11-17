@@ -39,7 +39,7 @@ class Faktura(
 
     @Column(name="eksternt_fakturanummer", nullable = false, unique = true)
     var eksternFakturaNummer: String = "",
-) : BaseEntity() {
+) : AuditableEntity() {
 
     override fun toString(): String {
         return "referanseNr: $referanseNr, datoBestilt: $datoBestilt, status: $status"

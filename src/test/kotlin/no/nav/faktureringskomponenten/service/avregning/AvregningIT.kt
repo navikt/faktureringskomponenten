@@ -10,7 +10,6 @@ import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.security.SubjectHandler
 import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
@@ -187,6 +186,7 @@ class AvregningIT(
             .uri("/fakturaserier")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
+            .header("Nav-User-Id", "Z123456")
             .bodyValue(fakturaserieRequestDto)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -196,10 +196,10 @@ class AvregningIT(
 
     private fun token(subject: String = "faktureringskomponenten-test"): String? =
         server.issueToken(
-            SubjectHandler.azureActiveDirectory,
+            "aad",
             "faktureringskomponenten-test",
             DefaultOAuth2TokenCallback(
-                SubjectHandler.azureActiveDirectory,
+                "aad",
                 subject,
                 JOSEObjectType.JWT.type,
                 listOf("faktureringskomponenten-localhost"),

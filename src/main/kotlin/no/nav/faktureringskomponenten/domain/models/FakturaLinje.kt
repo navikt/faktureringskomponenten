@@ -39,7 +39,7 @@ class FakturaLinje(
 
     @Column(name = "belop", nullable = false)
     val belop: BigDecimal = BigDecimal(0),
-) : BaseEntity() {
+) : AuditableEntity() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
