@@ -41,7 +41,10 @@ class EksternFakturaStatusService(
 
     private fun produserBestillingsmeldingOgOppdater(faktura: Faktura, eksternFakturaStatus: EksternFakturaStatus, eksternFakturaStatusDto: EksternFakturaStatusDto){
         try {
-            if (erDuplikat(faktura, eksternFakturaStatus)) return
+            if (erDuplikat(faktura, eksternFakturaStatus)) {
+                lagreFaktura(faktura, eksternFakturaStatusDto)
+                return
+            }
 
             if (eksternFakturaStatus.status == FakturaStatus.FEIL) {
                 log.error("EksternFakturaStatus er FEIL. Gjelder faktura: ${faktura.referanseNr}. Feilmelding fra OEBS: ${eksternFakturaStatus.feilMelding}")
@@ -61,19 +64,24 @@ class EksternFakturaStatusService(
 
             faktura.eksternFakturaStatus.add(eksternFakturaStatus)
 
-            faktura.apply {
-                eksternFakturaNummer = eksternFakturaStatusDto.fakturaNummer ?: ""
-                sistOppdatert = eksternFakturaStatusDto.dato
-                status = eksternFakturaStatusDto.status
-            }
+            lagreFaktura(faktura, eksternFakturaStatusDto)
 
-            fakturaRepository.save(faktura)
         } catch (e: Exception) {
             eksternFakturaStatus.apply { sendt = false }
             throw RuntimeException(
                 "Kunne ikke produsere melding om faktura mottatt bestilt for fakturaserieReferanse ${faktura.fakturaserie!!.referanse}", e
             )
         }
+    }
+
+    private fun lagreFaktura(faktura: Faktura, eksternFakturaStatusDto: EksternFakturaStatusDto) {
+        faktura.apply {
+            eksternFakturaNummer = eksternFakturaStatusDto.fakturaNummer ?: ""
+            sistOppdatert = eksternFakturaStatusDto.dato
+            status = eksternFakturaStatusDto.status
+        }
+
+        fakturaRepository.save(faktura)
     }
 
     private fun erDuplikat(
