@@ -10,5 +10,4 @@ enum class FakturaserieStatus {
     UNDER_BESTILLING,
     KANSELLERT,
     ERSTATTET,
-    FERDIG
 }

@@ -48,15 +48,15 @@ class FakturaBestillingService(
             message = "Finner ikke fakturaserie med fakturaserieId $fakturaserieId"
         )
 
-        faktura.status = FakturaStatus.BESTILT
         fakturaserie.status = FakturaserieStatus.UNDER_BESTILLING
-
-        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(faktura, fakturaserie)
-
         fakturaserieRepository.save(fakturaserie)
+
+        faktura.status = FakturaStatus.BESTILT
         fakturaRepository.save(faktura)
 
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(faktura, fakturaserie)
         fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
+
         Metrics.counter(MetrikkNavn.FAKTURA_BESTILT).increment()
     }
 
@@ -68,12 +68,11 @@ class FakturaBestillingService(
         )
 
         faktura.status = FakturaStatus.BESTILT_KREDITERING
-
-        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(faktura, faktura.fakturaserie!!)
-
         fakturaRepository.save(faktura)
 
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(faktura, faktura.fakturaserie!!)
         fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
+
         Metrics.counter(MetrikkNavn.FAKTURA_BESTILT_KREDITERING).increment()
     }
 }
