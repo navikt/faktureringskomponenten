@@ -103,6 +103,32 @@ class FakturaBestiltDtoMapperTest {
         fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1. kvartal 2024"
     }
 
+    @Test
+    fun `faktura har rett beskrivelse for kvartal hvor flere kvartal er slått sammen`() {
+        val linje = lagFakturaLinje(false)
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
+            Faktura(
+                fakturaLinje = listOf(
+                    linje,
+                    FakturaLinje(
+                        periodeFra = LocalDate.of(2024, 4, 1),
+                        periodeTil = LocalDate.of(2024, 6, 30),
+                        beskrivelse = "Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%",
+                        antall = BigDecimal(1),
+                        enhetsprisPerManed = BigDecimal(1000),
+                        belop = BigDecimal(1000),
+                    )
+                )
+            ),
+            Fakturaserie(
+                fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+                intervall = FakturaserieIntervall.KVARTAL
+            )
+        )
+
+        fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1-2. kvartal 2024"
+    }
+
     private fun lagFakturaLinje(erAvregning: Boolean): FakturaLinje = FakturaLinje(
         referertFakturaVedAvregning = if (erAvregning) Faktura() else null,
         periodeFra = LocalDate.of(2024, 1, 1),

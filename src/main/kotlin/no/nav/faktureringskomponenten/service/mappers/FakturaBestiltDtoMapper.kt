@@ -50,9 +50,12 @@ class FakturaBestiltDtoMapper {
                 }
 
                 val startDatoForPerioder = fakturalinjer.minByOrNull { it.periodeFra }!!.periodeFra
+                val sluttDatoForPerioder = fakturalinjer.maxByOrNull { it.periodeTil }!!.periodeTil
                 if (intervall == FakturaserieIntervall.KVARTAL) {
                     val nåværendeKvartal = startDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
-                    "Faktura Trygdeavgift $nåværendeKvartal. kvartal ${startDatoForPerioder.year}"
+                    val sluttKvartal = sluttDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
+                    val kvartal = if(nåværendeKvartal<sluttKvartal) "$nåværendeKvartal-$sluttKvartal" else "$nåværendeKvartal"
+                    "Faktura Trygdeavgift $kvartal. kvartal ${startDatoForPerioder.year}"
                 } else {
                     val nåværendeMåned = startDatoForPerioder.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
                     "Faktura Trygdeavgift $nåværendeMåned ${startDatoForPerioder.year}"
