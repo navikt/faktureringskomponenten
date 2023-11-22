@@ -12,9 +12,13 @@ class FakturaBestiltDtoMapperTest {
 
     @Test
     fun `intervall KVARTAL setter rett beskrivelse`() {
+        val linje = lagFakturaLinje(false)
         val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
-            Faktura(),
-            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.KVARTAL)
+            Faktura(fakturaLinje = listOf(linje)),
+            Fakturaserie(
+                fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+                intervall = FakturaserieIntervall.KVARTAL
+            )
         )
 
         fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
@@ -23,9 +27,13 @@ class FakturaBestiltDtoMapperTest {
 
     @Test
     fun `intervall MANEDLIG setter rett beskrivelse`() {
+        val linje = lagFakturaLinje(false)
         val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
-            Faktura(),
-            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+            Faktura(fakturaLinje = listOf(linje)),
+            Fakturaserie(
+                fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+                intervall = FakturaserieIntervall.MANEDLIG
+            )
         )
 
         fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
@@ -39,7 +47,10 @@ class FakturaBestiltDtoMapperTest {
             Faktura(
                 fakturaLinje = listOf(linje)
             ),
-            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+            Fakturaserie(
+                fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+                intervall = FakturaserieIntervall.MANEDLIG
+            )
         )
 
         fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe linje.beskrivelse
@@ -51,7 +62,10 @@ class FakturaBestiltDtoMapperTest {
             Faktura(
                 fakturaLinje = listOf(lagFakturaLinje(true))
             ),
-            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+            Fakturaserie(
+                fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+                intervall = FakturaserieIntervall.MANEDLIG
+            )
         )
 
         fakturaBestiltDto.beskrivelse shouldBe "Faktura for avregning mot tidligere fakturert trygdeavgift"
@@ -64,7 +78,10 @@ class FakturaBestiltDtoMapperTest {
             Faktura(
                 fakturaLinje = listOf(linje)
             ),
-            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.MANEDLIG)
+            Fakturaserie(
+                fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+                intervall = FakturaserieIntervall.MANEDLIG
+            )
         )
 
         fakturaBestiltDto.fakturaLinjer[0].beskrivelse shouldBe linje.beskrivelse
@@ -77,7 +94,10 @@ class FakturaBestiltDtoMapperTest {
             Faktura(
                 fakturaLinje = listOf(linje)
             ),
-            Fakturaserie(fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT, intervall = FakturaserieIntervall.KVARTAL)
+            Fakturaserie(
+                fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+                intervall = FakturaserieIntervall.KVARTAL
+            )
         )
 
         fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1. kvartal 2024"

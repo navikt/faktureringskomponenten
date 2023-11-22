@@ -59,7 +59,7 @@ class FakturaBestillingServiceTest {
         val fakturaReferanseNr = ULID.randomULID()
         val faktura = lagFaktura(fakturaReferanseNr)
         val fakturaBestiltDtoCapturingSlot = slot<FakturaBestiltDto>()
-        val nå = LocalDate.now()
+        val startDatoFaktura = faktura.fakturaLinje.minByOrNull { it.periodeFra }!!.periodeFra
 
         every {
             fakturaRepository.findByReferanseNr(fakturaReferanseNr)
@@ -90,7 +90,7 @@ class FakturaBestillingServiceTest {
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
-                    beskrivelse = "Faktura Trygdeavgift ${nå.get(IsoFields.QUARTER_OF_YEAR)}. kvartal ${nå.year}",
+                    beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}. kvartal ${startDatoFaktura.year}",
                     artikkel = "F00008",
                     faktureringsDato = LocalDate.of(2022, 5, 1),
                     fakturaLinjer = listOf(
