@@ -91,10 +91,20 @@ class FakturaGenerator (
 
     private fun erSisteDagIÅret(dato: LocalDate): Boolean = dato.month == Month.DECEMBER && dato.dayOfMonth == 31
 
-    private fun tilFaktura(datoBestilt: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
-        val korrigertDatoBestilt = if (datoBestilt <= dagensDato()) dagensDato()
-            .plusDays(BESTILT_DATO_FORSINKES_MED_DAGER) else datoBestilt
-        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = korrigertDatoBestilt, sistOppdatert = korrigertDatoBestilt, fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
+    private fun tilFaktura(fakturaStartDato: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
+        val korrigertDatoBestilt = if (fakturaStartDato <= dagensDato()) dagensDato()
+        else utledBestillingsDato(fakturaStartDato)
+        return Faktura(
+            null,
+            referanseNr = ULID.randomULID(),
+            datoBestilt = korrigertDatoBestilt,
+            sistOppdatert = korrigertDatoBestilt,
+            fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
+    }
+
+    private fun utledBestillingsDato(fakturaStartDato: LocalDate):LocalDate{
+        val førstMånedIKvartal = fakturaStartDato.month.firstMonthOfQuarter()
+        return fakturaStartDato.withMonth(førstMånedIKvartal.value).minusMonths(1).withDayOfMonth(19)
     }
 
     private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
@@ -103,7 +113,4 @@ class FakturaGenerator (
 
     protected fun dagensDato(): LocalDate = LocalDate.now()
 
-    companion object {
-        const val BESTILT_DATO_FORSINKES_MED_DAGER = 0L
-    }
 }
