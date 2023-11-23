@@ -92,17 +92,19 @@ class FakturaGenerator (
     private fun erSisteDagIÅret(dato: LocalDate): Boolean = dato.month == Month.DECEMBER && dato.dayOfMonth == 31
 
     private fun tilFaktura(fakturaStartDato: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
-        val korrigertDatoBestilt = if (fakturaStartDato <= dagensDato()) dagensDato()
-        else utledBestillingsDato(fakturaStartDato)
+        val bestillingsdato = utledBestillingsdato(fakturaStartDato)
         return Faktura(
             null,
             referanseNr = ULID.randomULID(),
-            datoBestilt = korrigertDatoBestilt,
-            sistOppdatert = korrigertDatoBestilt,
+            datoBestilt = bestillingsdato,
+            sistOppdatert = bestillingsdato,
             fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
-    private fun utledBestillingsDato(fakturaStartDato: LocalDate):LocalDate{
+    private fun utledBestillingsdato(fakturaStartDato: LocalDate): LocalDate {
+        if (fakturaStartDato <= dagensDato()) {
+            return dagensDato()
+        }
         val førstMånedIKvartal = fakturaStartDato.month.firstMonthOfQuarter()
         return fakturaStartDato.withMonth(førstMånedIKvartal.value).minusMonths(1).withDayOfMonth(19)
     }
