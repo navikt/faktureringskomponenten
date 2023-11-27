@@ -1,16 +1,19 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.security.SubjectHandler.Companion.azureActiveDirectory
-import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
+import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
+import no.nav.faktureringskomponenten.service.integration.kafka.EmbeddedKafkaBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -24,17 +27,18 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
-import org.springframework.transaction.annotation.Transactional
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.math.BigDecimal
 import java.time.LocalDate
 
 @Testcontainers
-@ActiveProfiles("itest")
+@ActiveProfiles("itest", "embeded-kafka")
 @AutoConfigureWebTestClient
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -42,18 +46,20 @@ import java.time.LocalDate
 class FakturaserieControllerIT(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val server: MockOAuth2Server,
+    @Autowired private val fakturaserieRepositoryForTesting: FakturaserieRepositoryForTesting,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
-) : PostgresTestContainerBase() {
+    @Autowired private val fakturaRepository: FakturaRepository,
+    @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
+) : EmbeddedKafkaBase(fakturaserieRepository) {
 
     @AfterEach
     fun cleanUp() {
         addCleanUpAction {
-            fakturaserieRepository.deleteAll()
+            fakturaserieRepositoryForTesting.deleteAll()
         }
     }
 
     @Test
-    @Transactional
     fun `erstatt fakturaserie, erstatter opprinnelig og lager ny`() {
         val startDatoOpprinnelig = LocalDate.now().minusMonths(3)
         val sluttDatoOpprinnelig = LocalDate.now().plusMonths(9)
@@ -88,8 +94,10 @@ class FakturaserieControllerIT(
         ).returnResult().responseBody!!.fakturaserieReferanse
 
 
-        val nyFakturaserie = fakturaserieRepository.findByReferanse(nyFakturaserieReferanse).shouldNotBeNull()
-        val oppdatertOpprinneligFakturaserie = fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse)
+        val nyFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
+        val oppdatertOpprinneligFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
 
         oppdatertOpprinneligFakturaserie.shouldNotBeNull().erstattetMed!!.id shouldBe nyFakturaserie.id
         oppdatertOpprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
@@ -97,12 +105,142 @@ class FakturaserieControllerIT(
             it.status.shouldBe(FakturaStatus.KANSELLERT)
         }
 
-        nyFakturaserie.startdato.shouldBe(startDatoNy)
-        nyFakturaserie.sluttdato shouldBe sluttDatoNy
         nyFakturaserie.shouldNotBeNull().status shouldBe FakturaserieStatus.OPPRETTET
         nyFakturaserie.faktura.forEach {
             it.status shouldBe FakturaStatus.OPPRETTET
         }
+    }
+
+    @Test
+    fun `erstatt fakturaserie, første faktura er Bestilt, erstatter opprinnelig og lager ny`() {
+        val startDatoOpprinnelig = LocalDate.now().minusMonths(3)
+        val sluttDatoOpprinnelig = LocalDate.now().plusMonths(9)
+
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDatoOpprinnelig,
+                    sluttDatoOpprinnelig,
+                    "Inntekt fra utlandet"
+                ),
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(
+                NyFakturaserieResponseDto::class.java
+            ).returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        val nyFakturaserieDto = lagFakturaserieDto(
+            referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(20000),
+                    startDatoOpprinnelig,
+                    sluttDatoOpprinnelig,
+                    "Inntekt fra utlandet"
+                ),
+            )
+        )
+
+        val nyFakturaserieReferanse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(
+            NyFakturaserieResponseDto::class.java
+        ).returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        val nyFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
+        val oppdatertOpprinneligFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
+
+
+        oppdatertOpprinneligFakturaserie.shouldNotBeNull().erstattetMed!!.id shouldBe nyFakturaserie.id
+        oppdatertOpprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
+        oppdatertOpprinneligFakturaserie.faktura
+            .map { it.status }
+            .shouldContainExactlyInAnyOrder(
+                FakturaStatus.BESTILT,
+                FakturaStatus.KANSELLERT,
+                FakturaStatus.KANSELLERT,
+                FakturaStatus.KANSELLERT
+            )
+
+        nyFakturaserie.shouldNotBeNull().status shouldBe FakturaserieStatus.UNDER_BESTILLING
+        nyFakturaserie.faktura
+            .map { it.status }
+            .shouldContainExactlyInAnyOrder(
+                FakturaStatus.BESTILT,
+                FakturaStatus.OPPRETTET,
+                FakturaStatus.OPPRETTET,
+                FakturaStatus.OPPRETTET
+            )
+        fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
+            .first { it.status == FakturaStatus.BESTILT }
+            .erAvregningsfaktura().shouldBeTrue()
+    }
+
+    @Test
+    fun `erstatt fakturaserie hvor alt er i fortiden og bestilt - skal kun bli en faktura`() {
+        val startDatoOpprinnelig = LocalDate.of(2016, 1, 1)
+        val sluttDatoOpprinnelig = LocalDate.of(2017, 1, 31)
+
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDatoOpprinnelig,
+                    sluttDatoOpprinnelig,
+                    "Inntekt fra utlandet"
+                ),
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(
+                NyFakturaserieResponseDto::class.java
+            ).returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        val nyFakturaserieDto = lagFakturaserieDto(
+            referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(20000),
+                    startDatoOpprinnelig,
+                    sluttDatoOpprinnelig,
+                    "Inntekt fra utlandet"
+                ),
+            )
+        )
+
+        val nyFakturaserieReferanse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(
+            NyFakturaserieResponseDto::class.java
+        ).returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        val nyFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
+        val oppdatertOpprinneligFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
+
+        oppdatertOpprinneligFakturaserie.shouldNotBeNull().erstattetMed!!.id shouldBe nyFakturaserie.id
+        oppdatertOpprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
+        oppdatertOpprinneligFakturaserie.faktura
+            .map { it.status }
+            .shouldContainExactlyInAnyOrder(FakturaStatus.BESTILT, FakturaStatus.BESTILT)
+
+        nyFakturaserie.shouldNotBeNull().status shouldBe FakturaserieStatus.UNDER_BESTILLING
+        nyFakturaserie.faktura
+            .shouldHaveSize(1)
+            .first()
+            .status.shouldBe(FakturaStatus.BESTILT)
+        fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
+            .first { it.status == FakturaStatus.BESTILT }
+            .erAvregningsfaktura().shouldBeTrue()
     }
 
     @Test
@@ -142,7 +280,6 @@ class FakturaserieControllerIT(
     }
 
     @Test
-    @Transactional
     fun `oppdater fakturamottaker, oppdaterer fullmektig på fakturaserie`() {
         val fakturaserieDto = lagFakturaserieDto(
             fullmektig = null,
@@ -167,8 +304,11 @@ class FakturaserieControllerIT(
         ).expectStatus().isOk
 
 
-        val oppdatertFakturaserie = fakturaserieRepository.findByReferanse(referanse).shouldNotBeNull()
+        val oppdatertFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(referanse).shouldNotBeNull()
         oppdatertFakturaserie.shouldNotBeNull().fullmektig.shouldBe(Fullmektig(null, "123123123"))
+
+        oppdatertFakturaserie.endretAv.shouldBe(NAV_IDENT_ENDRING)
+        oppdatertFakturaserie.endretTidspunkt.shouldNotBeNull()
     }
 
     @Test
@@ -194,7 +334,10 @@ class FakturaserieControllerIT(
         response.faktura.size.shouldBe(1)
         response.faktura[0].fakturaLinje.map { it.periodeFra }.shouldContainOnly(startDato)
         response.faktura[0].fakturaLinje.map { it.periodeTil }.shouldContainOnly(sluttDato)
-        response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactly("Periode: 01.01.2023 - 31.03.2023\nInntekt fra utlandet", "Periode: 01.01.2023 - 31.03.2023\nMisjonær")
+        response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactlyInAnyOrder(
+            "Periode: 01.01.2023 - 31.03.2023\nInntekt fra utlandet",
+            "Periode: 01.01.2023 - 31.03.2023\nMisjonær"
+        )
     }
 
     @Test
@@ -203,11 +346,18 @@ class FakturaserieControllerIT(
         val sluttDato = LocalDate.parse("2023-03-31")
         val fakturaSerieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(12000), startDato, sluttDato, "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"),
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDato,
+                    sluttDato,
+                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                ),
             )
         )
 
-        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
+        val fakturaserieReferanse =
+            postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java)
+                .returnResult().responseBody!!.fakturaserieReferanse
 
         val response = hentFakturaserieRequest(fakturaserieReferanse)
             .expectStatus().isOk
@@ -217,7 +367,8 @@ class FakturaserieControllerIT(
         response.faktura.size.shouldBe(1)
         response.faktura[0].fakturaLinje.map { it.periodeFra }.shouldContainOnly(startDato)
         response.faktura[0].fakturaLinje.map { it.periodeTil }.shouldContainOnly(sluttDato)
-        response.faktura[0].fakturaLinje.map { it.beskrivelse }.shouldContainExactly("Periode: 01.01.2023 - 31.03.2023\nInntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %")
+        response.faktura[0].fakturaLinje.map { it.beskrivelse }
+            .shouldContainExactly("Periode: 01.01.2023 - 31.03.2023\nInntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %")
     }
 
     @Test
@@ -226,16 +377,48 @@ class FakturaserieControllerIT(
         val sluttDato = LocalDate.parse("2023-03-31")
         val fakturaSerieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(12000), startDato, sluttDato, "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"),
-                FakturaseriePeriodeDto(BigDecimal(12000), startDato.plusDays(10), sluttDato, "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"),
-                FakturaseriePeriodeDto(BigDecimal(12000), startDato.plusDays(40), sluttDato, "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"),
-                FakturaseriePeriodeDto(BigDecimal(12000), startDato.plusDays(80), sluttDato, "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"),
-                FakturaseriePeriodeDto(BigDecimal(12000), startDato.plusDays(90), sluttDato, "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"),
-                FakturaseriePeriodeDto(BigDecimal(12000), startDato.plusDays(200), sluttDato, "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"),
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDato,
+                    sluttDato,
+                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                ),
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDato.plusDays(10),
+                    sluttDato,
+                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                ),
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDato.plusDays(40),
+                    sluttDato,
+                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                ),
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDato.plusDays(80),
+                    sluttDato,
+                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                ),
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDato.plusDays(90),
+                    sluttDato,
+                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                ),
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDato.plusDays(200),
+                    sluttDato,
+                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                ),
             )
         )
 
-        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java).returnResult().responseBody!!.fakturaserieReferanse
+        val fakturaserieReferanse =
+            postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java)
+                .returnResult().responseBody!!.fakturaserieReferanse
 
         val response = hentFakturaserieRequest(fakturaserieReferanse)
             .expectStatus().isOk
@@ -343,6 +526,7 @@ class FakturaserieControllerIT(
             .uri("/fakturaserier")
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
+            .header("Nav-User-Id", NAV_IDENT)
             .bodyValue(fakturaserieRequestDto)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -358,6 +542,7 @@ class FakturaserieControllerIT(
             .uri("/fakturaserier/{referanse}/mottaker", referanse)
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
+            .header("Nav-User-Id", NAV_IDENT_ENDRING)
             .bodyValue(fakturamottakerRequestDto)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
@@ -387,10 +572,10 @@ class FakturaserieControllerIT(
 
     private fun token(subject: String = "faktureringskomponenten-test"): String? =
         server.issueToken(
-            azureActiveDirectory,
+            "aad",
             "faktureringskomponenten-test",
             DefaultOAuth2TokenCallback(
-                azureActiveDirectory,
+                "aad",
                 subject,
                 JOSEObjectType.JWT.type,
                 listOf("faktureringskomponenten-localhost"),
@@ -398,4 +583,19 @@ class FakturaserieControllerIT(
                 3600
             )
         ).serialize()
+
+    companion object {
+        const val NAV_IDENT = "Z123456"
+        const val NAV_IDENT_ENDRING = "T222222"
+    }
+}
+
+/**
+ * Oppretter dette interfacet for å ikke måtte bruke @Transactional på test metodene. Dette repoet skal kun brukes for
+ * verifisering. Hvis noen finner en smart måte å kun kalle verifiserings logikken i en transaction så si gjerne ifra.
+ */
+interface FakturaserieRepositoryForTesting : JpaRepository<Fakturaserie, String> {
+
+    @Query("SELECT fs FROM Fakturaserie fs JOIN fetch fs.faktura where fs.referanse = :referanse")
+    fun findByReferanseEagerly(referanse: String): Fakturaserie?
 }

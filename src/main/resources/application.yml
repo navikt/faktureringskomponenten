@@ -31,6 +31,10 @@ kafka:
       topic: ${KAFKA_AIVEN_OEBS_FAKTURAMOTTATT_TOPIC}
 
 
+cron:
+  job:
+    bestill-faktura:  ${CRON_JOB_BESTILL_FAKTURA}
+
 #Token-validering
 no.nav.security.jwt.issuer:
   aad:

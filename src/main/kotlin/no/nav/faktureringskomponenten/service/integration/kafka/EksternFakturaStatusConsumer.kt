@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.exceptions.EksternFeilException
 import no.nav.faktureringskomponenten.service.EksternFakturaStatusService
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import org.apache.kafka.clients.consumer.ConsumerRecord

@@ -13,7 +13,7 @@ import ulid.ULID
 
 @EmbeddedKafka(
     count = 1, controlledShutdown = true, partitions = 1,
-    topics = ["faktura-mottatt-topic-local"],
+    topics = ["faktura-mottatt-topic-local", "faktura-bestilt.v1"],
     brokerProperties = ["offsets.topic.replication.factor=1", "transaction.state.log.replication.factor=1", "transaction.state.log.min.isr=1"]
 )
 @DirtiesContext

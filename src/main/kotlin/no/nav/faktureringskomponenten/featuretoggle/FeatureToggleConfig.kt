@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
 import java.util.*
-import java.util.List
 
 
 @Configuration
@@ -25,16 +24,16 @@ class FeatureToggleConfig {
     @Bean
     fun unleash(environment: Environment, @Value("\${unleash.token}") token: String): Unleash {
         return if (!Collections.disjoint(
-                List.of<String?>(*environment.activeProfiles),
-                List.of<String?>("local")
+                listOf(*environment.activeProfiles),
+                listOf("local")
             )
         ) {
             val localUnleash = LocalUnleash()
             localUnleash.enableAll()
             localUnleash
-        } else if (List.of<String>(*environment.activeProfiles).contains("itest")) {
+        } else if (listOf(*environment.activeProfiles).contains("itest")) {
             val fakeUnleash = FakeUnleash()
-            fakeUnleash.enableAll()
+            fakeUnleash.disableAll()
             fakeUnleash
         } else {
             val unleashConfig: UnleashConfig = UnleashConfig.builder()

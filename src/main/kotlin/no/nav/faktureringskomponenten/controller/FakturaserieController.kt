@@ -70,7 +70,7 @@ class FakturaserieController @Autowired constructor(
         @PathVariable("referanse", required = true) referanse: String,
         bindingResult: BindingResult
     ): ResponseEntity<Any> {
-        log.info("Mottatt spørsmål om endring av fakturamottaker for ${referanse}")
+        log.info("Mottatt forespørsel om endring av fakturamottaker for ${referanse}")
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ProblemDetailFactory.of(bindingResult))

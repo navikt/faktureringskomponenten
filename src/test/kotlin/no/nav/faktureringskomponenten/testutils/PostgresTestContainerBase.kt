@@ -17,7 +17,7 @@ open class PostgresTestContainerBase {
     private var dbCleanUpActions = mutableListOf<() -> Unit>()
 
     companion object {
-        var dbContainer = PostgreSQLContainer("postgres:12.11")
+        var dbContainer = PostgreSQLContainer("postgres:15.2")
         private const val useContainer = true // easy way to switch to run against local docker
 
         @DynamicPropertySource

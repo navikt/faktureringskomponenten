@@ -1,14 +1,15 @@
 {
-  "namespace": "teammelosys",
   "app_name": "faktureringskomponenten",
   "database_name": "faktureringskomponenten-db",
+  "namespace": "teammelosys",
   "ingress": "https://faktureringskomponenten.intern.nav.no",
   "tenant": "nav.no",
   "kafka_pool": "nav-prod",
-  "cluster_name": "prod-fss",
+  "melosys_web_api_cluster": "prod-fss",
   "app_name_melosys_api": "melosys",
-  "app_name_melosys_web": "melosys",
+  "app_name_melosys_web": "melosys-web",
   "kafka_topic_name_faktura_bestilt": "teammelosys.faktura-bestilt.v1",
   "kafka_topic_name_manglende_fakturabetaling": "teammelosys.manglende-fakturabetaling.v1",
-  "unleash_environment": "production"
+  "unleash_environment": "production",
+  "cron_job_bestill_faktura":  "0 0 4 * * *"
 }

@@ -13,11 +13,14 @@ spec:
     timeout: 5
   gcp:
     sqlInstances:
-      - type: POSTGRES_12
+      - type: POSTGRES_15
         diskAutoresize: true
         databases:
           - name: {{database_name}}
             envVarPrefix: DB
+        flags:
+          - name: timezone
+            value: "Europe/Oslo"
   image: {{image}}
   port: 8080
   replicas:
@@ -41,13 +44,13 @@ spec:
       rules:
         - application: {{app_name_melosys_api}}
           namespace: teammelosys
-          cluster: {{cluster_name}}
+          cluster: {{melosys_web_api_cluster}}
           permissions:
             roles:
               - faktureringskomponenten-skriv
         - application: {{app_name_melosys_web}}
           namespace: teammelosys
-          cluster: {{cluster_name}}
+          cluster: {{melosys_web_api_cluster}}
     outbound:
       external:
         - host: "melosys-unleash-api.nav.cloud.nais.io"
@@ -72,6 +75,8 @@ spec:
       value: {{kafka_topic_name_manglende_fakturabetaling}}
     - name: app_name
       value: {{app_name}}
+    - name: CRON_JOB_BESTILL_FAKTURA
+      value: {{cron_job_bestill_faktura}}
   envFrom:
     - secret: faktureringskomponenten
     - secret: {{app_name}}-unleash-api-token

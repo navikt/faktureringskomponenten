@@ -5,6 +5,7 @@ import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
+import no.nav.faktureringskomponenten.exceptions.EksternFeilException
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.Betalingstatus
@@ -29,7 +30,6 @@ class EksternFakturaStatusService(
         log.info("Mottatt $eksternFakturaStatusDto")
 
         val faktura = fakturaRepository.findByReferanseNr(eksternFakturaStatusDto.fakturaReferanseNr)
-
         faktura ?: throw RessursIkkeFunnetException(
             field = "faktura.referanseNr",
             message = "Finner ikke faktura med faktura referanse nr ${eksternFakturaStatusDto.fakturaReferanseNr}"
@@ -46,7 +46,14 @@ class EksternFakturaStatusService(
         eksternFakturaStatusDto: EksternFakturaStatusDto
     ) {
         try {
-            if (erDuplikat(faktura, eksternFakturaStatus)) return
+            if (erDuplikat(faktura, eksternFakturaStatus)) {
+                lagreFaktura(faktura, eksternFakturaStatusDto)
+                return
+            }
+
+            if (eksternFakturaStatus.status == FakturaStatus.FEIL) {
+                log.error("EksternFakturaStatus er FEIL. Gjelder faktura: ${faktura.referanseNr}. Feilmelding fra OEBS: ${eksternFakturaStatus.feilMelding}")
+            }
 
             if (eksternFakturaStatus.status == FakturaStatus.MANGLENDE_INNBETALING) {
                 val betalingstatus =
@@ -67,13 +74,8 @@ class EksternFakturaStatusService(
 
             faktura.eksternFakturaStatus.add(eksternFakturaStatus)
 
-            faktura.apply {
-                eksternFakturaNummer = eksternFakturaStatusDto.fakturaNummer ?: ""
-                sistOppdatert = eksternFakturaStatusDto.dato
-                status = eksternFakturaStatusDto.status
-            }
+            lagreFaktura(faktura, eksternFakturaStatusDto)
 
-            fakturaRepository.save(faktura)
         } catch (e: Exception) {
             eksternFakturaStatus.apply { sendt = false }
             throw RuntimeException(
@@ -83,15 +85,32 @@ class EksternFakturaStatusService(
         }
     }
 
+    private fun lagreFaktura(faktura: Faktura, eksternFakturaStatusDto: EksternFakturaStatusDto) {
+        faktura.apply {
+            eksternFakturaNummer = eksternFakturaStatusDto.fakturaNummer ?: ""
+            sistOppdatert = eksternFakturaStatusDto.dato
+            status = eksternFakturaStatusDto.status
+        }
+
+        fakturaRepository.save(faktura)
+    }
+
     private fun erDuplikat(
         faktura: Faktura,
         eksternFakturaStatus: EksternFakturaStatus
     ): Boolean {
         if (faktura.eksternFakturaStatus.any {
-                it.status == eksternFakturaStatus.status
-                && it.fakturaBelop == eksternFakturaStatus.fakturaBelop?.setScale(2, RoundingMode.DOWN)
-                && it.ubetaltBelop == eksternFakturaStatus.ubetaltBelop?.setScale(2, RoundingMode.DOWN)
-                && it.faktura?.id == eksternFakturaStatus.faktura?.id
+                val erDuplikatEksternFakturaStatusFeil = (it.status == eksternFakturaStatus.status
+                        && faktura.status == eksternFakturaStatus.status
+                        && it.faktura?.id == eksternFakturaStatus.faktura?.id
+                        && it.feilMelding == eksternFakturaStatus.feilMelding)
+
+                val erDuplikatEksternFakturaStatus = (it.status == eksternFakturaStatus.status
+                        && it.fakturaBelop == eksternFakturaStatus.fakturaBelop?.setScale(2, RoundingMode.DOWN)
+                        && it.ubetaltBelop == eksternFakturaStatus.ubetaltBelop?.setScale(2, RoundingMode.DOWN)
+                        && it.faktura?.id == eksternFakturaStatus.faktura?.id)
+
+                erDuplikatEksternFakturaStatusFeil || erDuplikatEksternFakturaStatus
             }) {
             log.info("EksternFakturaStatus er duplikat, ikke lagre med referanse: {}", faktura.referanseNr)
             return true

@@ -2,7 +2,6 @@ package no.nav.faktureringskomponenten.domain.models
 
 import jakarta.persistence.*
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 @Entity
 @Table(name = "fakturaserie")
@@ -45,9 +44,6 @@ class Fakturaserie(
     @Enumerated(EnumType.STRING)
     val intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
 
-    @Column(name = "opprettet_tidspunkt", nullable = false)
-    val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
-
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "fakturaserie_id", nullable = false)
     val faktura: List<Faktura> = mutableListOf(),
@@ -56,7 +52,7 @@ class Fakturaserie(
     @JoinColumn(name = "erstattet_med", referencedColumnName = "id")
     var erstattetMed: Fakturaserie? = null,
 
-) {
+) : ModifiableEntity() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

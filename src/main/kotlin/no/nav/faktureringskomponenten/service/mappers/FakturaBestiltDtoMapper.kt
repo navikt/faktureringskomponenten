@@ -23,12 +23,12 @@ class FakturaBestiltDtoMapper {
             kreditReferanseNr = "",
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
-            beskrivelse = mapFakturaBeskrivelse(fakturaserie.fakturaGjelderInnbetalingstype, fakturaserie.intervall, faktura.erAvregningsfaktura()),
+            beskrivelse = mapFakturaBeskrivelse(fakturaserie.fakturaGjelderInnbetalingstype, faktura.fakturaLinje, fakturaserie.intervall, faktura.erAvregningsfaktura()),
             artikkel = mapArtikkel(fakturaserie.fakturaGjelderInnbetalingstype),
             faktureringsDato = faktura.datoBestilt,
             fakturaLinjer = faktura.fakturaLinje.map {
                 FakturaBestiltLinjeDto(
-                    beskrivelse = lagBestiltLinjeBeskrivelse(it, faktura.erAvregningsfaktura()),
+                    beskrivelse = it.beskrivelse,
                     antall = it.antall,
                     enhetspris = it.enhetsprisPerManed,
                     belop = it.belop
@@ -37,27 +37,28 @@ class FakturaBestiltDtoMapper {
         )
     }
 
-    private fun lagBestiltLinjeBeskrivelse(fakturaLinje: FakturaLinje, erAvregning: Boolean): String {
-        val prefiks = if (erAvregning) "Avregning mot fakturanummer ${fakturaLinje.referertFakturaVedAvregning?.id}, " else ""
-
-        return prefiks + fakturaLinje.beskrivelse
-    }
-
-
-    private fun mapFakturaBeskrivelse(fakturaGjelder: Innbetalingstype, intervall: FakturaserieIntervall, erAvregning: Boolean): String {
+    private fun mapFakturaBeskrivelse(
+        fakturaGjelder: Innbetalingstype,
+        fakturalinjer: List<FakturaLinje>,
+        intervall: FakturaserieIntervall,
+        erAvregning: Boolean
+    ): String {
         return when (fakturaGjelder) {
             Innbetalingstype.TRYGDEAVGIFT -> {
                 if (erAvregning) {
                     return "Faktura for avregning mot tidligere fakturert trygdeavgift"
                 }
 
-                val nå = LocalDate.now()
+                val startDatoForPerioder = fakturalinjer.minByOrNull { it.periodeFra }!!.periodeFra
+                val sluttDatoForPerioder = fakturalinjer.maxByOrNull { it.periodeTil }!!.periodeTil
                 if (intervall == FakturaserieIntervall.KVARTAL) {
-                    val nåværendeKvartal = nå[IsoFields.QUARTER_OF_YEAR]
-                    "Faktura Trygdeavgift $nåværendeKvartal. kvartal ${nå.year}"
+                    val nåværendeKvartal = startDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
+                    val sluttKvartal = sluttDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
+                    val kvartal = if(nåværendeKvartal<sluttKvartal) "$nåværendeKvartal-$sluttKvartal" else "$nåværendeKvartal"
+                    "Faktura Trygdeavgift $kvartal. kvartal ${startDatoForPerioder.year}"
                 } else {
-                    val nåværendeMåned = nå.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                    "Faktura Trygdeavgift $nåværendeMåned ${nå.year}"
+                    val nåværendeMåned = startDatoForPerioder.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                    "Faktura Trygdeavgift $nåværendeMåned ${startDatoForPerioder.year}"
                 }
             }
         }
