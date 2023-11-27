@@ -3,15 +3,15 @@ package no.nav.faktureringskomponenten.service
 import io.getunleash.FakeUnleash
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class FakturaGeneratorTest {
-    private val fakturaLinjeGenerator = mock<FakturaLinjeGenerator>()
+    private val fakturaLinjeGenerator = mockk<FakturaLinjeGenerator>(relaxed = true)
     private val unleash = FakeUnleash()
     private val generator = FakturaGenerator(fakturaLinjeGenerator, unleash)
 
