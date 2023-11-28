@@ -71,7 +71,9 @@ dependencies {
     implementation("org.threeten:threeten-extra:${dependencyVersions.threeTenExtraVersion}")
     implementation("com.aallam.ulid:ulid-kotlin:${dependencyVersions.ULIDVersion}")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude(group = "org.mockito", module = "mockito-core")
+    }
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("no.nav.security:token-validation-spring-test:${dependencyVersions.tokenSupportVersion}")
     testImplementation("io.kotest:kotest-assertions-core-jvm:${dependencyVersions.kotestVersion}")

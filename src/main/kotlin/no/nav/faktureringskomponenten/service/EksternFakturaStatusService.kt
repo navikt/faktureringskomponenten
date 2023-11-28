@@ -8,6 +8,7 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.exceptions.EksternFeilException
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
+import no.nav.faktureringskomponenten.service.integration.kafka.dto.Betalingstatus
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFakturabetalingDto
 import no.nav.faktureringskomponenten.service.mappers.EksternFakturaStatusMapper
@@ -39,7 +40,11 @@ class EksternFakturaStatusService(
         produserBestillingsmeldingOgOppdater(faktura, eksternFakturaStatus, eksternFakturaStatusDto)
     }
 
-    private fun produserBestillingsmeldingOgOppdater(faktura: Faktura, eksternFakturaStatus: EksternFakturaStatus, eksternFakturaStatusDto: EksternFakturaStatusDto){
+    private fun produserBestillingsmeldingOgOppdater(
+        faktura: Faktura,
+        eksternFakturaStatus: EksternFakturaStatus,
+        eksternFakturaStatusDto: EksternFakturaStatusDto
+    ) {
         try {
             if (erDuplikat(faktura, eksternFakturaStatus)) {
                 lagreFaktura(faktura, eksternFakturaStatusDto)
@@ -50,11 +55,16 @@ class EksternFakturaStatusService(
                 log.error("EksternFakturaStatus er FEIL. Gjelder faktura: ${faktura.referanseNr}. Feilmelding fra OEBS: ${eksternFakturaStatus.feilMelding}")
             }
 
-            if(eksternFakturaStatus.status == FakturaStatus.MANGLENDE_INNBETALING) {
+            if (eksternFakturaStatus.status == FakturaStatus.MANGLENDE_INNBETALING) {
+                val betalingstatus =
+                    if (eksternFakturaStatus.fakturaBelop == eksternFakturaStatus.ubetaltBelop) Betalingstatus.IKKE_BETALT
+                    else Betalingstatus.DELVIS_BETALT
                 manglendeFakturabetalingProducer.produserBestillingsmelding(
                     ManglendeFakturabetalingDto(
                         fakturaserieReferanse = faktura.fakturaserie!!.referanse,
-                        mottaksDato = eksternFakturaStatus.dato!!
+                        betalingstatus = betalingstatus,
+                        datoMottatt = eksternFakturaStatus.dato!!,
+                        fakturanummer = eksternFakturaStatusDto.fakturaNummer!!
                     )
                 )
                 eksternFakturaStatus.apply { sendt = true }
@@ -69,7 +79,8 @@ class EksternFakturaStatusService(
         } catch (e: Exception) {
             eksternFakturaStatus.apply { sendt = false }
             throw RuntimeException(
-                "Kunne ikke produsere melding om faktura mottatt bestilt for fakturaserieReferanse ${faktura.fakturaserie!!.referanse}", e
+                "Kunne ikke produsere melding om faktura mottatt bestilt for fakturaserieReferanse ${faktura.fakturaserie!!.referanse}",
+                e
             )
         }
     }

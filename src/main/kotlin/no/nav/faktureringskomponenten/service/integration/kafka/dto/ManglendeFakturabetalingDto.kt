@@ -4,5 +4,7 @@ import java.time.LocalDate
 
 data class ManglendeFakturabetalingDto(
     var fakturaserieReferanse: String,
-    var mottaksDato: LocalDate
+    var betalingstatus: Betalingstatus,
+    var datoMottatt: LocalDate,
+    var fakturanummer: String
 )
