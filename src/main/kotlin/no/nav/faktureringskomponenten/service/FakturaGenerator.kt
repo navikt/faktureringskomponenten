@@ -56,6 +56,18 @@ class FakturaGenerator (
         return samletFakturaListe
     }
 
+    fun lagKreditnota(faktura: List<Faktura>): List<Faktura> {
+        return faktura.map {
+            Faktura(
+                id = null,
+                kreditReferanseNr = it.referanseNr,
+                referanseNr = ULID.randomULID(),
+                fakturaserie = null,
+                fakturaLinje = fakturalinjeGenerator.lagFakturaLinjerKreditering(it.fakturaLinje)
+            )
+        }
+    }
+
     private fun faktureringSluttDatoFra(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
         var sluttDato = if (intervall == FakturaserieIntervall.MANEDLIG) {
             startDato.withDayOfMonth(startDato.lengthOfMonth())

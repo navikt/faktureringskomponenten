@@ -39,6 +39,22 @@ class FakturaserieGenerator(
         )
     }
 
+    fun lagKrediteringFakturaSerie(fakturaserie: Fakturaserie): Fakturaserie {
+        return Fakturaserie(
+            id = null,
+            referanse = fakturaserie.referanse,
+            fakturaGjelderInnbetalingstype = fakturaserie.fakturaGjelderInnbetalingstype,
+            fodselsnummer = fakturaserie.fodselsnummer,
+            fullmektig = mapFullmektig(fakturaserie.fullmektig),
+            referanseBruker = fakturaserie.referanseBruker,
+            referanseNAV = fakturaserie.referanseNAV,
+            startdato = fakturaserie.startdato,
+            sluttdato = fakturaserie.sluttdato,
+            intervall = fakturaserie.intervall,
+            faktura = fakturaGenerator.lagKreditnota(fakturaserie.bestilteFakturaer())
+        )
+    }
+
     private fun mapFullmektig(fullmektigDto: Fullmektig?): Fullmektig? {
         if (fullmektigDto != null) {
             return Fullmektig(

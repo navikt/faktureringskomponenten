@@ -100,4 +100,20 @@ class FakturaserieController @Autowired constructor(
     ): List<FakturaserieResponseDto> {
         return faktureringService.hentFakturaserier(referanse).map { it.tilFakturaserieResponseDto }
     }
+
+    @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
+    @DeleteMapping("/{referanse}")
+    fun kansellerFakturaserie(
+        @PathVariable("referanse", required = true) referanse: String,
+    ): HttpStatus {
+        log.info("Mottatt spørsmål om kansellering av fakturaserie: ${referanse}")
+
+        return try {
+            faktureringService.kansellerFakturaserie(referanse)
+            HttpStatus.NO_CONTENT
+        } catch (e: IllegalArgumentException) {
+            HttpStatus.NOT_FOUND
+        }
+
+    }
 }
