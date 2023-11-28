@@ -5,7 +5,6 @@ import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
-import no.nav.faktureringskomponenten.exceptions.EksternFeilException
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.Betalingstatus
@@ -61,15 +60,17 @@ class EksternFakturaStatusService(
                     else Betalingstatus.DELVIS_BETALT
                 manglendeFakturabetalingProducer.produserBestillingsmelding(
                     ManglendeFakturabetalingDto(
-                        fakturaserieReferanse = faktura.fakturaserie!!.referanse,
+                        fakturaserieReferanse = faktura.fakturaserie?.referanse ?: throw NullPointerException(
+                            "Fakturaserie på faktura $faktura.id er null"
+                        ),
                         betalingstatus = betalingstatus,
                         datoMottatt = eksternFakturaStatus.dato!!,
                         fakturanummer = eksternFakturaStatusDto.fakturaNummer!!
                     )
                 )
-                eksternFakturaStatus.apply { sendt = true }
+                eksternFakturaStatus.sendt = true
             } else {
-                eksternFakturaStatus.apply { sendt = false }
+                eksternFakturaStatus.sendt = false
             }
 
             faktura.eksternFakturaStatus.add(eksternFakturaStatus)
@@ -77,7 +78,7 @@ class EksternFakturaStatusService(
             lagreFaktura(faktura, eksternFakturaStatusDto)
 
         } catch (e: Exception) {
-            eksternFakturaStatus.apply { sendt = false }
+            eksternFakturaStatus.sendt = false
             throw RuntimeException(
                 "Kunne ikke produsere melding om faktura mottatt bestilt for fakturaserieReferanse ${faktura.fakturaserie!!.referanse}",
                 e
