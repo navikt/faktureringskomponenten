@@ -10,7 +10,7 @@ import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
-import no.nav.faktureringskomponenten.service.integration.kafka.dto.Betalingstatus
+import no.nav.faktureringskomponenten.service.integration.kafka.dto.Betalingsstatus
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.ManglendeFakturabetalingDto
 import no.nav.faktureringskomponenten.service.mappers.EksternFakturaStatusMapper
@@ -125,7 +125,7 @@ class EksternFakturaStatusServiceTest {
         verify { manglendeFakturabetalingProducer.produserBestillingsmelding(capture(manglendeFakturabetalingSlot)) }
         manglendeFakturabetalingSlot.captured.run {
             fakturaserieReferanse shouldBe "321"
-            betalingstatus shouldBe Betalingstatus.IKKE_BETALT
+            betalingsstatus shouldBe Betalingsstatus.IKKE_BETALT
             fakturanummer shouldBe "82"
             datoMottatt shouldBe LocalDate.of(2023, 2, 1)
         }
@@ -168,7 +168,7 @@ class EksternFakturaStatusServiceTest {
         verify { manglendeFakturabetalingProducer.produserBestillingsmelding(capture(manglendeFakturabetalingSlot)) }
         manglendeFakturabetalingSlot.captured.run {
             fakturaserieReferanse shouldBe "321"
-            betalingstatus shouldBe Betalingstatus.DELVIS_BETALT
+            betalingsstatus shouldBe Betalingsstatus.DELVIS_BETALT
             fakturanummer shouldBe "82"
             datoMottatt shouldBe LocalDate.of(2023, 2, 1)
         }
