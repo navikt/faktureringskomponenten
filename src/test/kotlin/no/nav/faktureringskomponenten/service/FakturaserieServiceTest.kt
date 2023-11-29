@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
 import io.kotest.inspectors.forExactly
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -13,6 +14,7 @@ import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
+import no.nav.faktureringskomponenten.testutils.DomainTestFactory
 import org.junit.jupiter.api.Test
 import ulid.ULID
 import java.math.BigDecimal
@@ -26,7 +28,8 @@ class FakturaserieServiceTest {
     private val fakturaserieGenerator = FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash()))
     private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
 
-    private val fakturaserieService = FakturaserieService(fakturaserieRepository, fakturaserieGenerator, avregningBehandler)
+    private val fakturaserieService =
+        FakturaserieService(fakturaserieRepository, fakturaserieGenerator, avregningBehandler)
 
     @Test
     fun `Endrer fakturaserie, erstatter opprinnelig og lager ny`() {
@@ -124,6 +127,40 @@ class FakturaserieServiceTest {
 
         verify { fakturaserieRepository.save(any()) }
         fakturaserie.fullmektig.shouldBeNull()
+    }
+
+    @Test
+    fun `Kansellere fakturaserie - eksisterende får oppdatert status`() {
+        val eksisterendeFakturaserie = DomainTestFactory.FakturaserieBuilder()
+            .faktura(
+                DomainTestFactory.FakturaBuilder()
+                    .status(FakturaStatus.BESTILT)
+                    .build()
+            )
+            .build()
+        val krediteringFakturaSerie = fakturaserieGenerator.lagKrediteringFakturaSerie(eksisterendeFakturaserie)
+        every { fakturaserieRepository.findByReferanse(eksisterendeFakturaserie.referanse) } returns eksisterendeFakturaserie
+
+        every { fakturaserieRepository.save(eq(krediteringFakturaSerie)) } returns krediteringFakturaSerie
+        every { fakturaserieRepository.save(eq(eksisterendeFakturaserie)) } returns eksisterendeFakturaserie
+
+
+        fakturaserieService.kansellerFakturaserie(eksisterendeFakturaserie.referanse)
+
+
+        krediteringFakturaSerie.run {
+            status.shouldBe(FakturaserieStatus.OPPRETTET)
+            faktura.shouldHaveSize(1)
+                .first()
+                .status.shouldBe(FakturaStatus.OPPRETTET)
+        }
+
+        eksisterendeFakturaserie.run {
+            status.shouldBe(FakturaserieStatus.KANSELLERT)
+            faktura.shouldHaveSize(1)
+                .first()
+                .status.shouldBe(FakturaStatus.KANSELLERT)
+        }
     }
 
     private fun lagOpprinneligFakturaserie(): Fakturaserie {

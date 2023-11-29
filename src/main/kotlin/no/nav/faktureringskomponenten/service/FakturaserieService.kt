@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
@@ -94,19 +95,18 @@ class FakturaserieService(
         fakturamottakerDto.fullmektig != fakturaserie.fullmektig
 
     fun kansellerFakturaserie(referanse: String) {
-        val fakturaserie = fakturaserieRepository.findByReferanse(referanse)
+        val eksisterendeFakturaserie = fakturaserieRepository.findByReferanse(referanse)
             ?: throw IllegalArgumentException("Fakturaserie med referanse $referanse finnes ikke")
 
-        val krediteringFakturaserie = fakturaserieGenerator.lagKrediteringFakturaSerie(fakturaserie)
+        val krediteringFakturaserie = fakturaserieGenerator.lagKrediteringFakturaSerie(eksisterendeFakturaserie)
         fakturaserieRepository.save(krediteringFakturaserie)
 
-        fakturaserie.apply {
+        eksisterendeFakturaserie.apply {
             status = FakturaserieStatus.KANSELLERT
-            faktura.apply {
-                status = FakturaserieStatus.KANSELLERT
+            faktura.map {
+                it.status = FakturaStatus.KANSELLERT
             }
         }
-
-        fakturaserieRepository.save(fakturaserie)
+        fakturaserieRepository.save(eksisterendeFakturaserie)
     }
 }
