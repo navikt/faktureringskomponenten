@@ -1,6 +1,11 @@
 package no.nav.faktureringskomponenten.service
 
+import io.kotest.assertions.assertSoftly
+import io.kotest.inspectors.forExactly
+import io.kotest.inspectors.forOne
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
+import io.kotest.matchers.shouldBe
 import io.mockk.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
@@ -8,6 +13,11 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
+import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
+import no.nav.faktureringskomponenten.testutils.DomainTestFactory
+import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaBuilder
+import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaLinjeBuilder
+import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaserieBuilder
 import org.junit.jupiter.api.Test
 import ulid.ULID
 import java.math.BigDecimal
@@ -20,7 +30,8 @@ class FakturaBestillingServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
     private val fakturaBestiltProducer = mockk<FakturaBestiltProducer>(relaxed = true)
 
-    private val fakturaBestillingService = FakturaBestillingService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
+    private val fakturaBestillingService =
+        FakturaBestillingService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
 
     @Test
     fun `Bestiller bestillingsklare faktura og lagrer i databasen`() {
@@ -91,7 +102,11 @@ class FakturaBestillingServiceTest {
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
-                    beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}-${sluttDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}. kvartal ${startDatoFaktura.year}",
+                    beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}-${
+                        sluttDatoFaktura.get(
+                            IsoFields.QUARTER_OF_YEAR
+                        )
+                    }. kvartal ${startDatoFaktura.year}",
                     artikkel = "F00008",
                     faktureringsDato = LocalDate.of(2022, 5, 1),
                     fakturaLinjer = listOf(
@@ -107,6 +122,40 @@ class FakturaBestillingServiceTest {
         }
 
         fakturaBestillingService.bestillFaktura(fakturaReferanseNr)
+    }
+
+    @Test
+    fun `Kreditnota sendes til OEBS - serie og faktura får oppdatert status`() {
+        val fakturaserie = FakturaserieBuilder()
+            .faktura(
+                FakturaBuilder()
+                    .kreditReferanseNr(ULID.randomULID())
+                    .build(),
+                FakturaBuilder()
+                    .kreditReferanseNr(ULID.randomULID())
+                    .build()
+            )
+            .build()
+
+        every { fakturaserieRepository.findByReferanse(fakturaserie.referanse) } returns fakturaserie
+        every { fakturaserieRepository.save(any()) } returns mockk()
+
+
+        fakturaBestillingService.bestillKreditnota(fakturaserie.referanse)
+
+
+        fakturaserie.run {
+            status.shouldBe(FakturaserieStatus.FERDIG)
+            faktura.run {
+                shouldHaveSize(2)
+                forEach {
+                    it.status.shouldBe(FakturaStatus.BESTILT)
+                }
+            }
+        }
+
+        verify { fakturaserieRepository.save(fakturaserie) }
+        verify(exactly = 2) { fakturaBestiltProducer.produserBestillingsmelding(any()) }
     }
 
     private fun lagFaktura(fakturaReferanseNr: String? = ULID.randomULID()): Faktura {

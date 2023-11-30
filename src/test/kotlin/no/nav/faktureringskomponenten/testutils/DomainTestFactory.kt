@@ -123,6 +123,8 @@ object DomainTestFactory {
         fun avregningNyttBeloep(avregningNyttBeloep: BigDecimal) =
             apply { this.avregningNyttBeloep = avregningNyttBeloep }
 
+        fun belop(belop: BigDecimal) = apply { this.belop = belop }
+
         fun build() = FakturaLinje(
             referertFakturaVedAvregning = referertFakturaVedAvregning,
             periodeFra = periodeFra,

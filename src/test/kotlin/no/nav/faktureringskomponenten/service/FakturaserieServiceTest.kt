@@ -129,7 +129,7 @@ class FakturaserieServiceTest {
     }
 
     @Test
-    fun `Kansellere fakturaserie - eksisterende får oppdatert status`() {
+    fun `Kansellere fakturaserie - eksisterende får oppdatert status og nye faktura bestilles`() {
         val eksisterendeFakturaserie = FakturaserieBuilder()
             .faktura(
                 FakturaBuilder()
