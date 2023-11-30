@@ -1,10 +1,8 @@
 package no.nav.faktureringskomponenten.service
 
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
-import no.nav.faktureringskomponenten.domain.models.Fullmektig
+import no.nav.faktureringskomponenten.domain.models.*
 import org.springframework.stereotype.Component
+import ulid.ULID
 import java.time.LocalDate
 
 @Component
@@ -42,7 +40,7 @@ class FakturaserieGenerator(
     fun lagKrediteringFakturaSerie(fakturaserie: Fakturaserie): Fakturaserie {
         return Fakturaserie(
             id = null,
-            referanse = fakturaserie.referanse,
+            referanse = ULID.randomULID(),
             fakturaGjelderInnbetalingstype = fakturaserie.fakturaGjelderInnbetalingstype,
             fodselsnummer = fakturaserie.fodselsnummer,
             fullmektig = mapFullmektig(fakturaserie.fullmektig),
@@ -50,6 +48,7 @@ class FakturaserieGenerator(
             referanseNAV = fakturaserie.referanseNAV,
             startdato = fakturaserie.startdato,
             sluttdato = fakturaserie.sluttdato,
+            status = FakturaserieStatus.OPPRETTET,
             intervall = fakturaserie.intervall,
             faktura = fakturaGenerator.lagKreditnota(fakturaserie.bestilteFakturaer())
         )

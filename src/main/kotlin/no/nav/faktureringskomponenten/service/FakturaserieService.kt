@@ -17,6 +17,7 @@ class FakturaserieService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaserieGenerator: FakturaserieGenerator,
     private val avregningBehandler: AvregningBehandler,
+    private val fakturaBestillingService: FakturaBestillingService,
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -94,9 +95,13 @@ class FakturaserieService(
     private fun mottakerErEndret(fakturaserie: Fakturaserie, fakturamottakerDto: FakturamottakerDto) =
         fakturamottakerDto.fullmektig != fakturaserie.fullmektig
 
+    @Transactional
     fun kansellerFakturaserie(referanse: String) {
         val eksisterendeFakturaserie = fakturaserieRepository.findByReferanse(referanse)
-            ?: throw IllegalArgumentException("Fakturaserie med referanse $referanse finnes ikke")
+            ?: throw throw RessursIkkeFunnetException(
+                field = "fakturaserieId",
+                message = "Finner ikke fakturaserie med referanse $referanse"
+            )
 
         val krediteringFakturaserie = fakturaserieGenerator.lagKrediteringFakturaSerie(eksisterendeFakturaserie)
         fakturaserieRepository.save(krediteringFakturaserie)
@@ -108,5 +113,7 @@ class FakturaserieService(
             }
         }
         fakturaserieRepository.save(eksisterendeFakturaserie)
+
+        fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.referanse)
     }
 }

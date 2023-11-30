@@ -1,10 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.Unleash
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.FakturaLinje
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
-import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.*
 import org.springframework.stereotype.Component
 import ulid.ULID
 import java.time.LocalDate
@@ -63,6 +60,7 @@ class FakturaGenerator (
                 kreditReferanseNr = it.referanseNr,
                 referanseNr = ULID.randomULID(),
                 fakturaserie = null,
+                status = FakturaStatus.OPPRETTET,
                 fakturaLinje = fakturalinjeGenerator.lagFakturaLinjerKreditering(it.fakturaLinje)
             )
         }

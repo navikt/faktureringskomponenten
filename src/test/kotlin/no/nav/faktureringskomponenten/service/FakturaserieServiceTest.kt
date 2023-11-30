@@ -6,15 +6,13 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.Called
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
-import no.nav.faktureringskomponenten.testutils.DomainTestFactory
+import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaBuilder
+import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaserieBuilder
 import org.junit.jupiter.api.Test
 import ulid.ULID
 import java.math.BigDecimal
@@ -27,9 +25,10 @@ class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
     private val fakturaserieGenerator = FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash()))
     private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
+    private val fakturaBestillingService = mockk<FakturaBestillingService>()
 
     private val fakturaserieService =
-        FakturaserieService(fakturaserieRepository, fakturaserieGenerator, avregningBehandler)
+        FakturaserieService(fakturaserieRepository, fakturaserieGenerator, avregningBehandler, fakturaBestillingService)
 
     @Test
     fun `Endrer fakturaserie, erstatter opprinnelig og lager ny`() {
@@ -131,29 +130,35 @@ class FakturaserieServiceTest {
 
     @Test
     fun `Kansellere fakturaserie - eksisterende får oppdatert status`() {
-        val eksisterendeFakturaserie = DomainTestFactory.FakturaserieBuilder()
+        val eksisterendeFakturaserie = FakturaserieBuilder()
             .faktura(
-                DomainTestFactory.FakturaBuilder()
+                FakturaBuilder()
                     .status(FakturaStatus.BESTILT)
                     .build()
             )
             .build()
-        val krediteringFakturaSerie = fakturaserieGenerator.lagKrediteringFakturaSerie(eksisterendeFakturaserie)
         every { fakturaserieRepository.findByReferanse(eksisterendeFakturaserie.referanse) } returns eksisterendeFakturaserie
 
-        every { fakturaserieRepository.save(eq(krediteringFakturaSerie)) } returns krediteringFakturaSerie
-        every { fakturaserieRepository.save(eq(eksisterendeFakturaserie)) } returns eksisterendeFakturaserie
+        val fakturaserieCapture = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.save(capture(fakturaserieCapture)) } returns mockk()
+        every { fakturaserieRepository.save(eksisterendeFakturaserie) } returns eksisterendeFakturaserie
+        justRun { fakturaBestillingService.bestillKreditnota(any()) }
 
 
         fakturaserieService.kansellerFakturaserie(eksisterendeFakturaserie.referanse)
 
 
-        krediteringFakturaSerie.run {
-            status.shouldBe(FakturaserieStatus.OPPRETTET)
-            faktura.shouldHaveSize(1)
-                .first()
-                .status.shouldBe(FakturaStatus.OPPRETTET)
-        }
+        verify { fakturaserieRepository.save(eksisterendeFakturaserie) }
+        verify { fakturaBestillingService.bestillKreditnota(fakturaserieCapture.single().referanse) }
+
+        fakturaserieCapture.single()
+            .faktura.single()
+            .run {
+                kreditReferanseNr.isNotEmpty()
+                fakturaLinje.single()
+                    .belop.shouldBe(BigDecimal(-10000))
+            }
+
 
         eksisterendeFakturaserie.run {
             status.shouldBe(FakturaserieStatus.KANSELLERT)
