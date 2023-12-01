@@ -96,7 +96,7 @@ class FakturaserieService(
         fakturamottakerDto.fullmektig != fakturaserie.fullmektig
 
     @Transactional
-    fun kansellerFakturaserie(referanse: String) {
+    fun kansellerFakturaserie(referanse: String): String {
         val eksisterendeFakturaserie = fakturaserieRepository.findByReferanse(referanse)
             ?: throw throw RessursIkkeFunnetException(
                 field = "fakturaserieId",
@@ -115,5 +115,6 @@ class FakturaserieService(
         fakturaserieRepository.save(eksisterendeFakturaserie)
 
         fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.referanse)
+        return krediteringFakturaserie.referanse
     }
 }
