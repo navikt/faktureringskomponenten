@@ -126,7 +126,7 @@ class FakturaBestiltDtoMapperTest {
             )
         )
 
-        fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1-2. kvartal 2024"
+        fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1.kvartal 2024 - 2.kvartal 2024"
     }
 
     private fun lagFakturaLinje(erAvregning: Boolean): FakturaLinje = FakturaLinje(
