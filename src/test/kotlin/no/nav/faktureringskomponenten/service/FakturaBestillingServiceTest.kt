@@ -25,7 +25,8 @@ class FakturaBestillingServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
     private val fakturaBestiltProducer = mockk<FakturaBestiltProducer>(relaxed = true)
 
-    private val fakturaBestillingService = FakturaBestillingService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
+    private val fakturaBestillingService =
+        FakturaBestillingService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
 
     @Test
     fun `Bestiller bestillingsklare faktura og lagrer i databasen`() {
@@ -96,11 +97,11 @@ class FakturaBestillingServiceTest {
                     kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
-                    beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}-${
+                    beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}.kvartal ${startDatoFaktura.year} - ${
                         sluttDatoFaktura.get(
                             IsoFields.QUARTER_OF_YEAR
                         )
-                    }. kvartal ${startDatoFaktura.year}",
+                    }.kvartal ${sluttDatoFaktura.year}",
                     artikkel = "F00008",
                     faktureringsDato = LocalDate.of(2022, 5, 1),
                     fakturaLinjer = listOf(
