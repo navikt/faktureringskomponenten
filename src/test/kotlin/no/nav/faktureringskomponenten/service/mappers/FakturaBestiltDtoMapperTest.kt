@@ -3,8 +3,10 @@ package no.nav.faktureringskomponenten.service.mappers
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
-import no.nav.faktureringskomponenten.FakturaBuilder
-import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.lagFaktura
 import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.lagTestFakturalinje
@@ -91,7 +93,7 @@ class FakturaBestiltDtoMapperTest {
                 lagFaktura {
                     fakturaLinje(
                         lagTestFakturalinje {
-                            referertFakturaVedAvregning( lagFaktura {  })
+                            referertFakturaVedAvregning(lagFaktura { })
                             beskrivelse("Nytt beløp: 10000,00 - tidligere beløp: 9000,00")
                         }
                     )
@@ -114,7 +116,7 @@ class FakturaBestiltDtoMapperTest {
                 lagFaktura {
                     fakturaLinje(
                         lagTestFakturalinje {
-                            referertFakturaVedAvregning( lagFaktura {  })
+                            referertFakturaVedAvregning(lagFaktura { })
                             beskrivelse("Nytt beløp: 10000,00 - tidligere beløp: 9000,00")
                         }
                     )
@@ -153,26 +155,27 @@ class FakturaBestiltDtoMapperTest {
 
     @Test
     fun `faktura har rett beskrivelse for kvartal hvor flere kvartal er slått sammen`() {
-        val linje = lagFakturaLinje(false)
-        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(
-            Faktura(
-                fakturaLinje = listOf(
-                    linje,
-                    FakturaLinje(
-                        periodeFra = LocalDate.of(2024, 4, 1),
-                        periodeTil = LocalDate.of(2024, 6, 30),
-                        beskrivelse = "Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%",
-                        antall = BigDecimal(1),
-                        enhetsprisPerManed = BigDecimal(1000),
-                        belop = BigDecimal(1000),
+        val fakturaserie = lagFakturaserie {
+            fakturaGjelderInnbetalingstype(Innbetalingstype.TRYGDEAVGIFT)
+            intervall(FakturaserieIntervall.KVARTAL)
+            faktura(
+                lagFaktura {
+                    fakturaLinje(
+                        lagTestFakturalinje {
+                            periodeFra(LocalDate.of(2024, 1, 1))
+                            periodeTil(LocalDate.of(2024, 3, 31))
+                        },
+                        lagTestFakturalinje {
+                            periodeFra(LocalDate.of(2024, 4, 1))
+                            periodeTil(LocalDate.of(2024, 6, 30))
+                        }
                     )
-                )
-            ),
-            Fakturaserie(
-                fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
-                intervall = FakturaserieIntervall.KVARTAL
+                }
             )
-        )
+        }
+
+        val fakturaBestiltDto =
+            FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
 
         fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1.kvartal 2024 - 2.kvartal 2024"
     }
@@ -192,17 +195,4 @@ class FakturaBestiltDtoMapperTest {
         tilFakturaBestiltDto.kreditReferanseNr.shouldBe("45678913")
     }
 
-    private fun lagFakturaLinje(erAvregning: Boolean): FakturaLinje = FakturaLinje(
-        referertFakturaVedAvregning = if (erAvregning) Faktura() else null,
-        periodeFra = LocalDate.of(2024, 1, 1),
-        periodeTil = LocalDate.of(2024, 3, 31),
-        beskrivelse = if (erAvregning) {
-            "Nytt beløp: 10000,00 - tidligere beløp: 9000,00"
-        } else {
-            "Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%"
-        },
-        antall = BigDecimal(1),
-        enhetsprisPerManed = BigDecimal(1000),
-        belop = BigDecimal(1000),
-    )
 }
