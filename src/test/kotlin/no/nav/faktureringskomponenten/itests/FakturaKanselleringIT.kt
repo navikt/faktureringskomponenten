@@ -2,6 +2,8 @@ package no.nav.faktureringskomponenten.itests
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import no.nav.faktureringskomponenten.DomainTestFactory
+import no.nav.faktureringskomponenten.PostgresTestContainerBase
 import no.nav.faktureringskomponenten.controller.FakturaserieRepositoryForTesting
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
@@ -11,8 +13,6 @@ import no.nav.faktureringskomponenten.service.FakturaBestillingService
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
-import no.nav.faktureringskomponenten.testutils.DomainTestFactory
-import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -27,10 +27,8 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @ActiveProfiles("itest")
-//@DataJpaTest(showSql = false) // Mangler bare å hindre at ting puttes i Transactional for at vi kan bruke dette
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @SpringBootTest
-//@Import(FakturaBestillCronjob::class)
 @EnableMockOAuth2Server
 class FakturaKanselleringIT(
     @Autowired private val fakturaserieRepository: FakturaserieRepository,

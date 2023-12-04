@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.service.mappers
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
-import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.IsoFields
@@ -20,7 +19,7 @@ class FakturaBestiltDtoMapper {
             fullmektigFnr = fakturaserie.fullmektig?.fodselsnummer,
             fakturaserieReferanse = fakturaserie.referanse,
             fakturaReferanseNr = faktura.referanseNr,
-            kreditReferanseNr = "",
+            kreditReferanseNr = faktura.kreditReferanseNr,
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
             beskrivelse = mapFakturaBeskrivelse(fakturaserie.fakturaGjelderInnbetalingstype, faktura.fakturaLinje, fakturaserie.intervall, faktura.erAvregningsfaktura()),

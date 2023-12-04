@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.testutils
+package no.nav.faktureringskomponenten
 
 import no.nav.faktureringskomponenten.domain.models.*
 import ulid.ULID

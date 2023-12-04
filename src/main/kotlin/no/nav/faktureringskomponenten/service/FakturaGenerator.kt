@@ -61,7 +61,7 @@ class FakturaGenerator (
                 referanseNr = ULID.randomULID(),
                 fakturaserie = null,
                 status = FakturaStatus.OPPRETTET,
-                fakturaLinje = fakturalinjeGenerator.lagFakturaLinjerKreditering(it.fakturaLinje)
+                fakturaLinje = fakturalinjeGenerator.lagKreditnotaLinjer(it.fakturaLinje)
             )
         }
     }

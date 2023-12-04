@@ -41,7 +41,7 @@ class FakturaLinjeGenerator {
         }.toList()
     }
 
-    fun lagFakturaLinjerKreditering(fakturalinjer: List<FakturaLinje>): List<FakturaLinje> {
+    fun lagKreditnotaLinjer(fakturalinjer: List<FakturaLinje>): List<FakturaLinje> {
         return fakturalinjer.map {
             FakturaLinje(
                 id = null,

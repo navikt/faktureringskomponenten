@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.testutils
+package no.nav.faktureringskomponenten
 
 import io.kotest.assertions.withClue
 import io.kotest.matchers.collections.shouldBeEmpty

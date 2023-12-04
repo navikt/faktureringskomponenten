@@ -1,23 +1,17 @@
 package no.nav.faktureringskomponenten.service
 
-import io.kotest.assertions.assertSoftly
-import io.kotest.inspectors.forExactly
-import io.kotest.inspectors.forOne
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
 import io.mockk.*
+import no.nav.faktureringskomponenten.DomainTestFactory.FakturaBuilder
+import no.nav.faktureringskomponenten.DomainTestFactory.FakturaserieBuilder
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
-import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
-import no.nav.faktureringskomponenten.testutils.DomainTestFactory
-import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaBuilder
-import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaLinjeBuilder
-import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaserieBuilder
 import org.junit.jupiter.api.Test
 import ulid.ULID
 import java.math.BigDecimal

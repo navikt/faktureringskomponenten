@@ -4,13 +4,13 @@ import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.PostgresTestContainerBase
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server

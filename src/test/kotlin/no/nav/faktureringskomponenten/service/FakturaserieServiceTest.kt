@@ -7,12 +7,12 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.*
+import no.nav.faktureringskomponenten.DomainTestFactory.FakturaBuilder
+import no.nav.faktureringskomponenten.DomainTestFactory.FakturaserieBuilder
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
-import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaBuilder
-import no.nav.faktureringskomponenten.testutils.DomainTestFactory.FakturaserieBuilder
 import org.junit.jupiter.api.Test
 import ulid.ULID
 import java.math.BigDecimal
