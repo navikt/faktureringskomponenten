@@ -25,9 +25,8 @@ class FakturaBestillingService(
 ) {
 
     fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> {
-        val feiledeFaktura = fakturaRepository.findAllByFakturaSomTrengerRekjøring()
         val bestillingsklareFaktura = fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
-        return bestillingsklareFaktura + feiledeFaktura
+        return bestillingsklareFaktura
     }
 
 
