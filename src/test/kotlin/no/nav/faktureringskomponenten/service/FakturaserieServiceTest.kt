@@ -7,10 +7,10 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.*
-import no.nav.faktureringskomponenten.DomainTestFactory.FakturaBuilder
-import no.nav.faktureringskomponenten.DomainTestFactory.FakturaserieBuilder
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.lagFaktura
+import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import org.junit.jupiter.api.Test
@@ -130,13 +130,14 @@ class FakturaserieServiceTest {
 
     @Test
     fun `Kansellere fakturaserie - eksisterende får oppdatert status og nye faktura bestilles`() {
-        val eksisterendeFakturaserie = FakturaserieBuilder()
-            .faktura(
-                FakturaBuilder()
-                    .status(FakturaStatus.BESTILT)
-                    .build()
+        val eksisterendeFakturaserie = lagFakturaserie {
+            faktura(
+                lagFaktura {
+                    status(FakturaStatus.BESTILT)
+                }
             )
-            .build()
+        }
+
         every { fakturaserieRepository.findByReferanse(eksisterendeFakturaserie.referanse) } returns eksisterendeFakturaserie
 
         val fakturaserieCapture = mutableListOf<Fakturaserie>()

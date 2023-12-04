@@ -2,13 +2,14 @@ package no.nav.faktureringskomponenten.itests
 
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import no.nav.faktureringskomponenten.DomainTestFactory
 import no.nav.faktureringskomponenten.PostgresTestContainerBase
 import no.nav.faktureringskomponenten.controller.FakturaserieRepositoryForTesting
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.lagFaktura
+import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.FakturaBestillingService
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
@@ -66,13 +67,14 @@ class FakturaKanselleringIT(
 
     @Test
     fun `Kansellerer fakturaserie - oppretter ny serie med kreditnota - disse sendes umiddelbart`() {
-        val fakturaserie = DomainTestFactory.FakturaserieBuilder()
-            .faktura(
-                DomainTestFactory.FakturaBuilder()
-                    .status(FakturaStatus.BESTILT)
-                    .build()
+        val fakturaserie = lagFakturaserie {
+            faktura(
+                lagFaktura {
+                    status(FakturaStatus.BESTILT)
+                }
             )
-            .build()
+        }
+
         fakturaserieRepository.saveAndFlush(fakturaserie).apply {
             addCleanUpAction { fakturaserieRepository.delete(fakturaserie) }
         }

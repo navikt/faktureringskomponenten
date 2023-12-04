@@ -4,11 +4,11 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
 import io.mockk.*
-import no.nav.faktureringskomponenten.DomainTestFactory.FakturaBuilder
-import no.nav.faktureringskomponenten.DomainTestFactory.FakturaserieBuilder
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.lagFaktura
+import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
@@ -120,16 +120,16 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Kreditnota sendes til OEBS - serie og faktura får oppdatert status`() {
-        val fakturaserie = FakturaserieBuilder()
-            .faktura(
-                FakturaBuilder()
-                    .kreditReferanseNr(ULID.randomULID())
-                    .build(),
-                FakturaBuilder()
-                    .kreditReferanseNr(ULID.randomULID())
-                    .build()
+        val fakturaserie = lagFakturaserie {
+            faktura(
+                lagFaktura {
+                    kreditReferanseNr(ULID.randomULID())
+                },
+                lagFaktura {
+                    kreditReferanseNr(ULID.randomULID())
+                }
             )
-            .build()
+        }
 
         every { fakturaserieRepository.findByReferanse(fakturaserie.referanse) } returns fakturaserie
         every { fakturaserieRepository.save(any()) } returns mockk()

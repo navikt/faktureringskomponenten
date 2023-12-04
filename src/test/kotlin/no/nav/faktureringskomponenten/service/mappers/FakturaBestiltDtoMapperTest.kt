@@ -4,6 +4,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.lagFaktura
+import no.nav.faktureringskomponenten.lagFakturaserie
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -127,6 +129,21 @@ class FakturaBestiltDtoMapperTest {
         )
 
         fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1-2. kvartal 2024"
+    }
+
+    @Test
+    fun `kreditreferanse blir mappet`() {
+        val testFakturaserie = lagFakturaserie {
+            faktura(
+                lagFaktura {
+                    kreditReferanseNr("45678913")
+                }
+            )
+        }
+
+        val tilFakturaBestiltDto =
+            FakturaBestiltDtoMapper().tilFakturaBestiltDto(testFakturaserie.faktura.single(), testFakturaserie)
+        tilFakturaBestiltDto.kreditReferanseNr.shouldBe("45678913")
     }
 
     private fun lagFakturaLinje(erAvregning: Boolean): FakturaLinje = FakturaLinje(
