@@ -25,14 +25,13 @@ class FakturaBestillingService(
 ) {
 
     fun hentBestillingsklareFaktura(bestillingsDato: LocalDate = LocalDate.now()): List<Faktura> {
-        val feiledeFaktura = fakturaRepository.findAllByFakturaSomTrengerRekjøring()
-        val bestillingsklareFaktura = fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
-        return bestillingsklareFaktura + feiledeFaktura
+        return fakturaRepository.findAllByDatoBestiltIsLessThanEqualAndStatusIsOpprettet(bestillingsDato)
     }
 
 
     @Transactional
     fun bestillFaktura(fakturaReferanseNr: String) {
+        log.info("Bestiller faktura med referanse nr $fakturaReferanseNr")
         val faktura = fakturaRepository.findByReferanseNr(fakturaReferanseNr) ?: throw RessursIkkeFunnetException(
             field = "fakturaReferanseNr",
             message = "Finner ikke faktura med faktura referanse nr $fakturaReferanseNr"
