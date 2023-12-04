@@ -31,6 +31,7 @@ class FakturaBestillingService(
 
     @Transactional
     fun bestillFaktura(fakturaReferanseNr: String) {
+        log.info("Bestiller faktura med referanse nr $fakturaReferanseNr")
         val faktura = fakturaRepository.findByReferanseNr(fakturaReferanseNr) ?: throw RessursIkkeFunnetException(
             field = "fakturaReferanseNr",
             message = "Finner ikke faktura med faktura referanse nr $fakturaReferanseNr"
