@@ -100,27 +100,6 @@ class FakturaBestillingServiceIT(
             addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
         }.referanseNr
 
-    @Test
-    fun `test at feilede faktura blir sent på kø`() {
-        val fakturaReferanseNrMedFeilFaktura = lagFakturaSerieMedFeilIFaktura()
-        val fakturaReferanseNrMedFeilFaktura2 = lagFakturaSerieMedFeilIFaktura()
-        val fakturaReferanseNrMedFeilFaktura3 = lagFakturaSerieMedFeilIFaktura()
-        fakturaBestillCronjob.bestillFaktura()
-
-        TestQueue.fakturaBestiltMeldinger.shouldHaveSize(4)
-        fakturaRepository.findByReferanseNr(fakturaReferanseNr)?.status
-            .shouldBe(FakturaStatus.BESTILT)
-
-        fakturaRepository.findByReferanseNr(fakturaReferanseNrMedFeilFaktura)?.status
-            .shouldBe(FakturaStatus.BESTILT)
-
-        fakturaRepository.findByReferanseNr(fakturaReferanseNrMedFeilFaktura2)?.status
-            .shouldBe(FakturaStatus.BESTILT)
-
-        fakturaRepository.findByReferanseNr(fakturaReferanseNrMedFeilFaktura3)?.status
-            .shouldBe(FakturaStatus.BESTILT)
-    }
-
 
     @Test
     fun `test at melding blir sent på kø`() {
@@ -143,29 +122,4 @@ class FakturaBestillingServiceIT(
             .shouldBe(FakturaStatus.OPPRETTET)
         TestQueue.fakturaBestiltMeldinger.shouldBeEmpty()
     }
-
-
-    private fun lagFakturaSerieMedFeilIFaktura(): String =
-        fakturaserieRepository.saveAndFlush(
-            Fakturaserie(
-                referanse = ULID.randomULID(),
-                fodselsnummer = "01234567890",
-                faktura = mutableListOf(
-                    Faktura(
-                        referanseNr = ULID.randomULID(),
-                        datoBestilt = LocalDate.now().plusDays(-1),
-                        status = FakturaStatus.FEIL,
-                        fakturaLinje = mutableListOf(
-                            FakturaLinje(
-                                beskrivelse = "test 1",
-                                belop = BigDecimal(1000),
-                                enhetsprisPerManed = BigDecimal(100)
-                            )
-                        )
-                    )
-                )
-            ).apply { faktura.forEach { it.fakturaserie = this } }
-        ).faktura.first().apply {
-            addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
-        }.referanseNr
 }

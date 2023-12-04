@@ -22,7 +22,12 @@ class FakturaBestiltDtoMapper {
             kreditReferanseNr = faktura.kreditReferanseNr,
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
-            beskrivelse = mapFakturaBeskrivelse(fakturaserie.fakturaGjelderInnbetalingstype, faktura.fakturaLinje, fakturaserie.intervall, faktura.erAvregningsfaktura()),
+            beskrivelse = mapFakturaBeskrivelse(
+                fakturaserie.fakturaGjelderInnbetalingstype,
+                faktura.fakturaLinje,
+                fakturaserie.intervall,
+                faktura.erAvregningsfaktura()
+            ),
             artikkel = mapArtikkel(fakturaserie.fakturaGjelderInnbetalingstype),
             faktureringsDato = faktura.datoBestilt,
             fakturaLinjer = faktura.fakturaLinje.map {
@@ -53,8 +58,8 @@ class FakturaBestiltDtoMapper {
                 if (intervall == FakturaserieIntervall.KVARTAL) {
                     val nåværendeKvartal = startDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
                     val sluttKvartal = sluttDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
-                    val kvartal = if(nåværendeKvartal<sluttKvartal) "$nåværendeKvartal-$sluttKvartal" else "$nåværendeKvartal"
-                    "Faktura Trygdeavgift $kvartal. kvartal ${startDatoForPerioder.year}"
+                    if (nåværendeKvartal < sluttKvartal) "Faktura Trygdeavgift $nåværendeKvartal.kvartal ${startDatoForPerioder.year} - $sluttKvartal.kvartal ${sluttDatoForPerioder.year}"
+                    else "Faktura Trygdeavgift $nåværendeKvartal. kvartal ${startDatoForPerioder.year}"
                 } else {
                     val nåværendeMåned = startDatoForPerioder.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
                     "Faktura Trygdeavgift $nåværendeMåned ${startDatoForPerioder.year}"
