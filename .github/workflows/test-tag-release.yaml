@@ -13,8 +13,15 @@ jobs:
           IMAGE=ghcr.io/$GITHUB_REPOSITORY/faktureringskomponenten:3de755af2c6076ac535f96905190e7558efa86c1
           echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
           echo $IMAGE
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.READER_TOKEN }}
       - name: tag-image-with-latest
         run: |
+          docker login ghcr.io -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
           APPLICATION=$(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)
           IMAGE=ghcr.io/$GITHUB_REPOSITORY/faktureringskomponenten:3de755af2c6076ac535f96905190e7558efa86c1
           docker pull $IMAGE
