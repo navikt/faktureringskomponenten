@@ -1,11 +1,5 @@
 name: test-tag-release
-on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Miljø (q1, q2 eller prod)'
-        required: true
-        default: 'q2'
+on: pull_request
 permissions:
   contents: write
   packages: write
