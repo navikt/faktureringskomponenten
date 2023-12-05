@@ -1,0 +1,28 @@
+name: test-tag-release
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Miljø (q1, q2 eller prod)'
+        required: true
+        default: 'q2'
+permissions:
+  contents: write
+  packages: write
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: get release tag
+        run: |
+          APPLICATION=$(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)
+          IMAGE=ghcr.io/$GITHUB_REPOSITORY/faktureringskomponenten:3de755af2c6076ac535f96905190e7558efa86c1
+          echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
+          echo $IMAGE
+      - name: tag-image-with-latest
+        run: |
+          APPLICATION=$(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)
+          IMAGE=ghcr.io/$GITHUB_REPOSITORY/faktureringskomponenten:3de755af2c6076ac535f96905190e7558efa86c1
+          docker pull $IMAGE
+          docker tag $IMAGE ghcr.io/$GITHUB_REPOSITORY/$APPLICATION:latest
+          docker push ghcr.io/$GITHUB_REPOSITORY/$APPLICATION:latest
