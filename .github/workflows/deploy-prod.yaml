@@ -4,6 +4,7 @@ on:
     types: [published]
 permissions:
   contents: write
+  packages: write
 jobs:
   deploy-prod:
     runs-on: ubuntu-latest
@@ -33,6 +34,13 @@ jobs:
         uses: navikt/digihot-deploy/actions/post-production@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: tag-image-with-latest
+        run: |
+          APPLICATION=$(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)
+          IMAGE=ghcr.io/$GITHUB_REPOSITORY/$APPLICATION:$GITHUB_SHA
+          docker pull $IMAGE
+          docker tag $IMAGE ghcr.io/$GITHUB_REPOSITORY/$APPLICATION:latest
+          docker push ghcr.io/$GITHUB_REPOSITORY/$APPLICATION:latest
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
       - name: Slack Notification
