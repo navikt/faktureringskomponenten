@@ -101,12 +101,31 @@ class FakturaGenerator (
             fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
+    private fun erNesteKvartalOgKvartalsbestillingHarKjørt(
+        fakturaStartDato: LocalDate,
+        dagensDato: LocalDate,
+    ): Boolean {
+        val erNesteKvartal = dagensDato < fakturaStartDato && dagensDato.get(IsoFields.QUARTER_OF_YEAR)
+            .plus(1) % 4 == fakturaStartDato.get(IsoFields.QUARTER_OF_YEAR) % 4
+        val sisteMånedIDagensKvartal = dagensDato.month.firstMonthOfQuarter().plus(2)
+        val kvartalsBestilingHarKjørt =
+            dagensDato > LocalDate.now().withMonth(sisteMånedIDagensKvartal.value).withDayOfMonth(19)
+        return erNesteKvartal && kvartalsBestilingHarKjørt
+    }
+
     private fun utledBestillingsdato(fakturaStartDato: LocalDate): LocalDate {
-        if (fakturaStartDato <= dagensDato()) {
+        if (fakturaStartDato <= dagensDato() || erSammeÅrOgKvartal(fakturaStartDato, dagensDato()) ||
+            erNesteKvartalOgKvartalsbestillingHarKjørt(fakturaStartDato, dagensDato())
+        ) {
             return dagensDato()
         }
         val førstMånedIKvartal = fakturaStartDato.month.firstMonthOfQuarter()
         return fakturaStartDato.withMonth(førstMånedIKvartal.value).minusMonths(1).withDayOfMonth(19)
+    }
+
+    private fun erSammeÅrOgKvartal(datoA: LocalDate, datoB: LocalDate): Boolean {
+        return datoA.get(IsoFields.QUARTER_OF_YEAR) == datoB.get(IsoFields.QUARTER_OF_YEAR)
+                && datoA.year == datoB.year
     }
 
     private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
