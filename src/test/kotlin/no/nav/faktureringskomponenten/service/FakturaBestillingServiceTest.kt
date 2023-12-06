@@ -93,7 +93,7 @@ class FakturaBestillingServiceTest {
                     fullmektigFnr = "12129012345",
                     fakturaserieReferanse = "MEL-1",
                     fakturaReferanseNr = fakturaReferanseNr,
-                    krediteringFakturaRef = "",
+                    kreditReferanseNr = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
                     beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}.kvartal ${startDatoFaktura.year} - ${
