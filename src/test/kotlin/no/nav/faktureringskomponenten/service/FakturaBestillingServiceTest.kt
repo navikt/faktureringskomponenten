@@ -1,11 +1,15 @@
 package no.nav.faktureringskomponenten.service
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
+import io.kotest.matchers.shouldBe
 import io.mockk.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
+import no.nav.faktureringskomponenten.lagFaktura
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import org.junit.jupiter.api.Test
@@ -20,7 +24,8 @@ class FakturaBestillingServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
     private val fakturaBestiltProducer = mockk<FakturaBestiltProducer>(relaxed = true)
 
-    private val fakturaBestillingService = FakturaBestillingService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
+    private val fakturaBestillingService =
+        FakturaBestillingService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
 
     @Test
     fun `Bestiller bestillingsklare faktura og lagrer i databasen`() {
@@ -88,10 +93,14 @@ class FakturaBestillingServiceTest {
                     fullmektigFnr = "12129012345",
                     fakturaserieReferanse = "MEL-1",
                     fakturaReferanseNr = fakturaReferanseNr,
-                    kreditReferanseNr = "",
+                    krediteringFakturaRef = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
-                    beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}.kvartal ${startDatoFaktura.year} - ${sluttDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}.kvartal ${sluttDatoFaktura.year}",
+                    beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}.kvartal ${startDatoFaktura.year} - ${
+                        sluttDatoFaktura.get(
+                            IsoFields.QUARTER_OF_YEAR
+                        )
+                    }.kvartal ${sluttDatoFaktura.year}",
                     artikkel = "F00008",
                     faktureringsDato = LocalDate.of(2022, 5, 1),
                     fakturaLinjer = listOf(
@@ -107,6 +116,40 @@ class FakturaBestillingServiceTest {
         }
 
         fakturaBestillingService.bestillFaktura(fakturaReferanseNr)
+    }
+
+    @Test
+    fun `Kreditnota sendes til OEBS - serie og faktura får oppdatert status`() {
+        val fakturaserie = lagFakturaserie {
+            faktura(
+                lagFaktura {
+                    kreditReferanseNr(ULID.randomULID())
+                },
+                lagFaktura {
+                    kreditReferanseNr(ULID.randomULID())
+                }
+            )
+        }
+
+        every { fakturaserieRepository.findByReferanse(fakturaserie.referanse) } returns fakturaserie
+        every { fakturaserieRepository.save(any()) } returns mockk()
+
+
+        fakturaBestillingService.bestillKreditnota(fakturaserie.referanse)
+
+
+        fakturaserie.run {
+            status.shouldBe(FakturaserieStatus.FERDIG)
+            faktura.run {
+                shouldHaveSize(2)
+                forEach {
+                    it.status.shouldBe(FakturaStatus.BESTILT)
+                }
+            }
+        }
+
+        verify { fakturaserieRepository.save(fakturaserie) }
+        verify(exactly = 2) { fakturaBestiltProducer.produserBestillingsmelding(any()) }
     }
 
     private fun lagFaktura(fakturaReferanseNr: String? = ULID.randomULID()): Faktura {

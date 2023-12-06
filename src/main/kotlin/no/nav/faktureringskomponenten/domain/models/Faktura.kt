@@ -39,6 +39,9 @@ class Faktura(
 
     @Column(name="eksternt_fakturanummer", nullable = false, unique = true)
     var eksternFakturaNummer: String = "",
+
+    @Column(name = "kreditering_faktura_ref", nullable = true, unique = true)
+    var krediteringFakturaRef: String = "",
 ) : AuditableEntity() {
 
     override fun toString(): String {

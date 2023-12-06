@@ -1,4 +1,4 @@
-package no.nav.faktureringskomponenten.testutils
+package no.nav.faktureringskomponenten
 
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired

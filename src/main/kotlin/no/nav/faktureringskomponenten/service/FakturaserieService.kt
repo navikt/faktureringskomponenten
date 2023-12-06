@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.service
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
@@ -16,6 +17,7 @@ class FakturaserieService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaserieGenerator: FakturaserieGenerator,
     private val avregningBehandler: AvregningBehandler,
+    private val fakturaBestillingService: FakturaBestillingService,
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -92,4 +94,27 @@ class FakturaserieService(
 
     private fun mottakerErEndret(fakturaserie: Fakturaserie, fakturamottakerDto: FakturamottakerDto) =
         fakturamottakerDto.fullmektig != fakturaserie.fullmektig
+
+    @Transactional
+    fun kansellerFakturaserie(referanse: String): String {
+        val eksisterendeFakturaserie = fakturaserieRepository.findByReferanse(referanse)
+            ?: throw throw RessursIkkeFunnetException(
+                field = "fakturaserieId",
+                message = "Finner ikke fakturaserie med referanse $referanse"
+            )
+
+        val krediteringFakturaserie = fakturaserieGenerator.lagKrediteringFakturaSerie(eksisterendeFakturaserie)
+        fakturaserieRepository.save(krediteringFakturaserie)
+
+        eksisterendeFakturaserie.apply {
+            status = FakturaserieStatus.KANSELLERT
+            faktura.map {
+                it.status = FakturaStatus.KANSELLERT
+            }
+        }
+        fakturaserieRepository.save(eksisterendeFakturaserie)
+
+        fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.referanse)
+        return krediteringFakturaserie.referanse
+    }
 }

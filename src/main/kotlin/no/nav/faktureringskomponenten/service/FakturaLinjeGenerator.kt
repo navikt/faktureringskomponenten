@@ -40,4 +40,18 @@ class FakturaLinjeGenerator {
             )
         }.toList()
     }
+
+    fun lagKreditnotaLinjer(fakturalinjer: List<FakturaLinje>): List<FakturaLinje> {
+        return fakturalinjer.map {
+            FakturaLinje(
+                id = null,
+                periodeFra = it.periodeFra,
+                periodeTil = it.periodeTil,
+                belop = it.belop.negate(),
+                antall = it.antall,
+                beskrivelse = it.beskrivelse,
+                enhetsprisPerManed = it.enhetsprisPerManed
+            )
+        }
+    }
 }

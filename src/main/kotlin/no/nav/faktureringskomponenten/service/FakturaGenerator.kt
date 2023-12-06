@@ -1,10 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.Unleash
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.FakturaLinje
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
-import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.*
 import org.springframework.stereotype.Component
 import ulid.ULID
 import java.time.LocalDate
@@ -54,6 +51,19 @@ class FakturaGenerator (
             gjeldendeFaktureringStartDato = gjeldendeFaktureringSluttDato.plusDays(1)
         }
         return samletFakturaListe
+    }
+
+    fun lagKreditnota(faktura: List<Faktura>): List<Faktura> {
+        return faktura.map {
+            Faktura(
+                id = null,
+                krediteringFakturaRef = it.referanseNr,
+                referanseNr = ULID.randomULID(),
+                fakturaserie = null,
+                status = FakturaStatus.OPPRETTET,
+                fakturaLinje = fakturalinjeGenerator.lagKreditnotaLinjer(it.fakturaLinje)
+            )
+        }
     }
 
     private fun faktureringSluttDatoFra(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate {

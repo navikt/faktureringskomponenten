@@ -1,10 +1,9 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
+import no.nav.faktureringskomponenten.PostgresTestContainerBase
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.testutils.PostgresTestContainerBase
-import org.junit.jupiter.api.Assertions.*
 import org.springframework.context.annotation.Import
 import org.springframework.kafka.test.context.EmbeddedKafka
 import org.springframework.test.annotation.DirtiesContext
