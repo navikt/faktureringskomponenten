@@ -155,7 +155,7 @@ class FakturaserieServiceTest {
         fakturaserieCapture.single()
             .faktura.single()
             .run {
-                kreditReferanseNr.isNotEmpty()
+                krediteringFakturaRef.isNotEmpty()
                 fakturaLinje.single()
                     .belop.shouldBe(BigDecimal(-10000))
             }

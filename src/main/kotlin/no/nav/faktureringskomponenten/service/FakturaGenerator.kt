@@ -57,7 +57,7 @@ class FakturaGenerator (
         return faktura.map {
             Faktura(
                 id = null,
-                kreditReferanseNr = it.referanseNr,
+                krediteringFakturaRef = it.referanseNr,
                 referanseNr = ULID.randomULID(),
                 fakturaserie = null,
                 status = FakturaStatus.OPPRETTET,

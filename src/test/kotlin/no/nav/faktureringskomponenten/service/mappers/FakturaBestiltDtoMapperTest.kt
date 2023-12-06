@@ -3,15 +3,12 @@ package no.nav.faktureringskomponenten.service.mappers
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.lagFaktura
 import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.lagTestFakturalinje
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 import java.time.LocalDate
 
 class FakturaBestiltDtoMapperTest {
@@ -192,7 +189,7 @@ class FakturaBestiltDtoMapperTest {
 
         val tilFakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(testFakturaserie.faktura.single(), testFakturaserie)
-        tilFakturaBestiltDto.kreditReferanseNr.shouldBe("45678913")
+        tilFakturaBestiltDto.krediteringFakturaRef.shouldBe("45678913")
     }
 
 }

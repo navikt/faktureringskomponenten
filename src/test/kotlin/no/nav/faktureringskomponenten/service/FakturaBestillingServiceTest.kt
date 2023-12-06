@@ -10,7 +10,6 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.lagFaktura
-import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import org.junit.jupiter.api.Test
@@ -94,7 +93,7 @@ class FakturaBestillingServiceTest {
                     fullmektigFnr = "12129012345",
                     fakturaserieReferanse = "MEL-1",
                     fakturaReferanseNr = fakturaReferanseNr,
-                    kreditReferanseNr = "",
+                    krediteringFakturaRef = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
                     beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}.kvartal ${startDatoFaktura.year} - ${

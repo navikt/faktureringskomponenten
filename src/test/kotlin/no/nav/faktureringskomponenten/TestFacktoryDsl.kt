@@ -104,7 +104,7 @@ class FakturaBuilder(
         fakturaserie = fakturaserie,
         eksternFakturaStatus = eksternFakturaStatus,
         eksternFakturaNummer = eksternFakturaNummer,
-        kreditReferanseNr = kreditReferanseNr
+        krediteringFakturaRef = kreditReferanseNr
     )
 }
 
