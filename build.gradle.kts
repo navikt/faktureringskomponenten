@@ -26,6 +26,12 @@ allOpen {
     annotation("jakarta.persistence.MappedSuperclass")
 }
 
+tasks.test {
+    jvmArgs(
+        "--add-opens", "java.base/java.time=ALL-UNNAMED",
+    )
+}
+
 object dependencyVersions {
     const val testContainerVersion = "1.17.6"
     const val kotestVersion = "5.5.4"
