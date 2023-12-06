@@ -68,6 +68,14 @@ class FakturaBestillingService(
                 message = "Finner ikke fakturaserie med referanse $fakturaserieReferanse"
             )
 
+        fakturaserie.apply {
+            status = FakturaserieStatus.FERDIG
+            faktura.map {
+                it.status = FakturaStatus.BESTILT
+            }
+        }
+        fakturaserieRepository.save(fakturaserie)
+
         fakturaserie.faktura.forEach {
             fakturaBestiltProducer.produserBestillingsmelding(
                 FakturaBestiltDtoMapper().tilFakturaBestiltDto(
@@ -77,14 +85,5 @@ class FakturaBestillingService(
             )
             Metrics.counter(MetrikkNavn.FAKTURA_BESTILT).increment()
         }
-
-        fakturaserie.apply {
-            status = FakturaserieStatus.FERDIG
-            faktura.map {
-                it.status = FakturaStatus.BESTILT
-            }
-        }
-
-        fakturaserieRepository.save(fakturaserie)
     }
 }
