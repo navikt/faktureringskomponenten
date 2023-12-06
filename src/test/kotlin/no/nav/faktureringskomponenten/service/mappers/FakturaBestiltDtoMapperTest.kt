@@ -189,7 +189,7 @@ class FakturaBestiltDtoMapperTest {
 
         val tilFakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(testFakturaserie.faktura.single(), testFakturaserie)
-        tilFakturaBestiltDto.krediteringFakturaRef.shouldBe("45678913")
+        tilFakturaBestiltDto.kreditReferanseNr.shouldBe("45678913")
     }
 
 }
