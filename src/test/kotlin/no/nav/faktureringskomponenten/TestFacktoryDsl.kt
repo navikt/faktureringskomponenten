@@ -14,6 +14,7 @@ fun lagFakturaserie(block: FakturaserieBuilder.() -> Unit): Fakturaserie =
 
 @TestdataDsl
 class FakturaserieBuilder(
+    private var id: Long? = null,
     private var referanse: String = ULID.randomULID(),
     private var fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
     private var fodselsnummer: String = "01234567890",
@@ -27,6 +28,7 @@ class FakturaserieBuilder(
     val faktura: MutableList<Faktura> = mutableListOf(FakturaBuilder().build()),
     private var erstattetMed: Fakturaserie? = null,
 ) {
+    fun id(id: Long) = apply { this.id = id }
     fun referanse(referanse: String) = apply { this.referanse = referanse }
     fun fakturaGjelderInnbetalingstype(fakturaGjelderInnbetalingstype: Innbetalingstype) =
         apply { this.fakturaGjelderInnbetalingstype = fakturaGjelderInnbetalingstype }
@@ -46,6 +48,7 @@ class FakturaserieBuilder(
 
     fun erstattetMed(erstattetMed: Fakturaserie) = apply { this.erstattetMed = erstattetMed }
     fun build() = Fakturaserie(
+        id = id,
         referanse = referanse,
         fakturaGjelderInnbetalingstype = fakturaGjelderInnbetalingstype,
         fodselsnummer = fodselsnummer,
@@ -84,6 +87,8 @@ class FakturaBuilder(
         this.fakturaLinje.clear()
         this.fakturaLinje.addAll(fakturaLinje)
     }
+
+    fun fakturaserie(fakturaserie: Fakturaserie) = apply { this.fakturaserie = fakturaserie }
 
     fun eksternFakturaStatus(vararg eksternFakturaStatus: EksternFakturaStatus) = apply {
         this.eksternFakturaStatus.clear()
