@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.lagFakturalinje
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -67,5 +68,17 @@ class FakturaLinjeGeneratorTest {
         fakturaLinjer.shouldHaveSize(2)
         fakturaLinjer.map { it.periodeFra }.shouldContainOnly(periodeFraDato)
         fakturaLinjer.map { it.periodeTil }.shouldContainOnly(periodeTilDato)
+    }
+
+    @Test
+    fun `ved negativt belop skal antall være negativt og enhetspris positiv`() {
+        val fakturalinje = lagFakturalinje { }
+        val kreditnotaLinjer = FakturaLinjeGenerator().lagKreditnotaLinjer(listOf(fakturalinje))
+        kreditnotaLinjer.single()
+            .run {
+                belop.shouldBe(BigDecimal(-10000))
+                antall.shouldBe(BigDecimal(-1))
+                enhetsprisPerManed.shouldBe(BigDecimal(10000))
+            }
     }
 }

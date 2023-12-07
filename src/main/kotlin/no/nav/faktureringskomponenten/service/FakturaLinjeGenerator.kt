@@ -5,6 +5,7 @@ import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.service.beregning.AntallMdBeregner
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -48,7 +49,7 @@ class FakturaLinjeGenerator {
                 periodeFra = it.periodeFra,
                 periodeTil = it.periodeTil,
                 belop = it.belop.negate(),
-                antall = it.antall,
+                antall = it.antall.multiply(BigDecimal(-1)),
                 beskrivelse = it.beskrivelse,
                 enhetsprisPerManed = it.enhetsprisPerManed
             )
