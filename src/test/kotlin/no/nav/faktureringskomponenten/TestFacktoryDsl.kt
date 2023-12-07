@@ -108,7 +108,7 @@ class FakturaBuilder(
     )
 }
 
-fun lagTestFakturalinje(block: FakturaLinjeBuilder.() -> Unit): FakturaLinje =
+fun lagFakturalinje(block: FakturaLinjeBuilder.() -> Unit): FakturaLinje =
     FakturaLinjeBuilder().apply(block).build()
 
 @TestdataDsl

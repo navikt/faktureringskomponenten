@@ -7,7 +7,7 @@ import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.lagFaktura
 import no.nav.faktureringskomponenten.lagFakturaserie
-import no.nav.faktureringskomponenten.lagTestFakturalinje
+import no.nav.faktureringskomponenten.lagFakturalinje
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -21,7 +21,7 @@ class FakturaBestiltDtoMapperTest {
             faktura(
                 lagFaktura {
                     fakturaLinje(
-                        lagTestFakturalinje {
+                        lagFakturalinje {
                             beskrivelse("Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%")
                         }
                     )
@@ -44,7 +44,7 @@ class FakturaBestiltDtoMapperTest {
             faktura(
                 lagFaktura {
                     fakturaLinje(
-                        lagTestFakturalinje {
+                        lagFakturalinje {
                             beskrivelse("Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%")
                         }
                     )
@@ -67,7 +67,7 @@ class FakturaBestiltDtoMapperTest {
             faktura(
                 lagFaktura {
                     fakturaLinje(
-                        lagTestFakturalinje {
+                        lagFakturalinje {
                             beskrivelse("Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%")
                         }
                     )
@@ -89,7 +89,7 @@ class FakturaBestiltDtoMapperTest {
             faktura(
                 lagFaktura {
                     fakturaLinje(
-                        lagTestFakturalinje {
+                        lagFakturalinje {
                             referertFakturaVedAvregning(lagFaktura { })
                             beskrivelse("Nytt beløp: 10000,00 - tidligere beløp: 9000,00")
                         }
@@ -112,7 +112,7 @@ class FakturaBestiltDtoMapperTest {
             faktura(
                 lagFaktura {
                     fakturaLinje(
-                        lagTestFakturalinje {
+                        lagFakturalinje {
                             referertFakturaVedAvregning(lagFaktura { })
                             beskrivelse("Nytt beløp: 10000,00 - tidligere beløp: 9000,00")
                         }
@@ -135,7 +135,7 @@ class FakturaBestiltDtoMapperTest {
             faktura(
                 lagFaktura {
                     fakturaLinje(
-                        lagTestFakturalinje {
+                        lagFakturalinje {
                             periodeFra(LocalDate.of(2024, 1, 1))
                             periodeTil(LocalDate.of(2024, 3, 31))
                         }
@@ -158,11 +158,11 @@ class FakturaBestiltDtoMapperTest {
             faktura(
                 lagFaktura {
                     fakturaLinje(
-                        lagTestFakturalinje {
+                        lagFakturalinje {
                             periodeFra(LocalDate.of(2024, 1, 1))
                             periodeTil(LocalDate.of(2024, 3, 31))
                         },
-                        lagTestFakturalinje {
+                        lagFakturalinje {
                             periodeFra(LocalDate.of(2024, 4, 1))
                             periodeTil(LocalDate.of(2024, 6, 30))
                         }
