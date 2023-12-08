@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.service
 
 import io.getunleash.Unleash
 import no.nav.faktureringskomponenten.domain.models.*
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import ulid.ULID
 import java.time.LocalDate
@@ -12,6 +13,7 @@ import java.time.temporal.TemporalAdjusters
 @Component
 class FakturaGenerator (
     private val fakturalinjeGenerator: FakturaLinjeGenerator,
+    @Value("\${faktura.forste-faktura-offsett-dager}") private val forsteFakturaOffsettMedDager: Long,
     private val unleash: Unleash
 ) {
 
@@ -127,7 +129,7 @@ class FakturaGenerator (
         if (fakturaStartDato <= dagensDato() || erInneværendeÅrOgKvartal(fakturaStartDato, dagensDato()) ||
             erNesteKvartalOgKvartalsbestillingHarKjørt(fakturaStartDato, dagensDato())
         ) {
-            return dagensDato()
+            return dagensDato().plusDays(forsteFakturaOffsettMedDager)
         }
         val førstMånedIKvartal = fakturaStartDato.month.firstMonthOfQuarter()
         return fakturaStartDato.withMonth(førstMånedIKvartal.value).minusMonths(1).withDayOfMonth(19)

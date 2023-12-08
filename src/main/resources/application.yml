@@ -35,6 +35,9 @@ cron:
   job:
     bestill-faktura:  ${CRON_JOB_BESTILL_FAKTURA}
 
+faktura:
+  forste-faktura-offsett-dager: 3
+
 #Token-validering
 no.nav.security.jwt.issuer:
   aad:
