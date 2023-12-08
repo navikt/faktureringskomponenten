@@ -493,7 +493,7 @@ class FakturaserieGeneratorTest {
         )
     }
 
-    class FakturaGeneratorForTest(private val dagensDato: LocalDate, unleash: FakeUnleash) : FakturaGenerator(FakturaLinjeGenerator(), unleash = unleash) {
+    class FakturaGeneratorForTest(private val dagensDato: LocalDate, unleash: FakeUnleash) : FakturaGenerator(FakturaLinjeGenerator(), unleash = unleash, 0) {
         override fun dagensDato(): LocalDate = dagensDato
     }
 

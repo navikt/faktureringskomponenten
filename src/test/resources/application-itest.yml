@@ -26,3 +26,6 @@ unleash:
 cron:
   job:
     bestill-faktura:  "0 */5 * * * *"
+
+faktura:
+  forste-faktura-offsett-dager: 0

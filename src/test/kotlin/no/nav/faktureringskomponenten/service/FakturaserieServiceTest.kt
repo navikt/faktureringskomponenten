@@ -23,7 +23,7 @@ private const val NY_REF = "456"
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
-    private val fakturaserieGenerator = FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash()))
+    private val fakturaserieGenerator = FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0))
     private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
     private val fakturaBestillingService = mockk<FakturaBestillingService>()
 
