@@ -13,8 +13,8 @@ import java.time.temporal.TemporalAdjusters
 @Component
 class FakturaGenerator (
     private val fakturalinjeGenerator: FakturaLinjeGenerator,
-    @Value("\${faktura.forste-faktura-offsett-dager}") private val forsteFakturaOffsettMedDager: Long,
-    private val unleash: Unleash
+    private val unleash: Unleash,
+    @Value("\${faktura.forste-faktura-offsett-dager}") private val forsteFakturaOffsettMedDager: Long
 ) {
 
     fun lagFakturaerFor(

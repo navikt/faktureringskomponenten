@@ -18,7 +18,7 @@ import java.time.LocalDate
 class FakturaGeneratorTest {
     private val fakturaLinjeGenerator = mockk<FakturaLinjeGenerator>(relaxed = true)
     private val unleash = FakeUnleash()
-    private val generator = FakturaGenerator(fakturaLinjeGenerator, unleash)
+    private val generator = FakturaGenerator(fakturaLinjeGenerator, unleash, 0)
 
     private val nesteÅr = LocalDate.now().plusYears(1).year
 
