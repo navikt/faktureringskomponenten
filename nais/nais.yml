@@ -14,6 +14,7 @@ spec:
   gcp:
     sqlInstances:
       - type: POSTGRES_15
+        tier: {{database_tier}}
         diskAutoresize: true
         databases:
           - name: {{database_name}}

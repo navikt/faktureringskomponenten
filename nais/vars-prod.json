@@ -1,6 +1,7 @@
 {
   "app_name": "faktureringskomponenten",
   "database_name": "faktureringskomponenten-db",
+  "database_tier": "db-custom-1-3840",
   "namespace": "teammelosys",
   "ingress": "https://faktureringskomponenten.intern.nav.no",
   "tenant": "nav.no",
