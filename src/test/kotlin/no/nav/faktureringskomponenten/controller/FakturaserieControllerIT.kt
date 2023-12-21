@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -163,7 +164,7 @@ class FakturaserieControllerIT(
             .map { it.status }
             .shouldContainExactlyInAnyOrder(
                 FakturaStatus.BESTILT,
-                FakturaStatus.KANSELLERT,
+                FakturaStatus.BESTILT,
                 FakturaStatus.KANSELLERT,
                 FakturaStatus.KANSELLERT
             )
@@ -173,17 +174,20 @@ class FakturaserieControllerIT(
             .map { it.status }
             .shouldContainExactlyInAnyOrder(
                 FakturaStatus.BESTILT,
-                FakturaStatus.OPPRETTET,
+                FakturaStatus.BESTILT,
                 FakturaStatus.OPPRETTET,
                 FakturaStatus.OPPRETTET
             )
         fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
-            .first { it.status == FakturaStatus.BESTILT }
-            .erAvregningsfaktura().shouldBeTrue()
+            .filter { it.status == FakturaStatus.BESTILT }
+            .shouldHaveSize(2)
+            .forEach {
+                it.erAvregningsfaktura().shouldBeTrue()
+            }
     }
 
     @Test
-    fun `erstatt fakturaserie hvor alt er i fortiden og bestilt - skal kun bli en faktura`() {
+    fun `erstatt fakturaserie hvor alt er i fortiden og bestilt - en avregningsfaktura pr faktura`() {
         val startDatoOpprinnelig = LocalDate.of(2016, 1, 1)
         val sluttDatoOpprinnelig = LocalDate.of(2017, 1, 31)
 
@@ -204,6 +208,10 @@ class FakturaserieControllerIT(
             ).returnResult().responseBody!!.fakturaserieReferanse
 
         fakturaBestillCronjob.bestillFaktura()
+
+        fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
+            .shouldNotBeNull()
+            .shouldHaveSize(2)
 
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
@@ -235,12 +243,16 @@ class FakturaserieControllerIT(
 
         nyFakturaserie.shouldNotBeNull().status shouldBe FakturaserieStatus.UNDER_BESTILLING
         nyFakturaserie.faktura
-            .shouldHaveSize(1)
-            .first()
-            .status.shouldBe(FakturaStatus.BESTILT)
+            .shouldHaveSize(2)
+            .forAll {
+                it.status.shouldBe(FakturaStatus.BESTILT)
+            }
+
         fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
-            .first { it.status == FakturaStatus.BESTILT }
-            .erAvregningsfaktura().shouldBeTrue()
+            .forAll {
+                it.krediteringFakturaRef.shouldNotBeNull()
+                it.erAvregningsfaktura().shouldBeTrue()
+            }
     }
 
     @Test

@@ -1,5 +1,7 @@
 package no.nav.faktureringskomponenten.service.avregning
 
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.Faktura
@@ -21,8 +23,13 @@ class AvregningBehandlerTest {
 
         val avregningsfaktura = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder, bestilteFakturaer)
 
-        avregningsfaktura.shouldNotBeNull()
-        avregningsfaktura.fakturaLinje shouldBe listOf(
+        val fakturalinjer = avregningsfaktura.run {
+            shouldNotBeNull()
+            shouldHaveSize(2)
+            flatMap { it.fakturaLinje }
+        }
+
+        fakturalinjer shouldContainExactlyInAnyOrder listOf(
             FakturaLinje(
                 id = null,
                 referertFakturaVedAvregning = faktura2,
@@ -52,21 +59,45 @@ class AvregningBehandlerTest {
 
     @Test
     fun `lagAvregningsfaktura når bestilte fakturaer inneholder en avregningsfaktura`() {
-        val avregningsfaktura = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder2(), listOf(faktura1, faktura2))
+        val avregningsfaktura =
+            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder2(), listOf(faktura1, faktura2))
 
-        val avregningsfaktura2 = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder3(), listOf(avregningsfaktura!!))
+        val avregningsfaktura2 = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder3(), avregningsfaktura!!)
 
-        avregningsfaktura2.shouldNotBeNull()
-        avregningsfaktura2.fakturaLinje.single() shouldBe FakturaLinje(
-            periodeFra = LocalDate.of(2024, 1, 1),
-            periodeTil = LocalDate.of(2024, 3, 31),
-            beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
-            antall = BigDecimal(1),
-            avregningForrigeBeloep = BigDecimal("10000.00"),
-            avregningNyttBeloep = BigDecimal("11000.00"),
-            enhetsprisPerManed = BigDecimal("1000.00"),
-            belop = BigDecimal("1000.00"),
-        )
+        avregningsfaktura2
+            .shouldNotBeNull()
+            .run {
+                shouldHaveSize(2)
+                get(0).run {
+                    fakturaLinje[0].shouldBe(
+                        FakturaLinje(
+                            periodeFra = LocalDate.of(2024, 1, 1),
+                            periodeTil = LocalDate.of(2024, 3, 31),
+                            beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
+                            antall = BigDecimal(1),
+                            avregningForrigeBeloep = BigDecimal("10000.00"),
+                            avregningNyttBeloep = BigDecimal("11000.00"),
+                            enhetsprisPerManed = BigDecimal("1000.00"),
+                            belop = BigDecimal("1000.00")
+                        )
+                    )
+                }
+                get(1).run {
+                    fakturaLinje[0].shouldBe(
+                        FakturaLinje(
+                            periodeFra = LocalDate.of(2024, 4, 1),
+                            periodeTil = LocalDate.of(2024, 6, 30),
+                            beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 12000,00",
+                            antall = BigDecimal(1),
+                            avregningForrigeBeloep = BigDecimal("12000.00"),
+                            avregningNyttBeloep = BigDecimal("12000.00"),
+                            enhetsprisPerManed = BigDecimal("0.00"),
+                            belop = BigDecimal("0.00")
+                        )
+                    )
+                }
+
+            }
     }
 
     private val faktura1 = Faktura(

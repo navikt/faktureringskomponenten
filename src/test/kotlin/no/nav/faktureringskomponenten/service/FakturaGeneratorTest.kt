@@ -47,6 +47,10 @@ class FakturaGeneratorTest {
 
     @Test
     fun `PeriodeStart på faktura frem i tid - DatoBestilt settes til 19 i måneden før kvartalet perioden gjelder for`() {
+        val før19IKvartalskjøringMåned = LocalDate.of(2023, 12, 10)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns før19IKvartalskjøringMåned
+
         val faktura = generator.lagFakturaerFor(
             LocalDate.of(nesteÅr, 1, 1),
             LocalDate.of(nesteÅr, 5, 20),

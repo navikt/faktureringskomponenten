@@ -17,7 +17,10 @@ private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: L
 
 @Component
 class AvregningBehandler(private val avregningsfakturaGenerator: AvregningsfakturaGenerator) {
-    fun lagAvregningsfaktura(fakturaseriePerioder: List<FakturaseriePeriode>, bestilteFakturaer: List<Faktura>): Faktura? {
+    fun lagAvregningsfaktura(
+        fakturaseriePerioder: List<FakturaseriePeriode>,
+        bestilteFakturaer: List<Faktura>
+    ): List<Faktura>? {
         if (bestilteFakturaer.isEmpty()) return null
         log.debug { "Lager avregningsfaktura for fakturaseriePerioder: $fakturaseriePerioder" }
         log.debug { "Bestilte fakturaer: $bestilteFakturaer" }
@@ -29,7 +32,9 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         if (avregningsperioder.isEmpty()) return null
         log.debug {"Avregningsperioder generert: $avregningsperioder"}
 
-        return avregningsfakturaGenerator.lagFaktura(avregningsperioder)
+        return avregningsperioder.map {
+            avregningsfakturaGenerator.lagFaktura(it)
+        }.toList()
     }
 
     private fun lagEventuelleAvregningsperioder(
@@ -38,7 +43,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
     ): List<Avregningsperiode> {
         val avregningsperioderForTidligereAvregningsfaktura = finnAvregningsfakturaerSomAvregnes(bestilteFakturaer, fakturaseriePerioder).map(::lagAvregningsperiode)
         val avregningsperioderForVanligeFakturaer = finnVanligeFakturaerSomAvregnes(bestilteFakturaer, fakturaseriePerioder).map(::lagAvregningsperiode)
-        return (avregningsperioderForTidligereAvregningsfaktura + avregningsperioderForVanligeFakturaer).filter { it.nyttBeløp.compareTo(it.tidligereBeløp) != 0 }
+        return (avregningsperioderForTidligereAvregningsfaktura + avregningsperioderForVanligeFakturaer)
     }
 
     private fun finnAvregningsfakturaerSomAvregnes(bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>): List<AvregningsfakturaLinjeOgNyePerioder> {

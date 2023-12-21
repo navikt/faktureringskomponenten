@@ -7,7 +7,7 @@ import java.time.LocalDate
 data class Avregningsperiode(
     val periodeFra: LocalDate,
     val periodeTil: LocalDate,
-    val bestilteFaktura: Faktura?,
+    val bestilteFaktura: Faktura,
     val tidligereBeløp: BigDecimal,
     val nyttBeløp: BigDecimal,
     val beskrivelse: String? = ""
