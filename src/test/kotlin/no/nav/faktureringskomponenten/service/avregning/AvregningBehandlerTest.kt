@@ -32,7 +32,6 @@ class AvregningBehandlerTest {
         fakturalinjer shouldContainExactlyInAnyOrder listOf(
             FakturaLinje(
                 id = null,
-                referertFakturaVedAvregning = faktura2,
                 periodeFra = LocalDate.of(2024, 4, 1),
                 periodeTil = LocalDate.of(2024, 6, 30),
                 beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
@@ -44,7 +43,6 @@ class AvregningBehandlerTest {
             ),
             FakturaLinje(
                 id = null,
-                referertFakturaVedAvregning = faktura1,
                 periodeFra = LocalDate.of(2024, 1, 1),
                 periodeTil = LocalDate.of(2024, 3, 31),
                 beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",

@@ -222,7 +222,6 @@ class AvregningIT(
                     fakturaLinje.shouldHaveSize(1).run {
                         single() shouldBe
                                 FakturaLinje(
-                                    referertFakturaVedAvregning = null, //bør testes
                                     periodeFra = LocalDate.of(2024, 1, 1),
                                     periodeTil = LocalDate.of(2024, 3, 31),
                                     beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
@@ -239,7 +238,6 @@ class AvregningIT(
                     fakturaLinje.shouldHaveSize(1).run {
                         single() shouldBe
                                 FakturaLinje(
-                                    referertFakturaVedAvregning = null, //bør testes
                                     periodeFra = LocalDate.of(2024, 4, 1),
                                     periodeTil = LocalDate.of(2024, 6, 30),
                                     beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 12000,00",

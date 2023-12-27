@@ -42,6 +42,11 @@ class Faktura(
 
     @Column(name = "kreditering_faktura_ref", nullable = true, unique = true)
     var krediteringFakturaRef: String = "",
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "avregning_faktura_id")
+    val referertFakturaVedAvregning: Faktura? = null,
+
 ) : AuditableEntity() {
 
     override fun toString(): String {
@@ -69,6 +74,6 @@ class Faktura(
     }
 
     fun erAvregningsfaktura() : Boolean {
-        return fakturaLinje.any { it.referertFakturaVedAvregning != null }
+        return referertFakturaVedAvregning != null
     }
 }

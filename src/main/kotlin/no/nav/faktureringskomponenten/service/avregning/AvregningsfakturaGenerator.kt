@@ -20,7 +20,6 @@ class AvregningsfakturaGenerator {
         val fakturaLinje =
             FakturaLinje(
                 id = null,
-                referertFakturaVedAvregning = avregningsperiode.bestilteFaktura,
                 periodeFra = avregningsperiode.periodeFra,
                 periodeTil = avregningsperiode.periodeTil,
                 beskrivelse = "Periode: ${avregningsperiode.periodeFra.format(dateFormat)} - ${
@@ -45,7 +44,8 @@ class AvregningsfakturaGenerator {
             referanseNr = ULID.randomULID(),
             krediteringFakturaRef = avregningsperiode.bestilteFaktura.referanseNr,
             fakturaLinje = listOf(fakturaLinje),
-            status = if (avregningsperiode.nyttBeløp.compareTo(avregningsperiode.tidligereBeløp) != 0) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT
+            status = if (avregningsperiode.nyttBeløp.compareTo(avregningsperiode.tidligereBeløp) != 0) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT,
+            referertFakturaVedAvregning = avregningsperiode.bestilteFaktura
         )
     }
 }

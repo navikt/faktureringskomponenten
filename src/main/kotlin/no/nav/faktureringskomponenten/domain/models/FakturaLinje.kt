@@ -12,10 +12,6 @@ class FakturaLinje(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "avregning_faktura_id")
-    val referertFakturaVedAvregning: Faktura? = null,
-
     @Column(name = "periode_fra", nullable = false)
     val periodeFra: LocalDate = LocalDate.now(),
 

@@ -78,6 +78,7 @@ class FakturaBuilder(
     private var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
     private var eksternFakturaNummer: String = "",
     private var kreditReferanseNr: String = "",
+    private var referertFakturaVedAvregning: Faktura? = null
 ) {
     fun referanseNr(referanseNr: String) = apply { this.referanseNr = referanseNr }
     fun datoBestilt(datoBestilt: LocalDate) = apply { this.datoBestilt = datoBestilt }
@@ -100,6 +101,9 @@ class FakturaBuilder(
 
     fun kreditReferanseNr(kreditReferanseNr: String) = apply { this.kreditReferanseNr = kreditReferanseNr }
 
+    fun referertFakturaVedAvregning(referertFakturaVedAvregning: Faktura) =
+        apply { this.referertFakturaVedAvregning = referertFakturaVedAvregning }
+
     fun build() = Faktura(
         referanseNr = referanseNr,
         datoBestilt = datoBestilt,
@@ -109,7 +113,8 @@ class FakturaBuilder(
         fakturaserie = fakturaserie,
         eksternFakturaStatus = eksternFakturaStatus,
         eksternFakturaNummer = eksternFakturaNummer,
-        krediteringFakturaRef = kreditReferanseNr
+        krediteringFakturaRef = kreditReferanseNr,
+        referertFakturaVedAvregning = referertFakturaVedAvregning
     )
 }
 
@@ -145,7 +150,6 @@ class FakturaLinjeBuilder(
     fun belop(belop: BigDecimal) = apply { this.belop = belop }
 
     fun build() = FakturaLinje(
-        referertFakturaVedAvregning = referertFakturaVedAvregning,
         periodeFra = periodeFra,
         periodeTil = periodeTil,
         beskrivelse = beskrivelse,
