@@ -8,6 +8,9 @@ import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
@@ -54,6 +57,7 @@ class FakturaserieControllerIT(
 
     @AfterEach
     fun cleanUp() {
+        unmockkStatic(LocalDate::class)
         addCleanUpAction {
             fakturaserieRepositoryForTesting.deleteAll()
         }
@@ -113,6 +117,10 @@ class FakturaserieControllerIT(
 
     @Test
     fun `erstatt fakturaserie, første faktura er Bestilt, erstatter opprinnelig og lager ny`() {
+        val begynnelseAvDesember = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns begynnelseAvDesember
+
         val startDatoOpprinnelig = LocalDate.now().minusMonths(3)
         val sluttDatoOpprinnelig = LocalDate.now().plusMonths(9)
 
