@@ -172,7 +172,7 @@ class FakturaserieControllerIT(
             .map { it.status }
             .shouldContainExactlyInAnyOrder(
                 FakturaStatus.BESTILT,
-                FakturaStatus.BESTILT,
+                FakturaStatus.KANSELLERT,
                 FakturaStatus.KANSELLERT,
                 FakturaStatus.KANSELLERT
             )
@@ -182,13 +182,13 @@ class FakturaserieControllerIT(
             .map { it.status }
             .shouldContainExactlyInAnyOrder(
                 FakturaStatus.BESTILT,
-                FakturaStatus.BESTILT,
+                FakturaStatus.OPPRETTET,
                 FakturaStatus.OPPRETTET,
                 FakturaStatus.OPPRETTET
             )
         fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
             .filter { it.status == FakturaStatus.BESTILT }
-            .shouldHaveSize(2)
+            .shouldHaveSize(1)
             .forEach {
                 it.erAvregningsfaktura().shouldBeTrue()
             }
