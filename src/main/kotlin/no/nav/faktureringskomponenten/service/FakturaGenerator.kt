@@ -122,7 +122,7 @@ class FakturaGenerator (
         val sisteMånedIDagensKvartal = dagensDato.month.firstMonthOfQuarter().plus(2)
         val kvartalsBestillingHarKjørt =
             dagensDato > LocalDate.now().withMonth(sisteMånedIDagensKvartal.value).withDayOfMonth(19)
-        return erNesteKvartal && kvartalsBestillingHarKjørt
+        return erNesteKvartal && kvartalsBestillingHarKjørt && (fakturaStartDato.year == dagensDato.year || fakturaStartDato.year == dagensDato.plusYears(1).year)
     }
 
     private fun utledBestillingsdato(fakturaStartDato: LocalDate): LocalDate {
