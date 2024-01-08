@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.controller
 
+import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
@@ -7,12 +8,12 @@ import no.nav.faktureringskomponenten.service.FakturaBestillingService
 import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.service.integration.kafka.EksternFakturaStatusConsumer
 import no.nav.security.token.support.core.api.Protected
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+
+private val log = KotlinLogging.logger { }
 
 @Protected
 @Validated
@@ -58,17 +59,15 @@ class AdminController(
         val faktura = fakturaService.hentFaktura(fakturaReferanse)
         if (faktura == null) {
             log.info("Finner ikke faktura med referanse nr $fakturaReferanse")
-            return ResponseEntity.status(HttpStatusCode.valueOf(404)).body("Finner ikke faktura med referanse nr $fakturaReferanse")
+            return ResponseEntity.status(HttpStatusCode.valueOf(404))
+                .body("Finner ikke faktura med referanse nr $fakturaReferanse")
         }
         if (faktura.status != FakturaStatus.FEIL) {
             log.info("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
-            return ResponseEntity.status(HttpStatusCode.valueOf(400)).body("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
+            return ResponseEntity.status(HttpStatusCode.valueOf(400))
+                .body("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
         }
         fakturaBestillingService.bestillFaktura(fakturaReferanse)
-        return ResponseEntity.ok("Bestilte  faktura med referanse nr $fakturaReferanse")
-    }
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(AdminController::class.java)
+        return ResponseEntity.ok("Feilet faktura med referanse nr $fakturaReferanse bestilles på nytt")
     }
 }
