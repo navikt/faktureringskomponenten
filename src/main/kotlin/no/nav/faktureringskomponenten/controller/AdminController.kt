@@ -53,8 +53,8 @@ class AdminController(
         return ResponseEntity.ok("satt offset for faktura mottak consumer")
     }
 
-    @PostMapping("/faktura/rebestill/{fakturaReferanse}")
-    fun rebestillFaktura(@PathVariable fakturaReferanse: String): ResponseEntity<String> {
+    @PostMapping("/faktura/{fakturaReferanse}/ombestill")
+    fun ombestillFaktura(@PathVariable fakturaReferanse: String): ResponseEntity<String> {
         log.info("Sender ny melding til OEBS om bestilling av faktura med referanse nr $fakturaReferanse")
         val faktura = fakturaService.hentFaktura(fakturaReferanse)
         if (faktura == null) {
@@ -67,6 +67,8 @@ class AdminController(
             return ResponseEntity.status(HttpStatusCode.valueOf(400))
                 .body("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
         }
+        fakturaService.oppdaterFakturaStatus(fakturaReferanse, FakturaStatus.OPPRETTET)
+
         fakturaBestillingService.bestillFaktura(fakturaReferanse)
         return ResponseEntity.ok("Feilet faktura med referanse nr $fakturaReferanse bestilles på nytt")
     }
