@@ -1,11 +1,15 @@
 package no.nav.faktureringskomponenten.controller
 
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
+import no.nav.faktureringskomponenten.service.FakturaBestillingService
+import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.service.integration.kafka.EksternFakturaStatusConsumer
 import no.nav.security.token.support.core.api.Protected
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -16,7 +20,9 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/admin")
 class AdminController(
     val fakturaMottakFeilRepository: FakturaMottakFeilRepository,
-    val eksternFakturaStatusConsumer: EksternFakturaStatusConsumer
+    val eksternFakturaStatusConsumer: EksternFakturaStatusConsumer,
+    val fakturaService: FakturaService,
+    val fakturaBestillingService: FakturaBestillingService
 ) {
     @GetMapping("/faktura/mottak/feil")
     fun hentFakturaMottakFeil(): ResponseEntity<Map<Long?, List<FakturaMottakFeil>>> {
@@ -44,6 +50,22 @@ class AdminController(
         log.info("setter offset for faktura mottak consumer til: $offset")
         eksternFakturaStatusConsumer.settSpesifiktOffsetPåConsumer(offset)
         return ResponseEntity.ok("satt offset for faktura mottak consumer")
+    }
+
+    @PostMapping("/faktura/resend/{fakturaReferanse}")
+    fun resendFaktura(@PathVariable fakturaReferanse: String): ResponseEntity<String> {
+        log.info("Sender ny melding til OEBS om bestilling av faktura med referanse nr $fakturaReferanse")
+        val faktura = fakturaService.hentFaktura(fakturaReferanse)
+        if (faktura == null) {
+            log.info("Finner ikke faktura med referanse nr $fakturaReferanse")
+            return ResponseEntity.status(HttpStatusCode.valueOf(404)).body("Finner ikke faktura med referanse nr $fakturaReferanse")
+        }
+        if (faktura.status != FakturaStatus.FEIL) {
+            log.info("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
+            return ResponseEntity.status(HttpStatusCode.valueOf(400)).body("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
+        }
+        fakturaBestillingService.bestillFaktura(fakturaReferanse)
+        return ResponseEntity.ok("Bestilte  faktura med referanse nr $fakturaReferanse")
     }
 
     companion object {
