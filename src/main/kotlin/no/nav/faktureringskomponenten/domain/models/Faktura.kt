@@ -42,7 +42,7 @@ class Faktura(
 
     @Column(name = "kreditering_faktura_ref", nullable = true, unique = true)
     var krediteringFakturaRef: String = "",
-) : AuditableEntity() {
+) : ModifiableEntity() {
 
     override fun toString(): String {
         return "referanseNr: $referanseNr, datoBestilt: $datoBestilt, status: $status"

@@ -5,6 +5,7 @@ import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import ulid.ULID
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
