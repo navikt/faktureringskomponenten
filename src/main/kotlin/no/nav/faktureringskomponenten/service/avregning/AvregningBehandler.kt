@@ -20,8 +20,8 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
     fun lagAvregningsfaktura(
         fakturaseriePerioder: List<FakturaseriePeriode>,
         bestilteFakturaer: List<Faktura>
-    ): List<Faktura>? {
-        if (bestilteFakturaer.isEmpty()) return null
+    ): List<Faktura> {
+        if (bestilteFakturaer.isEmpty()) return emptyList()
         log.debug { "Lager avregningsfaktura for fakturaseriePerioder: $fakturaseriePerioder" }
         log.debug { "Bestilte fakturaer: $bestilteFakturaer" }
         if (log.isDebugEnabled) {
@@ -29,7 +29,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         }
 
         val avregningsperioder = lagEventuelleAvregningsperioder(bestilteFakturaer, fakturaseriePerioder)
-        if (avregningsperioder.isEmpty()) return null
+        if (avregningsperioder.isEmpty()) return emptyList()
         log.debug {"Avregningsperioder generert: $avregningsperioder"}
 
         return avregningsperioder.map {
@@ -79,7 +79,6 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             bestilteFaktura = faktura,
             tidligereBeløp = tidligereLinje.avregningNyttBeloep!!,
             nyttBeløp = nyttBeløp,
-            beskrivelse = tidligereLinje.beskrivelse
         )
     }
 

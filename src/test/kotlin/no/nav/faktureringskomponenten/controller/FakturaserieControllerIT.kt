@@ -187,11 +187,8 @@ class FakturaserieControllerIT(
                 FakturaStatus.OPPRETTET
             )
         fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
-            .filter { it.status == FakturaStatus.BESTILT }
-            .shouldHaveSize(1)
-            .forEach {
-                it.erAvregningsfaktura().shouldBeTrue()
-            }
+            .single{ it.status == FakturaStatus.BESTILT }
+            .erAvregningsfaktura().shouldBeTrue()
     }
 
     @Test

@@ -10,6 +10,5 @@ data class Avregningsperiode(
     val bestilteFaktura: Faktura,
     val tidligereBeløp: BigDecimal,
     val nyttBeløp: BigDecimal,
-    val beskrivelse: String? = ""
 ) {
 }

@@ -13,9 +13,9 @@ class FakturaserieGenerator(
     fun lagFakturaserie(
         fakturaserieDto: FakturaserieDto,
         startDato: LocalDate? = null,
-        avregningsfaktura: List<Faktura>? = null
+        avregningsfaktura: List<Faktura> = emptyList()
     ): Fakturaserie {
-        val avregningsfakturaSistePeriodeTil = avregningsfaktura?.maxByOrNull { it.getPeriodeTil() }?.getPeriodeTil()
+        val avregningsfakturaSistePeriodeTil = avregningsfaktura.maxByOrNull { it.getPeriodeTil() }?.getPeriodeTil()
         val startDatoForSamletPeriode = avregningsfakturaSistePeriodeTil?.plusDays(1) ?: startDato ?: mapStartdato(
             fakturaserieDto.perioder
         )
@@ -37,7 +37,7 @@ class FakturaserieGenerator(
             startdato = startDatoForSamletPeriode,
             sluttdato = sluttDatoForSamletPeriode,
             intervall = fakturaserieDto.intervall,
-            faktura = fakturaerForSamletPeriode + (avregningsfaktura ?: emptyList())
+            faktura = fakturaerForSamletPeriode + avregningsfaktura
         )
     }
 

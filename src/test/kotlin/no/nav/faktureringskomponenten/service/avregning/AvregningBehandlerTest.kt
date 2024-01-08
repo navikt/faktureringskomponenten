@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.service.avregning
 
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -23,36 +22,41 @@ class AvregningBehandlerTest {
 
         val avregningsfaktura = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder, bestilteFakturaer)
 
-        val fakturalinjer = avregningsfaktura.run {
+        avregningsfaktura.run {
+            sortedBy { it.getPeriodeFra() }
             shouldNotBeNull()
             shouldHaveSize(2)
-            flatMap { it.fakturaLinje }
+            get(0).run {
+                fakturaLinje[0].shouldBe(
+                    FakturaLinje(
+                        id = null,
+                        periodeFra = LocalDate.of(2024, 1, 1),
+                        periodeTil = LocalDate.of(2024, 3, 31),
+                        beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
+                        antall = BigDecimal(1),
+                        enhetsprisPerManed = BigDecimal("1000.00"),
+                        avregningForrigeBeloep = BigDecimal("9000.00"),
+                        avregningNyttBeloep = BigDecimal("10000.00"),
+                        belop = BigDecimal("1000.00"),
+                    )
+                )
+            }
+            get(1).run {
+                fakturaLinje[0].shouldBe(
+                    FakturaLinje(
+                        id = null,
+                        periodeFra = LocalDate.of(2024, 4, 1),
+                        periodeTil = LocalDate.of(2024, 6, 30),
+                        beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
+                        antall = BigDecimal(1),
+                        enhetsprisPerManed = BigDecimal("3000.00"),
+                        avregningForrigeBeloep = BigDecimal("9000.00"),
+                        avregningNyttBeloep = BigDecimal("12000.00"),
+                        belop = BigDecimal("3000.00"),
+                    )
+                )
+            }
         }
-
-        fakturalinjer shouldContainExactlyInAnyOrder listOf(
-            FakturaLinje(
-                id = null,
-                periodeFra = LocalDate.of(2024, 4, 1),
-                periodeTil = LocalDate.of(2024, 6, 30),
-                beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
-                antall = BigDecimal(1),
-                enhetsprisPerManed = BigDecimal("3000.00"),
-                avregningForrigeBeloep = BigDecimal("9000.00"),
-                avregningNyttBeloep = BigDecimal("12000.00"),
-                belop = BigDecimal("3000.00"),
-            ),
-            FakturaLinje(
-                id = null,
-                periodeFra = LocalDate.of(2024, 1, 1),
-                periodeTil = LocalDate.of(2024, 3, 31),
-                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
-                antall = BigDecimal(1),
-                enhetsprisPerManed = BigDecimal("1000.00"),
-                avregningForrigeBeloep = BigDecimal("9000.00"),
-                avregningNyttBeloep = BigDecimal("10000.00"),
-                belop = BigDecimal("1000.00"),
-            ),
-        )
     }
 
     @Test
@@ -60,13 +64,28 @@ class AvregningBehandlerTest {
         val avregningsfaktura =
             avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder2(), listOf(faktura1, faktura2))
 
-        val avregningsfaktura2 = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder3(), avregningsfaktura!!)
+        avregningsfaktura.run {
+            sortedBy { it.getPeriodeFra() }
+            filter { it.erAvregningsfaktura() }
+            shouldHaveSize(2)
+            get(0).run {
+                referertFakturaVedAvregning.shouldBe(faktura1)
+            }
+            get(1).run {
+                referertFakturaVedAvregning.shouldBe(faktura2)
+            }
+        }
+
+
+        val avregningsfaktura2 =
+            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder3(), avregningsfaktura)
 
         avregningsfaktura2
-            .shouldNotBeNull()
             .run {
+                sortedBy { it.getPeriodeFra() }
                 shouldHaveSize(2)
                 get(0).run {
+                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[0])
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
                             periodeFra = LocalDate.of(2024, 1, 1),
@@ -81,6 +100,7 @@ class AvregningBehandlerTest {
                     )
                 }
                 get(1).run {
+                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[1])
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
                             periodeFra = LocalDate.of(2024, 4, 1),
