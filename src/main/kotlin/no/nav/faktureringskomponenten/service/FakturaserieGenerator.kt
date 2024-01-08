@@ -16,9 +16,8 @@ class FakturaserieGenerator(
         avregningsfaktura: List<Faktura> = emptyList()
     ): Fakturaserie {
         val avregningsfakturaSistePeriodeTil = avregningsfaktura.maxByOrNull { it.getPeriodeTil() }?.getPeriodeTil()
-        val startDatoForSamletPeriode = avregningsfakturaSistePeriodeTil?.plusDays(1) ?: startDato ?: mapStartdato(
-            fakturaserieDto.perioder
-        )
+        val startDatoForSamletPeriode =
+            finnStartDatoForSamletPeriode(avregningsfakturaSistePeriodeTil, startDato, fakturaserieDto)
         val sluttDatoForSamletPeriode = mapSluttdato(fakturaserieDto.perioder)
         val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(
             startDatoForSamletPeriode,
@@ -40,6 +39,14 @@ class FakturaserieGenerator(
             faktura = fakturaerForSamletPeriode + avregningsfaktura
         )
     }
+
+    private fun finnStartDatoForSamletPeriode(
+        avregningsfakturaSistePeriodeTil: LocalDate?,
+        startDato: LocalDate?,
+        fakturaserieDto: FakturaserieDto
+    ) = avregningsfakturaSistePeriodeTil?.plusDays(1) ?: startDato ?: mapStartdato(
+        fakturaserieDto.perioder
+    )
 
     fun lagKrediteringFakturaSerie(fakturaserie: Fakturaserie): Fakturaserie {
         return Fakturaserie(

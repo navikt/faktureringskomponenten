@@ -18,7 +18,7 @@ class AvregningBehandlerTest {
     @Test
     fun lagAvregningsfaktura() {
         val bestilteFakturaer = listOf(faktura1, faktura2)
-        val fakturaseriePerioder = fakturaseriePerioder2()
+        val fakturaseriePerioder = fakturaseriePerioderTestData()
 
         val avregningsfaktura = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder, bestilteFakturaer)
 
@@ -62,23 +62,19 @@ class AvregningBehandlerTest {
     @Test
     fun `lagAvregningsfaktura når bestilte fakturaer inneholder en avregningsfaktura`() {
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder2(), listOf(faktura1, faktura2))
+            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData(), listOf(faktura1, faktura2))
 
         avregningsfaktura.run {
             sortedBy { it.getPeriodeFra() }
             filter { it.erAvregningsfaktura() }
             shouldHaveSize(2)
-            get(0).run {
-                referertFakturaVedAvregning.shouldBe(faktura1)
-            }
-            get(1).run {
-                referertFakturaVedAvregning.shouldBe(faktura2)
-            }
+            get(0).referertFakturaVedAvregning.shouldBe(faktura1)
+            get(1).referertFakturaVedAvregning.shouldBe(faktura2)
         }
 
 
         val avregningsfaktura2 =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder3(), avregningsfaktura)
+            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData2(), avregningsfaktura)
 
         avregningsfaktura2
             .run {
@@ -172,7 +168,7 @@ class AvregningBehandlerTest {
         ),
     )
 
-    private fun fakturaseriePerioder2(): List<FakturaseriePeriode> {
+    private fun fakturaseriePerioderTestData(): List<FakturaseriePeriode> {
         return listOf(
             FakturaseriePeriode(
                 startDato = LocalDate.of(2024, 1, 1),
@@ -195,7 +191,7 @@ class AvregningBehandlerTest {
         )
     }
 
-    private fun fakturaseriePerioder3(): List<FakturaseriePeriode> {
+    private fun fakturaseriePerioderTestData2(): List<FakturaseriePeriode> {
         return listOf(
             FakturaseriePeriode(
                 startDato = LocalDate.of(2024, 1, 1),

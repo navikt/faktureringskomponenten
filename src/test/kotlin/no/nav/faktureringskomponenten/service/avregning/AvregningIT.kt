@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.service.avregning
 
 import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockkStatic
@@ -80,6 +81,7 @@ class AvregningIT(
         // "Bestiller" 2 fakturaer ved å sette status manuelt til BESTILT
         val opprinneligeFakturaer = fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
             .sortedBy(Faktura::getPeriodeFra)
+        opprinneligeFakturaer.shouldHaveSize(4)
         opprinneligeFakturaer[0].run {
             status = FakturaStatus.BESTILT
             eksternFakturaNummer = "8272123"
@@ -91,7 +93,7 @@ class AvregningIT(
             fakturaRepository.save(this)
         }
 
-        fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse)!!.run {
+        fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).shouldNotBeNull().run {
             status = FakturaserieStatus.UNDER_BESTILLING
             fakturaserieRepository.save(this)
         }
@@ -178,7 +180,7 @@ class AvregningIT(
             }
         }
 
-        fakturaserieRepository.findByReferanse(fakturaserieReferanse2)!!.run {
+        fakturaserieRepository.findByReferanse(fakturaserieReferanse2).shouldNotBeNull().run {
             status = FakturaserieStatus.UNDER_BESTILLING
             fakturaserieRepository.save(this)
         }

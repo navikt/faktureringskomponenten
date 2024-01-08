@@ -254,6 +254,7 @@ class FakturaserieControllerIT(
             }
 
         fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
+            .shouldHaveSize(2)
             .forAll {
                 it.krediteringFakturaRef.shouldNotBeNull()
                 it.erAvregningsfaktura().shouldBeTrue()
