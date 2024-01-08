@@ -52,8 +52,8 @@ class AdminController(
         return ResponseEntity.ok("satt offset for faktura mottak consumer")
     }
 
-    @PostMapping("/faktura/resend/{fakturaReferanse}")
-    fun resendFaktura(@PathVariable fakturaReferanse: String): ResponseEntity<String> {
+    @PostMapping("/faktura/rebestill/{fakturaReferanse}")
+    fun rebestillFaktura(@PathVariable fakturaReferanse: String): ResponseEntity<String> {
         log.info("Sender ny melding til OEBS om bestilling av faktura med referanse nr $fakturaReferanse")
         val faktura = fakturaService.hentFaktura(fakturaReferanse)
         if (faktura == null) {
