@@ -100,7 +100,7 @@ class FakturaGeneratorTest {
     }
 
     @Test
-    @Disabled("Det kommer en ny test for dette i annen PR")
+    @Disabled("Det kommer ny test for dette i en annen PR")
     fun `PeriodeStart på faktura frem i tid, i samme kvartal, men neste år - DatoBestilt settes til 19 i måneden før kvartalet`() {
         val faktura = generator.lagFakturaerFor(
             LocalDate.now().plusYears(1),
