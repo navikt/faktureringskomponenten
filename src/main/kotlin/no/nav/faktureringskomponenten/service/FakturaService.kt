@@ -8,5 +8,5 @@ class FakturaService(
     private val fakturaRepository: FakturaRepository,
 ) {
 
-    fun hentFaktura(fakturaReferanseNr: String) = fakturaRepository.findByReferanseNr(fakturaReferanseNr);
+    fun hentFaktura(fakturaReferanseNr: String) = fakturaRepository.findByReferanseNr(fakturaReferanseNr)
 }
