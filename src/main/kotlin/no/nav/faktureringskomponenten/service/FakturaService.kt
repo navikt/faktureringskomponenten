@@ -9,4 +9,8 @@ class FakturaService(
 ) {
 
     fun hentFaktura(fakturaReferanseNr: String) = fakturaRepository.findByReferanseNr(fakturaReferanseNr)
+
+    fun hentAntallFeiledeFakturaer(): Int {
+        return fakturaRepository.countByStatusIsFeil()
+    }
 }
