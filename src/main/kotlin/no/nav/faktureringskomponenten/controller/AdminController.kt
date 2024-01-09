@@ -109,13 +109,13 @@ class AdminController(
             ubetaltBelop = faktura.totalbeløp(),
             status = FakturaStatus.MANGLENDE_INNBETALING,
             dato = LocalDate.now(),
-            feilmelding = "Simulerer manglende innbetaling"
+            feilmelding = "Simulert manglende innbetaling"
         )
 
         eksternFakturaStatusService.lagreEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
 
-        log.info("Simulerer manglende innbetaling for faktura med referanse nr $fakturaReferanse")
-        return ResponseEntity.ok("Simulerer manglende innbetaling for faktura med referanse nr $fakturaReferanse")
+        log.info("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
+        return ResponseEntity.ok("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
     }
 
     companion object {
