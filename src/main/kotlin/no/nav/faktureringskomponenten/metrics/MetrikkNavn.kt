@@ -5,8 +5,9 @@ class MetrikkNavn {
         val METRIKKER_NAMESPACE = "faktureringskomponenten"
 
         val FAKTURASERIE_OPPRETTET = "${METRIKKER_NAMESPACE}.fakturaserie.opprettet"
-        val FAKTURASERIE_ENDRET = "${METRIKKER_NAMESPACE}.fakturaserie.endret"
         val FAKTURA_BESTILT = "${METRIKKER_NAMESPACE}.faktura.bestilt"
+        val FAKTURA_FEILET_COUNTER = "${METRIKKER_NAMESPACE}.faktura.feilet.counter"
+        val FAKTURA_FEILET = "${METRIKKER_NAMESPACE}.faktura.feilet"
 
         val FAKTURA_IKKE_BETALT_STATUS = "${METRIKKER_NAMESPACE}.faktura.ikkebetalt"
 

@@ -61,6 +61,7 @@ private val FullmektigDto.tilFullmektig: Fullmektig
 
 private val Faktura.tilResponseDto: FakturaResponseDto
     get() = FakturaResponseDto(
+        fakturaReferanse = this.referanseNr,
         datoBestilt = this.datoBestilt,
         sistOppdatert = LocalDate.ofInstant(this.endretTidspunkt, ZoneId.systemDefault()),
         status = this.status,
