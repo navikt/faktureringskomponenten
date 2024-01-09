@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
@@ -85,16 +86,18 @@ class AdminController(
      * Simulerer at faktura ikke er betalt innen forfall. Endepunktet er KUN tilgjengelig i testmiljø.
      */
     @PostMapping("/faktura/{fakturaReferanse}/manglende-innbetaling")
-    fun simulerManglendeInnbetaling(@PathVariable fakturaReferanse: String): ResponseEntity<String> {
-        if (naisClusterName != Companion.naisClusterNameDev) {
+    fun simulerManglendeInnbetaling(
+        @PathVariable fakturaReferanse: String,
+        @RequestParam(required = false, defaultValue = "0") betaltBelop: BigDecimal
+    ): ResponseEntity<String> {
+        if (naisClusterName != naisClusterNameDev) {
             log.warn("Endepunktet er kun tilgjengelig i testmiljø")
             return ResponseEntity.status(403)
                 .body("Endepunktet er kun tilgjengelig i testmiljø")
         }
 
-        val faktura = fakturaService.hentFaktura(fakturaReferanse) ?:
-            return ResponseEntity.status(404)
-                .body("Finner ikke faktura med referanse nr $fakturaReferanse")
+        val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return ResponseEntity.status(404)
+            .body("Finner ikke faktura med referanse nr $fakturaReferanse")
 
         if (faktura.status != FakturaStatus.BESTILT) {
             log.info("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
@@ -102,11 +105,17 @@ class AdminController(
                 .body("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
         }
 
+        if (faktura.totalbeløp() >= betaltBelop) {
+            log.info("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
+            return ResponseEntity.status(400)
+                .body("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
+        }
+
         val simulertEksternFakturaStatusDto = EksternFakturaStatusDto(
             fakturaReferanseNr = fakturaReferanse,
             fakturaNummer = (99990000..99999999).random().toString(),
             fakturaBelop = faktura.totalbeløp(),
-            ubetaltBelop = faktura.totalbeløp(),
+            ubetaltBelop = faktura.totalbeløp() - betaltBelop,
             status = FakturaStatus.MANGLENDE_INNBETALING,
             dato = LocalDate.now(),
             feilmelding = "Simulert manglende innbetaling"
