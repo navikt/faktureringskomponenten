@@ -104,7 +104,7 @@ class AdminController(
 
         val simulertEksternFakturaStatusDto = EksternFakturaStatusDto(
             fakturaReferanseNr = fakturaReferanse,
-            fakturaNummer = "SIMULERT_MANGLENDE_INNBETALING",
+            fakturaNummer = (99990000..99999999).random().toString(),
             fakturaBelop = faktura.totalbeløp(),
             ubetaltBelop = faktura.totalbeløp(),
             status = FakturaStatus.MANGLENDE_INNBETALING,
