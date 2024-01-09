@@ -109,7 +109,6 @@ class FakturaGenerator (
             null,
             referanseNr = ULID.randomULID(),
             datoBestilt = bestillingsdato,
-            sistOppdatert = bestillingsdato,
             fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
@@ -141,7 +140,7 @@ class FakturaGenerator (
     }
 
     private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
-        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = dagensDato(), sistOppdatert = dagensDato(), fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
+        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = dagensDato(), fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()
