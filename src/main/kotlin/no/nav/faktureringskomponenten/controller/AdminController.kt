@@ -11,11 +11,9 @@ import no.nav.faktureringskomponenten.service.integration.kafka.EksternFakturaSt
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.core.api.Protected
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpStatusCode
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import java.math.BigDecimal
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
@@ -34,8 +32,6 @@ class AdminController(
 
     @Value("\${NAIS_CLUSTER_NAME}")
     private lateinit var naisClusterName: String
-
-    private val naisClusterNameDev = "dev-gcp"
 
     @GetMapping("/faktura/mottak/feil")
     fun hentFakturaMottakFeil(): ResponseEntity<Map<Long?, List<FakturaMottakFeil>>> {
@@ -71,12 +67,12 @@ class AdminController(
         val faktura = fakturaService.hentFaktura(fakturaReferanse)
         if (faktura == null) {
             log.info("Finner ikke faktura med referanse nr $fakturaReferanse")
-            return ResponseEntity.status(HttpStatusCode.valueOf(404))
+            return ResponseEntity.status(404)
                 .body("Finner ikke faktura med referanse nr $fakturaReferanse")
         }
         if (faktura.status != FakturaStatus.FEIL) {
             log.info("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
-            return ResponseEntity.status(HttpStatusCode.valueOf(400))
+            return ResponseEntity.status(400)
                 .body("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
         }
         fakturaService.oppdaterFakturaStatus(fakturaReferanse, FakturaStatus.OPPRETTET)
@@ -90,19 +86,19 @@ class AdminController(
      */
     @PostMapping("/faktura/{fakturaReferanse}/manglende-innbetaling")
     fun simulerManglendeInnbetaling(@PathVariable fakturaReferanse: String): ResponseEntity<String> {
-        if (naisClusterName != naisClusterNameDev) {
+        if (naisClusterName != Companion.naisClusterNameDev) {
             log.warn("Endepunktet er kun tilgjengelig i testmiljø")
-            return ResponseEntity.status(HttpStatusCode.valueOf(403))
+            return ResponseEntity.status(403)
                 .body("Endepunktet er kun tilgjengelig i testmiljø")
         }
 
         val faktura = fakturaService.hentFaktura(fakturaReferanse) ?:
-            return ResponseEntity.status(HttpStatusCode.valueOf(404))
+            return ResponseEntity.status(404)
                 .body("Finner ikke faktura med referanse nr $fakturaReferanse")
 
         if (faktura.status != FakturaStatus.BESTILT) {
             log.info("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
-            return ResponseEntity.status(HttpStatusCode.valueOf(400))
+            return ResponseEntity.status(400)
                 .body("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
         }
 
@@ -110,7 +106,7 @@ class AdminController(
             fakturaReferanseNr = fakturaReferanse,
             fakturaNummer = "SIMULERT_MANGLENDE_INNBETALING",
             fakturaBelop = faktura.totalbeløp(),
-            ubetaltBelop = BigDecimal(0),
+            ubetaltBelop = faktura.totalbeløp(),
             status = FakturaStatus.MANGLENDE_INNBETALING,
             dato = LocalDate.now(),
             feilmelding = "Simulerer manglende innbetaling"
@@ -120,5 +116,9 @@ class AdminController(
 
         log.info("Simulerer manglende innbetaling for faktura med referanse nr $fakturaReferanse")
         return ResponseEntity.ok("Simulerer manglende innbetaling for faktura med referanse nr $fakturaReferanse")
+    }
+
+    companion object {
+        private val naisClusterNameDev = "dev-gcp"
     }
 }
