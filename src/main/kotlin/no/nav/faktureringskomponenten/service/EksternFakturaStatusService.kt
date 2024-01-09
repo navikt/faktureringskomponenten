@@ -92,7 +92,6 @@ class EksternFakturaStatusService(
     private fun lagreFaktura(faktura: Faktura, eksternFakturaStatusDto: EksternFakturaStatusDto) {
         faktura.apply {
             eksternFakturaNummer = eksternFakturaStatusDto.fakturaNummer ?: ""
-            sistOppdatert = eksternFakturaStatusDto.dato
             status = eksternFakturaStatusDto.status
         }
 
