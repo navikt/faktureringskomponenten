@@ -105,7 +105,7 @@ class AdminController(
                 .body("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
         }
 
-        if (faktura.totalbeløp() >= betaltBelop) {
+        if (faktura.totalbeløp() <= betaltBelop) {
             log.info("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
             return ResponseEntity.status(400)
                 .body("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
