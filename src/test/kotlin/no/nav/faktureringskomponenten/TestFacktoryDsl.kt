@@ -71,7 +71,6 @@ fun lagFaktura(block: FakturaBuilder.() -> Unit): Faktura =
 class FakturaBuilder(
     private var referanseNr: String = ULID.randomULID(),
     private var datoBestilt: LocalDate = LocalDate.now(),
-    private var sistOppdatert: LocalDate = LocalDate.now().plusMonths(3),
     private var status: FakturaStatus = FakturaStatus.OPPRETTET,
     private var fakturaLinje: MutableList<FakturaLinje> = mutableListOf(FakturaLinjeBuilder().build()),
     private var fakturaserie: Fakturaserie? = null,
@@ -82,7 +81,6 @@ class FakturaBuilder(
 ) {
     fun referanseNr(referanseNr: String) = apply { this.referanseNr = referanseNr }
     fun datoBestilt(datoBestilt: LocalDate) = apply { this.datoBestilt = datoBestilt }
-    fun sistOppdatert(sistOppdatert: LocalDate) = apply { this.sistOppdatert = sistOppdatert }
     fun status(status: FakturaStatus) = apply { this.status = status }
     fun fakturaLinje(vararg fakturaLinje: FakturaLinje) = apply {
         this.fakturaLinje.clear()
@@ -107,7 +105,6 @@ class FakturaBuilder(
     fun build() = Faktura(
         referanseNr = referanseNr,
         datoBestilt = datoBestilt,
-        sistOppdatert = sistOppdatert,
         status = status,
         fakturaLinje = fakturaLinje,
         fakturaserie = fakturaserie,

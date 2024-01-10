@@ -1,13 +1,14 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
-import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
-import java.math.BigDecimal
 import java.time.LocalDate
 
 @Schema(description = "Model for en faktura i fakturaserien")
 data class FakturaResponseDto(
+
+    @Schema(description = "Unik identifikator av faktura")
+    val fakturaReferanse: String,
 
     @Schema(description = "Dato for når faktura bestilles til OEBS")
     val datoBestilt: LocalDate,

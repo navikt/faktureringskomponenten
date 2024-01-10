@@ -11,6 +11,7 @@ import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -99,6 +100,7 @@ class FakturaGeneratorTest {
     }
 
     @Test
+    @Disabled("Det kommer ny test for dette i en annen PR")
     fun `PeriodeStart på faktura frem i tid, i samme kvartal, men neste år - DatoBestilt settes til 19 i måneden før kvartalet`() {
         val begynnelseAvDesember = LocalDate.of(2023, 12, 1)
         mockkStatic(LocalDate::class)

@@ -26,6 +26,10 @@
             </encoder>
         </appender>
 
+        <logger name="org.apache.kafka" level="INFO"/>
+        <logger name="org.springframework.kafka" level="INFO"/>
+        <logger name="com.zaxxer.hikari" level="INFO"/>
+
         <root level="INFO">
             <appender-ref ref="console"/>
         </root>

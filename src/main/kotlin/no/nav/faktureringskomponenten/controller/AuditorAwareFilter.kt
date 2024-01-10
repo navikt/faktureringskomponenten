@@ -15,6 +15,7 @@ private val log = KotlinLogging.logger { }
 
 @Component
 class AuditorAwareFilter : Filter {
+
     override fun doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain) {
         val httpRequest = request as HttpServletRequest
 
@@ -22,6 +23,7 @@ class AuditorAwareFilter : Filter {
             val auditor = httpRequest.getHeader(NAV_USER_ID)
             if (auditor == null) {
                 val httpResponse = response as HttpServletResponse
+                log.error { "NAV ident må oppgis for sporing, path=" + httpRequest.requestURI  }
                 httpResponse.sendError(HttpStatus.BAD_REQUEST.value(), "NAV ident må oppgis for sporing")
                 return
             }

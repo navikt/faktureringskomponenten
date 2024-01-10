@@ -18,9 +18,6 @@ class Faktura(
     @Column(name = "dato_bestilt", nullable = false)
     val datoBestilt: LocalDate = LocalDate.now(),
 
-    @Column(name = "sist_oppdatert", nullable = false)
-    var sistOppdatert: LocalDate = LocalDate.now(),
-
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
@@ -47,7 +44,7 @@ class Faktura(
     @JoinColumn(name = "avregning_faktura_id")
     val referertFakturaVedAvregning: Faktura? = null,
 
-) : AuditableEntity() {
+) : ModifiableEntity() {
 
     override fun toString(): String {
         return "referanseNr: $referanseNr, datoBestilt: $datoBestilt, status: $status"
