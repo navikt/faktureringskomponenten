@@ -13,12 +13,6 @@ class AvregningsfakturaGeneratorTest {
     private val generator = AvregningsfakturaGenerator()
 
     @Test
-    fun `skal ikke generere faktura uten avregningsperiode`() {
-        val faktura = generator.lagFaktura(emptyList())
-        faktura shouldBe null
-    }
-
-    @Test
     fun lagFaktura() {
         val bestilteFaktura = Faktura(eksternFakturaNummer = "123")
         val avregningsperiode = Avregningsperiode(
@@ -29,12 +23,12 @@ class AvregningsfakturaGeneratorTest {
             nyttBeløp = BigDecimal("1000"),
         )
 
-        val faktura = generator.lagFaktura(listOf(avregningsperiode))
+        val faktura = generator.lagFaktura(avregningsperiode)
 
         faktura.shouldNotBeNull()
+        faktura.krediteringFakturaRef.shouldBe(avregningsperiode.bestilteFaktura.referanseNr)
         faktura.fakturaLinje shouldContain FakturaLinje(
             id = null,
-            referertFakturaVedAvregning = bestilteFaktura,
             periodeFra = LocalDate.of(2024, 1, 1),
             periodeTil = LocalDate.of(2024, 3, 31),
             beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 1000,00 - tidligere beløp: 2000,00",

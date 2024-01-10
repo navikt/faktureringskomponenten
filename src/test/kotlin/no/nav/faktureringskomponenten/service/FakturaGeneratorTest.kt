@@ -102,14 +102,18 @@ class FakturaGeneratorTest {
     @Test
     @Disabled("Det kommer ny test for dette i en annen PR")
     fun `PeriodeStart på faktura frem i tid, i samme kvartal, men neste år - DatoBestilt settes til 19 i måneden før kvartalet`() {
+        val begynnelseAvDesember = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns begynnelseAvDesember
+
         val faktura = generator.lagFakturaerFor(
-            LocalDate.now().plusYears(1),
-            LocalDate.now().plusYears(1).plusDays(1),
+            begynnelseAvDesember.plusYears(1),
+            begynnelseAvDesember.plusYears(1).plusDays(1),
             listOf(
                 FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.now().plusYears(1),
-                    sluttDato = LocalDate.now().plusYears(1).plusDays(1),
+                    startDato = begynnelseAvDesember.plusYears(1),
+                    sluttDato = begynnelseAvDesember.plusYears(1).plusDays(1),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
             ),
@@ -117,9 +121,7 @@ class FakturaGeneratorTest {
         )
 
         val firstMonthOfQuarter = LocalDate.now().month.firstMonthOfQuarter()
-        faktura.single().datoBestilt.shouldBe(
-            LocalDate.now().plusYears(1).withMonth(firstMonthOfQuarter.value - 1).withDayOfMonth(19)
-        )
+        faktura.single().datoBestilt.shouldBe(LocalDate.of(2024,9,19))
     }
 
     @Test
