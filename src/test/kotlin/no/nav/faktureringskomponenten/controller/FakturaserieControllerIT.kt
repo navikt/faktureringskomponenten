@@ -469,7 +469,7 @@ class FakturaserieControllerIT(
             .returnResult().responseBody!!.fakturaserieReferanse
 
         nyFakturaserieReferanse shouldNotBe null
-        nyFakturaserieReferanse shouldNotBe nyFakturaserieReferanse
+        nyFakturaserieReferanse shouldNotBe opprinneligFakturaserieReferanse
     }
 
     @ParameterizedTest(name = "{0} gir feilmelding \"{3}\"")
@@ -608,9 +608,8 @@ class FakturaserieControllerIT(
             .exchange()
 
     private fun deleteKansellerFakturaserieRequest(referanse: String): WebTestClient.ResponseSpec =
-        webClient.post()
+        webClient.delete()
             .uri("/fakturaserier/$referanse")
-            .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header("Nav-User-Id", NAV_IDENT)
             .headers {
