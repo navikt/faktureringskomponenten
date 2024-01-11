@@ -9,6 +9,7 @@ import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -453,6 +454,34 @@ class FakturaserieControllerIT(
         fakturaLinjer[3].beskrivelse.shouldBe("Periode: 01.01.2023 - 31.03.2023\nInntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %")
     }
 
+    @Test
+    fun `kansellerFakturaserie kansellerer fakturaserie og returnerer ny fakturaseriereferanse`() {
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    LocalDate.now(),
+                    LocalDate.now().plusDays(2),
+                    "Inntekt fra utlandet"
+                ),
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto)
+                .expectStatus().isOk
+                .expectBody(NyFakturaserieResponseDto::class.java)
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val nyFakturaserieReferanse = deleteKansellerFakturaserieRequest(opprinneligFakturaserieReferanse)
+            .expectStatus().isOk
+            .expectBody(NyFakturaserieResponseDto::class.java)
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        nyFakturaserieReferanse shouldNotBe null
+        nyFakturaserieReferanse shouldNotBe opprinneligFakturaserieReferanse
+    }
+
     @ParameterizedTest(name = "{0} gir feilmelding \"{3}\"")
     @MethodSource("fakturaserieDTOsMedValideringsfeil")
     fun `lagNyFaktura validerer input riktig`(
@@ -582,6 +611,17 @@ class FakturaserieControllerIT(
         webClient.get()
             .uri("/fakturaserier?referanse=$referanse")
             .accept(MediaType.APPLICATION_JSON)
+            .headers {
+                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
+    private fun deleteKansellerFakturaserieRequest(referanse: String): WebTestClient.ResponseSpec =
+        webClient.delete()
+            .uri("/fakturaserier/$referanse")
+            .accept(MediaType.APPLICATION_JSON)
+            .header("Nav-User-Id", NAV_IDENT)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
