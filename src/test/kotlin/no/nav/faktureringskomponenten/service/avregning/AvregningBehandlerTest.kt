@@ -81,7 +81,8 @@ class AvregningBehandlerTest {
                 sortedBy { it.getPeriodeFra() }
                 shouldHaveSize(2)
                 get(0).run {
-                    referertFakturaVedAvregning.shouldBe(faktura1)
+                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[0])
+                    krediteringFakturaRef.shouldBe(faktura1.referanseNr)
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
                             periodeFra = LocalDate.of(2024, 1, 1),
@@ -96,7 +97,8 @@ class AvregningBehandlerTest {
                     )
                 }
                 get(1).run {
-                    referertFakturaVedAvregning.shouldBe(faktura2)
+                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[1])
+                    krediteringFakturaRef.shouldBe(faktura2.referanseNr)
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
                             periodeFra = LocalDate.of(2024, 4, 1),

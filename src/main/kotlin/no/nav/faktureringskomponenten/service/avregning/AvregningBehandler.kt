@@ -101,7 +101,8 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         return Avregningsperiode(
             periodeFra = tidligereLinje.periodeFra,
             periodeTil = tidligereLinje.periodeTil,
-            bestilteFaktura = finnOpprinneligFaktura(faktura),
+            bestilteFaktura = faktura,
+            opprinneligFaktura = finnOpprinneligFaktura(faktura),
             tidligereBeløp = tidligereLinje.avregningNyttBeloep!!,
             nyttBeløp = nyttBeløp,
         )
@@ -113,7 +114,8 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         return Avregningsperiode(
             periodeFra = faktura.getPeriodeFra(),
             periodeTil = faktura.getPeriodeTil(),
-            bestilteFaktura = finnOpprinneligFaktura(faktura),
+            bestilteFaktura = faktura,
+            opprinneligFaktura = finnOpprinneligFaktura(faktura),
             tidligereBeløp = faktura.totalbeløp(),
             nyttBeløp = nyttBeløp,
         )

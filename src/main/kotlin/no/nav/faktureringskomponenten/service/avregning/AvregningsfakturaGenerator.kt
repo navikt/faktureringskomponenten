@@ -44,7 +44,7 @@ class AvregningsfakturaGenerator {
         // skal sendes til OEBS. Grunnen til at vi oppretter en faktura er for å koble tidligere faktura med en ny avregning
         return Faktura(
             referanseNr = ULID.randomULID(),
-            krediteringFakturaRef = avregningsperiode.bestilteFaktura.referanseNr,
+            krediteringFakturaRef = avregningsperiode.opprinneligFaktura.referanseNr,
             fakturaLinje = listOf(fakturaLinje),
             status = if (avregningsperiode.nyttBeløp.compareTo(avregningsperiode.tidligereBeløp) != 0) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT,
             referertFakturaVedAvregning = avregningsperiode.bestilteFaktura
