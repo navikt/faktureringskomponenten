@@ -73,4 +73,8 @@ class Faktura(
     fun erAvregningsfaktura() : Boolean {
         return referertFakturaVedAvregning != null
     }
+
+    fun hentOpprinneligFaktura():Faktura{
+        return referertFakturaVedAvregning?.hentOpprinneligFaktura() ?: this
+    }
 }

@@ -102,7 +102,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             periodeFra = tidligereLinje.periodeFra,
             periodeTil = tidligereLinje.periodeTil,
             bestilteFaktura = faktura,
-            opprinneligFaktura = finnOpprinneligFaktura(faktura),
+            opprinneligFaktura = faktura.hentOpprinneligFaktura(),
             tidligereBeløp = tidligereLinje.avregningNyttBeloep!!,
             nyttBeløp = nyttBeløp,
         )
@@ -115,7 +115,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             periodeFra = faktura.getPeriodeFra(),
             periodeTil = faktura.getPeriodeTil(),
             bestilteFaktura = faktura,
-            opprinneligFaktura = finnOpprinneligFaktura(faktura),
+            opprinneligFaktura = faktura.hentOpprinneligFaktura(),
             tidligereBeløp = faktura.totalbeløp(),
             nyttBeløp = nyttBeløp,
         )
@@ -142,14 +142,5 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             overlappDateRange.start,
             overlappDateRange.endInclusive
         )
-    }
-
-    private fun finnOpprinneligFaktura(faktura: Faktura): Faktura {
-        return if (faktura.referertFakturaVedAvregning != null) {
-            finnOpprinneligFaktura(faktura.referertFakturaVedAvregning!!)
-        } else {
-            faktura
-        }
-
     }
 }
