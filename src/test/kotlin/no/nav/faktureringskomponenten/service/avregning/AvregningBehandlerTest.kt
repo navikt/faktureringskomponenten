@@ -82,7 +82,7 @@ class AvregningBehandlerTest {
                 shouldHaveSize(2)
                 get(0).run {
                     referertFakturaVedAvregning.shouldBe(avregningsfaktura[0])
-                    krediteringFakturaRef.shouldBe(faktura1.referanseNr)
+                    krediteringFakturaRef.shouldBe(avregningsfaktura[0].referanseNr)
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
                             periodeFra = LocalDate.of(2024, 1, 1),
@@ -98,7 +98,7 @@ class AvregningBehandlerTest {
                 }
                 get(1).run {
                     referertFakturaVedAvregning.shouldBe(avregningsfaktura[1])
-                    krediteringFakturaRef.shouldBe(faktura2.referanseNr)
+                    krediteringFakturaRef.shouldBe(avregningsfaktura[1].referanseNr)
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
                             periodeFra = LocalDate.of(2024, 4, 1),
@@ -109,6 +109,63 @@ class AvregningBehandlerTest {
                             avregningNyttBeloep = BigDecimal("12000.00"),
                             enhetsprisPerManed = BigDecimal("0.00"),
                             belop = BigDecimal("0.00")
+                        )
+                    )
+                }
+
+            }
+    }
+
+    @Test
+    fun `lagAvregningsfaktura referer til først positive faktura - første av 2 i dette tilfellet`() {
+        val avregningsfaktura =
+            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData3(), listOf(faktura1, faktura2))
+
+        avregningsfaktura.run {
+            sortedBy { it.getPeriodeFra() }
+            filter { it.erAvregningsfaktura() }
+            shouldHaveSize(2)
+            get(0).referertFakturaVedAvregning.shouldBe(faktura1)
+            get(1).referertFakturaVedAvregning.shouldBe(faktura2)
+        }
+
+
+        val avregningsfaktura2 =
+            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData2(), avregningsfaktura)
+
+        avregningsfaktura2
+            .run {
+                sortedBy { it.getPeriodeFra() }
+                shouldHaveSize(2)
+                get(0).run {
+                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[0])
+                    krediteringFakturaRef.shouldBe(faktura1.referanseNr)
+                    fakturaLinje[0].shouldBe(
+                        FakturaLinje(
+                            periodeFra = LocalDate.of(2024, 1, 1),
+                            periodeTil = LocalDate.of(2024, 3, 31),
+                            beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: −11000,00",
+                            antall = BigDecimal(1),
+                            avregningForrigeBeloep = BigDecimal("-11000.00"),
+                            avregningNyttBeloep = BigDecimal("11000.00"),
+                            enhetsprisPerManed = BigDecimal("22000.00"),
+                            belop = BigDecimal("22000.00")
+                        )
+                    )
+                }
+                get(1).run {
+                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[1])
+                    krediteringFakturaRef.shouldBe(faktura2.referanseNr)
+                    fakturaLinje[0].shouldBe(
+                        FakturaLinje(
+                            periodeFra = LocalDate.of(2024, 4, 1),
+                            periodeTil = LocalDate.of(2024, 6, 30),
+                            beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: −12000,00",
+                            antall = BigDecimal(1),
+                            avregningForrigeBeloep = BigDecimal("-12000.00"),
+                            avregningNyttBeloep = BigDecimal("12000.00"),
+                            enhetsprisPerManed = BigDecimal("24000.00"),
+                            belop = BigDecimal("24000.00")
                         )
                     )
                 }
@@ -211,6 +268,29 @@ class AvregningBehandlerTest {
                 startDato = LocalDate.of(2024, 2, 1),
                 sluttDato = LocalDate.of(2024, 12, 31),
                 enhetsprisPerManed = BigDecimal.valueOf(3000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+        )
+    }
+
+    private fun fakturaseriePerioderTestData3(): List<FakturaseriePeriode> {
+        return listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 12, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(-1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 1, 31),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%",
+                enhetsprisPerManed = BigDecimal.valueOf(-2000)
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 2, 1),
+                sluttDato = LocalDate.of(2024, 12, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(-3000),
                 beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
             ),
         )

@@ -102,7 +102,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             periodeFra = tidligereLinje.periodeFra,
             periodeTil = tidligereLinje.periodeTil,
             bestilteFaktura = faktura,
-            opprinneligFaktura = faktura.hentOpprinneligFaktura(),
+            opprinneligFaktura = hentFørstePositiveFaktura(faktura),
             tidligereBeløp = tidligereLinje.avregningNyttBeloep!!,
             nyttBeløp = nyttBeløp,
         )
@@ -115,7 +115,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             periodeFra = faktura.getPeriodeFra(),
             periodeTil = faktura.getPeriodeTil(),
             bestilteFaktura = faktura,
-            opprinneligFaktura = faktura.hentOpprinneligFaktura(),
+            opprinneligFaktura = hentFørstePositiveFaktura(faktura),
             tidligereBeløp = faktura.totalbeløp(),
             nyttBeløp = nyttBeløp,
         )
@@ -141,6 +141,16 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             fakturaseriePeriode.enhetsprisPerManed,
             overlappDateRange.start,
             overlappDateRange.endInclusive
+        )
+    }
+
+    private fun hentFørstePositiveFaktura(faktura: Faktura): Faktura {
+        if (faktura.totalbeløp() > BigDecimal.ZERO) {
+            return faktura
+        }
+        return hentFørstePositiveFaktura(
+            faktura.referertFakturaVedAvregning
+                ?: throw RuntimeException("Faktura med referanse: ${faktura.referanseNr} mangler referertFakturaVedAvregning")
         )
     }
 }
