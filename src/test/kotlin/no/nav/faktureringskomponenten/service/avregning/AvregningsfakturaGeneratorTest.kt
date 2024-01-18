@@ -17,6 +17,7 @@ class AvregningsfakturaGeneratorTest {
         val bestilteFaktura = Faktura(eksternFakturaNummer = "123")
         val avregningsperiode = Avregningsperiode(
             bestilteFaktura = bestilteFaktura,
+            opprinneligFaktura = bestilteFaktura,
             periodeFra = LocalDate.of(2024, 1, 1),
             periodeTil = LocalDate.of(2024, 3, 31),
             tidligereBeløp = BigDecimal("2000"),

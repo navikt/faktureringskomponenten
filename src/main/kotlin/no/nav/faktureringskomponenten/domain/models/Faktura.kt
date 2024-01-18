@@ -12,7 +12,7 @@ class Faktura(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name="referanse_nr", nullable = false, unique = true)
+    @Column(name = "referanse_nr", nullable = false, unique = true)
     val referanseNr: String = "",
 
     @Column(name = "dato_bestilt", nullable = false)
@@ -34,7 +34,7 @@ class Faktura(
     @JoinColumn(name = "faktura_id")
     var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
 
-    @Column(name="eksternt_fakturanummer", nullable = false, unique = true)
+    @Column(name = "eksternt_fakturanummer", nullable = false, unique = true)
     var eksternFakturaNummer: String = "",
 
     @Column(name = "kreditering_faktura_ref", nullable = true, unique = true)
@@ -44,14 +44,15 @@ class Faktura(
     @JoinColumn(name = "avregning_faktura_id")
     val referertFakturaVedAvregning: Faktura? = null,
 
-) : ModifiableEntity() {
+    ) : ModifiableEntity() {
 
     override fun toString(): String {
         return "referanseNr: $referanseNr, datoBestilt: $datoBestilt, status: $status"
     }
 
     fun getLinesAsString(): String {
-        return fakturaLinje.sortedBy(FakturaLinje::periodeFra).map(FakturaLinje::toString).reduce { acc, s ->  acc + "\n" + s}
+        return fakturaLinje.sortedBy(FakturaLinje::periodeFra).map(FakturaLinje::toString)
+            .reduce { acc, s -> acc + "\n" + s }
     }
 
     fun getPeriodeFra(): LocalDate {
@@ -62,7 +63,7 @@ class Faktura(
         return fakturaLinje.maxOf { it.periodeTil }
     }
 
-    fun getFakturaserieId(): Long?{
+    fun getFakturaserieId(): Long? {
         return fakturaserie?.id
     }
 
@@ -70,7 +71,7 @@ class Faktura(
         return fakturaLinje.sumOf(FakturaLinje::belop)
     }
 
-    fun erAvregningsfaktura() : Boolean {
+    fun erAvregningsfaktura(): Boolean {
         return referertFakturaVedAvregning != null
     }
 }

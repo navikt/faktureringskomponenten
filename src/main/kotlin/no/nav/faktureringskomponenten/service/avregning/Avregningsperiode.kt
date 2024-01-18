@@ -8,6 +8,7 @@ data class Avregningsperiode(
     val periodeFra: LocalDate,
     val periodeTil: LocalDate,
     val bestilteFaktura: Faktura,
+    val opprinneligFaktura:Faktura,
     val tidligereBeløp: BigDecimal,
     val nyttBeløp: BigDecimal,
 ) {
