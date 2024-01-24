@@ -1,4 +1,4 @@
-name: deploy-q2
+name: deploy-dev
 on:
   push:
     paths-ignore:
@@ -84,6 +84,14 @@ jobs:
           RESOURCE: nais/nais.yml
           VAR: image=${{env.image}}
           VARS: nais/vars-q2.json
+      - name: Deploy til dev (Q1)
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: nais/nais.yml
+          VAR: image=${{env.image}}
+          VARS: nais/vars-q1.json
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
       - name: Slack Notification
@@ -92,7 +100,7 @@ jobs:
           SLACK_COLOR: "${{ job.status == 'success' && 'good' || 'danger' }}"
           SLACK_USERNAME: Github Actions
           SLACK_ICON: https://github.com/github.png?size=48
-          SLACK_TITLE: "faktureringskomponenten ${{ job.status == 'success' && 'ble deployet' || 'kunne ikke deployes' }} til dev-gcp (Q2)"
+          SLACK_TITLE: "faktureringskomponenten ${{ job.status == 'success' && 'ble deployet' || 'kunne ikke deployes' }} til dev-gcp (Q1, Q2)"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: ${{ env.COMMIT_MSG }}
       - name: post-deploy
