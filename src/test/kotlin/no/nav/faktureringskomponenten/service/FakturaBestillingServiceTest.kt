@@ -154,10 +154,10 @@ class FakturaBestillingServiceTest {
         val fakturaserie = lagFakturaserie {
             faktura(
                 lagFaktura {
-                    kreditReferanseNr(ULID.randomULID())
+                    kredriteringFakturaRef(ULID.randomULID())
                 },
                 lagFaktura {
-                    kreditReferanseNr(ULID.randomULID())
+                    kredriteringFakturaRef(ULID.randomULID())
                 }
             )
         }
