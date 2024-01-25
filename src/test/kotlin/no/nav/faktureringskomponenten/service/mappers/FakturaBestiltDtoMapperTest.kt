@@ -182,7 +182,7 @@ class FakturaBestiltDtoMapperTest {
         val testFakturaserie = lagFakturaserie {
             faktura(
                 lagFaktura {
-                    kreditReferanseNr("45678913")
+                    kredriteringFakturaRef("45678913")
                 }
             )
         }
