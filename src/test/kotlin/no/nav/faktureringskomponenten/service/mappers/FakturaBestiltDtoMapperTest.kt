@@ -178,18 +178,18 @@ class FakturaBestiltDtoMapperTest {
     }
 
     @Test
-    fun `kredriteringFakturaRef blir mappet`() {
+    fun `krediteringFakturaRef blir mappet`() {
         val testFakturaserie = lagFakturaserie {
             faktura(
                 lagFaktura {
-                    kredriteringFakturaRef("45678913")
+                    krediteringFakturaRef("45678913")
                 }
             )
         }
 
         val tilFakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(testFakturaserie.faktura.single(), testFakturaserie)
-        tilFakturaBestiltDto.kredriteringFakturaRef.shouldBe("45678913")
+        tilFakturaBestiltDto.krediteringFakturaRef.shouldBe("45678913")
     }
 
 }
