@@ -9,7 +9,7 @@ data class FakturaBestiltDto(
     val fullmektigFnr: String?,
     val fakturaserieReferanse: String,
     val fakturaReferanseNr: String,
-    val kreditReferanseNr: String?,
+    val kredriteringFakturaRef: String?,
     val referanseBruker: String,
     val referanseNAV: String,
     val beskrivelse: String,
