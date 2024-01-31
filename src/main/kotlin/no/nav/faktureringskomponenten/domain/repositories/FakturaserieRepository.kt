@@ -44,7 +44,5 @@ interface FakturaserieRepository : JpaRepository<Fakturaserie, String> {
         @Param("referanse") referanse: String,
     ): List<Fakturaserie>
 
-
-
     fun findById(id: Long): Fakturaserie?
 }
