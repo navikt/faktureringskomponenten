@@ -5,7 +5,6 @@ import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import ulid.ULID
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -63,7 +62,7 @@ private val Faktura.tilResponseDto: FakturaResponseDto
     get() = FakturaResponseDto(
         fakturaReferanse = this.referanseNr,
         datoBestilt = this.datoBestilt,
-        sistOppdatert = LocalDate.ofInstant(this.endretTidspunkt, ZoneId.systemDefault()),
+        sistOppdatert = LocalDateTime.ofInstant(this.endretTidspunkt, ZoneId.systemDefault()),
         status = this.status,
         fakturaLinje = this.fakturaLinje.map { it.tilResponseDto },
         periodeFra = this.getPeriodeFra(),
