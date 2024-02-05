@@ -6,3 +6,7 @@ CREATE INDEX faktura_referanse_nr_idx ON faktura (referanse_nr);
 CREATE INDEX faktura_status_idx ON faktura (status);
 
 CREATE INDEX faktura_linje_faktura_id_idx ON faktura_linje (faktura_id);
+
+CREATE INDEX avregning_faktura_id_idx ON faktura (avregning_faktura_id);
+
+CREATE INDEX faktura_id_idx ON faktura_linje (faktura_id);
