@@ -76,7 +76,7 @@ class FakturaBuilder(
     private var fakturaserie: Fakturaserie? = null,
     private var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
     private var eksternFakturaNummer: String = "",
-    private var kreditReferanseNr: String = "",
+    private var krediteringFakturaRef: String = "",
     private var referertFakturaVedAvregning: Faktura? = null
 ) {
     fun referanseNr(referanseNr: String) = apply { this.referanseNr = referanseNr }
@@ -97,7 +97,7 @@ class FakturaBuilder(
     fun eksternFakturaNummer(eksternFakturaNummer: String) =
         apply { this.eksternFakturaNummer = eksternFakturaNummer }
 
-    fun kreditReferanseNr(kreditReferanseNr: String) = apply { this.kreditReferanseNr = kreditReferanseNr }
+    fun krediteringFakturaRef(krediteringFakturaRef: String) = apply { this.krediteringFakturaRef = krediteringFakturaRef }
 
     fun referertFakturaVedAvregning(referertFakturaVedAvregning: Faktura) =
         apply { this.referertFakturaVedAvregning = referertFakturaVedAvregning }
@@ -110,7 +110,7 @@ class FakturaBuilder(
         fakturaserie = fakturaserie,
         eksternFakturaStatus = eksternFakturaStatus,
         eksternFakturaNummer = eksternFakturaNummer,
-        krediteringFakturaRef = kreditReferanseNr,
+        krediteringFakturaRef = krediteringFakturaRef,
         referertFakturaVedAvregning = referertFakturaVedAvregning
     )
 }
