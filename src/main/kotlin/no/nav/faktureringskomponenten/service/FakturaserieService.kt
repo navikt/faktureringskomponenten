@@ -36,7 +36,7 @@ class FakturaserieService(
             return erstattFakturaserie(forrigeReferanse, fakturaserieDto)
         }
 
-        val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto, avregningsfaktura = null)
+        val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
         return fakturaserie.referanse

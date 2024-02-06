@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.service.avregning
 
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import org.springframework.stereotype.Component
 import ulid.ULID
 import java.math.BigDecimal
@@ -15,24 +16,38 @@ class AvregningsfakturaGenerator {
     private val decimalFormat = DecimalFormat("0.00", DecimalFormatSymbols(Locale("no", "NO", "nb")))
     private val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
-    fun lagFaktura(avregningsperioder: List<Avregningsperiode>): Faktura? {
-
-        if (avregningsperioder.isEmpty()) return null
-
-        val fakturaLinjer = avregningsperioder.map {
+    fun lagFaktura(avregningsperiode: Avregningsperiode): Faktura {
+        val fakturaLinje =
             FakturaLinje(
                 id = null,
-                referertFakturaVedAvregning = it.bestilteFaktura,
-                periodeFra = it.periodeFra,
-                periodeTil = it.periodeTil,
-                beskrivelse = "Periode: ${it.periodeFra.format(dateFormat)} - ${it.periodeTil.format(dateFormat)}\nNytt beløp: ${decimalFormat.format(it.nyttBeløp)} - tidligere beløp: ${decimalFormat.format(it.tidligereBeløp)}",
-                enhetsprisPerManed = (it.nyttBeløp - it.tidligereBeløp).abs(),
-                antall = if(it.nyttBeløp - it.tidligereBeløp < BigDecimal.ZERO) BigDecimal(-1) else BigDecimal(1),
-                avregningForrigeBeloep = it.tidligereBeløp,
-                avregningNyttBeloep = it.nyttBeløp,
-                belop = it.nyttBeløp - it.tidligereBeløp,
+                periodeFra = avregningsperiode.periodeFra,
+                periodeTil = avregningsperiode.periodeTil,
+                beskrivelse = "Periode: ${avregningsperiode.periodeFra.format(dateFormat)} - ${
+                    avregningsperiode.periodeTil.format(
+                        dateFormat
+                    )
+                }\nNytt beløp: ${
+                    decimalFormat.format(
+                        avregningsperiode.nyttBeløp
+                    )
+                } - tidligere beløp: ${decimalFormat.format(avregningsperiode.tidligereBeløp)}",
+                enhetsprisPerManed = (avregningsperiode.nyttBeløp - avregningsperiode.tidligereBeløp).abs(),
+                antall = if (avregningsperiode.nyttBeløp - avregningsperiode.tidligereBeløp < BigDecimal.ZERO) BigDecimal(
+                    -1
+                ) else BigDecimal(1),
+                avregningForrigeBeloep = avregningsperiode.tidligereBeløp,
+                avregningNyttBeloep = avregningsperiode.nyttBeløp,
+                belop = avregningsperiode.nyttBeløp - avregningsperiode.tidligereBeløp,
             )
-        }
-        return Faktura(referanseNr = ULID.randomULID(), fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
+
+        // status settes til BESTILT hvis det ikke er endring i hva som skal betales for gjeldende faktura og dermed ikke
+        // skal sendes til OEBS. Grunnen til at vi oppretter en faktura er for å koble tidligere faktura med en ny avregning
+        return Faktura(
+            referanseNr = ULID.randomULID(),
+            krediteringFakturaRef = avregningsperiode.opprinneligFaktura.referanseNr,
+            fakturaLinje = listOf(fakturaLinje),
+            status = if (avregningsperiode.nyttBeløp.compareTo(avregningsperiode.tidligereBeløp) != 0) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT,
+            referertFakturaVedAvregning = avregningsperiode.bestilteFaktura
+        )
     }
 }

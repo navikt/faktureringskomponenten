@@ -71,17 +71,16 @@ fun lagFaktura(block: FakturaBuilder.() -> Unit): Faktura =
 class FakturaBuilder(
     private var referanseNr: String = ULID.randomULID(),
     private var datoBestilt: LocalDate = LocalDate.now(),
-    private var sistOppdatert: LocalDate = LocalDate.now().plusMonths(3),
     private var status: FakturaStatus = FakturaStatus.OPPRETTET,
     private var fakturaLinje: MutableList<FakturaLinje> = mutableListOf(FakturaLinjeBuilder().build()),
     private var fakturaserie: Fakturaserie? = null,
     private var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
     private var eksternFakturaNummer: String = "",
-    private var kreditReferanseNr: String = "",
+    private var krediteringFakturaRef: String = "",
+    private var referertFakturaVedAvregning: Faktura? = null
 ) {
     fun referanseNr(referanseNr: String) = apply { this.referanseNr = referanseNr }
     fun datoBestilt(datoBestilt: LocalDate) = apply { this.datoBestilt = datoBestilt }
-    fun sistOppdatert(sistOppdatert: LocalDate) = apply { this.sistOppdatert = sistOppdatert }
     fun status(status: FakturaStatus) = apply { this.status = status }
     fun fakturaLinje(vararg fakturaLinje: FakturaLinje) = apply {
         this.fakturaLinje.clear()
@@ -98,18 +97,21 @@ class FakturaBuilder(
     fun eksternFakturaNummer(eksternFakturaNummer: String) =
         apply { this.eksternFakturaNummer = eksternFakturaNummer }
 
-    fun kreditReferanseNr(kreditReferanseNr: String) = apply { this.kreditReferanseNr = kreditReferanseNr }
+    fun krediteringFakturaRef(krediteringFakturaRef: String) = apply { this.krediteringFakturaRef = krediteringFakturaRef }
+
+    fun referertFakturaVedAvregning(referertFakturaVedAvregning: Faktura) =
+        apply { this.referertFakturaVedAvregning = referertFakturaVedAvregning }
 
     fun build() = Faktura(
         referanseNr = referanseNr,
         datoBestilt = datoBestilt,
-        sistOppdatert = sistOppdatert,
         status = status,
         fakturaLinje = fakturaLinje,
         fakturaserie = fakturaserie,
         eksternFakturaStatus = eksternFakturaStatus,
         eksternFakturaNummer = eksternFakturaNummer,
-        krediteringFakturaRef = kreditReferanseNr
+        krediteringFakturaRef = krediteringFakturaRef,
+        referertFakturaVedAvregning = referertFakturaVedAvregning
     )
 }
 
@@ -145,7 +147,6 @@ class FakturaLinjeBuilder(
     fun belop(belop: BigDecimal) = apply { this.belop = belop }
 
     fun build() = FakturaLinje(
-        referertFakturaVedAvregning = referertFakturaVedAvregning,
         periodeFra = periodeFra,
         periodeTil = periodeTil,
         beskrivelse = beskrivelse,

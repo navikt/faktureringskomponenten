@@ -124,7 +124,7 @@ class FakturaBestillingServiceTest {
                     fullmektigFnr = "12129012345",
                     fakturaserieReferanse = "MEL-1",
                     fakturaReferanseNr = faktura.referanseNr,
-                    kreditReferanseNr = "",
+                    krediteringFakturaRef = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
                     beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}.kvartal ${startDatoFaktura.year} - ${
@@ -154,10 +154,10 @@ class FakturaBestillingServiceTest {
         val fakturaserie = lagFakturaserie {
             faktura(
                 lagFaktura {
-                    kreditReferanseNr(ULID.randomULID())
+                    krediteringFakturaRef(ULID.randomULID())
                 },
                 lagFaktura {
-                    kreditReferanseNr(ULID.randomULID())
+                    krediteringFakturaRef(ULID.randomULID())
                 }
             )
         }

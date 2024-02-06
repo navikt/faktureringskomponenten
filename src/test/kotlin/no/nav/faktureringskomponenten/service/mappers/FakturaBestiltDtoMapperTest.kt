@@ -6,8 +6,8 @@ import io.kotest.matchers.string.shouldNotContain
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.lagFaktura
-import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.lagFakturalinje
+import no.nav.faktureringskomponenten.lagFakturaserie
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
@@ -88,9 +88,9 @@ class FakturaBestiltDtoMapperTest {
             intervall(FakturaserieIntervall.MANEDLIG)
             faktura(
                 lagFaktura {
+                    referertFakturaVedAvregning(lagFaktura { })
                     fakturaLinje(
                         lagFakturalinje {
-                            referertFakturaVedAvregning(lagFaktura { })
                             beskrivelse("Nytt beløp: 10000,00 - tidligere beløp: 9000,00")
                         }
                     )
@@ -178,18 +178,18 @@ class FakturaBestiltDtoMapperTest {
     }
 
     @Test
-    fun `kreditreferanse blir mappet`() {
+    fun `krediteringFakturaRef blir mappet`() {
         val testFakturaserie = lagFakturaserie {
             faktura(
                 lagFaktura {
-                    kreditReferanseNr("45678913")
+                    krediteringFakturaRef("45678913")
                 }
             )
         }
 
         val tilFakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(testFakturaserie.faktura.single(), testFakturaserie)
-        tilFakturaBestiltDto.kreditReferanseNr.shouldBe("45678913")
+        tilFakturaBestiltDto.krediteringFakturaRef.shouldBe("45678913")
     }
 
 }
