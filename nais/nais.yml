@@ -41,8 +41,6 @@ spec:
       tenant: {{tenant}}
       allowAllUsers: false
       claims:
-        extra:
-          - "NAVident"
         groups:
           - id: {{group_melosys_innlogging}}
   accessPolicy:
