@@ -105,10 +105,12 @@ class FakturaserieController @Autowired constructor(
     @DeleteMapping("/{referanse}")
     fun kansellerFakturaserie(
         @PathVariable("referanse", required = true) referanse: String,
-    ): HttpStatus {
+    ): ResponseEntity<NyFakturaserieResponseDto> {
         log.info("Mottatt forespørsel om kansellering av fakturaserie: ${referanse}")
 
-        faktureringService.kansellerFakturaserie(referanse)
-        return HttpStatus.NO_CONTENT
+        val nyFakturaserieRefereanse = faktureringService.kansellerFakturaserie(referanse)
+
+        log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: ${nyFakturaserieRefereanse}")
+        return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))
     }
 }

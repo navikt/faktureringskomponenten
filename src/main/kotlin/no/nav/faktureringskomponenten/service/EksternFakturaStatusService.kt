@@ -1,11 +1,13 @@
 package no.nav.faktureringskomponenten.service
 
+import io.micrometer.core.instrument.Metrics
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.Betalingsstatus
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
@@ -51,7 +53,7 @@ class EksternFakturaStatusService(
             }
 
             if (eksternFakturaStatus.status == FakturaStatus.FEIL) {
-                log.error("EksternFakturaStatus er FEIL. Gjelder faktura: ${faktura.referanseNr}. Feilmelding fra OEBS: ${eksternFakturaStatus.feilMelding}")
+                log.warn("EksternFakturaStatus er FEIL. Gjelder faktura: ${faktura.referanseNr}. Feilmelding fra OEBS: ${eksternFakturaStatus.feilMelding}")
             }
 
             if (eksternFakturaStatus.status == FakturaStatus.MANGLENDE_INNBETALING) {
@@ -77,6 +79,7 @@ class EksternFakturaStatusService(
 
             lagreFaktura(faktura, eksternFakturaStatusDto)
 
+            Metrics.counter(MetrikkNavn.FAKTURA_FEILET_COUNTER).increment()
         } catch (e: Exception) {
             eksternFakturaStatus.sendt = false
             throw RuntimeException(
@@ -89,7 +92,6 @@ class EksternFakturaStatusService(
     private fun lagreFaktura(faktura: Faktura, eksternFakturaStatusDto: EksternFakturaStatusDto) {
         faktura.apply {
             eksternFakturaNummer = eksternFakturaStatusDto.fakturaNummer ?: ""
-            sistOppdatert = eksternFakturaStatusDto.dato
             status = eksternFakturaStatusDto.status
         }
 

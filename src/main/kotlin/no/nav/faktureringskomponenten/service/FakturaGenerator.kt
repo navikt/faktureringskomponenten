@@ -109,7 +109,6 @@ class FakturaGenerator (
             null,
             referanseNr = ULID.randomULID(),
             datoBestilt = bestillingsdato,
-            sistOppdatert = bestillingsdato,
             fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
@@ -122,7 +121,7 @@ class FakturaGenerator (
         val sisteMånedIDagensKvartal = dagensDato.month.firstMonthOfQuarter().plus(2)
         val kvartalsBestillingHarKjørt =
             dagensDato > LocalDate.now().withMonth(sisteMånedIDagensKvartal.value).withDayOfMonth(19)
-        return erNesteKvartal && kvartalsBestillingHarKjørt
+        return erNesteKvartal && kvartalsBestillingHarKjørt && (fakturaStartDato.year == dagensDato.year || fakturaStartDato.year == dagensDato.plusYears(1).year)
     }
 
     private fun utledBestillingsdato(fakturaStartDato: LocalDate): LocalDate {
@@ -141,7 +140,7 @@ class FakturaGenerator (
     }
 
     private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
-        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = dagensDato(), sistOppdatert = dagensDato(), fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
+        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = dagensDato(), fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()

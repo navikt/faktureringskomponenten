@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.inspectors.forAll
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
@@ -8,6 +9,10 @@ import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.mockk.every
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
@@ -54,6 +59,7 @@ class FakturaserieControllerIT(
 
     @AfterEach
     fun cleanUp() {
+        unmockkStatic(LocalDate::class)
         addCleanUpAction {
             fakturaserieRepositoryForTesting.deleteAll()
         }
@@ -113,6 +119,10 @@ class FakturaserieControllerIT(
 
     @Test
     fun `erstatt fakturaserie, første faktura er Bestilt, erstatter opprinnelig og lager ny`() {
+        val begynnelseAvDesember = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns begynnelseAvDesember
+
         val startDatoOpprinnelig = LocalDate.now().minusMonths(3)
         val sluttDatoOpprinnelig = LocalDate.now().plusMonths(9)
 
@@ -178,12 +188,12 @@ class FakturaserieControllerIT(
                 FakturaStatus.OPPRETTET
             )
         fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
-            .first { it.status == FakturaStatus.BESTILT }
+            .single{ it.status == FakturaStatus.BESTILT }
             .erAvregningsfaktura().shouldBeTrue()
     }
 
     @Test
-    fun `erstatt fakturaserie hvor alt er i fortiden og bestilt - skal kun bli en faktura`() {
+    fun `erstatt fakturaserie hvor alt er i fortiden og bestilt - en avregningsfaktura pr faktura`() {
         val startDatoOpprinnelig = LocalDate.of(2016, 1, 1)
         val sluttDatoOpprinnelig = LocalDate.of(2017, 1, 31)
 
@@ -204,6 +214,10 @@ class FakturaserieControllerIT(
             ).returnResult().responseBody!!.fakturaserieReferanse
 
         fakturaBestillCronjob.bestillFaktura()
+
+        fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
+            .shouldNotBeNull()
+            .shouldHaveSize(2)
 
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
@@ -235,12 +249,17 @@ class FakturaserieControllerIT(
 
         nyFakturaserie.shouldNotBeNull().status shouldBe FakturaserieStatus.UNDER_BESTILLING
         nyFakturaserie.faktura
-            .shouldHaveSize(1)
-            .first()
-            .status.shouldBe(FakturaStatus.BESTILT)
+            .shouldHaveSize(2)
+            .forAll {
+                it.status.shouldBe(FakturaStatus.BESTILT)
+            }
+
         fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
-            .first { it.status == FakturaStatus.BESTILT }
-            .erAvregningsfaktura().shouldBeTrue()
+            .shouldHaveSize(2)
+            .forAll {
+                it.krediteringFakturaRef.shouldNotBeNull()
+                it.erAvregningsfaktura().shouldBeTrue()
+            }
     }
 
     @Test
@@ -435,6 +454,34 @@ class FakturaserieControllerIT(
         fakturaLinjer[3].beskrivelse.shouldBe("Periode: 01.01.2023 - 31.03.2023\nInntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %")
     }
 
+    @Test
+    fun `kansellerFakturaserie kansellerer fakturaserie og returnerer ny fakturaseriereferanse`() {
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    LocalDate.now(),
+                    LocalDate.now().plusDays(2),
+                    "Inntekt fra utlandet"
+                ),
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto)
+                .expectStatus().isOk
+                .expectBody(NyFakturaserieResponseDto::class.java)
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val nyFakturaserieReferanse = deleteKansellerFakturaserieRequest(opprinneligFakturaserieReferanse)
+            .expectStatus().isOk
+            .expectBody(NyFakturaserieResponseDto::class.java)
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        nyFakturaserieReferanse shouldNotBe null
+        nyFakturaserieReferanse shouldNotBe opprinneligFakturaserieReferanse
+    }
+
     @ParameterizedTest(name = "{0} gir feilmelding \"{3}\"")
     @MethodSource("fakturaserieDTOsMedValideringsfeil")
     fun `lagNyFaktura validerer input riktig`(
@@ -564,6 +611,17 @@ class FakturaserieControllerIT(
         webClient.get()
             .uri("/fakturaserier?referanse=$referanse")
             .accept(MediaType.APPLICATION_JSON)
+            .headers {
+                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
+    private fun deleteKansellerFakturaserieRequest(referanse: String): WebTestClient.ResponseSpec =
+        webClient.delete()
+            .uri("/fakturaserier/$referanse")
+            .accept(MediaType.APPLICATION_JSON)
+            .header("Nav-User-Id", NAV_IDENT)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())

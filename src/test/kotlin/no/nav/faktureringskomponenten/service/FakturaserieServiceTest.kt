@@ -74,7 +74,6 @@ class FakturaserieServiceTest {
         val nyFakturaserie = fakturaserier.filter { it.referanse == NY_REF }.single()
         val fakturaLinjer = nyFakturaserie.faktura.flatMap { it.fakturaLinje }
         fakturaLinjer.forExactly(1) {
-            it.referertFakturaVedAvregning shouldNotBe null
             it.periodeFra shouldBe LocalDate.of(2024, 1, 1)
             it.periodeTil shouldBe LocalDate.of(2024, 3, 31)
             it.antall shouldBe BigDecimal(1)

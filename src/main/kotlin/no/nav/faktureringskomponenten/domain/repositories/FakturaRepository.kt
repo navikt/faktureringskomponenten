@@ -15,4 +15,7 @@ interface FakturaRepository : JpaRepository<Faktura, String> {
     fun findByFakturaserieReferanse(fakturaserieRef: String): List<Faktura>
 
     fun findByReferanseNr(referanseNr: String): Faktura?
+
+    @Query("SELECT COUNT(f) FROM Faktura f WHERE f.status = 'FEIL'")
+    fun countByStatusIsFeil(): Int
 }

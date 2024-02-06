@@ -19,7 +19,7 @@ class FakturaBestiltDtoMapper {
             fullmektigFnr = fakturaserie.fullmektig?.fodselsnummer,
             fakturaserieReferanse = fakturaserie.referanse,
             fakturaReferanseNr = faktura.referanseNr,
-            kreditReferanseNr = faktura.krediteringFakturaRef,
+            krediteringFakturaRef = faktura.krediteringFakturaRef,
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
             beskrivelse = mapFakturaBeskrivelse(

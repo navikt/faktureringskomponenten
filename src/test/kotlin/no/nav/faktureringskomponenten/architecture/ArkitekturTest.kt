@@ -18,6 +18,7 @@ class ArkitekturTest {
         .layer("Controller").definedBy("$appPath.controller..")
         .layer("Service").definedBy("$appPath.service..")
         .layer("Domain").definedBy("$appPath.domain..")
+        .layer("Metrics").definedBy("$appPath.metrics..")
 
     @Test
     fun `Controller er ikke brukt av noen andre lag`() {
@@ -30,7 +31,7 @@ class ArkitekturTest {
     @Test
     fun `Service er bare brukt av Controller laget`() {
         val layeringRules: ArchRule = definedLayers
-            .whereLayer("Service").mayOnlyBeAccessedByLayers("Controller")
+            .whereLayer("Service").mayOnlyBeAccessedByLayers("Controller", "Metrics")
 
         layeringRules.check(importedClasses)
     }

@@ -33,3 +33,5 @@ AZURE_APP_CLIENT_ID: melosys-localhost
 
 unleash:
   token: "fake"
+
+NAIS_CLUSTER_NAME: local
