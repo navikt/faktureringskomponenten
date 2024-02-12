@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.media.Schema
 enum class FakturaStatus {
     OPPRETTET,
     BESTILT,
-    KANSELLERT,
     FEIL,
     INNE_I_OEBS,
-    MANGLENDE_INNBETALING
+    MANGLENDE_INNBETALING,
+    AVBRUTT
 }
 
