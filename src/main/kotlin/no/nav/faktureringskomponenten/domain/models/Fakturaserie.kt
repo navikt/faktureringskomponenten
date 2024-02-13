@@ -92,14 +92,19 @@ class Fakturaserie(
         status = FakturaserieStatus.ERSTATTET
     }
 
-    fun kansellerMed(nyFakturaserie: Fakturaserie){
+    fun kansellerMed(nyFakturaserie: Fakturaserie) {
         avbrytPlanlagteFakturaer()
         erstattetMed = nyFakturaserie
         status = FakturaserieStatus.KANSELLERT
     }
 
     fun bestilteFakturaer(): List<Faktura> {
-        return faktura.filter { it.status == FakturaStatus.BESTILT || it.status == FakturaStatus.MANGLENDE_INNBETALING }
+        return faktura.filter {
+            it.status == FakturaStatus.BESTILT ||
+                    it.status == FakturaStatus.MANGLENDE_INNBETALING ||
+                    it.status == FakturaStatus.FEIL ||
+                    it.status == FakturaStatus.INNE_I_OEBS
+        }
     }
 
     fun planlagteFakturaer(): List<Faktura> {
