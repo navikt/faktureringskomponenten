@@ -16,7 +16,7 @@ server:
 
 cron:
   job:
-    bestill-faktura:  "0 */1 * * * *" # Kjør hver 5 minutt
+    bestill-faktura:  "0 */1 * * * *" # Kjør hver minutt
 
 
 KAFKA_BROKERS: "localhost:29092"
