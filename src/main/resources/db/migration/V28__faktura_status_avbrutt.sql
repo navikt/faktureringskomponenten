@@ -5,4 +5,4 @@ commit;
 
 update faktura
 set status = 'AVBRUTT'
-where status = 'KANSELLERT':
+where status = 'KANSELLERT';
