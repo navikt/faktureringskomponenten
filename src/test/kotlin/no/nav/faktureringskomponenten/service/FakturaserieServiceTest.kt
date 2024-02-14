@@ -128,7 +128,7 @@ class FakturaserieServiceTest {
     }
 
     @Test
-    fun `Kansellere fakturaserie - eksisterende får oppdatert status og nye faktura bestilles`() {
+    fun `Kansellere fakturaserie - eksisterende får oppdatert fakturaseriestatus til kansellert og nye faktura bestilles`() {
         val eksisterendeFakturaserie = lagFakturaserie {
             faktura(
                 lagFaktura {
@@ -136,7 +136,10 @@ class FakturaserieServiceTest {
                 }
             )
         }
+        val tidligereFakturaserie = lagFakturaserie {  }
 
+
+        every { fakturaserieRepository.findAllByReferanse(eksisterendeFakturaserie.referanse) } returns listOf(tidligereFakturaserie)
         every { fakturaserieRepository.findByReferanse(eksisterendeFakturaserie.referanse) } returns eksisterendeFakturaserie
 
         val fakturaserieCapture = mutableListOf<Fakturaserie>()
@@ -149,14 +152,14 @@ class FakturaserieServiceTest {
 
 
         verify { fakturaserieRepository.save(eksisterendeFakturaserie) }
-        verify { fakturaBestillingService.bestillKreditnota(fakturaserieCapture.single().referanse) }
+        verify { fakturaBestillingService.bestillKreditnota(fakturaserieCapture.single()) }
 
         fakturaserieCapture.single()
             .faktura.single()
             .run {
                 krediteringFakturaRef.isNotEmpty()
                 fakturaLinje.single()
-                    .belop.shouldBe(BigDecimal(-10000))
+                    .belop.shouldBe(BigDecimal(-10000).setScale(2))
             }
 
 
@@ -164,7 +167,7 @@ class FakturaserieServiceTest {
             status.shouldBe(FakturaserieStatus.KANSELLERT)
             faktura.shouldHaveSize(1)
                 .first()
-                .status.shouldBe(FakturaStatus.KANSELLERT)
+                .status.shouldBe(FakturaStatus.BESTILT)
         }
     }
 

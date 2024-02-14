@@ -108,7 +108,7 @@ class FakturaserieControllerIT(
         oppdatertOpprinneligFakturaserie.shouldNotBeNull().erstattetMed!!.id shouldBe nyFakturaserie.id
         oppdatertOpprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
         oppdatertOpprinneligFakturaserie.faktura.forEach {
-            it.status.shouldBe(FakturaStatus.KANSELLERT)
+            it.status.shouldBe(FakturaStatus.AVBRUTT)
         }
 
         nyFakturaserie.shouldNotBeNull().status shouldBe FakturaserieStatus.OPPRETTET
@@ -173,9 +173,9 @@ class FakturaserieControllerIT(
             .map { it.status }
             .shouldContainExactlyInAnyOrder(
                 FakturaStatus.BESTILT,
-                FakturaStatus.KANSELLERT,
-                FakturaStatus.KANSELLERT,
-                FakturaStatus.KANSELLERT
+                FakturaStatus.AVBRUTT,
+                FakturaStatus.AVBRUTT,
+                FakturaStatus.AVBRUTT
             )
 
         nyFakturaserie.shouldNotBeNull().status shouldBe FakturaserieStatus.UNDER_BESTILLING
