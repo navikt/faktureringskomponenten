@@ -51,9 +51,51 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             finnAvregningsfakturaerSomAvregnes(bestilteFakturaer, fakturaseriePerioder).map(::lagAvregningsperiode)
         val avregningsperioderForVanligeFakturaer =
             finnVanligeFakturaerSomAvregnes(bestilteFakturaer, fakturaseriePerioder).map(::lagAvregningsperiode)
-        return (avregningsperioderForTidligereAvregningsfaktura + avregningsperioderForVanligeFakturaer)
+        val avregningsperioderForPerioderSomIkkeOverlapper =
+            finnPerioderSomIkkeOverlapper(bestilteFakturaer, fakturaseriePerioder)
+        return (avregningsperioderForTidligereAvregningsfaktura + avregningsperioderForVanligeFakturaer + avregningsperioderForPerioderSomIkkeOverlapper)
     }
 
+    /**
+     * Finner alle fakturaer som ikke er avregningsfakturaer og som ikke har perioder som overlapper med en eller flere perioder i fakturaserien.
+     * Dersom nye perioder ikke overlapper med eksisterende bestilte faktura, lages det en Avregningsperiode perioden.
+     *
+     * @param bestilteFakturaer Fakturaer som er bestilt
+     * @param fakturaseriePerioder Perioder i fakturaserien
+     * @return Liste med Avregningsperiode
+     */
+    private fun finnPerioderSomIkkeOverlapper(
+        bestilteFakturaer: List<Faktura>,
+        fakturaseriePerioder: List<FakturaseriePeriode>
+    ): List<Avregningsperiode> {
+        val perioderSomIkkeOverlapper = bestilteFakturaer.flatMap { faktura ->
+            val overlappendePerioder =
+                overlappendeFakturaseriePerioder(fakturaseriePerioder, faktura.getPeriodeFra(), faktura.getPeriodeTil())
+            if (overlappendePerioder.isEmpty()) listOf(faktura) else emptyList()
+        }
+        return perioderSomIkkeOverlapper.map { faktura ->
+            Avregningsperiode(
+                periodeFra = faktura.getPeriodeFra(),
+                periodeTil = faktura.getPeriodeTil(),
+                bestilteFaktura = faktura,
+                opprinneligFaktura = hentFørstePositiveFaktura(faktura),
+                tidligereBeløp = faktura.totalbeløp(),
+                nyttBeløp = BigDecimal.ZERO
+            )
+        }
+    }
+
+    /**
+     * Finner alle fakturaer som er avregningsfakturaer og som har linjer som overlapper med en eller flere perioder i fakturaserien.
+     * For hver linje som overlapper med en eller flere perioder i fakturaserien, lages en Avregningsperiode.
+     * Hvis en linje overlapper med flere perioder, lages det en Avregningsperiode for hver periode.
+     * Hvis en linje overlapper med en periode, lages det en Avregningsperiode for denne perioden.
+     * Hvis en linje overlapper med ingen perioder, lages det ingen Avregningsperiode.
+     *
+     * @param bestilteFakturaer Fakturaer som er bestilt
+     * @param fakturaseriePerioder Perioder i fakturaserien
+     * @return Liste med Avregningsperiode
+     */
     private fun finnAvregningsfakturaerSomAvregnes(
         bestilteFakturaer: List<Faktura>,
         fakturaseriePerioder: List<FakturaseriePeriode>
@@ -71,6 +113,17 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             }
     }
 
+    /**
+     * Finner alle fakturaer som ikke er avregningsfakturaer og som har perioder som overlapper med en eller flere perioder i fakturaserien.
+     * For hver faktura som overlapper med en eller flere perioder i fakturaserien, lages en Avregningsperiode.
+     * Hvis en faktura overlapper med flere perioder, lages det en Avregningsperiode for hver periode.
+     * Hvis en faktura overlapper med en periode, lages det en Avregningsperiode for denne perioden.
+     * Hvis en faktura overlapper med ingen perioder, lages det ingen Avregningsperiode.
+     *
+     * @param bestilteFakturaer Fakturaer som er bestilt
+     * @param fakturaseriePerioder Perioder i fakturaserien
+     * @return Liste med Avregningsperiode
+     */
     private fun finnVanligeFakturaerSomAvregnes(
         bestilteFakturaer: List<Faktura>,
         fakturaseriePerioder: List<FakturaseriePeriode>

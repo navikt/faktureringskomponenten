@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.controller.dto
 import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Schema(description = "Model for en faktura i fakturaserien")
 data class FakturaResponseDto(
@@ -14,7 +15,7 @@ data class FakturaResponseDto(
     val datoBestilt: LocalDate,
 
     @Schema(description = "Dato for når faktura sist ble oppdatert")
-    val sistOppdatert: LocalDate,
+    val sistOppdatert: LocalDateTime,
 
     var status: FakturaStatus,
 

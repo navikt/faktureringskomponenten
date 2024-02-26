@@ -5,7 +5,6 @@ import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.service.beregning.AntallMdBeregner
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import org.springframework.stereotype.Component
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -40,19 +39,5 @@ class FakturaLinjeGenerator {
                 enhetsprisPerManed = it.enhetsprisPerManed
             )
         }.toList()
-    }
-
-    fun lagKreditnotaLinjer(fakturalinjer: List<FakturaLinje>): List<FakturaLinje> {
-        return fakturalinjer.map {
-            FakturaLinje(
-                id = null,
-                periodeFra = it.periodeFra,
-                periodeTil = it.periodeTil,
-                belop = it.belop.negate(),
-                antall = it.antall.multiply(BigDecimal(-1)),
-                beskrivelse = it.beskrivelse,
-                enhetsprisPerManed = it.enhetsprisPerManed
-            )
-        }
     }
 }

@@ -9,12 +9,16 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.PostgresTestContainerBase
+import no.nav.faktureringskomponenten.controller.FakturaserieRepositoryForTesting
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.service.FakturaserieService
+import no.nav.faktureringskomponenten.service.integration.kafka.FakturaRepositoryForTesting
 import no.nav.security.mock.oauth2.MockOAuth2Server
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
@@ -42,6 +46,9 @@ class AvregningIT(
     @Autowired private val webClient: WebTestClient,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired private val fakturaRepository: FakturaRepository,
+    @Autowired private val fakturaserieService: FakturaserieService,
+    @Autowired private val fakturaRepositoryForTesting: FakturaRepositoryForTesting,
+    @Autowired private val fakturaserieRepositoryForTesting: FakturaserieRepositoryForTesting,
 ) : PostgresTestContainerBase() {
     @AfterEach
     fun cleanUp() {
@@ -123,16 +130,16 @@ class AvregningIT(
             )
         )
 
-        val fakturaserieReferanse2 =
+        val serieRef2 =
             postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
                 .returnResult().responseBody!!.fakturaserieReferanse
 
         log.debug { "Tester 1. avregning" }
-        val fakturaer2 = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse2)
-        val avregningsfakturaer = fakturaer2.filter { it.erAvregningsfaktura() }
+        val fakturaer2 = fakturaRepository.findByFakturaserieReferanse(serieRef2)
+        val avregningsfakturaer2 = fakturaer2.filter { it.erAvregningsfaktura() }
 
 
-        avregningsfakturaer.shouldHaveSize(2).sortedBy { it.getPeriodeFra() }
+        avregningsfakturaer2.shouldHaveSize(2).sortedBy { it.getPeriodeFra() }
             .run {
                 get(0).run {
                     fakturaLinje.single()
@@ -167,7 +174,7 @@ class AvregningIT(
             }
 
 
-        avregningsfakturaer.run {
+        avregningsfakturaer2.run {
             get(0).run {
                 status = FakturaStatus.BESTILT
                 eksternFakturaNummer = "1234"
@@ -180,14 +187,14 @@ class AvregningIT(
             }
         }
 
-        fakturaserieRepository.findByReferanse(fakturaserieReferanse2).shouldNotBeNull().run {
+        fakturaserieRepository.findByReferanse(serieRef2).shouldNotBeNull().run {
             status = FakturaserieStatus.UNDER_BESTILLING
             fakturaserieRepository.save(this)
         }
 
         // Serie 3 med avregning
         val fakturaserieDto3 = lagFakturaserieDto(
-            referanseId = fakturaserieReferanse2,
+            referanseId = serieRef2,
             fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(
                     1000,
@@ -252,6 +259,35 @@ class AvregningIT(
                     }
                 }
             }
+
+        //lager en ny fakturaserie basert på siste fakturaserieDto, ser at summen av de tidligere seriene får lik total som denne
+
+        val verifiseringFakturaserie = fakturaserieService.lagNyFakturaserie(fakturaserieDto3.tilFakturaserieDto)
+        val totalBelop = fakturaRepository.findByFakturaserieReferanse(verifiseringFakturaserie)
+            .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
+            .map { it?.totalbeløp() }
+            .fold(BigDecimal.ZERO, BigDecimal::add)
+
+        val orginalTotal = fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)!!
+            .bestilteFakturaer()
+            .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
+            .map { it?.totalbeløp() }
+            .fold(BigDecimal.ZERO, BigDecimal::add)
+        val avregning1Total = fakturaserieRepositoryForTesting.findByReferanseEagerly(serieRef2)!!.bestilteFakturaer()
+                .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
+                .map { it?.totalbeløp() }
+                .fold(BigDecimal.ZERO, BigDecimal::add)
+        val avregning2Total = fakturaserieRepositoryForTesting.findByReferanseEagerly(serieRef3)!!.faktura
+            .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
+            .map { it?.totalbeløp() }
+            .fold(BigDecimal.ZERO, BigDecimal::add)
+
+        println(totalBelop)
+        println(orginalTotal)
+        println(avregning1Total)
+        println(avregning2Total)
+
+        totalBelop.shouldBe(orginalTotal.add(avregning1Total.add(avregning2Total)))
     }
 
     fun lagFakturaserieDto(
