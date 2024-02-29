@@ -40,6 +40,12 @@ class FakturaserieService(
         val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
+
+        val listeAvAktiveFakturaserierForFodselsnummer = fakturaserieRepository.findAllByFodselsnummer(fakturaserie.fodselsnummer)
+            .filter { it.erAktiv() }
+        if (listeAvAktiveFakturaserierForFodselsnummer.size > 1) {
+            log.warn("Mottaker av fakturaserie ${fakturaserie.referanse} har flere aktive fakturaserier")
+        }
         return fakturaserie.referanse
     }
 
