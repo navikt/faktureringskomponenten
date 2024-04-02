@@ -139,13 +139,13 @@ class FakturaGeneratorTest {
         faktura.sortedBy { it.datoBestilt }.map { it.datoBestilt }
             .shouldContainInOrder(
                 LocalDate.of(2024, 3, 22),
+                LocalDate.of(2024, 3, 22),
                 LocalDate.of(2024, 6, 19),
                 LocalDate.of(2024, 9, 19),
                 LocalDate.of(2024, 12, 19),
-                LocalDate.of(2024, 3, 19),
-                LocalDate.of(2024, 6, 19),
-                LocalDate.of(2024, 9, 19),
-                LocalDate.of(2024, 12, 19),
+                LocalDate.of(2025, 3, 19),
+                LocalDate.of(2025, 6, 19),
+                LocalDate.of(2025, 9, 19),
             )
     }
 
