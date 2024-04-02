@@ -111,7 +111,7 @@ class FakturaGenerator(
             dagensDato > LocalDate.now().withMonth(sisteMånedIDagensKvartal.value).withDayOfMonth(19)
         val datoErEtter19Desember = dagensDato >= LocalDate.now().withMonth(12).withDayOfMonth(19)
         val fakturaStartDatoErÅretEtterOgFørsteKvartal =
-            fakturaStartDato.year == dagensDato.plusYears(1).year && fakturaStartDato.month == Month.JANUARY
+            fakturaStartDato.year == dagensDato.plusYears(1).year && fakturaStartDato.month.value <= 3
         return erNesteKvartal && kvartalsBestillingHarKjørt && (fakturaStartDato.year == dagensDato.year || (datoErEtter19Desember && fakturaStartDatoErÅretEtterOgFørsteKvartal))
     }
 
