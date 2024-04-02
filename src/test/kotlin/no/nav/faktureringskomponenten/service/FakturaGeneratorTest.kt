@@ -22,8 +22,6 @@ class FakturaGeneratorTest {
     private val unleash = FakeUnleash()
     private val generator = FakturaGenerator(fakturaLinjeGenerator, unleash, 0)
 
-    private val nesteÅr = LocalDate.now().plusYears(1).year
-
     @AfterEach
     fun `Remove RandomNumberGenerator mockks`() {
         unmockkStatic(LocalDate::class)
@@ -74,6 +72,81 @@ class FakturaGeneratorTest {
         )
         faktura.sortedBy { it.datoBestilt }.map { it.datoBestilt }
             .shouldContainInOrder(LocalDate.of(2023, 12, 19), LocalDate.of(2024, 3, 19))
+    }
+
+    @Test
+    fun `PeriodeStart på faktura frem i tid, dagens dato etter kvartlskjøring, DatoBestilt settes til dagen etterpå`() {
+        val etterKvartal1kjøring2024 = LocalDate.of(2024, 3, 22)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns etterKvartal1kjøring2024
+
+        val faktura = generator.lagFakturaerFor(
+            LocalDate.of(2024, 1, 1),
+            LocalDate.of(2025, 12, 31),
+            listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(25470),
+                    startDato = LocalDate.of(2024, 1, 1),
+                    sluttDato = LocalDate.of(2024, 3, 31),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                ),
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(25470),
+                    startDato = LocalDate.of(2024, 4, 1),
+                    sluttDato = LocalDate.of(2024, 6, 30),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                ),
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(25470),
+                    startDato = LocalDate.of(2024, 7, 1),
+                    sluttDato = LocalDate.of(2024, 9, 30),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                ),
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(15000),
+                    startDato = LocalDate.of(2024, 10, 1),
+                    sluttDato = LocalDate.of(2024, 12, 31),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                ),
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(25470),
+                    startDato = LocalDate.of(2025, 1, 1),
+                    sluttDato = LocalDate.of(2025, 3, 31),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                ),
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(25470),
+                    startDato = LocalDate.of(2025, 4, 1),
+                    sluttDato = LocalDate.of(2025, 6, 30),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                ),
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(25470),
+                    startDato = LocalDate.of(2025, 7, 1),
+                    sluttDato = LocalDate.of(2025, 9, 30),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                ),
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(15000),
+                    startDato = LocalDate.of(2025, 10, 1),
+                    sluttDato = LocalDate.of(2025, 12, 31),
+                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                ),
+
+            ),
+            FakturaserieIntervall.KVARTAL
+        )
+        faktura.sortedBy { it.datoBestilt }.map { it.datoBestilt }
+            .shouldContainInOrder(
+                LocalDate.of(2024, 3, 22),
+                LocalDate.of(2024, 6, 19),
+                LocalDate.of(2024, 9, 19),
+                LocalDate.of(2024, 12, 19),
+                LocalDate.of(2024, 3, 19),
+                LocalDate.of(2024, 6, 19),
+                LocalDate.of(2024, 9, 19),
+                LocalDate.of(2024, 12, 19),
+            )
     }
 
     @Test
