@@ -11,7 +11,7 @@ import java.time.temporal.IsoFields
 import java.time.temporal.TemporalAdjusters
 
 @Component
-class FakturaGenerator (
+class FakturaGenerator(
     private val fakturalinjeGenerator: FakturaLinjeGenerator,
     private val unleash: Unleash,
     @Value("\${faktura.forste-faktura-offsett-dager}") private val forsteFakturaOffsettMedDager: Long
@@ -28,7 +28,8 @@ class FakturaGenerator (
         var gjeldendeFaktureringStartDato = startDatoForHelePerioden
 
         while (gjeldendeFaktureringStartDato <= sluttDatoForHelePerioden || gjeldendeFakturaLinjer.isNotEmpty()) {
-            val gjeldendeFaktureringSluttDato = faktureringSluttDatoFra(gjeldendeFaktureringStartDato, faktureringsintervall)
+            val gjeldendeFaktureringSluttDato =
+                faktureringSluttDatoFra(gjeldendeFaktureringStartDato, faktureringsintervall)
 
             val fakturaLinjerForPeriode = lagFakturaLinjerForPeriode(
                 gjeldendeFaktureringStartDato,
@@ -42,7 +43,7 @@ class FakturaGenerator (
             if (skalLageFakturaForPeriode(dagensDato(), gjeldendeFaktureringSluttDato)) {
                 var faktura = tilFaktura(gjeldendeFaktureringStartDato, gjeldendeFakturaLinjer.toList())
 
-                if(unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant")){
+                if (unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant")) {
                     faktura = tilFakturaTemp(gjeldendeFakturaLinjer.toList())
                 }
 
@@ -108,7 +109,10 @@ class FakturaGenerator (
         val sisteMånedIDagensKvartal = dagensDato.month.firstMonthOfQuarter().plus(2)
         val kvartalsBestillingHarKjørt =
             dagensDato > LocalDate.now().withMonth(sisteMånedIDagensKvartal.value).withDayOfMonth(19)
-        return erNesteKvartal && kvartalsBestillingHarKjørt && (fakturaStartDato.year == dagensDato.year || fakturaStartDato.year == dagensDato.plusYears(1).year)
+        val datoErEtter19Desember = dagensDato >= LocalDate.now().withMonth(12).withDayOfMonth(19)
+        val fakturaStartDatoErÅretEtterOgFørsteKvartal =
+            fakturaStartDato.year == dagensDato.plusYears(1).year && fakturaStartDato.month.value <= 3
+        return erNesteKvartal && kvartalsBestillingHarKjørt && (fakturaStartDato.year == dagensDato.year || (datoErEtter19Desember && fakturaStartDatoErÅretEtterOgFørsteKvartal))
     }
 
     private fun utledBestillingsdato(fakturaStartDato: LocalDate): LocalDate {
@@ -127,7 +131,11 @@ class FakturaGenerator (
     }
 
     private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
-        return Faktura(null, referanseNr = ULID.randomULID(), datoBestilt = dagensDato(), fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
+        return Faktura(
+            null,
+            referanseNr = ULID.randomULID(),
+            datoBestilt = dagensDato(),
+            fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()
