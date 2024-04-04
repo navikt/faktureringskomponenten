@@ -127,6 +127,38 @@ class AdminController(
         return ResponseEntity.ok("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
     }
 
+
+    /**
+     * Endrer status på faktura. Endepunktet er KUN tilgjengelig i testmiljø.
+     */
+    @PostMapping("/faktura/{fakturaReferanse}/status/{status}")
+    fun endreFakturastatus(
+        @PathVariable fakturaReferanse: String,
+        @RequestParam(required = false, defaultValue = "BESTILT") status: FakturaStatus
+    ): ResponseEntity<String> {
+        if (naisClusterName != naisClusterNameDev) {
+            log.warn("Endepunktet er kun tilgjengelig i testmiljø")
+            return ResponseEntity.status(403)
+                .body("Endepunktet er kun tilgjengelig i testmiljø")
+        }
+
+        val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return ResponseEntity.status(404)
+            .body("Finner ikke faktura med referanse nr $fakturaReferanse")
+
+        if (faktura.status != status) {
+            log.info("Faktura med referanse nr $fakturaReferanse har allerede statusen $status")
+            return ResponseEntity.status(400)
+                .body("Faktura med referanse nr $fakturaReferanse har allerede statusen $status")
+        }
+
+        val fakturaStatusNå = faktura.status
+
+        fakturaService.oppdaterFakturaStatus(fakturaReferanse, status)
+
+        log.info("Status på faktura $fakturaReferanse har blitt oppdatert fra fra ${fakturaStatusNå} til $status")
+        return ResponseEntity.ok("Status på faktura $fakturaReferanse har blitt oppdatert fra fra ${fakturaStatusNå} til $status")
+    }
+
     companion object {
         private val naisClusterNameDev = "dev-gcp"
     }
