@@ -131,16 +131,11 @@ class AdminController(
     /**
      * Endrer status på faktura. Endepunktet er KUN tilgjengelig i testmiljø.
      */
-    @PostMapping("/faktura/{fakturaReferanse}/status/{status}")
+    @PostMapping("/faktura/{fakturaReferanse}/status")
     fun endreFakturastatus(
         @PathVariable fakturaReferanse: String,
         @RequestParam(required = false, defaultValue = "BESTILT") status: FakturaStatus
     ): ResponseEntity<String> {
-        if (naisClusterName != naisClusterNameDev) {
-            log.warn("Endepunktet er kun tilgjengelig i testmiljø")
-            return ResponseEntity.status(403)
-                .body("Endepunktet er kun tilgjengelig i testmiljø")
-        }
 
         val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return ResponseEntity.status(404)
             .body("Finner ikke faktura med referanse nr $fakturaReferanse")
