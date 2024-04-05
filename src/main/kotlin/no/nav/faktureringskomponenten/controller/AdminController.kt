@@ -136,6 +136,11 @@ class AdminController(
         @PathVariable fakturaReferanse: String,
         @RequestParam(required = false, defaultValue = "BESTILT") status: FakturaStatus
     ): ResponseEntity<String> {
+        if (naisClusterName != naisClusterNameDev) {
+            log.warn("Endepunktet er kun tilgjengelig i testmiljø")
+            return ResponseEntity.status(403)
+                .body("Endepunktet er kun tilgjengelig i testmiljø")
+        }
 
         val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return ResponseEntity.status(404)
             .body("Finner ikke faktura med referanse nr $fakturaReferanse")
