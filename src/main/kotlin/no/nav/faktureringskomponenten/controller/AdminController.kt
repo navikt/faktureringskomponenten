@@ -151,12 +151,12 @@ class AdminController(
                 .body("Faktura med referanse nr $fakturaReferanse har allerede statusen $status")
         }
 
-        val fakturaStatusNå = faktura.status
+        val originalStatus = faktura.status
 
         fakturaService.oppdaterFakturaStatus(fakturaReferanse, status)
 
-        log.info("Status på faktura $fakturaReferanse har blitt oppdatert fra fra ${fakturaStatusNå} til $status")
-        return ResponseEntity.ok("Status på faktura $fakturaReferanse har blitt oppdatert fra fra ${fakturaStatusNå} til $status")
+        log.info("Status på faktura $fakturaReferanse har blitt oppdatert fra fra $originalStatus til $status")
+        return ResponseEntity.ok("Status på faktura $fakturaReferanse har blitt oppdatert fra fra $originalStatus til $status")
     }
 
     companion object {
