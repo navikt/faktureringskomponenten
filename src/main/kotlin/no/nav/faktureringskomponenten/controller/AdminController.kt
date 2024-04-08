@@ -145,7 +145,7 @@ class AdminController(
         val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return ResponseEntity.status(404)
             .body("Finner ikke faktura med referanse nr $fakturaReferanse")
 
-        if (faktura.status != status) {
+        if (faktura.status == status) {
             log.info("Faktura med referanse nr $fakturaReferanse har allerede statusen $status")
             return ResponseEntity.status(400)
                 .body("Faktura med referanse nr $fakturaReferanse har allerede statusen $status")
