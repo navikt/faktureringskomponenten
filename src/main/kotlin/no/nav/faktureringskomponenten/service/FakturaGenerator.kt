@@ -40,7 +40,7 @@ class FakturaGenerator(
 
             gjeldendeFakturaLinjer.addAll(fakturaLinjerForPeriode)
 
-            if (skalLageFakturaForPeriode(dagensDato(), gjeldendeFaktureringSluttDato) && fakturaLinjerForPeriode.isNotEmpty()) {
+            if (skalLageFakturaForPeriode(dagensDato(), gjeldendeFaktureringSluttDato) && gjeldendeFakturaLinjer.isNotEmpty()) {
                 var faktura = tilFaktura(gjeldendeFaktureringStartDato, gjeldendeFakturaLinjer.toList())
 
                 if (unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant")) {
