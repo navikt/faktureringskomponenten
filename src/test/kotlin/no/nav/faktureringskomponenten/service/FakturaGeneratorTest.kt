@@ -3,9 +3,10 @@ package no.nav.faktureringskomponenten.service
 import io.getunleash.FakeUnleash
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.every
-import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
@@ -18,13 +19,52 @@ import java.time.LocalDate
 
 
 class FakturaGeneratorTest {
-    private val fakturaLinjeGenerator = mockk<FakturaLinjeGenerator>(relaxed = true)
+    private val fakturaLinjeGenerator = FakturaLinjeGenerator()
     private val unleash = FakeUnleash()
     private val generator = FakturaGenerator(fakturaLinjeGenerator, unleash, 0)
 
     @AfterEach
     fun `Remove RandomNumberGenerator mockks`() {
         unmockkStatic(LocalDate::class)
+    }
+
+    @Test
+    fun `Periode har opphold - setter ikke faktura for oppholdet`() {
+        val faktura = generator.lagFakturaerFor(
+            LocalDate.parse("2020-01-01"),
+            LocalDate.parse("2022-12-31"),
+            listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.parse("2020-01-01"),
+                    LocalDate.parse("2020-12-31"),
+                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                ),
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.parse("2022-01-01"),
+                    LocalDate.parse("2022-12-31"),
+                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                )
+            ),
+            FakturaserieIntervall.KVARTAL
+        )
+
+
+        faktura.shouldHaveSize(2).run {
+            first().fakturaLinje
+                .shouldNotBeEmpty()
+                .onEach {
+                    it.periodeFra.year.shouldNotBe(2021)
+                    it.periodeTil.year.shouldNotBe(2021)
+                }
+            last().fakturaLinje
+                .shouldNotBeEmpty()
+                .onEach {
+                    it.periodeFra.year.shouldNotBe(2021)
+                    it.periodeTil.year.shouldNotBe(2021)
+                }
+        }
     }
 
     @Test
@@ -133,7 +173,7 @@ class FakturaGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
 
-            ),
+                ),
             FakturaserieIntervall.KVARTAL
         )
         faktura.sortedBy { it.datoBestilt }.map { it.datoBestilt }
@@ -194,7 +234,7 @@ class FakturaGeneratorTest {
         )
 
         val firstMonthOfQuarter = LocalDate.now().month.firstMonthOfQuarter()
-        faktura.single().datoBestilt.shouldBe(LocalDate.of(2024,9,19))
+        faktura.single().datoBestilt.shouldBe(LocalDate.of(2024, 9, 19))
     }
 
     @Test
