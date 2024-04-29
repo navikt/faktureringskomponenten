@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.service.beregning
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -150,5 +151,60 @@ class BeløpBeregnerTest {
         shouldThrow<ArithmeticException> {
             BeløpBeregner.beløpForPeriode(BigDecimal("1002.25"), fom, tom)
         }
+    }
+
+    @Test
+    fun `Totalbeløp, En periode for hele måneder`() {
+        val fom = LocalDate.of(2023, 1, 1)
+        val tom = LocalDate.of(2023, 5, 31)
+        val fakturaseriePeriode = FakturaseriePeriode(BigDecimal.valueOf(700), fom, tom, "dummy")
+        val fakturaseriePerioder = listOf(fakturaseriePeriode)
+
+        val result = BeløpBeregner.totalBeløpForAllePerioder(fakturaseriePerioder)
+
+        val forventetBeløp = BigDecimal("3500.00")
+        result.shouldBe(forventetBeløp)
+    }
+
+    @Test
+    fun `Totalbeløp, Ulike perioder med ulik trygdeavgift for hele måneder`() {
+        val fom = LocalDate.of(2023, 1, 1)
+        val tom = LocalDate.of(2023, 12, 31)
+        val fakturaseriePeriode = FakturaseriePeriode(BigDecimal.valueOf(500), fom, tom, "dummy")
+        val fom2 = LocalDate.of(2023, 6, 1)
+        val tom2 = LocalDate.of(2023, 12, 31)
+        val fakturaseriePeriode2 = FakturaseriePeriode(BigDecimal.valueOf(1000), fom2, tom2, "dummy")
+        val fakturaseriePerioder = listOf(fakturaseriePeriode, fakturaseriePeriode2)
+
+        val result = BeløpBeregner.totalBeløpForAllePerioder(fakturaseriePerioder)
+
+        val forventetBeløp = BigDecimal("13000.00")
+        result.shouldBe(forventetBeløp)
+    }
+
+    @Test
+    fun `Totalbeløp, En periode for halv måned siste måned`() {
+        val fom = LocalDate.of(2023, 1, 1)
+        val tom = LocalDate.of(2023, 11, 15)
+        val fakturaseriePeriode = FakturaseriePeriode(BigDecimal.valueOf(1000), fom, tom, "dummy")
+        val fakturaseriePerioder = listOf(fakturaseriePeriode)
+
+        val result = BeløpBeregner.totalBeløpForAllePerioder(fakturaseriePerioder)
+
+        val forventetBeløp = BigDecimal("10500.00")
+        result.shouldBe(forventetBeløp)
+    }
+
+    @Test
+    fun `Totalbeløp, En periode for halv måned første måned`() {
+        val fom = LocalDate.of(2023, 2, 15)
+        val tom = LocalDate.of(2023, 12, 31)
+        val fakturaseriePeriode = FakturaseriePeriode(BigDecimal.valueOf(1000), fom, tom, "dummy")
+        val fakturaseriePerioder = listOf(fakturaseriePeriode)
+
+        val result = BeløpBeregner.totalBeløpForAllePerioder(fakturaseriePerioder)
+
+        val forventetBeløp = BigDecimal("10500.00")
+        result.shouldBe(forventetBeløp)
     }
 }
