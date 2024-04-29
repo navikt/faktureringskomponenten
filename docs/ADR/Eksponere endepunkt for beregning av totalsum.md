@@ -14,7 +14,6 @@ Foreslår derfor å bare sende inn perioder vi skal beregne for, så regner vi u
 [Beskriv beslutningen som ble tatt, inkludert eventuelle alternativer som ble vurdert og årsakene bak beslutningen]
 
 ## Konsekvenser
-[Beskriv de forventede konsekvensene av beslutningen, inkludert eventuelle potensielle risikoer eller ulemper]
 Konsekvensen slik den er og kommer til å bli er att beregning egentlig ikke nødvendigvis hører til faktureringskomponenten.
 Det kan også være litt forvirrende mtp att vi allerede har en beregningsmodul.
 
