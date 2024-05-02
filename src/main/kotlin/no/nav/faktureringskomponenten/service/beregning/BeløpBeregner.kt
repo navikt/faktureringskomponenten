@@ -9,7 +9,6 @@ import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
 
-@Service
 class BeløpBeregner {
     companion object {
         fun totalBeløpForAllePerioder(fakturaseriePeriode: List<FakturaseriePeriode>): BigDecimal {
