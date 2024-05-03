@@ -1,7 +1,7 @@
 # Eksponere endepunkt for beregning av totalsum.md
 
 ## Status
-Foreslått
+Akseptert
 
 ## Kontekst
 Beregningen slik den er nå blir brukt for å beregne basert på fakturalinjer.
@@ -11,14 +11,12 @@ Foreslår derfor å bare sende inn perioder vi skal beregne for, så regner vi u
 
 
 ## Beslutning
-[Beskriv beslutningen som ble tatt, inkludert eventuelle alternativer som ble vurdert og årsakene bak beslutningen]
+Vi endte opp med å lage ett nytt endepunkt for å eksponere lignende logikk som for beregning av trygdeavgift.
+ref TotalBeløpController
 
 ## Konsekvenser
 Konsekvensen slik den er og kommer til å bli er att beregning egentlig ikke nødvendigvis hører til faktureringskomponenten.
 Det kan også være litt forvirrende mtp att vi allerede har en beregningsmodul.
 
 ## Referanser
-[Listen over relevante kilder, lenker eller dokumentasjon]
-
-## Relaterte ADR-er
-[Liste over eventuelle relaterte ADR-er, hvis aktuelt]
+https://jira.adeo.no/browse/MELOSYS-6570
