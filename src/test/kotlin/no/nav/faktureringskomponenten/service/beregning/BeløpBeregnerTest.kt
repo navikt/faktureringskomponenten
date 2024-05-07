@@ -153,6 +153,7 @@ class BeløpBeregnerTest {
         }
     }
 
+
     @Test
     fun `Totalbeløp, En periode for hele måneder`() {
         val fom = LocalDate.of(2023, 1, 1)
