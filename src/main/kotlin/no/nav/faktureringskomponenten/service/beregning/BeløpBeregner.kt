@@ -2,7 +2,6 @@ package no.nav.faktureringskomponenten.service.beregning
 
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
-import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
