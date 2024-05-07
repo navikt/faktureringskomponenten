@@ -1,4 +1,4 @@
-# Eksponere endepunkt for beregning av totalsum.md
+# Eksponere endepunkt for beregning av totalsum
 
 ## Status
 Akseptert
