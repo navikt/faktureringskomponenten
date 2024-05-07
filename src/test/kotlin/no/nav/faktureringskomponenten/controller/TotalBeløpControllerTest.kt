@@ -50,7 +50,7 @@ class TotalBeløpControllerTest {
         )
         val dto = BeregnTotalBeløpDto(fakturaseriePerioder)
 
-        mockMvc.perform(post("/totalbeloep")
+        mockMvc.perform(post("/totalbeloep/beregn")
                 .header("Nav-User-Id", "test")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dto)))
