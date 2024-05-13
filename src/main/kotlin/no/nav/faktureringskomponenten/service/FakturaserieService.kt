@@ -1,14 +1,15 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
+import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import ulid.ULID
+import java.math.BigDecimal
 
 private val log = KotlinLogging.logger { }
 
@@ -39,6 +40,13 @@ class FakturaserieService(
         val fakturaserie = fakturaserieGenerator.lagFakturaserie(fakturaserieDto)
         fakturaserieRepository.save(fakturaserie)
         log.info("Lagret fakturaserie: $fakturaserie")
+
+        val listeAvAktiveFakturaserierForFodselsnummer =
+            fakturaserieRepository.findAllByFodselsnummer(fakturaserie.fodselsnummer)
+                .filter { it.erAktiv() }
+        if (listeAvAktiveFakturaserierForFodselsnummer.size > 1) {
+            log.error("Det finnes flere aktive fakturaserier for fødselsnummer av fakturaserie ${fakturaserie.referanse}")
+        }
         return fakturaserie.referanse
     }
 
@@ -103,18 +111,38 @@ class FakturaserieService(
                 message = "Finner ikke fakturaserie med referanse $referanse"
             )
 
-        val krediteringFakturaserie = fakturaserieGenerator.lagKrediteringFakturaSerie(eksisterendeFakturaserie)
+        val alleFakturaserier = hentFakturaserier(eksisterendeFakturaserie.referanse)
+        val startDato = alleFakturaserier.minBy { it.startdato }.startdato
+        val sluttDato = alleFakturaserier.maxBy { it.startdato }.sluttdato
+
+        val fakturaserieDto = FakturaserieDto(
+            fakturaserieReferanse = ULID.randomULID(),
+            fodselsnummer = eksisterendeFakturaserie.fodselsnummer,
+            fullmektig = eksisterendeFakturaserie.fullmektig,
+            referanseBruker = eksisterendeFakturaserie.referanseBruker,
+            referanseNAV = eksisterendeFakturaserie.referanseNAV,
+            fakturaGjelderInnbetalingstype = eksisterendeFakturaserie.fakturaGjelderInnbetalingstype,
+            intervall = eksisterendeFakturaserie.intervall,
+            perioder = listOf(FakturaseriePeriode(BigDecimal.ZERO, startDato, sluttDato, "Kansellering"))
+        )
+
+        val krediteringFakturaserie = fakturaserieGenerator.lagFakturaserieKansellering(
+            fakturaserieDto,
+            startDato,
+            sluttDato,
+            avregningBehandler.lagAvregningsfaktura(
+                fakturaserieDto.perioder,
+                eksisterendeFakturaserie.bestilteFakturaer()
+            )
+        )
+
         fakturaserieRepository.save(krediteringFakturaserie)
 
-        eksisterendeFakturaserie.apply {
-            status = FakturaserieStatus.KANSELLERT
-            faktura.map {
-                it.status = FakturaStatus.KANSELLERT
-            }
-        }
+        eksisterendeFakturaserie.kansellerMed(krediteringFakturaserie)
         fakturaserieRepository.save(eksisterendeFakturaserie)
 
-        fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.referanse)
+        fakturaBestillingService.bestillKreditnota(krediteringFakturaserie)
         return krediteringFakturaserie.referanse
     }
+
 }

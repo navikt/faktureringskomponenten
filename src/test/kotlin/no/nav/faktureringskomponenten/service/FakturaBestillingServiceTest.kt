@@ -166,7 +166,7 @@ class FakturaBestillingServiceTest {
         every { fakturaserieRepository.save(any()) } returns mockk()
 
 
-        fakturaBestillingService.bestillKreditnota(fakturaserie.referanse)
+        fakturaBestillingService.bestillKreditnota(fakturaserie)
 
 
         fakturaserie.run {
@@ -179,7 +179,6 @@ class FakturaBestillingServiceTest {
             }
         }
 
-        verify { fakturaserieRepository.save(fakturaserie) }
         verify(exactly = 2) { fakturaBestiltProducer.produserBestillingsmelding(any()) }
     }
 }
