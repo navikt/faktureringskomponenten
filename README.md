@@ -1,5 +1,7 @@
 # Faktureringskomponenten
 
+Denne applikasjonen har som hovedansvar å håndtere gjentakende fakturabestillinger i løpet av en faktureringsperiode ved å opprette en fakturaserie.
+
 ## Utvikling
 
 ### Kjør opp prosjekt lokalt
