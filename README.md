@@ -87,74 +87,62 @@ flowchart TB
 
 ```mermaid
 classDiagram
-class fakturaserie {
-    id : LONG
-    referanse : VARCHAR
-    faktura_gjelder : VARCHAR
-    fodselsnummer : NUMERIC
-    fullmektig_fodselsnummer : NUMERIC
-    fullmektig_organisasjonsnummer : VARCHAR
-    fullmektig_kontaktperson : VARCHAR
-    referanse_bruker : VARCHAR
-    referanse_nav : VARCHAR
-    startdato : DATE
-    sluttdato : DATE
-    status : fakturaserie_status
-    intervall : fakturaserie_intervall
-    opprettet_Tidspunkt : DATE
-    (PK) id
-    (FK) referanse
-}
-
-class faktura {
-    id : LONG
-    fakturaserie_id : INT
-    dato_bestilt : DATE
-    status : faktura_status
-    beskrivelse : VARCHAR
-    (PK) id
-    (FK) fakturaserie_id
-}
-
-class faktura_linje {
-    id : LONG
-    faktura_id : INT
-    periode_fra : DATE
-    periode_til : DATE
-    beskrivelse : VARCHAR
-    belop : NUMERIC(10, 2)
-    (PK) id
-    (FK) faktura_id
-}
-
-class fakturaserie_status {
-    <<enum>>
-    OPPRETTET
-    UNDER_BESTILLING
-    KANSELLERT
-    ERSTATTET
-    FERDIG
-} 
-
-class fakturaserie_intervall {
-    <<enum>>
-    MANEDLIG
-    KVARTAL
-}
-
-class faktura_status {
-    <<enum>>
-    OPPRETTET
-    BESTILT
-    KANSELLERT
-}
-
-fakturaserie "1" --> "1..*" faktura
-fakturaserie "PK_id" --> "FK_fakturaserie_id" faktura
-fakturaserie "status" -- "PK_fakturaserie_status" fakturaserie_status
-fakturaserie "intervall" -- "PK_fakturaserie_intervall" fakturaserie_intervall
-faktura "status" -- "PK_fakutra_status" faktura_status
-faktura "1" --> "1..*" faktura_linje
+    Fakturaserie "1" --> "1..*" Faktura
+    Fakturaserie "PK_id" --> "FK_fakturaserie_id" Faktura
+    Fakturaserie "status" -- "PK_fakturaserie_status" Fakturaserie_status
+    Faktura "status" -- "PK_fakutra_status" Faktura_status
+    Faktura "1" --> "1..*" Faktura_linje
+    
+    class Fakturaserie {
+        id : LONG
+        referanse : VARCHAR
+        faktura_gjelder : VARCHAR
+        fodselsnummer : NUMERIC
+        fullmektig_fodselsnummer : NUMERIC
+        fullmektig_organisasjonsnummer : VARCHAR
+        fullmektig_kontaktperson : VARCHAR
+        referanse_bruker : VARCHAR
+        referanse_nav : VARCHAR
+        startdato : DATE
+        sluttdato : DATE
+        status : fakturaserie_status
+        intervall : fakturaserie_intervall
+        opprettet_Tidspunkt : DATE
+    }
+    class Faktura {
+        id : LONG
+        fakturaserie_id : INT
+        dato_bestilt : DATE
+        status : faktura_status
+        beskrivelse : VARCHAR
+    }
+    class Faktura_linje {
+        id : LONG
+        faktura_id : INT
+        periode_fra : DATE
+        periode_til : DATE
+        beskrivelse : VARCHAR
+        belop : NUMERIC(10, 2)
+    }
+    class Fakturaserie_status {
+        <<Enumeration>>
+        OPPRETTET
+        UNDER_BESTILLING
+        KANSELLERT
+        ERSTATTET
+        FERDIG
+    }
+    class Fakturaserie_intervall {
+        <<Enumeration>>
+        MANEDLIG
+        KVARTAL
+    }
+    class Faktura_status {
+        <<Enumeration>>
+        OPPRETTET
+        BESTILT
+        KANSELLERT
+    }
 ```
 
 # Henvendelser
