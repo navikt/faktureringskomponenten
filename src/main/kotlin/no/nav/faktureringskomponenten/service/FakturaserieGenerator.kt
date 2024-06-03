@@ -40,6 +40,26 @@ class FakturaserieGenerator(
         )
     }
 
+    fun lagFakturaserieKansellering(
+        fakturaserieDto: FakturaserieDto,
+        startDato: LocalDate,
+        sluttDato: LocalDate,
+        avregningsfaktura: List<Faktura> = emptyList()
+    ): Fakturaserie {
+        return Fakturaserie(
+            referanse = fakturaserieDto.fakturaserieReferanse,
+            fakturaGjelderInnbetalingstype = fakturaserieDto.fakturaGjelderInnbetalingstype,
+            fodselsnummer = fakturaserieDto.fodselsnummer,
+            fullmektig = mapFullmektig(fakturaserieDto.fullmektig),
+            referanseBruker = fakturaserieDto.referanseBruker,
+            referanseNAV = fakturaserieDto.referanseNAV,
+            startdato = startDato,
+            sluttdato = sluttDato,
+            intervall = fakturaserieDto.intervall,
+            faktura = avregningsfaktura
+        )
+    }
+
     private fun finnStartDatoForSamletPeriode(
         avregningsfakturaSistePeriodeTil: LocalDate?,
         startDato: LocalDate?,
@@ -47,23 +67,6 @@ class FakturaserieGenerator(
     ) = avregningsfakturaSistePeriodeTil?.plusDays(1) ?: startDato ?: mapStartdato(
         fakturaserieDto.perioder
     )
-
-    fun lagKrediteringFakturaSerie(fakturaserie: Fakturaserie): Fakturaserie {
-        return Fakturaserie(
-            id = null,
-            referanse = ULID.randomULID(),
-            fakturaGjelderInnbetalingstype = fakturaserie.fakturaGjelderInnbetalingstype,
-            fodselsnummer = fakturaserie.fodselsnummer,
-            fullmektig = mapFullmektig(fakturaserie.fullmektig),
-            referanseBruker = fakturaserie.referanseBruker,
-            referanseNAV = fakturaserie.referanseNAV,
-            startdato = fakturaserie.startdato,
-            sluttdato = fakturaserie.sluttdato,
-            status = FakturaserieStatus.OPPRETTET,
-            intervall = fakturaserie.intervall,
-            faktura = fakturaGenerator.lagKreditnota(fakturaserie.bestilteFakturaer())
-        )
-    }
 
     private fun mapFullmektig(fullmektigDto: Fullmektig?): Fullmektig? {
         if (fullmektigDto != null) {

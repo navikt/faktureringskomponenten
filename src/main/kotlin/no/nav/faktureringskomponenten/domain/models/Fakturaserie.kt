@@ -11,7 +11,7 @@ class Fakturaserie(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
-    @Column(name="referanse", nullable = false, unique = true)
+    @Column(name = "referanse", nullable = false, unique = true)
     val referanse: String = "",
 
     @Column(name = "faktura_gjelder_innbetalingstype", nullable = false)
@@ -52,7 +52,7 @@ class Fakturaserie(
     @JoinColumn(name = "erstattet_med", referencedColumnName = "id")
     var erstattetMed: Fakturaserie? = null,
 
-) : ModifiableEntity() {
+    ) : ModifiableEntity() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -87,20 +87,32 @@ class Fakturaserie(
     }
 
     fun erstattMed(nyFakturaserie: Fakturaserie) {
-        kansellerPlanlagteFakturaer()
+        avbrytPlanlagteFakturaer()
         erstattetMed = nyFakturaserie
         status = FakturaserieStatus.ERSTATTET
     }
 
+    fun kansellerMed(nyFakturaserie: Fakturaserie) {
+        avbrytPlanlagteFakturaer()
+        erstattetMed = nyFakturaserie
+        status = FakturaserieStatus.KANSELLERT
+    }
+
     fun bestilteFakturaer(): List<Faktura> {
-        return faktura.filter { it.status != FakturaStatus.OPPRETTET && it.status != FakturaStatus.KANSELLERT }
+        return faktura.filter {
+            it.status == FakturaStatus.BESTILT ||
+                    it.status == FakturaStatus.MANGLENDE_INNBETALING ||
+                    it.status == FakturaStatus.FEIL ||
+                    it.status == FakturaStatus.INNE_I_OEBS
+        }
     }
 
     fun planlagteFakturaer(): List<Faktura> {
         return faktura.filter { it.status == FakturaStatus.OPPRETTET }
     }
 
-    private fun kansellerPlanlagteFakturaer() {
-        planlagteFakturaer().forEach { it.status = FakturaStatus.KANSELLERT }
+    private fun avbrytPlanlagteFakturaer() {
+        planlagteFakturaer().forEach { it.status = FakturaStatus.AVBRUTT }
     }
+
 }

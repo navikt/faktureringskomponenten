@@ -6,8 +6,8 @@ import jakarta.servlet.http.HttpServletResponse
 import no.nav.faktureringskomponenten.config.MDCOperations.CORRELATION_ID
 import no.nav.faktureringskomponenten.config.MDCOperations.X_CORRELATION_ID
 import org.slf4j.LoggerFactory
-import org.springframework.lang.Nullable
 import org.springframework.web.servlet.HandlerInterceptor
+import org.springframework.web.servlet.ModelAndView
 import java.util.*
 
 
@@ -20,12 +20,11 @@ class CorrelationIdInterceptor : HandlerInterceptor {
         return true
     }
 
-    @Throws(Exception::class)
-    override fun afterCompletion(
+    override fun postHandle(
         request: HttpServletRequest,
         response: HttpServletResponse,
         handler: Any,
-        @Nullable ex: java.lang.Exception?
+        modelAndView: ModelAndView?
     ) {
         MDCOperations.remove(CORRELATION_ID)
         LOGGER.debug("Cleared MDC values")

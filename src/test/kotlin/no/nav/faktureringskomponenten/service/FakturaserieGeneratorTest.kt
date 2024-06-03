@@ -7,6 +7,7 @@ import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -478,13 +479,13 @@ class FakturaserieGeneratorTest {
         val fakturaMapper = FakturaGeneratorForTest(dagensDato, unleash = unleash)
         return FakturaserieGenerator(fakturaGenerator = fakturaMapper).lagFakturaserie(
             FakturaserieDto(
-                fakturaserieReferanse = "MEL-105-145",
+                fakturaserieReferanse = ULID.randomULID(),
                 fodselsnummer = "30056928150",
                 fullmektig = Fullmektig(
                     fodselsnummer = null,
                     organisasjonsnummer = "999999999",
                 ),
-                referanseBruker = "2023-01-19T11:39:48.680364Z", // Hvorfor får vi dagens dato her?
+                referanseBruker = "Vedtak om medlemskap datert 19-01-2023",
                 referanseNAV = "Medlemskap og avgift",
                 fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
                 intervall = intervall,
@@ -493,7 +494,8 @@ class FakturaserieGeneratorTest {
         )
     }
 
-    class FakturaGeneratorForTest(private val dagensDato: LocalDate, unleash: FakeUnleash) : FakturaGenerator(FakturaLinjeGenerator(), unleash = unleash, 0) {
+    class FakturaGeneratorForTest(private val dagensDato: LocalDate, unleash: FakeUnleash) :
+        FakturaGenerator(FakturaLinjeGenerator(), unleash = unleash, 0) {
         override fun dagensDato(): LocalDate = dagensDato
     }
 
@@ -561,7 +563,14 @@ class FakturaserieGeneratorTest {
         }
 
         constructor(fra: String, til: String, beløp: String, beskrivelse: String)
-                : this(LocalDate.parse(fra), LocalDate.parse(til), BigDecimal(beløp), "Periode: ${LocalDate.parse(fra).format(FORMATTER)} - ${LocalDate.parse(til).format(FORMATTER)}\n$beskrivelse")
+                : this(
+            LocalDate.parse(fra),
+            LocalDate.parse(til),
+            BigDecimal(beløp),
+            "Periode: ${LocalDate.parse(fra).format(FORMATTER)} - ${
+                LocalDate.parse(til).format(FORMATTER)
+            }\n$beskrivelse"
+        )
 
         override fun toString() = "\n    fra=$fra, til:$til, beløp:$beløp, $beskrivelse"
         fun toTestCode(): String = "           Linje(\n" +
