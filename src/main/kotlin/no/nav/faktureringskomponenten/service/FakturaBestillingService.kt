@@ -4,6 +4,7 @@ import io.micrometer.core.instrument.Metrics
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
@@ -61,20 +62,13 @@ class FakturaBestillingService(
     }
 
     @Transactional
-    fun bestillKreditnota(fakturaserieReferanse: String) {
-        val fakturaserie =
-            fakturaserieRepository.findByReferanse(fakturaserieReferanse) ?: throw RessursIkkeFunnetException(
-                field = "fakturaserieId",
-                message = "Finner ikke fakturaserie med referanse $fakturaserieReferanse"
-            )
-
+    fun bestillKreditnota(fakturaserie: Fakturaserie) {
         fakturaserie.apply {
             status = FakturaserieStatus.FERDIG
-            faktura.map {
+            faktura.forEach {
                 it.status = FakturaStatus.BESTILT
             }
         }
-        fakturaserieRepository.save(fakturaserie)
 
         fakturaserie.faktura.forEach {
             fakturaBestiltProducer.produserBestillingsmelding(

@@ -191,4 +191,7 @@ interface FakturaRepositoryForTesting : JpaRepository<Faktura, String> {
 
     @Query("SELECT f FROM Faktura f JOIN fetch f.eksternFakturaStatus where f.id = :id")
     fun findByIdEagerly(id: Long): Faktura?
+
+    @Query("SELECT f FROM Faktura f JOIN fetch f.fakturaLinje where f.id = :id")
+    fun findByfakturaAndLinjeEagerly(id: Long?): Faktura?
 }
