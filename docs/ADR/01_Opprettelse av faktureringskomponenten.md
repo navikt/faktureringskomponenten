@@ -29,7 +29,8 @@ Melosys har ansvar for å støtte saksbehandling av melding om manglende innbeta
 - Har ansvar for å holde i gang regelmessig bestilling av faktura for hele vedtaksperioden.
 - Sender bestilling av faktura til OEBS.
 - Håndterer endringer og motregninger i framtidige faktura opp mot tidligere faktureringsoppdrag.
-- Blir satt opp slik at den kan brukes til flere formål og ikke bare til fakturering av trygdeavgift. 
+- Blir satt opp slik at den kan brukes til flere formål og ikke bare til fakturering av trygdeavgift, 
+gitt at det gjelder gjentakende fakturaer basert på en beløp pr mnd og en gitt periode. 
 
 ### OEBS
 - Sending av faktura til den enkelte bruker, håndtering av innbetalinger og purring av manglende innbetalinger.
