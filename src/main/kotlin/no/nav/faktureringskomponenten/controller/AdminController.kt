@@ -119,13 +119,13 @@ class AdminController(
             ubetaltBelop = faktura.totalbeløp() - betaltBelop,
             status = FakturaStatus.MANGLENDE_INNBETALING,
             dato = LocalDate.now(),
-            feilmelding = "Simulert manglende innbetaling"
+            feilmelding = "Manuelt opprettet etter manglende støtte fra team Løst ref. https://jira.adeo.no/browse/MELOSYS-6691"
         )
 
         eksternFakturaStatusService.lagreEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
 
-        log.info("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
-        return ResponseEntity.ok("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
+        log.info("Manuelt opprettet etter manglende støtte fra team Løst ref. https://jira.adeo.no/browse/MELOSYS-6691, fakturareferanse: $fakturaReferanse")
+        return ResponseEntity.ok("Manuelt opprettet etter manglende støtte fra team Løst ref. https://jira.adeo.no/browse/MELOSYS-6691, fakturareferanse: $fakturaReferanse")
     }
 
 
