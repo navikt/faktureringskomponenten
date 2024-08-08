@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/totalbeloep")
 @Protected
 class TotalBeløpController {
-    @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
     @PostMapping("/beregn")
     fun hentTotalBeløp(
         @RequestBody @Validated beregnTotalBeløpDto: BeregnTotalBeløpDto,
