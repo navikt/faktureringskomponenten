@@ -38,7 +38,9 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         if (avregningsperioder.isEmpty()) return emptyList()
         log.debug { "Avregningsperioder generert: $avregningsperioder" }
 
-        return avregningsperioder.map {
+        return avregningsperioder.filter {
+            (it.nyttBeløp > BigDecimal.ZERO && it.tidligereBeløp < BigDecimal.ZERO && it.bestilteFaktura.erAvregningsfaktura()) || it.nyttBeløp === BigDecimal.ZERO
+        }.map {
             avregningsfakturaGenerator.lagFaktura(it)
         }.toList()
     }
