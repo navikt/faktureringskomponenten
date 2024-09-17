@@ -38,6 +38,8 @@ class AvregningsfakturaGenerator {
                 belop = avregningsperiode.nyttBeløp - avregningsperiode.tidligereBeløp,
             )
 
+        // status settes til BESTILT hvis det ikke er endring i hva som skal betales for gjeldende faktura og dermed ikke
+        // skal sendes til OEBS. Grunnen til at vi oppretter en faktura er for å koble tidligere faktura med en ny avregning
         return Faktura(
             referanseNr = ULID.randomULID(),
             krediteringFakturaRef = avregningsperiode.opprinneligFaktura.referanseNr,
