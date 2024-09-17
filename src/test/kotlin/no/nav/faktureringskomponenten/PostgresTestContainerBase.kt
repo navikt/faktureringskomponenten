@@ -21,6 +21,7 @@ open class PostgresTestContainerBase {
         private const val useContainer = true // easy way to switch to run against local docker
 
         @DynamicPropertySource
+        @JvmStatic
         fun postgresProperties(registry: DynamicPropertyRegistry) {
             if (useTestContainer()) {
                 registry.add("spring.datasource.url") { dbContainer.jdbcUrl }
