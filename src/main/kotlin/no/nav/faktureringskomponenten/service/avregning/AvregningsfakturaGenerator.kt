@@ -51,7 +51,6 @@ class AvregningsfakturaGenerator {
         private val decimalFormat = DecimalFormat("0.00", DecimalFormatSymbols(Locale("no", "NO", "nb")))
         private val dateFormat: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
-        @JvmStatic
         fun genererBeskrivelse(
             periodeFra: LocalDate,
             periodeTil: LocalDate,
