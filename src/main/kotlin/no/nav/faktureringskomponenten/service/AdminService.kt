@@ -2,7 +2,9 @@ package no.nav.faktureringskomponenten.service
 
 import jakarta.transaction.Transactional
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import org.springframework.stereotype.Service
 import ulid.ULID
 import java.time.LocalDate
@@ -10,6 +12,7 @@ import java.time.LocalDate
 @Service
 class AdminService(
     val fakturaService: FakturaService,
+    private val fakturaserieRepository: FakturaserieRepository,
 ) {
     @Transactional
     fun krediterFaktura(fakturaReferanse: String): Fakturaserie {
@@ -43,13 +46,20 @@ class AdminService(
                     periodeFra = it.periodeFra,
                     periodeTil = it.periodeTil,
                     belop = it.belop.negate(),
-                    beskrivelse = it.beskrivelse,
+                    beskrivelse = AvregningsfakturaGenerator.genererBeskrivelse(
+                        it.periodeFra,
+                        it.periodeTil,
+                        it.belop.negate(),
+                        it.belop
+                    ),
                 )
             },
             krediteringFakturaRef = faktura.referanseNr,
             referertFakturaVedAvregning = faktura,
         )
 
-        return fakturaService.lagreFaktura(nyFaktura).fakturaserie!!
+        (fakturaserie.faktura as MutableList<Faktura>).add(nyFaktura)
+
+        return fakturaserieRepository.save(fakturaserie)
     }
 }
