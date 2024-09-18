@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service.avregning
 
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -62,7 +63,10 @@ class AvregningBehandlerTest {
     @Test
     fun `lagAvregningsfaktura når bestilte fakturaer inneholder en avregningsfaktura`() {
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData(), listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal))
+            avregningBehandler.lagAvregningsfaktura(
+                fakturaseriePerioderTestData(),
+                listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal)
+            )
 
         avregningsfaktura.run {
             sortedBy { it.getPeriodeFra() }
@@ -119,7 +123,10 @@ class AvregningBehandlerTest {
     @Test
     fun `lagAvregningsfaktura referer til først positive faktura - første av 2 i dette tilfellet`() {
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData3(), listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal))
+            avregningBehandler.lagAvregningsfaktura(
+                fakturaseriePerioderTestData3(),
+                listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal)
+            )
 
         avregningsfaktura.run {
             sortedBy { it.getPeriodeFra() }
@@ -174,17 +181,19 @@ class AvregningBehandlerTest {
     }
 
     @Test
-    fun `lagAvregningsfaktura krediterer faktura som ikke overlapper med nye perioder`() {
+    fun `lagAvregningsfaktura krediterer faktura som overlapper med nye perioder`() {
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData(), listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal, faktura2025ForsteKvartal))
+            avregningBehandler.lagAvregningsfaktura(
+                fakturaseriePerioderTestData(),
+                listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal, faktura2025ForsteKvartal)
+            )
 
         avregningsfaktura.run {
             sortedBy { it.getPeriodeFra() }
             filter { it.erAvregningsfaktura() }
-            shouldHaveSize(3)
+            shouldHaveSize(2)
             get(0).referertFakturaVedAvregning.shouldBe(faktura2024ForsteKvartal)
             get(1).referertFakturaVedAvregning.shouldBe(faktura2024AndreKvartal)
-            get(2).referertFakturaVedAvregning.shouldBe(faktura2025ForsteKvartal)
         }
     }
 
@@ -192,7 +201,15 @@ class AvregningBehandlerTest {
     @Test
     fun `lagAvregningsfaktura krediterer faktura som ikke overlapper med nye perioder der perioden ligger midt i`() {
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderMedHullIPerioderTestData(), listOf(faktura2023ForsteKvartal, faktura2024ForsteKvartal, faktura2024AndreKvartal, faktura2025ForsteKvartal))
+            avregningBehandler.lagAvregningsfaktura(
+                fakturaseriePerioderMedHullIPerioderTestData(),
+                listOf(
+                    faktura2023ForsteKvartal,
+                    faktura2024ForsteKvartal,
+                    faktura2024AndreKvartal,
+                    faktura2025ForsteKvartal
+                )
+            )
 
         avregningsfaktura.run {
             sortedBy { it.getPeriodeFra() }
@@ -205,7 +222,20 @@ class AvregningBehandlerTest {
         }
     }
 
+    @Test
+    fun `lagAvregningsfaktura filtrer bort avregningsfaktura med minusbeløp`() {
+        val avregningsfaktura =
+            avregningBehandler.lagAvregningsfaktura(
+                fakturaseriePerioderTestData(),
+                listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal)
+            )
 
+        avregningsfaktura.run {
+            sortedBy { it.getPeriodeFra() }
+            filter { it.erAvregningsfaktura() }
+            shouldBeEmpty()
+        }
+    }
 
     private val faktura2023ForsteKvartal = Faktura(
         id = 1,
