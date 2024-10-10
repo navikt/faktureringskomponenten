@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.service.avregning
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import org.springframework.stereotype.Component
@@ -22,6 +23,7 @@ private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: L
 
 @Component
 class AvregningBehandler(private val avregningsfakturaGenerator: AvregningsfakturaGenerator) {
+
     fun lagAvregningsfaktura(
         fakturaseriePerioder: List<FakturaseriePeriode>,
         bestilteFakturaer: List<Faktura>
@@ -35,12 +37,14 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         }
 
         val avregningsperioder = lagEventuelleAvregningsperioder(bestilteFakturaer, fakturaseriePerioder)
+
         if (avregningsperioder.isEmpty()) return emptyList()
         log.debug { "Avregningsperioder generert: $avregningsperioder" }
 
-        return avregningsperioder.map {
-            avregningsfakturaGenerator.lagFaktura(it)
-        }.toList()
+        return avregningsperioder
+            .map {
+                avregningsfakturaGenerator.lagFaktura(it)
+            }.toList()
     }
 
     private fun lagEventuelleAvregningsperioder(
@@ -73,16 +77,33 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
                 overlappendeFakturaseriePerioder(fakturaseriePerioder, faktura.getPeriodeFra(), faktura.getPeriodeTil())
             if (overlappendePerioder.isEmpty()) listOf(faktura) else emptyList()
         }
-        return perioderSomIkkeOverlapper.map { faktura ->
-            Avregningsperiode(
-                periodeFra = faktura.getPeriodeFra(),
-                periodeTil = faktura.getPeriodeTil(),
-                bestilteFaktura = faktura,
-                opprinneligFaktura = hentFørstePositiveFaktura(faktura),
-                tidligereBeløp = faktura.totalbeløp(),
-                nyttBeløp = BigDecimal.ZERO
-            )
+
+        return perioderSomIkkeOverlapper
+            .filter { faktura ->
+                val sumAvregninger = sumAvregningerRekursivt(faktura)
+                sumAvregninger != BigDecimal.valueOf(0, 2)
+            }
+            .map { faktura ->
+                val sumAvregninger = sumAvregningerRekursivt(faktura)
+                Avregningsperiode(
+                    periodeFra = faktura.getPeriodeFra(),
+                    periodeTil = faktura.getPeriodeTil(),
+                    bestilteFaktura = faktura,
+                    opprinneligFaktura = hentFørstePositiveFaktura(faktura),
+                    tidligereBeløp = sumAvregninger,
+                    nyttBeløp = BigDecimal.ZERO
+                )
+            }
+    }
+
+    fun sumAvregningerRekursivt(faktura: Faktura): BigDecimal {
+        var sum = if (faktura.status === FakturaStatus.BESTILT) faktura.totalbeløp() else BigDecimal.ZERO
+
+        faktura.referertFakturaVedAvregning?.let { referertFaktura ->
+            sum += sumAvregningerRekursivt(referertFaktura)
         }
+
+        return sum
     }
 
     /**
