@@ -1,5 +1,8 @@
 package no.nav.faktureringskomponenten.controller
 
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.controller.dto.BeregnTotalBeløpDto
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
@@ -21,13 +24,19 @@ private val log = KotlinLogging.logger { }
 @Protected
 class TotalBeløpController {
 
+    @Operation(summary = "Beregner totalbeløp for perioder")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Bigdecimal med totalbeløp"),
+            ApiResponse(responseCode = "400", description = "Feil med validering av felter"),
+            ApiResponse(responseCode = "500", description = "Feil ved kalkulering av totalbeløp")
+        ]
+    )
     @PostMapping("/beregn")
     fun hentTotalBeløp(
         @RequestBody @Validated beregnTotalBeløpDto: BeregnTotalBeløpDto,
         bindingResult: BindingResult
     ): ResponseEntity<Any> {
-        log.info { "Beregner totalbeløp for" }
-
         if (bindingResult.hasErrors()) {
             val errors = bindingResult.allErrors.map { it.defaultMessage }
             log.error { "Validation errors: $errors" }
@@ -37,12 +46,9 @@ class TotalBeløpController {
         return try {
             val totalBeløp = BeløpBeregner.totalBeløpForAllePerioder(beregnTotalBeløpDto.fakturaseriePerioder)
             ResponseEntity.ok(totalBeløp)
-        } catch (e: ArithmeticException) {
-            log.error("Arithmetic error during calculation", e)
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid numerical input")
         } catch (e: Exception) {
-            log.error("Error calculating total amount", e)
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred")
+            log.error("Feil ved kalkulering av totalbeløp", e)
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Feil ved kalkulering av totalbeløp")
         }
     }
 }
