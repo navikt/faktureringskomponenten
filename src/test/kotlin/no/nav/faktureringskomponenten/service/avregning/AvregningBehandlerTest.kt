@@ -325,9 +325,9 @@ class AvregningBehandlerTest {
 
     @Test
     fun `lagAvregningsfaktura fakturerer den tredje gangen når de to andre nulles ut`() {
-        val faktura2023FjerdeKvartal = Faktura(
+        val faktura2023_Q4 = Faktura(
             id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
+            datoBestilt = LocalDate.of(2023, 9, 19),
             status = FakturaStatus.BESTILT,
             eksternFakturaNummer = "123",
             fakturaLinje = listOf(
@@ -343,12 +343,12 @@ class AvregningBehandlerTest {
             )
         )
 
-        val faktura2023FjerdeKvartalKreditert = Faktura(
+        val faktura2023_Q4_kreditering = Faktura(
             id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
+            datoBestilt = LocalDate.of(2023, 12, 19),
             status = FakturaStatus.BESTILT,
             eksternFakturaNummer = "123",
-            referertFakturaVedAvregning = faktura2023FjerdeKvartal,
+            referertFakturaVedAvregning = faktura2023_Q4,
             fakturaLinje = listOf(
                 FakturaLinje(
                     id = 1,
@@ -368,20 +368,19 @@ class AvregningBehandlerTest {
             FakturaseriePeriode(
                 startDato = LocalDate.of(2023, 10, 1),
                 sluttDato = LocalDate.of(2024, 3, 31),
-                enhetsprisPerManed = BigDecimal.valueOf(750),
+                enhetsprisPerManed = BigDecimal.valueOf(500),
                 beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
             ),
         )
 
-        val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(faktura2023FjerdeKvartalKreditert))
 
-        avregningsfaktura.run {
-            sortedBy { it.getPeriodeFra() }
-            filter { it.erAvregningsfaktura() }
-            shouldHaveSize(1)
-            get(0).erAvregningsfaktura().shouldBe(true)
-            get(0).totalbeløp().shouldBe(BigDecimal("2250.00"))
+        val avregningsfaktura =
+            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(faktura2023_Q4_kreditering))
+
+
+        avregningsfaktura.filter { it.erAvregningsfaktura() }.single().run {
+            erAvregningsfaktura() shouldBe true
+            totalbeløp() shouldBe BigDecimal("1500.00")
         }
     }
 
