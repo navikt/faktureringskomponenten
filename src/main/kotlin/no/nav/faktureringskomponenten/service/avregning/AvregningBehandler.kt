@@ -25,38 +25,35 @@ private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: L
 class AvregningBehandler(private val avregningsfakturaGenerator: AvregningsfakturaGenerator) {
 
     fun lagAvregningsfaktura(
-        fakturaseriePerioder: List<FakturaseriePeriode>,
-        bestilteFakturaer: List<Faktura>
+        nyeFakturaseriePerioder: List<FakturaseriePeriode>,
+        bestilteFakturaerFraForrigeFakturaserie: List<Faktura>
     ): List<Faktura> {
-        if (bestilteFakturaer.isEmpty()) return emptyList()
-        log.debug { "Lager avregningsfaktura for fakturaseriePerioder: $fakturaseriePerioder" }
-        log.debug { "Bestilte fakturaer: $bestilteFakturaer" }
+        if (bestilteFakturaerFraForrigeFakturaserie.isEmpty()) return emptyList()
+        log.debug { "Lager avregningsfaktura for fakturaseriePerioder: $nyeFakturaseriePerioder" }
+        log.debug { "Bestilte fakturaer: $bestilteFakturaerFraForrigeFakturaserie" }
         if (log.isDebugEnabled) {
-            bestilteFakturaer.sortedBy { it.getPeriodeFra() }
+            bestilteFakturaerFraForrigeFakturaserie.sortedBy { it.getPeriodeFra() }
                 .forEachIndexed { index, linje -> log.debug { "Faktura ${index + 1} " + linje.getLinesAsString() } }
         }
 
-        val avregningsperioder = lagEventuelleAvregningsperioder(bestilteFakturaer, fakturaseriePerioder)
-
-        if (avregningsperioder.isEmpty()) return emptyList()
+        val avregningsperioder = finnAvregningsperioder(bestilteFakturaerFraForrigeFakturaserie, nyeFakturaseriePerioder)
         log.debug { "Avregningsperioder generert: $avregningsperioder" }
 
-        return avregningsperioder
-            .map {
-                avregningsfakturaGenerator.lagFaktura(it)
-            }.toList()
+        return avregningsperioder.map {
+            avregningsfakturaGenerator.lagFaktura(it)
+        }.toList()
     }
 
-    private fun lagEventuelleAvregningsperioder(
-        bestilteFakturaer: List<Faktura>,
-        fakturaseriePerioder: List<FakturaseriePeriode>
+    private fun finnAvregningsperioder(
+        bestilteFakturaerFraForrigeSerie: List<Faktura>,
+        nyeFakturaseriePerioder: List<FakturaseriePeriode>
     ): List<Avregningsperiode> {
         val avregningsperioderForTidligereAvregningsfaktura =
-            finnAvregningsfakturaerSomAvregnes(bestilteFakturaer, fakturaseriePerioder).map(::lagAvregningsperiode)
+            finnAvregningsfakturaerSomAvregnes(bestilteFakturaerFraForrigeSerie, nyeFakturaseriePerioder).map(::lagAvregningsperiode)
         val avregningsperioderForVanligeFakturaer =
-            finnVanligeFakturaerSomAvregnes(bestilteFakturaer, fakturaseriePerioder).map(::lagAvregningsperiode)
+            finnVanligeFakturaerSomAvregnes(bestilteFakturaerFraForrigeSerie, nyeFakturaseriePerioder).map(::lagAvregningsperiode)
         val avregningsperioderForPerioderSomIkkeOverlapper =
-            finnPerioderSomIkkeOverlapper(bestilteFakturaer, fakturaseriePerioder)
+            finnPerioderSomIkkeOverlapper(bestilteFakturaerFraForrigeSerie, nyeFakturaseriePerioder)
         return (avregningsperioderForTidligereAvregningsfaktura + avregningsperioderForVanligeFakturaer + avregningsperioderForPerioderSomIkkeOverlapper)
     }
 
@@ -96,7 +93,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             }
     }
 
-    fun sumAvregningerRekursivt(faktura: Faktura): BigDecimal {
+    private fun sumAvregningerRekursivt(faktura: Faktura): BigDecimal {
         var sum = if (faktura.status === FakturaStatus.BESTILT) faktura.totalbeløp() else BigDecimal.ZERO
 
         faktura.referertFakturaVedAvregning?.let { referertFaktura ->
