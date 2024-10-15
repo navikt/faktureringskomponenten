@@ -67,11 +67,15 @@ class Faktura(
         return fakturaserie?.id
     }
 
-    fun totalbeløp(): BigDecimal {
-        return fakturaLinje.sumOf(FakturaLinje::belop)
-    }
-
     fun erAvregningsfaktura(): Boolean {
         return referertFakturaVedAvregning != null
+    }
+
+    fun erBestilt(): Boolean {
+        return status == FakturaStatus.BESTILT || status == FakturaStatus.MANGLENDE_INNBETALING || status == FakturaStatus.FEIL || status == FakturaStatus.INNE_I_OEBS
+    }
+
+    fun totalbeløp(): BigDecimal {
+        return fakturaLinje.sumOf(FakturaLinje::belop)
     }
 }

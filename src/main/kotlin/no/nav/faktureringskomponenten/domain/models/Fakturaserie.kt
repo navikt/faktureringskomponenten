@@ -99,12 +99,7 @@ class Fakturaserie(
     }
 
     fun bestilteFakturaer(): List<Faktura> {
-        return faktura.filter {
-            it.status == FakturaStatus.BESTILT ||
-                    it.status == FakturaStatus.MANGLENDE_INNBETALING ||
-                    it.status == FakturaStatus.FEIL ||
-                    it.status == FakturaStatus.INNE_I_OEBS
-        }
+        return faktura.filter(Faktura::erBestilt)
     }
 
     fun planlagteFakturaer(): List<Faktura> {
