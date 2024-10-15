@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus.BESTILT
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -20,9 +21,9 @@ class AvregningBehandlerTest {
         val bestilteFakturaer = listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal)
         val fakturaseriePerioder = fakturaseriePerioderTestData()
 
-        val avregningsfaktura = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder, bestilteFakturaer)
+        val avregningsfakturaer = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder, bestilteFakturaer)
 
-        avregningsfaktura.run {
+        avregningsfakturaer.run {
             sortedBy { it.getPeriodeFra() }
             shouldNotBeNull()
             shouldHaveSize(2)
@@ -61,28 +62,27 @@ class AvregningBehandlerTest {
 
     @Test
     fun `lagAvregningsfaktura når bestilte fakturaer inneholder en avregningsfaktura`() {
-        val avregningsfaktura =
+        val fakturaerEtterFørsteAvregning=
             avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData(), listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal))
 
-        avregningsfaktura.run {
-            sortedBy { it.getPeriodeFra() }
-            filter { it.erAvregningsfaktura() }
+        fakturaerEtterFørsteAvregning.filter { it.erAvregningsfaktura() }.sortedBy { it.getPeriodeFra() }.run {
             shouldHaveSize(2)
             get(0).referertFakturaVedAvregning.shouldBe(faktura2024ForsteKvartal)
             get(1).referertFakturaVedAvregning.shouldBe(faktura2024AndreKvartal)
         }
 
+        // Fakturaer må bestilles for å bli med i en avregning
+        fakturaerEtterFørsteAvregning.map { it.status = BESTILT }
+        val fakturaerEtterAndreAvregning =
+            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData2(), fakturaerEtterFørsteAvregning)
 
-        val avregningsfaktura2 =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData2(), avregningsfaktura)
-
-        avregningsfaktura2
+        fakturaerEtterAndreAvregning
             .run {
                 sortedBy { it.getPeriodeFra() }
                 shouldHaveSize(2)
                 get(0).run {
-                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[0])
-                    krediteringFakturaRef.shouldBe(avregningsfaktura[0].referanseNr)
+                    referertFakturaVedAvregning.shouldBe(fakturaerEtterFørsteAvregning[0])
+                    krediteringFakturaRef.shouldBe(fakturaerEtterFørsteAvregning[0].referanseNr)
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
                             periodeFra = LocalDate.of(2024, 1, 1),
@@ -97,8 +97,8 @@ class AvregningBehandlerTest {
                     )
                 }
                 get(1).run {
-                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[1])
-                    krediteringFakturaRef.shouldBe(avregningsfaktura[1].referanseNr)
+                    referertFakturaVedAvregning.shouldBe(fakturaerEtterFørsteAvregning[1])
+                    krediteringFakturaRef.shouldBe(fakturaerEtterFørsteAvregning[1].referanseNr)
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
                             periodeFra = LocalDate.of(2024, 4, 1),
@@ -118,27 +118,26 @@ class AvregningBehandlerTest {
 
     @Test
     fun `lagAvregningsfaktura referer til først positive faktura - første av 2 i dette tilfellet`() {
-        val avregningsfaktura =
+        val fakturaerEtterFørsteAvregning =
             avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData3(), listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal))
 
-        avregningsfaktura.run {
-            sortedBy { it.getPeriodeFra() }
-            filter { it.erAvregningsfaktura() }
+        fakturaerEtterFørsteAvregning.filter { it.erAvregningsfaktura() }.sortedBy { it.getPeriodeFra() }.run {
             shouldHaveSize(2)
             get(0).referertFakturaVedAvregning.shouldBe(faktura2024ForsteKvartal)
             get(1).referertFakturaVedAvregning.shouldBe(faktura2024AndreKvartal)
         }
 
+        // Fakturaer må bestilles for å bli med i en avregning
+        fakturaerEtterFørsteAvregning.map { it.status = BESTILT }
+        val fakturaerEtterAndreAvregning =
+            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData2(), fakturaerEtterFørsteAvregning)
 
-        val avregningsfaktura2 =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData2(), avregningsfaktura)
-
-        avregningsfaktura2
+        fakturaerEtterAndreAvregning
             .run {
                 sortedBy { it.getPeriodeFra() }
                 shouldHaveSize(2)
                 get(0).run {
-                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[0])
+                    referertFakturaVedAvregning.shouldBe(fakturaerEtterFørsteAvregning[0])
                     krediteringFakturaRef.shouldBe(faktura2024ForsteKvartal.referanseNr)
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
@@ -154,7 +153,7 @@ class AvregningBehandlerTest {
                     )
                 }
                 get(1).run {
-                    referertFakturaVedAvregning.shouldBe(avregningsfaktura[1])
+                    referertFakturaVedAvregning.shouldBe(fakturaerEtterFørsteAvregning[1])
                     krediteringFakturaRef.shouldBe(faktura2024AndreKvartal.referanseNr)
                     fakturaLinje[0].shouldBe(
                         FakturaLinje(
@@ -210,7 +209,7 @@ class AvregningBehandlerTest {
         val faktura2023FjerdeKvartal = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
-            status = FakturaStatus.BESTILT,
+            status = BESTILT,
             eksternFakturaNummer = "123",
             fakturaLinje = listOf(
                 FakturaLinje(
@@ -228,7 +227,7 @@ class AvregningBehandlerTest {
         val faktura2023FjerdeKvartalKreditert = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
-            status = FakturaStatus.BESTILT,
+            status = BESTILT,
             eksternFakturaNummer = "123",
             referertFakturaVedAvregning = faktura2023FjerdeKvartal,
             fakturaLinje = listOf(
@@ -268,7 +267,7 @@ class AvregningBehandlerTest {
         val faktura2023FjerdeKvartal = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
-            status = FakturaStatus.BESTILT,
+            status = BESTILT,
             eksternFakturaNummer = "123",
             fakturaLinje = listOf(
                 FakturaLinje(
@@ -286,7 +285,7 @@ class AvregningBehandlerTest {
         val faktura2023FjerdeKvartalKreditert = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
-            status = FakturaStatus.BESTILT,
+            status = BESTILT,
             eksternFakturaNummer = "123",
             referertFakturaVedAvregning = faktura2023FjerdeKvartal,
             fakturaLinje = listOf(
@@ -328,7 +327,7 @@ class AvregningBehandlerTest {
         val faktura2023_Q4 = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 9, 19),
-            status = FakturaStatus.BESTILT,
+            status = BESTILT,
             eksternFakturaNummer = "123",
             fakturaLinje = listOf(
                 FakturaLinje(
@@ -346,7 +345,7 @@ class AvregningBehandlerTest {
         val faktura2023_Q4_kreditering = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 12, 19),
-            status = FakturaStatus.BESTILT,
+            status = BESTILT,
             eksternFakturaNummer = "123",
             referertFakturaVedAvregning = faktura2023_Q4,
             fakturaLinje = listOf(
@@ -409,7 +408,7 @@ class AvregningBehandlerTest {
         val faktura2023FjerdeKvartalKreditert = Faktura(
             id = 2,
             datoBestilt = LocalDate.of(2023, 3, 19),
-            status = FakturaStatus.BESTILT,
+            status = BESTILT,
             eksternFakturaNummer = "123",
             referertFakturaVedAvregning = faktura2023FjerdeKvartal,
             fakturaLinje = listOf(
@@ -450,7 +449,7 @@ class AvregningBehandlerTest {
         val faktura2023FjerdeKvartal = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
-            status = FakturaStatus.BESTILT,
+            status = BESTILT,
             eksternFakturaNummer = "123",
             fakturaLinje = listOf(
                 FakturaLinje(
@@ -468,7 +467,7 @@ class AvregningBehandlerTest {
         val faktura2023FjerdeKvartalKreditert = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
-            status = FakturaStatus.BESTILT,
+            status = BESTILT,
             eksternFakturaNummer = "123",
             referertFakturaVedAvregning = faktura2023FjerdeKvartal,
             fakturaLinje = listOf(
@@ -508,7 +507,7 @@ class AvregningBehandlerTest {
     private val faktura2023ForsteKvartal = Faktura(
         id = 1,
         datoBestilt = LocalDate.of(2023, 3, 19),
-        status = FakturaStatus.BESTILT,
+        status = BESTILT,
         eksternFakturaNummer = "123",
         fakturaLinje = listOf(
             FakturaLinje(
@@ -535,7 +534,7 @@ class AvregningBehandlerTest {
     private val faktura2024ForsteKvartal = Faktura(
         id = 1,
         datoBestilt = LocalDate.of(2024, 3, 19),
-        status = FakturaStatus.BESTILT,
+        status = BESTILT,
         eksternFakturaNummer = "123",
         fakturaLinje = listOf(
             FakturaLinje(
@@ -562,7 +561,7 @@ class AvregningBehandlerTest {
     private val faktura2024AndreKvartal = Faktura(
         id = 2,
         datoBestilt = LocalDate.of(2024, 3, 19),
-        status = FakturaStatus.BESTILT,
+        status = BESTILT,
         eksternFakturaNummer = "456",
         fakturaLinje = listOf(
             FakturaLinje(
@@ -589,7 +588,7 @@ class AvregningBehandlerTest {
     private val faktura2025ForsteKvartal = Faktura(
         id = 3,
         datoBestilt = LocalDate.of(2025, 3, 19),
-        status = FakturaStatus.BESTILT,
+        status = BESTILT,
         eksternFakturaNummer = "789",
         fakturaLinje = listOf(
             FakturaLinje(

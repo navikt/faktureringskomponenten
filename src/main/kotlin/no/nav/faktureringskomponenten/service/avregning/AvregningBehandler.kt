@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.service.avregning
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import org.springframework.stereotype.Component
@@ -65,8 +64,8 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
      * Finner alle tidligere bestilte fakturaer som ikke har perioder som overlapper med en eller flere perioder i den nye fakturaserien.
      *
      * @param bestilteFakturaer Fakturaer som ble tidligere bestilt i forrige fakturaserie
-     * @param fakturaseriePerioder Perioder i fakturaserien
-     * @return Liste med Avregningsperiode
+     * @param fakturaseriePerioder Perioder i den nye fakturaserien
+     * @return Liste med relevante fakturaer
      */
     private fun finnFakturaerSomIkkeOverlapper(
         bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>
@@ -88,7 +87,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
     }
 
     private fun sumAvregningerRekursivt(faktura: Faktura): BigDecimal {
-        var sum = if (faktura.status === FakturaStatus.BESTILT) faktura.totalbeløp() else BigDecimal.ZERO
+        var sum = if (faktura.erBestilt()) faktura.totalbeløp() else BigDecimal.ZERO
 
         faktura.referertFakturaVedAvregning?.let { referertFaktura ->
             sum += sumAvregningerRekursivt(referertFaktura)
@@ -106,7 +105,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
      *
      * @param bestilteFakturaer Fakturaer som er bestilt
      * @param fakturaseriePerioder Perioder i fakturaserien
-     * @return Liste med Avregningsperiode
+     * @return Liste med tidligere faktura + linje + ny periode
      */
     private fun finnAvregningsfakturaerSomAvregnes(
         bestilteFakturaer: List<Faktura>,
@@ -134,7 +133,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
      *
      * @param bestilteFakturaer Fakturaer som er bestilt
      * @param fakturaseriePerioder Perioder i fakturaserien
-     * @return Liste med Avregningsperiode
+     * @return Liste med tidligere faktura + ny periode
      */
     private fun finnVanligeFakturaerSomAvregnes(
         bestilteFakturaer: List<Faktura>,
@@ -168,7 +167,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             periodeTil = tidligereLinje.periodeTil,
             bestilteFaktura = faktura,
             opprinneligFaktura = hentFørstePositiveFaktura(faktura),
-            tidligereBeløp = tidligereLinje.avregningNyttBeloep!!,
+            tidligereBeløp = sumAvregningerRekursivt(faktura),
             nyttBeløp = nyttBeløp,
         )
     }
