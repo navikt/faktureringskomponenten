@@ -5,7 +5,6 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus.BESTILT
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.junit.jupiter.api.Test
