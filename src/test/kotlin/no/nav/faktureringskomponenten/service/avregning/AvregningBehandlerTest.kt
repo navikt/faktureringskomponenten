@@ -16,7 +16,7 @@ class AvregningBehandlerTest {
     private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
 
     @Test
-    fun lagAvregningsfaktura() {
+    fun lagAvregningsfakturaer() {
         val bestilteFakturaer = listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal)
         val fakturaseriePerioder = fakturaseriePerioderTestData()
 
@@ -60,7 +60,7 @@ class AvregningBehandlerTest {
     }
 
     @Test
-    fun `lagAvregningsfaktura når bestilte fakturaer inneholder en avregningsfaktura`() {
+    fun `lagAvregningsfakturaer når bestilte fakturaer inneholder en avregningsfaktura`() {
         val fakturaerEtterFørsteAvregning =
             avregningBehandler.lagAvregningsfakturaer(
                 fakturaseriePerioderTestData(),
@@ -119,7 +119,7 @@ class AvregningBehandlerTest {
     }
 
     @Test
-    fun `lagAvregningsfaktura referer til først positive faktura - første av 2 i dette tilfellet`() {
+    fun `lagAvregningsfakturaer referer til først positive faktura - første av 2 i dette tilfellet`() {
         val fakturaerEtterFørsteAvregning =
             avregningBehandler.lagAvregningsfakturaer(
                 fakturaseriePerioderTestData3(),
@@ -178,7 +178,7 @@ class AvregningBehandlerTest {
     }
 
     @Test
-    fun `lagAvregningsfaktura krediterer faktura som ikke overlapper med nye perioder`() {
+    fun `lagAvregningsfakturaer krediterer faktura som ikke overlapper med nye perioder`() {
         val avregningsfaktura =
             avregningBehandler.lagAvregningsfakturaer(
                 fakturaseriePerioderTestData(),
@@ -197,7 +197,7 @@ class AvregningBehandlerTest {
 
 
     @Test
-    fun `lagAvregningsfaktura krediterer faktura som ikke overlapper med nye perioder der perioden ligger midt i`() {
+    fun `lagAvregningsfakturaer krediterer faktura som ikke overlapper med nye perioder der perioden ligger midt i`() {
         val avregningsfaktura =
             avregningBehandler.lagAvregningsfakturaer(
                 fakturaseriePerioderMedHullIPerioderTestData(),
@@ -229,7 +229,7 @@ class AvregningBehandlerTest {
      *
      */
     @Test
-    fun `lagAvregningsfaktura krediterer ikke den tredje gangen`() {
+    fun `lagAvregningsfakturaer krediterer ikke den tredje gangen`() {
         val faktura2023FjerdeKvartal = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
@@ -300,7 +300,7 @@ class AvregningBehandlerTest {
      * | s3           | -1530   |                | 01.01.24 - 31.03.24 |
      */
     @Test
-    fun `lagAvregningsfaktura krediterer delvis den tredje gangen`() {
+    fun `lagAvregningsfakturaer krediterer delvis den tredje gangen`() {
         val faktura2023FjerdeKvartal = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
@@ -373,7 +373,7 @@ class AvregningBehandlerTest {
      *
      */
     @Test
-    fun `lagAvregningsfaktura fakturerer den tredje gangen når de to andre nulles ut`() {
+    fun `lagAvregningsfakturaer fakturerer den tredje gangen når de to andre nulles ut`() {
         val faktura2023FjerdeKvartal = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 9, 19),
@@ -445,7 +445,7 @@ class AvregningBehandlerTest {
      *
      */
     @Test
-    fun `lagAvregningsfaktura krediterer ikke den tredje gangen når det er flere bestilte faktura i slutten av perioden`() {
+    fun `lagAvregningsfakturaer krediterer ikke den tredje gangen når det er flere bestilte faktura i slutten av perioden`() {
         val faktura2024FørsteKvartal = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
@@ -563,7 +563,7 @@ class AvregningBehandlerTest {
      *
      */
     @Test
-    fun `lagAvregningsfaktura fakturerer den tredje gangen når det er flere bestilte faktura i slutten av perioden, og det har vært forkortelse og forlengelse`() {
+    fun `lagAvregningsfakturaer fakturerer den tredje gangen når det er flere bestilte faktura i slutten av perioden, og det har vært forkortelse og forlengelse`() {
         val faktura2024FørsteKvartal = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 3, 19),
