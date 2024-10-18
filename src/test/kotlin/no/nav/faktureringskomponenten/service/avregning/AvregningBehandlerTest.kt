@@ -221,6 +221,14 @@ class AvregningBehandlerTest {
         }
     }
 
+    /**
+     * | Fakturaserie | 2023 q3 | 2024 q1        | Medlemskapsperiode  |
+     * |--------------|---------|----------------|---------------------|
+     * | s1           | 3000    | (ikke bestilt) | 01.10.23 - 31.03.24 |
+     * | s2           | -3000   | (ikke bestilt) | 01.01.24 - 31.03.24 |
+     * | s3           |         |                | 01.01.24 - 31.03.24 |
+     *
+     */
     @Test
     fun `lagAvregningsfaktura krediterer ikke den tredje gangen`() {
         val faktura2023FjerdeKvartal = Faktura(
@@ -241,24 +249,29 @@ class AvregningBehandlerTest {
             )
         )
 
-        val faktura2023FjerdeKvartalKreditert = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            referertFakturaVedAvregning = faktura2023FjerdeKvartal,
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2023, 10, 1),
-                    periodeTil = LocalDate.of(2023, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(-1000),
-                    belop = BigDecimal("-3000.00"),
-                )
-            )
+        val nyPeriodeFørsteGang = listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 3, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
         )
+
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+            nyPeriodeFørsteGang,
+            listOf(faktura2023FjerdeKvartal)
+        )
+
+        avregningFakturaerFørsteGang
+            .single { it.erAvregningsfaktura() }
+            .run {
+                totalbeløp().shouldBe(BigDecimal("-3000.00"))
+            }
+
+        avregningFakturaerFørsteGang.forEach{
+            it.status = BESTILT
+        }
 
         val nyPeriode = listOf(
             FakturaseriePeriode(
@@ -270,7 +283,7 @@ class AvregningBehandlerTest {
         )
 
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(faktura2023FjerdeKvartalKreditert))
+            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
 
         avregningsfaktura.run {
             sortedBy { it.getPeriodeFra() }
@@ -279,6 +292,14 @@ class AvregningBehandlerTest {
         }
     }
 
+    /**
+     *
+     * | Fakturaserie | 2023 q3 | 2024 q1        | Medlemskapsperiode  |
+     * |--------------|---------|----------------|---------------------|
+     * | s1           | 3000    | (ikke bestilt) | 01.10.23 - 31.03.24 |
+     * | s2           | -1470   | (ikke bestilt) | 15.11.23 - 31.03.24 |
+     * | s3           | -1530   |                | 01.01.24 - 31.03.24 |
+     */
     @Test
     fun `lagAvregningsfaktura krediterer delvis den tredje gangen`() {
         val faktura2023FjerdeKvartal = Faktura(
@@ -298,25 +319,29 @@ class AvregningBehandlerTest {
                 )
             )
         )
-
-        val faktura2023FjerdeKvartalKreditert = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            referertFakturaVedAvregning = faktura2023FjerdeKvartal,
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2023, 10, 1),
-                    periodeTil = LocalDate.of(2023, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(-500),
-                    belop = BigDecimal("-1500.00"),
-                )
-            )
+        val nyPeriodeFørsteGang = listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2023, 11, 15),
+                sluttDato = LocalDate.of(2024, 3, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
         )
+
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+            nyPeriodeFørsteGang,
+            listOf(faktura2023FjerdeKvartal)
+        )
+
+        avregningFakturaerFørsteGang
+            .single { it.erAvregningsfaktura() }
+            .run {
+                totalbeløp().shouldBe(BigDecimal("-1470.00"))
+            }
+
+        avregningFakturaerFørsteGang.forEach{
+            it.status = BESTILT
+        }
 
         val nyPeriode = listOf(
             FakturaseriePeriode(
@@ -328,20 +353,29 @@ class AvregningBehandlerTest {
         )
 
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(faktura2023FjerdeKvartalKreditert))
+            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
 
         avregningsfaktura.run {
             sortedBy { it.getPeriodeFra() }
             filter { it.erAvregningsfaktura() }
             shouldHaveSize(1)
             get(0).erAvregningsfaktura().shouldBe(true)
-            get(0).totalbeløp().shouldBe(BigDecimal("-1500.00"))
+            get(0).totalbeløp().shouldBe(BigDecimal("-1530.00"))
         }
     }
 
+    /**
+     *
+     * | Fakturaserie | 2023 q3 | 2024 q1        | Medlemskapsperiode  |
+     * |--------------|---------|----------------|---------------------|
+     * | s1           | 3000    | (ikke bestilt) | 01.10.23 - 31.03.24 |
+     * | s2           | -3000   | (ikke bestilt) | 01.01.24 - 31.03.24 |
+     * | s3           | 1500    |                | 01.10.23 - 31.03.24 |
+     *
+     */
     @Test
     fun `lagAvregningsfaktura fakturerer den tredje gangen når de to andre nulles ut`() {
-        val faktura2023_Q4 = Faktura(
+        val faktura2023FjerdeKvartal = Faktura(
             id = 1,
             datoBestilt = LocalDate.of(2023, 9, 19),
             status = BESTILT,
@@ -359,26 +393,29 @@ class AvregningBehandlerTest {
             )
         )
 
-        val faktura2023_Q4_kreditering = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 12, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            referertFakturaVedAvregning = faktura2023_Q4,
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2023, 10, 1),
-                    periodeTil = LocalDate.of(2023, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(-1000),
-                    belop = BigDecimal("-3000.00"),
-                    avregningForrigeBeloep = BigDecimal("3000.00"),
-                    avregningNyttBeloep = BigDecimal("-3000.00"),
-                )
-            )
+        val nyPeriodeFørsteGang = listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 3, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
         )
+
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+            nyPeriodeFørsteGang,
+            listOf(faktura2023FjerdeKvartal)
+        )
+
+        avregningFakturaerFørsteGang
+            .single { it.erAvregningsfaktura() }
+            .run {
+                totalbeløp().shouldBe(BigDecimal("-3000.00"))
+            }
+
+        avregningFakturaerFørsteGang.forEach{
+            it.status = BESTILT
+        }
 
         val nyPeriode = listOf(
             FakturaseriePeriode(
@@ -389,9 +426,8 @@ class AvregningBehandlerTest {
             ),
         )
 
-
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(faktura2023_Q4_kreditering))
+            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
 
 
         avregningsfaktura.single { it.erAvregningsfaktura() }.run {
@@ -400,124 +436,15 @@ class AvregningBehandlerTest {
         }
     }
 
-
-    @Test
-    fun `lagAvregningsfaktura krediterer ikke den tredje gangen når første faktura ikke er bestilt`() {
-        val faktura2023FjerdeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = FakturaStatus.AVBRUTT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2023, 10, 1),
-                    periodeTil = LocalDate.of(2023, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
-
-        val faktura2023FjerdeKvartalKreditert = Faktura(
-            id = 2,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            referertFakturaVedAvregning = faktura2023FjerdeKvartal,
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2023, 10, 1),
-                    periodeTil = LocalDate.of(2023, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
-
-        val nyPeriode = listOf(
-            FakturaseriePeriode(
-                startDato = LocalDate.of(2024, 1, 1),
-                sluttDato = LocalDate.of(2024, 3, 31),
-                enhetsprisPerManed = BigDecimal.valueOf(1000),
-                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
-            ),
-        )
-
-        val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(faktura2023FjerdeKvartalKreditert))
-
-        avregningsfaktura.run {
-            sortedBy { it.getPeriodeFra() }
-            filter { it.erAvregningsfaktura() }
-            shouldHaveSize(1)
-            get(0).totalbeløp().shouldBe(BigDecimal("-3000.00"))
-        }
-    }
-
-    @Test
-    fun `lagAvregningsfaktura krediterer ikke den tredje gangen når det er flere bestilte faktura`() {
-        val faktura2023FjerdeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2023, 10, 1),
-                    periodeTil = LocalDate.of(2023, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
-
-        val faktura2023FjerdeKvartalKreditert = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            referertFakturaVedAvregning = faktura2023FjerdeKvartal,
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2023, 10, 1),
-                    periodeTil = LocalDate.of(2023, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(-1000),
-                    belop = BigDecimal("-3000.00"),
-                )
-            )
-        )
-
-        val nyPeriode = listOf(
-            FakturaseriePeriode(
-                startDato = LocalDate.of(2024, 1, 1),
-                sluttDato = LocalDate.of(2024, 3, 31),
-                enhetsprisPerManed = BigDecimal.valueOf(1000),
-                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
-            ),
-        )
-
-        val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(faktura2023FjerdeKvartalKreditert))
-
-        avregningsfaktura.run {
-            sortedBy { it.getPeriodeFra() }
-            filter { it.erAvregningsfaktura() }
-            shouldHaveSize(0)
-        }
-    }
-
+    /**
+     *
+     * | Fakturaserie | q1    | q2    | q3    | q4 | Medlemskapsperiode  |
+     * |--------------|-------|-------|-------|----|---------------------|
+     * | s1           | 3000  | 3000  | 3000  |    | 01.01.24 - 30.09.24 |
+     * | s2           | 0     | 0     | -3000 |    | 01.01.24 - 30.06.24 |
+     * | s3           | +3000 | +3000 |       |    | 01.01.24 - 30.06.24 |
+     *
+     */
     @Test
     fun `lagAvregningsfaktura krediterer ikke den tredje gangen når det er flere bestilte faktura i slutten av perioden`() {
         val faktura2024FørsteKvartal = Faktura(
@@ -627,6 +554,15 @@ class AvregningBehandlerTest {
             }
     }
 
+    /**
+     *
+     * | Fakturaserie | q1    | q2    | q3    | q4 | Medlemskapsperiode  |
+     * |--------------|-------|-------|-------|----|---------------------|
+     * | s1           | 3000  | 3000  | 3000  |    | 01.01.24 - 30.09.24 |
+     * | s2           | 0     | 0     | -3000 |    | 01.01.24 - 30.06.24 |
+     * | s3           | +3000 | +3000 | +6000 |    | 01.01.24 - 30.09.24 |
+     *
+     */
     @Test
     fun `lagAvregningsfaktura fakturerer den tredje gangen når det er flere bestilte faktura i slutten av perioden, og det har vært forkortelse og forlengelse`() {
         val faktura2024FørsteKvartal = Faktura(
@@ -1281,6 +1217,250 @@ class AvregningBehandlerTest {
                 get(1).totalbeløp().shouldBe(BigDecimal("15000.00"))
                 get(2).totalbeløp().shouldBe(BigDecimal("0.00"))
                 get(3).totalbeløp().shouldBe(BigDecimal("0.00"))
+            }
+    }
+
+    /**
+     *
+     * | Fakturaserie | q1           | q2             | q3             | q4           | Medlemskapsperiode  |
+     * |--------------|--------------|----------------|----------------|--------------|---------------------|
+     * | s1           | 3000<br>6000 | 3000<br>6000   | 3000<br>6000   | 3000<br>6000 | 01.01.24 - 31.12.24 |
+     * | s2           | 0            | -3000<br>-6000 | 0<br>0         | -3000<br>0   | 01.01.24 - 31.12.24 |
+     * | s3           | 0            | 6000<br>9000   | -1500<br>-3000 | 0<br>-6000   | 01.01.24 - 15.08.24 |
+     *
+     * Denne testen tester både overlappende forkortede perioder, og ikke-overlappende forkortede perioder, med
+     * flere linjer per faktura.
+     */
+    @Test
+    fun `lagAvregningsfaktura, perioden forkortes midt i kvartal, flere fakturalinjer, krediteres helt og delvis`() {
+        val faktura2024FørsteKvartal = Faktura(
+            id = 1,
+            datoBestilt = LocalDate.of(2023, 3, 19),
+            status = BESTILT,
+            eksternFakturaNummer = "123",
+            fakturaLinje = listOf(
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 1, 1),
+                    periodeTil = LocalDate.of(2024, 3, 31),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(1000),
+                    belop = BigDecimal("3000.00"),
+                ),
+                FakturaLinje(
+                    id = 2,
+                    periodeFra = LocalDate.of(2024, 1, 1),
+                    periodeTil = LocalDate.of(2024, 3, 31),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(2000),
+                    belop = BigDecimal("6000.00"),
+                )
+            )
+        )
+
+        val faktura2024AndreKvartal = Faktura(
+            id = 1,
+            datoBestilt = LocalDate.of(2023, 3, 19),
+            status = BESTILT,
+            eksternFakturaNummer = "123",
+            fakturaLinje = listOf(
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 4, 1),
+                    periodeTil = LocalDate.of(2024, 6, 30),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(1000),
+                    belop = BigDecimal("3000.00"),
+                ),
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 4, 1),
+                    periodeTil = LocalDate.of(2024, 6, 30),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(2000),
+                    belop = BigDecimal("6000.00"),
+                )
+            )
+        )
+
+        val faktura2024TredjeKvartal = Faktura(
+            id = 1,
+            datoBestilt = LocalDate.of(2023, 3, 19),
+            status = BESTILT,
+            eksternFakturaNummer = "123",
+            fakturaLinje = listOf(
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 7, 1),
+                    periodeTil = LocalDate.of(2024, 9, 30),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(1000),
+                    belop = BigDecimal("3000.00"),
+                ),
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 7, 1),
+                    periodeTil = LocalDate.of(2024, 9, 30),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(2000),
+                    belop = BigDecimal("6000.00"),
+                )
+            )
+        )
+
+        val faktura2024FjerdeKvartal = Faktura(
+            id = 1,
+            datoBestilt = LocalDate.of(2023, 3, 19),
+            status = BESTILT,
+            eksternFakturaNummer = "123",
+            fakturaLinje = listOf(
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 10, 1),
+                    periodeTil = LocalDate.of(2024, 12, 31),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(1000),
+                    belop = BigDecimal("3000.00"),
+                ),
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 10, 1),
+                    periodeTil = LocalDate.of(2024, 12, 31),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(2000),
+                    belop = BigDecimal("6000.00"),
+                )
+            )
+        )
+
+        val nyPeriodeSomSkalAvregnes = listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 3, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 3, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(2000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 4, 1),
+                sluttDato = LocalDate.of(2024, 6, 30),
+                enhetsprisPerManed = BigDecimal.valueOf(0),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 7, 1),
+                sluttDato = LocalDate.of(2024, 9, 30),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 7, 1),
+                sluttDato = LocalDate.of(2024, 9, 30),
+                enhetsprisPerManed = BigDecimal.valueOf(2000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 10, 1),
+                sluttDato = LocalDate.of(2024, 12, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(0),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 10, 1),
+                sluttDato = LocalDate.of(2024, 12, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(2000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            )
+        )
+
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+            nyPeriodeSomSkalAvregnes,
+            listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal, faktura2024FjerdeKvartal)
+        )
+
+        avregningFakturaerFørsteGang
+            .shouldHaveSize(4)
+            .filter { it.erAvregningsfaktura() }
+            .run {
+                shouldHaveSize(4)
+                sortedBy { it.getPeriodeFra() }
+                get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
+                get(1).totalbeløp().shouldBe(BigDecimal("-9000.00"))
+                get(2).totalbeløp().shouldBe(BigDecimal("00.00"))
+                get(3).totalbeløp().shouldBe(BigDecimal("-3000.00"))
+            }
+
+        avregningFakturaerFørsteGang.forEach {
+            it.status = BESTILT
+        }
+
+        val nyPeriodeAndreGang = listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 3, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 1, 1),
+                sluttDato = LocalDate.of(2024, 3, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(2000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 4, 1),
+                sluttDato = LocalDate.of(2024, 6, 30),
+                enhetsprisPerManed = BigDecimal.valueOf(2000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 4, 1),
+                sluttDato = LocalDate.of(2024, 6, 30),
+                enhetsprisPerManed = BigDecimal.valueOf(3000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 7, 1),
+                sluttDato = LocalDate.of(2024, 8, 15),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 7, 1),
+                sluttDato = LocalDate.of(2024, 8, 15),
+                enhetsprisPerManed = BigDecimal.valueOf(2000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            )
+        )
+
+        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfaktura(
+            nyPeriodeAndreGang,
+            listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2], avregningFakturaerFørsteGang[3])
+        )
+
+        avregningFakturaerAndreGang
+            .shouldHaveSize(4)
+            .filter { it.erAvregningsfaktura() }
+            .run {
+                shouldHaveSize(4)
+                sortedBy { it.getPeriodeFra() }
+                get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
+                get(1).totalbeløp().shouldBe(BigDecimal("15000.00"))
+                get(2).totalbeløp().shouldBe(BigDecimal("-4560.00"))
+                get(3).totalbeløp().shouldBe(BigDecimal("-6000.00"))
             }
     }
 
