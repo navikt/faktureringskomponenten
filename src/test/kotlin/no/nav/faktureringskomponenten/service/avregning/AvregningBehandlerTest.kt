@@ -20,7 +20,7 @@ class AvregningBehandlerTest {
         val bestilteFakturaer = listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal)
         val fakturaseriePerioder = fakturaseriePerioderTestData()
 
-        val avregningsfakturaer = avregningBehandler.lagAvregningsfaktura(fakturaseriePerioder, bestilteFakturaer)
+        val avregningsfakturaer = avregningBehandler.lagAvregningsfakturaer(fakturaseriePerioder, bestilteFakturaer)
 
         avregningsfakturaer.run {
             sortedBy { it.getPeriodeFra() }
@@ -62,7 +62,7 @@ class AvregningBehandlerTest {
     @Test
     fun `lagAvregningsfaktura når bestilte fakturaer inneholder en avregningsfaktura`() {
         val fakturaerEtterFørsteAvregning =
-            avregningBehandler.lagAvregningsfaktura(
+            avregningBehandler.lagAvregningsfakturaer(
                 fakturaseriePerioderTestData(),
                 listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal)
             )
@@ -76,7 +76,7 @@ class AvregningBehandlerTest {
         // Fakturaer må bestilles for å bli med i en avregning
         fakturaerEtterFørsteAvregning.map { it.status = BESTILT }
         val fakturaerEtterAndreAvregning =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData2(), fakturaerEtterFørsteAvregning)
+            avregningBehandler.lagAvregningsfakturaer(fakturaseriePerioderTestData2(), fakturaerEtterFørsteAvregning)
 
         fakturaerEtterAndreAvregning
             .run {
@@ -121,7 +121,7 @@ class AvregningBehandlerTest {
     @Test
     fun `lagAvregningsfaktura referer til først positive faktura - første av 2 i dette tilfellet`() {
         val fakturaerEtterFørsteAvregning =
-            avregningBehandler.lagAvregningsfaktura(
+            avregningBehandler.lagAvregningsfakturaer(
                 fakturaseriePerioderTestData3(),
                 listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal)
             )
@@ -135,7 +135,7 @@ class AvregningBehandlerTest {
         // Fakturaer må bestilles for å bli med i en avregning
         fakturaerEtterFørsteAvregning.map { it.status = BESTILT }
         val fakturaerEtterAndreAvregning =
-            avregningBehandler.lagAvregningsfaktura(fakturaseriePerioderTestData2(), fakturaerEtterFørsteAvregning)
+            avregningBehandler.lagAvregningsfakturaer(fakturaseriePerioderTestData2(), fakturaerEtterFørsteAvregning)
 
         fakturaerEtterAndreAvregning
             .run {
@@ -180,7 +180,7 @@ class AvregningBehandlerTest {
     @Test
     fun `lagAvregningsfaktura krediterer faktura som ikke overlapper med nye perioder`() {
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(
+            avregningBehandler.lagAvregningsfakturaer(
                 fakturaseriePerioderTestData(),
                 listOf(faktura2024ForsteKvartal, faktura2024AndreKvartal, faktura2025ForsteKvartal)
             )
@@ -199,7 +199,7 @@ class AvregningBehandlerTest {
     @Test
     fun `lagAvregningsfaktura krediterer faktura som ikke overlapper med nye perioder der perioden ligger midt i`() {
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(
+            avregningBehandler.lagAvregningsfakturaer(
                 fakturaseriePerioderMedHullIPerioderTestData(),
                 listOf(
                     faktura2023ForsteKvartal,
@@ -257,7 +257,7 @@ class AvregningBehandlerTest {
             ),
         )
 
-        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeFørsteGang,
             listOf(faktura2023FjerdeKvartal)
         )
@@ -282,7 +282,7 @@ class AvregningBehandlerTest {
         )
 
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
+            avregningBehandler.lagAvregningsfakturaer(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
 
         avregningsfaktura.run {
             sortedBy { it.getPeriodeFra() }
@@ -327,7 +327,7 @@ class AvregningBehandlerTest {
             ),
         )
 
-        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeFørsteGang,
             listOf(faktura2023FjerdeKvartal)
         )
@@ -352,7 +352,7 @@ class AvregningBehandlerTest {
         )
 
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
+            avregningBehandler.lagAvregningsfakturaer(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
 
         avregningsfaktura.run {
             sortedBy { it.getPeriodeFra() }
@@ -401,7 +401,7 @@ class AvregningBehandlerTest {
             ),
         )
 
-        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeFørsteGang,
             listOf(faktura2023FjerdeKvartal)
         )
@@ -426,7 +426,7 @@ class AvregningBehandlerTest {
         )
 
         val avregningsfaktura =
-            avregningBehandler.lagAvregningsfaktura(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
+            avregningBehandler.lagAvregningsfakturaer(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
 
 
         avregningsfaktura.single { it.erAvregningsfaktura() }.run {
@@ -508,7 +508,7 @@ class AvregningBehandlerTest {
             ),
         )
 
-        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeFørsteGang,
             listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal)
         )
@@ -537,7 +537,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeAndreGang,
             listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2])
         )
@@ -626,7 +626,7 @@ class AvregningBehandlerTest {
             ),
         )
 
-        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeFørsteGang,
             listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal)
         )
@@ -655,7 +655,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeAndreGang,
             listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2])
         )
@@ -753,7 +753,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeSomSkalAvregnes,
             listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal)
         )
@@ -794,7 +794,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeAndreGang,
             listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2])
         )
@@ -916,7 +916,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeSomSkalAvregnes,
             listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal, faktura2024FjerdeKvartal)
         )
@@ -964,7 +964,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeAndreGang,
             listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2], avregningFakturaerFørsteGang[3])
         )
@@ -1135,7 +1135,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeSomSkalAvregnes,
             listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal, faktura2024FjerdeKvartal)
         )
@@ -1201,7 +1201,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeAndreGang,
             listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2], avregningFakturaerFørsteGang[3])
         )
@@ -1385,7 +1385,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeSomSkalAvregnes,
             listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal, faktura2024FjerdeKvartal)
         )
@@ -1445,7 +1445,7 @@ class AvregningBehandlerTest {
             )
         )
 
-        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfaktura(
+        val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeAndreGang,
             listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2], avregningFakturaerFørsteGang[3])
         )

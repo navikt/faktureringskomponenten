@@ -23,7 +23,7 @@ private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: L
 @Component
 class AvregningBehandler(private val avregningsfakturaGenerator: AvregningsfakturaGenerator) {
 
-    fun lagAvregningsfaktura(
+    fun lagAvregningsfakturaer(
         nyeFakturaseriePerioder: List<FakturaseriePeriode>,
         bestilteFakturaerFraForrigeFakturaserie: List<Faktura>
     ): List<Faktura> {
