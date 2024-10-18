@@ -22,20 +22,20 @@ private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: L
 
 @Component
 class AvregningBehandler(private val avregningsfakturaGenerator: AvregningsfakturaGenerator) {
-    fun lagAvregningsfaktura(
-        fakturaseriePerioder: List<FakturaseriePeriode>,
-        bestilteFakturaer: List<Faktura>
+
+    fun lagAvregningsfakturaer(
+        nyeFakturaseriePerioder: List<FakturaseriePeriode>,
+        bestilteFakturaerFraForrigeFakturaserie: List<Faktura>
     ): List<Faktura> {
-        if (bestilteFakturaer.isEmpty()) return emptyList()
-        log.debug { "Lager avregningsfaktura for fakturaseriePerioder: $fakturaseriePerioder" }
-        log.debug { "Bestilte fakturaer: $bestilteFakturaer" }
+        if (bestilteFakturaerFraForrigeFakturaserie.isEmpty()) return emptyList()
+        log.debug { "Lager avregningsfaktura for fakturaseriePerioder: $nyeFakturaseriePerioder" }
+        log.debug { "Bestilte fakturaer: $bestilteFakturaerFraForrigeFakturaserie" }
         if (log.isDebugEnabled) {
-            bestilteFakturaer.sortedBy { it.getPeriodeFra() }
+            bestilteFakturaerFraForrigeFakturaserie.sortedBy { it.getPeriodeFra() }
                 .forEachIndexed { index, linje -> log.debug { "Faktura ${index + 1} " + linje.getLinesAsString() } }
         }
 
-        val avregningsperioder = lagEventuelleAvregningsperioder(bestilteFakturaer, fakturaseriePerioder)
-        if (avregningsperioder.isEmpty()) return emptyList()
+        val avregningsperioder = finnAvregningsperioder(bestilteFakturaerFraForrigeFakturaserie, nyeFakturaseriePerioder)
         log.debug { "Avregningsperioder generert: $avregningsperioder" }
 
         return avregningsperioder.map {
@@ -43,46 +43,57 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         }.toList()
     }
 
-    private fun lagEventuelleAvregningsperioder(
-        bestilteFakturaer: List<Faktura>,
-        fakturaseriePerioder: List<FakturaseriePeriode>
+    // Det skilles mellom bestilte fakturaer som overlapper med nye fakturaserieperioder og dermed skal avregnes
+    // og bestilte fakturarer som ikke overlapper med nye fakturaserieperioder og skal nulles ut.
+    private fun finnAvregningsperioder(
+        bestilteFakturaerFraForrigeSerie: List<Faktura>,
+        nyeFakturaseriePerioder: List<FakturaseriePeriode>
     ): List<Avregningsperiode> {
-        val avregningsperioderForTidligereAvregningsfaktura =
-            finnAvregningsfakturaerSomAvregnes(bestilteFakturaer, fakturaseriePerioder).map(::lagAvregningsperiode)
-        val avregningsperioderForVanligeFakturaer =
-            finnVanligeFakturaerSomAvregnes(bestilteFakturaer, fakturaseriePerioder).map(::lagAvregningsperiode)
-        val avregningsperioderForPerioderSomIkkeOverlapper =
-            finnPerioderSomIkkeOverlapper(bestilteFakturaer, fakturaseriePerioder)
-        return (avregningsperioderForTidligereAvregningsfaktura + avregningsperioderForVanligeFakturaer + avregningsperioderForPerioderSomIkkeOverlapper)
+        val avregningsperioderForAvregningsfakturaerSomOverlapper =
+            finnAvregningsfakturaerSomAvregnes(bestilteFakturaerFraForrigeSerie, nyeFakturaseriePerioder).map(::lagAvregningsperiode)
+        val avregningsperioderForVanligeFakturaerSomOverlapper =
+            finnVanligeFakturaerSomAvregnes(bestilteFakturaerFraForrigeSerie, nyeFakturaseriePerioder).map(::lagAvregningsperiode)
+        val avregningsperioderForFakturaerSomIkkeOverlapper =
+            finnFakturaerSomIkkeOverlapper(bestilteFakturaerFraForrigeSerie, nyeFakturaseriePerioder).filter { faktura ->
+                sumAvregningerRekursivt(faktura).compareTo(BigDecimal.ZERO) != 0
+            }.map(::lagAvregningsperiodeSomNullesUt)
+        return (avregningsperioderForAvregningsfakturaerSomOverlapper + avregningsperioderForVanligeFakturaerSomOverlapper + avregningsperioderForFakturaerSomIkkeOverlapper)
     }
 
     /**
-     * Finner alle fakturaer som ikke er avregningsfakturaer og som ikke har perioder som overlapper med en eller flere perioder i fakturaserien.
-     * Dersom nye perioder ikke overlapper med eksisterende bestilte faktura, lages det en Avregningsperiode perioden.
+     * Finner alle tidligere bestilte fakturaer som ikke har perioder som overlapper med en eller flere perioder i den nye fakturaserien.
      *
-     * @param bestilteFakturaer Fakturaer som er bestilt
-     * @param fakturaseriePerioder Perioder i fakturaserien
-     * @return Liste med Avregningsperiode
+     * @param bestilteFakturaer Fakturaer som ble tidligere bestilt i forrige fakturaserie
+     * @param fakturaseriePerioder Perioder i den nye fakturaserien
+     * @return Liste med relevante fakturaer
      */
-    private fun finnPerioderSomIkkeOverlapper(
-        bestilteFakturaer: List<Faktura>,
-        fakturaseriePerioder: List<FakturaseriePeriode>
-    ): List<Avregningsperiode> {
-        val perioderSomIkkeOverlapper = bestilteFakturaer.flatMap { faktura ->
-            val overlappendePerioder =
-                overlappendeFakturaseriePerioder(fakturaseriePerioder, faktura.getPeriodeFra(), faktura.getPeriodeTil())
-            if (overlappendePerioder.isEmpty()) listOf(faktura) else emptyList()
+    private fun finnFakturaerSomIkkeOverlapper(
+        bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>
+    ): List<Faktura> = bestilteFakturaer.flatMap { faktura ->
+        val overlappendePerioder = overlappendeFakturaseriePerioder(fakturaseriePerioder, faktura.getPeriodeFra(), faktura.getPeriodeTil())
+        if (overlappendePerioder.isEmpty()) listOf(faktura) else emptyList()
+    }
+
+    private fun lagAvregningsperiodeSomNullesUt(faktura: Faktura): Avregningsperiode {
+        val sumAvregninger = sumAvregningerRekursivt(faktura)
+        return Avregningsperiode(
+            periodeFra = faktura.getPeriodeFra(),
+            periodeTil = faktura.getPeriodeTil(),
+            bestilteFaktura = faktura,
+            opprinneligFaktura = hentFørstePositiveFaktura(faktura),
+            tidligereBeløp = sumAvregninger,
+            nyttBeløp = BigDecimal.ZERO
+        )
+    }
+
+    private fun sumAvregningerRekursivt(faktura: Faktura): BigDecimal {
+        var sum = if (faktura.erBestilt()) faktura.totalbeløp() else BigDecimal.ZERO
+
+        faktura.referertFakturaVedAvregning?.let { referertFaktura ->
+            sum += sumAvregningerRekursivt(referertFaktura)
         }
-        return perioderSomIkkeOverlapper.map { faktura ->
-            Avregningsperiode(
-                periodeFra = faktura.getPeriodeFra(),
-                periodeTil = faktura.getPeriodeTil(),
-                bestilteFaktura = faktura,
-                opprinneligFaktura = hentFørstePositiveFaktura(faktura),
-                tidligereBeløp = faktura.totalbeløp(),
-                nyttBeløp = BigDecimal.ZERO
-            )
-        }
+
+        return sum
     }
 
     /**
@@ -94,7 +105,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
      *
      * @param bestilteFakturaer Fakturaer som er bestilt
      * @param fakturaseriePerioder Perioder i fakturaserien
-     * @return Liste med Avregningsperiode
+     * @return Liste med tidligere faktura + linje + ny periode
      */
     private fun finnAvregningsfakturaerSomAvregnes(
         bestilteFakturaer: List<Faktura>,
@@ -122,7 +133,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
      *
      * @param bestilteFakturaer Fakturaer som er bestilt
      * @param fakturaseriePerioder Perioder i fakturaserien
-     * @return Liste med Avregningsperiode
+     * @return Liste med tidligere faktura + ny periode
      */
     private fun finnVanligeFakturaerSomAvregnes(
         bestilteFakturaer: List<Faktura>,
@@ -156,7 +167,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             periodeTil = tidligereLinje.periodeTil,
             bestilteFaktura = faktura,
             opprinneligFaktura = hentFørstePositiveFaktura(faktura),
-            tidligereBeløp = tidligereLinje.avregningNyttBeloep!!,
+            tidligereBeløp = sumAvregningerRekursivt(faktura),
             nyttBeløp = nyttBeløp,
         )
     }

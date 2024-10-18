@@ -62,7 +62,7 @@ class FakturaserieService(
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
             fakturaserieDto,
             finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
-            avregningBehandler.lagAvregningsfaktura(
+            avregningBehandler.lagAvregningsfakturaer(
                 fakturaserieDto.perioder,
                 opprinneligFakturaserie.bestilteFakturaer()
             )
@@ -130,7 +130,7 @@ class FakturaserieService(
             fakturaserieDto,
             startDato,
             sluttDato,
-            avregningBehandler.lagAvregningsfaktura(
+            avregningBehandler.lagAvregningsfakturaer(
                 fakturaserieDto.perioder,
                 eksisterendeFakturaserie.bestilteFakturaer()
             )
