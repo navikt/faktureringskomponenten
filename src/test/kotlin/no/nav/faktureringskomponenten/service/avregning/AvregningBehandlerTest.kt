@@ -186,9 +186,8 @@ class AvregningBehandlerTest {
             )
 
         avregningsfaktura.run {
-            sortedBy { it.getPeriodeFra() }
-            filter { it.erAvregningsfaktura() }
             shouldHaveSize(3)
+            sortedBy { it.getPeriodeFra() }
             get(0).referertFakturaVedAvregning.shouldBe(faktura2024ForsteKvartal)
             get(1).referertFakturaVedAvregning.shouldBe(faktura2024AndreKvartal)
             get(2).referertFakturaVedAvregning.shouldBe(faktura2025ForsteKvartal)
@@ -268,6 +267,7 @@ class AvregningBehandlerTest {
                 totalbeløp().shouldBe(BigDecimal("-3000.00"))
             }
 
+
         avregningFakturaerFørsteGang.forEach{
             it.status = BESTILT
         }
@@ -284,11 +284,8 @@ class AvregningBehandlerTest {
         val avregningsfaktura =
             avregningBehandler.lagAvregningsfakturaer(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
 
-        avregningsfaktura.run {
-            sortedBy { it.getPeriodeFra() }
-            filter { it.erAvregningsfaktura() }
-            shouldHaveSize(0)
-        }
+
+        avregningsfaktura.shouldHaveSize(0)
     }
 
     /**
@@ -332,8 +329,7 @@ class AvregningBehandlerTest {
             listOf(faktura2023FjerdeKvartal)
         )
 
-        avregningFakturaerFørsteGang
-            .single { it.erAvregningsfaktura() }
+        avregningFakturaerFørsteGang.single { it.erAvregningsfaktura() }
             .run {
                 totalbeløp().shouldBe(BigDecimal("-1470.00"))
             }
@@ -354,12 +350,9 @@ class AvregningBehandlerTest {
         val avregningsfaktura =
             avregningBehandler.lagAvregningsfakturaer(nyPeriode, listOf(avregningFakturaerFørsteGang[0]))
 
-        avregningsfaktura.run {
-            sortedBy { it.getPeriodeFra() }
-            filter { it.erAvregningsfaktura() }
-            shouldHaveSize(1)
-            get(0).erAvregningsfaktura().shouldBe(true)
-            get(0).totalbeløp().shouldBe(BigDecimal("-1530.00"))
+        avregningsfaktura.single { it.erAvregningsfaktura() }.run {
+            erAvregningsfaktura().shouldBe(true)
+            totalbeløp().shouldBe(BigDecimal("-1530.00"))
         }
     }
 
@@ -406,8 +399,7 @@ class AvregningBehandlerTest {
             listOf(faktura2023FjerdeKvartal)
         )
 
-        avregningFakturaerFørsteGang
-            .single { it.erAvregningsfaktura() }
+        avregningFakturaerFørsteGang.single { it.erAvregningsfaktura() }
             .run {
                 totalbeløp().shouldBe(BigDecimal("-3000.00"))
             }
@@ -430,7 +422,6 @@ class AvregningBehandlerTest {
 
 
         avregningsfaktura.single { it.erAvregningsfaktura() }.run {
-            erAvregningsfaktura() shouldBe true
             totalbeløp() shouldBe BigDecimal("1500.00")
         }
     }
@@ -542,12 +533,10 @@ class AvregningBehandlerTest {
             listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2])
         )
 
-        avregningFakturaerAndreGang
+        avregningFakturaerAndreGang.filter { it.erAvregningsfaktura() }
             .shouldHaveSize(2)
-            .filter { it.erAvregningsfaktura() }
+            .sortedBy { it.getPeriodeFra() }
             .run {
-                shouldHaveSize(2)
-                sortedBy { it.getPeriodeFra() }
                 get(0).totalbeløp().shouldBe(BigDecimal("3000.00"))
                 get(1).totalbeløp().shouldBe(BigDecimal("3000.00"))
             }
@@ -661,11 +650,10 @@ class AvregningBehandlerTest {
         )
 
         avregningFakturaerAndreGang
-            .shouldHaveSize(3)
             .filter { it.erAvregningsfaktura() }
+            .shouldHaveSize(3)
+            .sortedBy { it.getPeriodeFra() }
             .run {
-                shouldHaveSize(3)
-                sortedBy { it.getPeriodeFra() }
                 get(0).totalbeløp().shouldBe(BigDecimal("3000.00"))
                 get(1).totalbeløp().shouldBe(BigDecimal("3000.00"))
                 get(2).totalbeløp().shouldBe(BigDecimal("6000.00"))
@@ -800,11 +788,10 @@ class AvregningBehandlerTest {
         )
 
         avregningFakturaerAndreGang
-            .shouldHaveSize(3)
             .filter { it.erAvregningsfaktura() }
+            .shouldHaveSize(3)
+            .sortedBy { it.getPeriodeFra() }
             .run {
-                shouldHaveSize(3)
-                sortedBy { it.getPeriodeFra() }
                 get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
                 get(1).totalbeløp().shouldBe(BigDecimal("3000.00"))
                 get(2).totalbeløp().shouldBe(BigDecimal("3000.00"))
@@ -922,11 +909,10 @@ class AvregningBehandlerTest {
         )
 
         avregningFakturaerFørsteGang
-            .shouldHaveSize(4)
             .filter { it.erAvregningsfaktura() }
+            .shouldHaveSize(4)
+            .sortedBy { it.getPeriodeFra() }
             .run {
-                shouldHaveSize(4)
-                sortedBy { it.getPeriodeFra() }
                 get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
                 get(1).totalbeløp().shouldBe(BigDecimal("-3000.00"))
                 get(2).totalbeløp().shouldBe(BigDecimal("-3000.00"))
@@ -970,11 +956,10 @@ class AvregningBehandlerTest {
         )
 
         avregningFakturaerAndreGang
-            .shouldHaveSize(4)
             .filter { it.erAvregningsfaktura() }
+            .shouldHaveSize(4)
+            .sortedBy { it.getPeriodeFra() }
             .run {
-                shouldHaveSize(4)
-                sortedBy { it.getPeriodeFra() }
                 get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
                 get(1).totalbeløp().shouldBe(BigDecimal("0.00"))
                 get(2).totalbeløp().shouldBe(BigDecimal("3000.00"))
@@ -1141,11 +1126,10 @@ class AvregningBehandlerTest {
         )
 
         avregningFakturaerFørsteGang
-            .shouldHaveSize(4)
             .filter { it.erAvregningsfaktura() }
+            .shouldHaveSize(4)
+            .sortedBy { it.getPeriodeFra() }
             .run {
-                shouldHaveSize(4)
-                sortedBy { it.getPeriodeFra() }
                 get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
                 get(1).totalbeløp().shouldBe(BigDecimal("-9000.00"))
                 get(2).totalbeløp().shouldBe(BigDecimal("-9000.00"))
@@ -1207,10 +1191,10 @@ class AvregningBehandlerTest {
         )
 
         avregningFakturaerAndreGang
-            .shouldHaveSize(4)
             .filter { it.erAvregningsfaktura() }
+            .shouldHaveSize(4)
+            .sortedBy { it.getPeriodeFra() }
             .run {
-                shouldHaveSize(4)
                 sortedBy { it.getPeriodeFra() }
                 get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
                 get(1).totalbeløp().shouldBe(BigDecimal("15000.00"))
@@ -1391,11 +1375,10 @@ class AvregningBehandlerTest {
         )
 
         avregningFakturaerFørsteGang
-            .shouldHaveSize(4)
             .filter { it.erAvregningsfaktura() }
+            .shouldHaveSize(4)
+            .sortedBy { it.getPeriodeFra() }
             .run {
-                shouldHaveSize(4)
-                sortedBy { it.getPeriodeFra() }
                 get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
                 get(1).totalbeløp().shouldBe(BigDecimal("-9000.00"))
                 get(2).totalbeløp().shouldBe(BigDecimal("00.00"))
@@ -1451,11 +1434,10 @@ class AvregningBehandlerTest {
         )
 
         avregningFakturaerAndreGang
-            .shouldHaveSize(4)
             .filter { it.erAvregningsfaktura() }
+            .shouldHaveSize(4)
+            .sortedBy { it.getPeriodeFra() }
             .run {
-                shouldHaveSize(4)
-                sortedBy { it.getPeriodeFra() }
                 get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
                 get(1).totalbeløp().shouldBe(BigDecimal("15000.00"))
                 get(2).totalbeløp().shouldBe(BigDecimal("-4560.00"))
