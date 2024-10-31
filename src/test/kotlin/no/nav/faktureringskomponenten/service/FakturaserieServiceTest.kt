@@ -23,7 +23,8 @@ private const val NY_REF = "456"
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
-    private val fakturaserieGenerator = FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0))
+    private val fakturaserieGenerator =
+        FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0))
     private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
     private val fakturaBestillingService = mockk<FakturaBestillingService>()
 
@@ -136,10 +137,12 @@ class FakturaserieServiceTest {
                 }
             )
         }
-        val tidligereFakturaserie = lagFakturaserie {  }
+        val tidligereFakturaserie = lagFakturaserie { }
 
 
-        every { fakturaserieRepository.findAllByReferanse(eksisterendeFakturaserie.referanse) } returns listOf(tidligereFakturaserie)
+        every { fakturaserieRepository.findAllByReferanse(eksisterendeFakturaserie.referanse) } returns listOf(
+            tidligereFakturaserie
+        )
         every { fakturaserieRepository.findByReferanse(eksisterendeFakturaserie.referanse) } returns eksisterendeFakturaserie
 
         val fakturaserieCapture = mutableListOf<Fakturaserie>()
@@ -171,6 +174,49 @@ class FakturaserieServiceTest {
         }
     }
 
+    @Test
+    fun `lag ny faktura`() {
+        val enkeltFakturaDto = EnkeltFakturaDto(
+            "123456789",
+            ULID.randomULID(),
+            Fullmektig("11987654321", "123456789"),
+            "Nasse Nøff",
+            "Referanse NAV",
+            Innbetalingstype.TRYGDEAVGIFT,
+            FakturaserieIntervall.SINGEL,
+            BigDecimal.valueOf(2500),
+            LocalDate.of(2024, 1, 1),
+            LocalDate.of(2024, 12, 31),
+            "Testfaktura"
+        )
+        val fakturaSerieSlot = slot<Fakturaserie>()
+        val opprinneligFakturaserie = lagOpprinneligFakturaserie()
+
+        every { fakturaserieRepository.findByReferanse(enkeltFakturaDto.fakturaserieReferanse) } returns opprinneligFakturaserie
+        every { fakturaserieRepository.save(capture(fakturaSerieSlot)) } returns Fakturaserie()
+
+
+        val nyFakturaSerieReferanse = fakturaserieService.lagNyFaktura(enkeltFakturaDto)
+
+
+        fakturaSerieSlot.captured.run {
+            referanse.shouldBe(nyFakturaSerieReferanse)
+            intervall.shouldBe(FakturaserieIntervall.SINGEL)
+            faktura.single().run {
+                krediteringFakturaRef.shouldBe("1234")
+                fakturaLinje.single().run {
+                    belop.shouldBe(BigDecimal.valueOf(2500))
+                    periodeFra.shouldBe(LocalDate.of(2024, 1, 1))
+                    periodeTil.shouldBe(LocalDate.of(2024, 12, 31))
+                    beskrivelse.shouldBe("Testfaktura")
+                    antall.shouldBe(BigDecimal.ONE)
+                    enhetsprisPerManed.shouldBe(BigDecimal.ZERO)
+                }
+            }
+        }
+
+    }
+
     private fun lagOpprinneligFakturaserie(): Fakturaserie {
         return Fakturaserie(
             id = 100,
@@ -185,6 +231,7 @@ class FakturaserieServiceTest {
             faktura = mutableListOf(
                 Faktura(
                     id = 1,
+                    referanseNr = "1234",
                     datoBestilt = LocalDate.of(2023, 12, 19),
                     status = FakturaStatus.BESTILT,
                     eksternFakturaNummer = "8272123",
@@ -211,6 +258,7 @@ class FakturaserieServiceTest {
                 ),
                 Faktura(
                     id = 2,
+                    referanseNr = "5678",
                     datoBestilt = LocalDate.of(2024, 3, 19),
                     status = FakturaStatus.BESTILT,
                     eksternFakturaNummer = "8272123",

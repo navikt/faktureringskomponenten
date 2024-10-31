@@ -1,8 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
 import java.math.BigDecimal
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
 
@@ -143,6 +143,67 @@ class FakturaserieService(
 
         fakturaBestillingService.bestillKreditnota(krediteringFakturaserie)
         return krediteringFakturaserie.referanse
+    }
+
+    @Transactional
+    fun lagNyFaktura(enkeltFakturaDto: EnkeltFakturaDto): String {
+        val fakturaserie = fakturaserieRepository.findByReferanse(enkeltFakturaDto.fakturaserieReferanse)
+            ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${enkeltFakturaDto.fakturaserieReferanse}")
+
+        val krediteringFakturaRef = hentKrediteringFakturaRef(fakturaserie, enkeltFakturaDto)
+
+        return Fakturaserie(
+            id = null,
+            referanse = enkeltFakturaDto.fakturaserieReferanse,
+            fakturaGjelderInnbetalingstype = enkeltFakturaDto.fakturaGjelderInnbetalingstype,
+            fodselsnummer = enkeltFakturaDto.fodselsnummer,
+            fullmektig = enkeltFakturaDto.fullmektig,
+            referanseBruker = enkeltFakturaDto.referanseBruker,
+            referanseNAV = enkeltFakturaDto.referanseNAV,
+            startdato = enkeltFakturaDto.startDato,
+            sluttdato = enkeltFakturaDto.sluttDato,
+            intervall = FakturaserieIntervall.SINGEL,
+            faktura = listOf(
+                Faktura(
+                    referanseNr = ULID.randomULID(),
+                    datoBestilt = LocalDate.now(),
+                    krediteringFakturaRef = krediteringFakturaRef,
+                    fakturaLinje = listOf(
+                        FakturaLinje(
+                            periodeFra = enkeltFakturaDto.startDato,
+                            periodeTil = enkeltFakturaDto.sluttDato,
+                            belop = enkeltFakturaDto.belop,
+                            antall = BigDecimal.ONE,
+                            beskrivelse = enkeltFakturaDto.beskrivelse,
+                            enhetsprisPerManed = BigDecimal.ZERO
+                        )
+                    )
+                )
+            )
+        ).also {
+            fakturaserieRepository.save(it)
+            log.info("Lagret fakturaserie: $it")
+        }.referanse
+    }
+
+    /**
+     *  Hvis forrige fakturaserie var SINGEL(årsavregning) så tar vi krediteringFakturaRef som den igjen hentet fra sin
+     *  forrige fakturaserie. Denne må være en positiv faktura, ellers fungerer ikke OEBS. Siden alle årsavregninger potensielt
+     *  kan være negative så må vi opprinnelig hente fra fakturaserie som hører til et trygdeavgiftsvedtak.
+     */
+    private fun hentKrediteringFakturaRef(
+        fakturaserie: Fakturaserie,
+        enkeltFakturaDto: EnkeltFakturaDto
+    ): String {
+        val krediteringFakturaRef = if (fakturaserie.intervall == FakturaserieIntervall.SINGEL) {
+            fakturaserie.faktura.single().krediteringFakturaRef
+        } else {
+            val faktura = fakturaserie.faktura.filter { it.overlapperMedÅr(enkeltFakturaDto.startDato.year) }
+                .sortedBy { faktura: Faktura -> faktura.fakturaLinje.first().periodeFra }
+                .first()
+            avregningBehandler.hentFørstePositiveFaktura(faktura).referanseNr
+        }
+        return krediteringFakturaRef
     }
 
 }

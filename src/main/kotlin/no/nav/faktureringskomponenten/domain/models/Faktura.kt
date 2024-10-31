@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import jakarta.persistence.*
+import org.threeten.extra.LocalDateRange
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -78,4 +79,13 @@ class Faktura(
     fun totalbeløp(): BigDecimal {
         return fakturaLinje.sumOf(FakturaLinje::belop)
     }
+
+    fun overlapperMedÅr(år: Int): Boolean {
+        val fakturaLinjeFom = fakturaLinje.minOf { getPeriodeFra() }
+        val fakturaLinjeTom = fakturaLinje.minOf { getPeriodeTil() }
+        val localDateRangeForPeriode = LocalDateRange.ofClosed(fakturaLinjeFom, fakturaLinjeTom)
+        val localDateRangeForÅr = LocalDateRange.ofClosed(LocalDate.of(år, 1, 1), LocalDate.of(år, 12, 31))
+        return localDateRangeForPeriode.overlaps(localDateRangeForÅr)
+    }
+
 }

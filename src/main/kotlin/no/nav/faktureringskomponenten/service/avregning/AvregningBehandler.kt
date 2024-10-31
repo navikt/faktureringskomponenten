@@ -35,7 +35,8 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
                 .forEachIndexed { index, linje -> log.debug { "Faktura ${index + 1} " + linje.getLinesAsString() } }
         }
 
-        val avregningsperioder = finnAvregningsperioder(bestilteFakturaerFraForrigeFakturaserie, nyeFakturaseriePerioder)
+        val avregningsperioder =
+            finnAvregningsperioder(bestilteFakturaerFraForrigeFakturaserie, nyeFakturaseriePerioder)
         log.debug { "Avregningsperioder generert: $avregningsperioder" }
 
         return avregningsperioder.map {
@@ -50,11 +51,20 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         nyeFakturaseriePerioder: List<FakturaseriePeriode>
     ): List<Avregningsperiode> {
         val avregningsperioderForAvregningsfakturaerSomOverlapper =
-            finnAvregningsfakturaerSomAvregnes(bestilteFakturaerFraForrigeSerie, nyeFakturaseriePerioder).map(::lagAvregningsperiode)
+            finnAvregningsfakturaerSomAvregnes(
+                bestilteFakturaerFraForrigeSerie,
+                nyeFakturaseriePerioder
+            ).map(::lagAvregningsperiode)
         val avregningsperioderForVanligeFakturaerSomOverlapper =
-            finnVanligeFakturaerSomAvregnes(bestilteFakturaerFraForrigeSerie, nyeFakturaseriePerioder).map(::lagAvregningsperiode)
+            finnVanligeFakturaerSomAvregnes(
+                bestilteFakturaerFraForrigeSerie,
+                nyeFakturaseriePerioder
+            ).map(::lagAvregningsperiode)
         val avregningsperioderForFakturaerSomIkkeOverlapper =
-            finnFakturaerSomIkkeOverlapper(bestilteFakturaerFraForrigeSerie, nyeFakturaseriePerioder).filter { faktura ->
+            finnFakturaerSomIkkeOverlapper(
+                bestilteFakturaerFraForrigeSerie,
+                nyeFakturaseriePerioder
+            ).filter { faktura ->
                 sumAvregningerRekursivt(faktura).compareTo(BigDecimal.ZERO) != 0
             }.map(::lagAvregningsperiodeSomNullesUt)
         return (avregningsperioderForAvregningsfakturaerSomOverlapper + avregningsperioderForVanligeFakturaerSomOverlapper + avregningsperioderForFakturaerSomIkkeOverlapper)
@@ -70,7 +80,8 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
     private fun finnFakturaerSomIkkeOverlapper(
         bestilteFakturaer: List<Faktura>, fakturaseriePerioder: List<FakturaseriePeriode>
     ): List<Faktura> = bestilteFakturaer.flatMap { faktura ->
-        val overlappendePerioder = overlappendeFakturaseriePerioder(fakturaseriePerioder, faktura.getPeriodeFra(), faktura.getPeriodeTil())
+        val overlappendePerioder =
+            overlappendeFakturaseriePerioder(fakturaseriePerioder, faktura.getPeriodeFra(), faktura.getPeriodeTil())
         if (overlappendePerioder.isEmpty()) listOf(faktura) else emptyList()
     }
 
@@ -208,7 +219,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
         )
     }
 
-    private fun hentFørstePositiveFaktura(faktura: Faktura): Faktura {
+    fun hentFørstePositiveFaktura(faktura: Faktura): Faktura {
         if (faktura.totalbeløp() > BigDecimal.ZERO) {
             return faktura
         }

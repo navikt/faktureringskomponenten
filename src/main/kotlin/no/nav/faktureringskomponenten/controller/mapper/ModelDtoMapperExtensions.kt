@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.controller.mapper
 
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.EnkeltFakturaDto
 import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.service.FakturaserieDto
 import ulid.ULID
@@ -34,6 +35,21 @@ val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
         fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
         intervall = this.intervall,
         perioder = this.perioder.tilFakturaseriePeriodeList
+    )
+
+val EnkeltFakturaRequestDto.tilFakturaRequest: EnkeltFakturaDto
+    get() = EnkeltFakturaDto(
+        fakturaserieReferanse = ULID.randomULID(),
+        fodselsnummer = this.fodselsnummer,
+        fullmektig = this.fullmektig?.tilFullmektig,
+        referanseBruker = this.referanseBruker,
+        referanseNAV = this.referanseNAV,
+        fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
+        intervall = this.intervall,
+        belop = this.belop,
+        startDato = this.startDato,
+        sluttDato = this.sluttDato,
+        beskrivelse = this.beskrivelse
     )
 
 val List<FakturaseriePeriodeDto>.tilFakturaseriePeriodeList: List<FakturaseriePeriode>

@@ -17,7 +17,7 @@ class FakturaService(
     fun hentFaktura(fakturaReferanseNr: String) = fakturaRepository.findByReferanseNr(fakturaReferanseNr)
 
     @Transactional
-    fun lagreFaktura(faktura: Faktura) : Faktura {
+    fun lagreFaktura(faktura: Faktura): Faktura {
         return fakturaRepository.save(faktura)
     }
 
