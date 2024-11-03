@@ -7,7 +7,9 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 data class EnkeltFakturaDto(
-    val fakturaserieReferanse: String,
+    val referanse: String,
+
+    val tidligereFakturaserieReferanse: String?,
 
     val fodselsnummer: String,
 

@@ -188,7 +188,7 @@ class FakturaserieControllerIT(
                 FakturaStatus.OPPRETTET
             )
         fakturaRepository.findByFakturaserieReferanse(nyFakturaserieReferanse)
-            .single{ it.status == FakturaStatus.BESTILT }
+            .single { it.status == FakturaStatus.BESTILT }
             .erAvregningsfaktura().shouldBeTrue()
     }
 
@@ -508,6 +508,65 @@ class FakturaserieControllerIT(
             )
     }
 
+    @Test
+
+    fun `lag ny enkelt faktura (årsavregning)`() {
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    LocalDate.of(2023, 1, 1),
+                    LocalDate.of(2023, 12, 31),
+                    "Inntekt fra utlandet"
+                ),
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto)
+                .expectStatus().isOk
+                .expectBody(NyFakturaserieResponseDto::class.java)
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val enkeltFakturaRequestDto = EnkeltFakturaRequestDto(
+            "12345678911",
+            opprinneligFakturaserieReferanse,
+            FullmektigDto("12345", "6789"),
+            "referanseBruker",
+            "referanseNAV",
+            Innbetalingstype.TRYGDEAVGIFT,
+            FakturaserieIntervall.SINGEL,
+            BigDecimal.valueOf(5000, 2),
+            LocalDate.of(2023, 1, 1),
+            LocalDate.of(2023, 12, 31),
+            "beskrivelse"
+        )
+
+
+        val referanse = postLagNyFaktura(enkeltFakturaRequestDto)
+            .expectStatus().isOk
+            .expectBody(NyFakturaserieResponseDto::class.java)
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        val fakturaserie = fakturaserieRepository.findByReferanse(referanse)
+
+        val response = hentFakturaserieRequest(referanse)
+            .expectStatus().isOk
+            .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
+
+
+        response.shouldNotBeNull().run {
+            intervall.shouldBe(FakturaserieIntervall.SINGEL)
+            faktura.single().run {
+                fakturaLinje.single().run {
+                    belop.shouldBe(BigDecimal.valueOf(5000, 2))
+                    beskrivelse.shouldBe("beskrivelse")
+                }
+            }
+        }
+
+    }
+
     //region fakturaserieDTOs med valideringsfeil
     private fun fakturaserieDTOsMedValideringsfeil(): List<Arguments> {
         return listOf(
@@ -627,6 +686,19 @@ class FakturaserieControllerIT(
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
             }
             .exchange()
+
+    private fun postLagNyFaktura(enkeltFakturaRequestDto: EnkeltFakturaRequestDto): WebTestClient.ResponseSpec =
+        webClient.post()
+            .uri("/faktura")
+            .accept(MediaType.APPLICATION_JSON)
+            .bodyValue(enkeltFakturaRequestDto)
+            .header("Nav-User-Id", NAV_IDENT)
+            .headers {
+                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
 
     private fun token(subject: String = "faktureringskomponenten-test"): String? =
         server.issueToken(

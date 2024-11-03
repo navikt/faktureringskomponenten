@@ -147,14 +147,15 @@ class FakturaserieService(
 
     @Transactional
     fun lagNyFaktura(enkeltFakturaDto: EnkeltFakturaDto): String {
-        val fakturaserie = fakturaserieRepository.findByReferanse(enkeltFakturaDto.fakturaserieReferanse)
-            ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${enkeltFakturaDto.fakturaserieReferanse}")
+        val tidligereFakturaserie =
+            fakturaserieRepository.findByReferanse(enkeltFakturaDto.tidligereFakturaserieReferanse)
+                ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${enkeltFakturaDto.referanse}")
 
-        val krediteringFakturaRef = hentKrediteringFakturaRef(fakturaserie, enkeltFakturaDto)
+        val krediteringFakturaRef = hentKrediteringFakturaRef(tidligereFakturaserie, enkeltFakturaDto)
 
         return Fakturaserie(
             id = null,
-            referanse = enkeltFakturaDto.fakturaserieReferanse,
+            referanse = enkeltFakturaDto.referanse,
             fakturaGjelderInnbetalingstype = enkeltFakturaDto.fakturaGjelderInnbetalingstype,
             fodselsnummer = enkeltFakturaDto.fodselsnummer,
             fullmektig = enkeltFakturaDto.fullmektig,

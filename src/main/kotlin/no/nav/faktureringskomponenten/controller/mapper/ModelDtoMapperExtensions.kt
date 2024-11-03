@@ -39,7 +39,8 @@ val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
 
 val EnkeltFakturaRequestDto.tilFakturaRequest: EnkeltFakturaDto
     get() = EnkeltFakturaDto(
-        fakturaserieReferanse = ULID.randomULID(),
+        referanse = ULID.randomULID(),
+        tidligereFakturaserieReferanse = this.fakturaserieReferanse,
         fodselsnummer = this.fodselsnummer,
         fullmektig = this.fullmektig?.tilFullmektig,
         referanseBruker = this.referanseBruker,
