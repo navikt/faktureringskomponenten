@@ -10,7 +10,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @Schema(description = "DTO for fullstendig informasjon om en enkelt faktura")
-data class EnkeltFakturaRequestDto(
+data class FakturaRequestDto(
 
     @field:Schema(description = "Fødselsnummer for fakturamottaker, 11 siffer")
     @field:ErFodselsnummer

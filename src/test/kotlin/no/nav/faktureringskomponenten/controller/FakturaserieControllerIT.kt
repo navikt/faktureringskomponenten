@@ -528,7 +528,7 @@ class FakturaserieControllerIT(
                 .expectBody(NyFakturaserieResponseDto::class.java)
                 .returnResult().responseBody!!.fakturaserieReferanse
 
-        val enkeltFakturaRequestDto = EnkeltFakturaRequestDto(
+        val fakturaRequestDto = FakturaRequestDto(
             "12345678911",
             opprinneligFakturaserieReferanse,
             FullmektigDto("12345", "6789"),
@@ -543,7 +543,7 @@ class FakturaserieControllerIT(
         )
 
 
-        val referanse = postLagNyFaktura(enkeltFakturaRequestDto)
+        val referanse = postLagNyFaktura(fakturaRequestDto)
             .expectStatus().isOk
             .expectBody(NyFakturaserieResponseDto::class.java)
             .returnResult().responseBody!!.fakturaserieReferanse
@@ -687,11 +687,11 @@ class FakturaserieControllerIT(
             }
             .exchange()
 
-    private fun postLagNyFaktura(enkeltFakturaRequestDto: EnkeltFakturaRequestDto): WebTestClient.ResponseSpec =
+    private fun postLagNyFaktura(fakturaRequestDto: FakturaRequestDto): WebTestClient.ResponseSpec =
         webClient.post()
             .uri("/faktura")
             .accept(MediaType.APPLICATION_JSON)
-            .bodyValue(enkeltFakturaRequestDto)
+            .bodyValue(fakturaRequestDto)
             .header("Nav-User-Id", NAV_IDENT)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")

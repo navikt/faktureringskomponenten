@@ -1,7 +1,7 @@
 package no.nav.faktureringskomponenten.controller
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.controller.dto.EnkeltFakturaRequestDto
+import no.nav.faktureringskomponenten.controller.dto.FakturaRequestDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaRequest
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory
@@ -31,16 +31,16 @@ class FakturaController(
     @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
     @PostMapping
     fun lagFaktura(
-        @RequestBody @Validated enkeltFakturaRequestDto: EnkeltFakturaRequestDto,
+        @RequestBody @Validated fakturaRequestDto: FakturaRequestDto,
         bindingResult: BindingResult
     ): ResponseEntity<Any> {
-        log.info("Mottatt $enkeltFakturaRequestDto")
+        log.info("Mottatt $fakturaRequestDto")
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ProblemDetailFactory.of(bindingResult))
         }
 
-        val referanse = fakturaserieService.lagNyFaktura(enkeltFakturaRequestDto.tilFakturaRequest)
+        val referanse = fakturaserieService.lagNyFaktura(fakturaRequestDto.tilFakturaRequest)
         return ResponseEntity.ok(NyFakturaserieResponseDto(referanse))
     }
 }

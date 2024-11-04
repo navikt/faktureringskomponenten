@@ -176,7 +176,7 @@ class FakturaserieServiceTest {
 
     @Test
     fun `lag ny faktura`() {
-        val enkeltFakturaDto = EnkeltFakturaDto(
+        val fakturaDto = FakturaDto(
             ULID.randomULID(),
             ULID.randomULID(),
             "123456789",
@@ -193,11 +193,11 @@ class FakturaserieServiceTest {
         val fakturaSerieSlot = slot<Fakturaserie>()
         val opprinneligFakturaserie = lagOpprinneligFakturaserie()
 
-        every { fakturaserieRepository.findByReferanse(enkeltFakturaDto.tidligereFakturaserieReferanse) } returns opprinneligFakturaserie
+        every { fakturaserieRepository.findByReferanse(fakturaDto.tidligereFakturaserieReferanse) } returns opprinneligFakturaserie
         every { fakturaserieRepository.save(capture(fakturaSerieSlot)) } returns Fakturaserie()
 
 
-        val nyFakturaSerieReferanse = fakturaserieService.lagNyFaktura(enkeltFakturaDto)
+        val nyFakturaSerieReferanse = fakturaserieService.lagNyFaktura(fakturaDto)
 
 
         fakturaSerieSlot.captured.run {

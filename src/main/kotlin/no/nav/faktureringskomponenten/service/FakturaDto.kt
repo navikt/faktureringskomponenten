@@ -6,7 +6,7 @@ import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import java.math.BigDecimal
 import java.time.LocalDate
 
-data class EnkeltFakturaDto(
+data class FakturaDto(
     val referanse: String,
 
     val tidligereFakturaserieReferanse: String?,

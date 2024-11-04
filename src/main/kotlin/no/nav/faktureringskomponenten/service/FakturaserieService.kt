@@ -146,23 +146,23 @@ class FakturaserieService(
     }
 
     @Transactional
-    fun lagNyFaktura(enkeltFakturaDto: EnkeltFakturaDto): String {
+    fun lagNyFaktura(fakturaDto: FakturaDto): String {
         val tidligereFakturaserie =
-            fakturaserieRepository.findByReferanse(enkeltFakturaDto.tidligereFakturaserieReferanse)
-                ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${enkeltFakturaDto.referanse}")
+            fakturaserieRepository.findByReferanse(fakturaDto.tidligereFakturaserieReferanse)
+                ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${fakturaDto.referanse}")
 
-        val krediteringFakturaRef = hentKrediteringFakturaRef(tidligereFakturaserie, enkeltFakturaDto)
+        val krediteringFakturaRef = hentKrediteringFakturaRef(tidligereFakturaserie, fakturaDto)
 
         return Fakturaserie(
             id = null,
-            referanse = enkeltFakturaDto.referanse,
-            fakturaGjelderInnbetalingstype = enkeltFakturaDto.fakturaGjelderInnbetalingstype,
-            fodselsnummer = enkeltFakturaDto.fodselsnummer,
-            fullmektig = enkeltFakturaDto.fullmektig,
-            referanseBruker = enkeltFakturaDto.referanseBruker,
-            referanseNAV = enkeltFakturaDto.referanseNAV,
-            startdato = enkeltFakturaDto.startDato,
-            sluttdato = enkeltFakturaDto.sluttDato,
+            referanse = fakturaDto.referanse,
+            fakturaGjelderInnbetalingstype = fakturaDto.fakturaGjelderInnbetalingstype,
+            fodselsnummer = fakturaDto.fodselsnummer,
+            fullmektig = fakturaDto.fullmektig,
+            referanseBruker = fakturaDto.referanseBruker,
+            referanseNAV = fakturaDto.referanseNAV,
+            startdato = fakturaDto.startDato,
+            sluttdato = fakturaDto.sluttDato,
             intervall = FakturaserieIntervall.SINGEL,
             faktura = listOf(
                 Faktura(
@@ -171,11 +171,11 @@ class FakturaserieService(
                     krediteringFakturaRef = krediteringFakturaRef,
                     fakturaLinje = listOf(
                         FakturaLinje(
-                            periodeFra = enkeltFakturaDto.startDato,
-                            periodeTil = enkeltFakturaDto.sluttDato,
-                            belop = enkeltFakturaDto.belop,
+                            periodeFra = fakturaDto.startDato,
+                            periodeTil = fakturaDto.sluttDato,
+                            belop = fakturaDto.belop,
                             antall = BigDecimal.ONE,
-                            beskrivelse = enkeltFakturaDto.beskrivelse,
+                            beskrivelse = fakturaDto.beskrivelse,
                             enhetsprisPerManed = BigDecimal.ZERO
                         )
                     )
@@ -194,12 +194,12 @@ class FakturaserieService(
      */
     private fun hentKrediteringFakturaRef(
         fakturaserie: Fakturaserie,
-        enkeltFakturaDto: EnkeltFakturaDto
+        fakturaDto: FakturaDto
     ): String {
         val krediteringFakturaRef = if (fakturaserie.intervall == FakturaserieIntervall.SINGEL) {
             fakturaserie.faktura.single().krediteringFakturaRef
         } else {
-            val faktura = fakturaserie.faktura.filter { it.overlapperMedÅr(enkeltFakturaDto.startDato.year) }
+            val faktura = fakturaserie.faktura.filter { it.overlapperMedÅr(fakturaDto.startDato.year) }
                 .sortedBy { faktura: Faktura -> faktura.fakturaLinje.first().periodeFra }
                 .first()
             avregningBehandler.hentFørstePositiveFaktura(faktura).referanseNr
