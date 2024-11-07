@@ -547,8 +547,6 @@ class FakturaserieControllerIT(
             .expectBody(NyFakturaserieResponseDto::class.java)
             .returnResult().responseBody!!.fakturaserieReferanse
 
-        val fakturaserie = fakturaserieRepository.findByReferanse(referanse)
-
         val response = hentFakturaserieRequest(referanse)
             .expectStatus().isOk
             .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
@@ -688,7 +686,7 @@ class FakturaserieControllerIT(
 
     private fun postLagNyFaktura(fakturaRequestDto: FakturaRequestDto): WebTestClient.ResponseSpec =
         webClient.post()
-            .uri("/faktura")
+            .uri("/fakturaer")
             .accept(MediaType.APPLICATION_JSON)
             .bodyValue(fakturaRequestDto)
             .header("Nav-User-Id", NAV_IDENT)
