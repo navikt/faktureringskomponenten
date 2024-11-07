@@ -535,7 +535,6 @@ class FakturaserieControllerIT(
             "referanseBruker",
             "referanseNAV",
             Innbetalingstype.TRYGDEAVGIFT,
-            FakturaserieIntervall.SINGEL,
             BigDecimal.valueOf(5000, 2),
             LocalDate.of(2023, 1, 1),
             LocalDate.of(2023, 12, 31),

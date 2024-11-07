@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -16,7 +15,8 @@ data class FakturaRequestDto(
     @field:ErFodselsnummer
     val fodselsnummer: String,
 
-    var fakturaserieReferanse: String?,
+    @field:Schema(description = "Referanse til tidligere fakturaserie ifm kreditering")
+    var fakturaserieReferanse: String,
 
     val fullmektig: FullmektigDto?,
 
@@ -42,12 +42,6 @@ data class FakturaRequestDto(
     )
     @field:NotNull(message = "Du må oppgi fakturaGjelderInnbetalingstype")
     val fakturaGjelderInnbetalingstype: Innbetalingstype,
-
-    @Schema(
-        description = "Betalingsintervall",
-        example = "KVARTAL",
-    )
-    val intervall: FakturaserieIntervall = FakturaserieIntervall.SINGEL,
 
     @Schema(
         description = "Enhetspris mottaker betaler per måned",

@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import org.springframework.stereotype.Component
 import org.threeten.extra.LocalDateRange
@@ -21,7 +22,11 @@ private data class AvregningsfakturaLinjeOgNyePerioder(
 private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: List<FakturaseriePeriode>)
 
 @Component
-class AvregningBehandler(private val avregningsfakturaGenerator: AvregningsfakturaGenerator) {
+class AvregningBehandler(
+    private val avregningsfakturaGenerator: AvregningsfakturaGenerator,
+    private val fakturaService: FakturaService
+
+) {
 
     fun lagAvregningsfakturaer(
         nyeFakturaseriePerioder: List<FakturaseriePeriode>,
@@ -91,7 +96,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             periodeFra = faktura.getPeriodeFra(),
             periodeTil = faktura.getPeriodeTil(),
             bestilteFaktura = faktura,
-            opprinneligFaktura = hentFørstePositiveFaktura(faktura),
+            opprinneligFaktura = fakturaService.hentFørstePositiveFaktura(faktura),
             tidligereBeløp = sumAvregninger,
             nyttBeløp = BigDecimal.ZERO
         )
@@ -177,7 +182,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             periodeFra = tidligereLinje.periodeFra,
             periodeTil = tidligereLinje.periodeTil,
             bestilteFaktura = faktura,
-            opprinneligFaktura = hentFørstePositiveFaktura(faktura),
+            opprinneligFaktura = fakturaService.hentFørstePositiveFaktura(faktura),
             tidligereBeløp = sumAvregningerRekursivt(faktura),
             nyttBeløp = nyttBeløp,
         )
@@ -190,7 +195,7 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             periodeFra = faktura.getPeriodeFra(),
             periodeTil = faktura.getPeriodeTil(),
             bestilteFaktura = faktura,
-            opprinneligFaktura = hentFørstePositiveFaktura(faktura),
+            opprinneligFaktura = fakturaService.hentFørstePositiveFaktura(faktura),
             tidligereBeløp = faktura.totalbeløp(),
             nyttBeløp = nyttBeløp,
         )
@@ -216,16 +221,6 @@ class AvregningBehandler(private val avregningsfakturaGenerator: Avregningsfaktu
             fakturaseriePeriode.enhetsprisPerManed,
             overlappDateRange.start,
             overlappDateRange.endInclusive
-        )
-    }
-
-    fun hentFørstePositiveFaktura(faktura: Faktura): Faktura {
-        if (faktura.totalbeløp() > BigDecimal.ZERO) {
-            return faktura
-        }
-        return hentFørstePositiveFaktura(
-            faktura.referertFakturaVedAvregning
-                ?: throw RuntimeException("Faktura med referanse: ${faktura.referanseNr} mangler referertFakturaVedAvregning")
         )
     }
 }

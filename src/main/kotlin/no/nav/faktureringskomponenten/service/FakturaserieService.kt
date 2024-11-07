@@ -19,6 +19,7 @@ class FakturaserieService(
     private val fakturaserieGenerator: FakturaserieGenerator,
     private val avregningBehandler: AvregningBehandler,
     private val fakturaBestillingService: FakturaBestillingService,
+    private val fakturaService: FakturaService
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -149,7 +150,14 @@ class FakturaserieService(
     fun lagNyFaktura(fakturaDto: FakturaDto): String {
         val tidligereFakturaserie =
             fakturaserieRepository.findByReferanse(fakturaDto.tidligereFakturaserieReferanse)
-                ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${fakturaDto.referanse}")
+                ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${fakturaDto.tidligereFakturaserieReferanse}")
+
+        require(
+            tidligereFakturaserie.status !in setOf(
+                FakturaserieStatus.ERSTATTET,
+                FakturaserieStatus.KANSELLERT
+            )
+        ) { "Tidligere fakturaserie med ref ${tidligereFakturaserie.referanse} er i feil status: ${tidligereFakturaserie.status}" }
 
         val krediteringFakturaRef = hentKrediteringFakturaRef(tidligereFakturaserie, fakturaDto)
 
@@ -202,7 +210,7 @@ class FakturaserieService(
             val faktura = fakturaserie.faktura.filter { it.overlapperMedÅr(fakturaDto.startDato.year) }
                 .sortedBy { faktura: Faktura -> faktura.fakturaLinje.first().periodeFra }
                 .first()
-            avregningBehandler.hentFørstePositiveFaktura(faktura).referanseNr
+            fakturaService.hentFørstePositiveFaktura(faktura).referanseNr
         }
         return krediteringFakturaRef
     }

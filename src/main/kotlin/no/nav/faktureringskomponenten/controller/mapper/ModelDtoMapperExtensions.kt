@@ -46,7 +46,6 @@ val FakturaRequestDto.tilFakturaRequest: FakturaDto
         referanseBruker = this.referanseBruker,
         referanseNAV = this.referanseNAV,
         fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
-        intervall = this.intervall,
         belop = this.belop,
         startDato = this.startDato,
         sluttDato = this.sluttDato,

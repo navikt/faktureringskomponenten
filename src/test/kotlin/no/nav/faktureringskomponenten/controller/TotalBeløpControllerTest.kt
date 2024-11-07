@@ -1,24 +1,19 @@
 package no.nav.faktureringskomponenten.controller
 
-import io.mockk.every
+import com.fasterxml.jackson.databind.ObjectMapper
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
+import no.nav.faktureringskomponenten.controller.dto.BeregnTotalBeløpDto
+import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
-import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.faktureringskomponenten.controller.dto.BeregnTotalBeløpDto
-import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
-import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
-
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -50,10 +45,12 @@ class TotalBeløpControllerTest {
         )
         val dto = BeregnTotalBeløpDto(fakturaseriePerioder)
 
-        mockMvc.perform(post("/totalbeloep/beregn")
+        mockMvc.perform(
+            post("/totalbeloep/beregn")
                 .header("Nav-User-Id", "test")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
+                .content(objectMapper.writeValueAsString(dto))
+        )
             .andExpect(status().isOk)
             .andExpect(content().string("6000.00"))
     }

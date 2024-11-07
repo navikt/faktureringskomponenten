@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.service
 
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import java.math.BigDecimal
@@ -9,7 +8,7 @@ import java.time.LocalDate
 data class FakturaDto(
     val referanse: String,
 
-    val tidligereFakturaserieReferanse: String?,
+    val tidligereFakturaserieReferanse: String,
 
     val fodselsnummer: String,
 
@@ -20,8 +19,6 @@ data class FakturaDto(
     val referanseNAV: String,
 
     val fakturaGjelderInnbetalingstype: Innbetalingstype,
-
-    val intervall: FakturaserieIntervall = FakturaserieIntervall.SINGEL,
 
     val belop: BigDecimal,
 

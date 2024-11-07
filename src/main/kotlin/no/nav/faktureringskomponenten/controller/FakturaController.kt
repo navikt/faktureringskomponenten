@@ -22,7 +22,7 @@ private val log = KotlinLogging.logger { }
 @Protected
 @Validated
 @RestController
-@RequestMapping("/faktura")
+@RequestMapping("/fakturaer")
 class FakturaController(
     val fakturaserieService: FakturaserieService
 ) {
