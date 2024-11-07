@@ -88,4 +88,12 @@ class Faktura(
         return localDateRangeForPeriode.overlaps(localDateRangeForÅr)
     }
 
+    fun hentFørstePositiveFaktura(): Faktura {
+        if (totalbeløp() > BigDecimal.ZERO) {
+            return this
+        }
+        return referertFakturaVedAvregning?.hentFørstePositiveFaktura()
+            ?: throw RuntimeException("Faktura med referanse: $referanseNr mangler referertFakturaVedAvregning")
+    }
+
 }

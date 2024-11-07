@@ -23,10 +23,9 @@ private const val NY_REF = "456"
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
-    private val fakturaService = mockk<FakturaService>()
     private val fakturaserieGenerator =
         FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0))
-    private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator(), fakturaService)
+    private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
     private val fakturaBestillingService = mockk<FakturaBestillingService>()
 
     private val fakturaserieService =
@@ -35,7 +34,6 @@ class FakturaserieServiceTest {
             fakturaserieGenerator,
             avregningBehandler,
             fakturaBestillingService,
-            fakturaService
         )
 
     @Test
@@ -47,7 +45,6 @@ class FakturaserieServiceTest {
 
         val fakturaserier = mutableListOf<Fakturaserie>()
         every { fakturaserieRepository.save(capture(fakturaserier)) } returns mockk()
-        every { fakturaService.hentFørstePositiveFaktura(any()) } returns opprinneligFakturaserie.faktura[0]
 
         val nyFakturaserieDto = lagFakturaserieDto(NY_REF)
 
@@ -73,7 +70,6 @@ class FakturaserieServiceTest {
 
         val fakturaserier = mutableListOf<Fakturaserie>()
         every { fakturaserieRepository.save(capture(fakturaserier)) } returns mockk()
-        every { fakturaService.hentFørstePositiveFaktura(any()) } returns opprinneligFakturaserie.faktura[0]
 
         val nyFakturaserieDto = lagFakturaserieDto(NY_REF)
 
@@ -158,7 +154,6 @@ class FakturaserieServiceTest {
         every { fakturaserieRepository.save(capture(fakturaserieCapture)) } returns mockk()
         every { fakturaserieRepository.save(eksisterendeFakturaserie) } returns eksisterendeFakturaserie
         justRun { fakturaBestillingService.bestillKreditnota(any()) }
-        every { fakturaService.hentFørstePositiveFaktura(any()) } returns eksisterendeFakturaserie.faktura.single()
 
 
         fakturaserieService.kansellerFakturaserie(eksisterendeFakturaserie.referanse)
@@ -204,7 +199,6 @@ class FakturaserieServiceTest {
 
         every { fakturaserieRepository.findByReferanse(fakturaDto.tidligereFakturaserieReferanse) } returns opprinneligFakturaserie
         every { fakturaserieRepository.save(capture(fakturaSerieSlot)) } returns Fakturaserie()
-        every { fakturaService.hentFørstePositiveFaktura(any()) } returns opprinneligFakturaserie.faktura[0]
 
 
         val nyFakturaSerieReferanse = fakturaserieService.lagNyFaktura(fakturaDto)

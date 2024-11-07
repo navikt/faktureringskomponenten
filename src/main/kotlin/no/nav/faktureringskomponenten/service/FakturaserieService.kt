@@ -19,7 +19,6 @@ class FakturaserieService(
     private val fakturaserieGenerator: FakturaserieGenerator,
     private val avregningBehandler: AvregningBehandler,
     private val fakturaBestillingService: FakturaBestillingService,
-    private val fakturaService: FakturaService
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -210,7 +209,7 @@ class FakturaserieService(
             val faktura = fakturaserie.faktura.filter { it.overlapperMedÅr(fakturaDto.startDato.year) }
                 .sortedBy { faktura: Faktura -> faktura.fakturaLinje.first().periodeFra }
                 .first()
-            fakturaService.hentFørstePositiveFaktura(faktura).referanseNr
+            faktura.hentFørstePositiveFaktura().referanseNr
         }
         return krediteringFakturaRef
     }

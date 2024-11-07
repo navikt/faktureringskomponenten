@@ -3,27 +3,17 @@ package no.nav.faktureringskomponenten.service.avregning
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus.BESTILT
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
-import no.nav.faktureringskomponenten.service.FakturaService
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 
 class AvregningBehandlerTest {
 
-    private val fakturaService = mockk<FakturaService>()
-    private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator(), fakturaService)
-
-    @BeforeEach
-    fun setUp() {
-        every { fakturaService.hentFørstePositiveFaktura(any()) } returns faktura2024ForsteKvartal
-    }
+    private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
 
     @Test
     fun lagAvregningsfakturaer() {
@@ -83,10 +73,6 @@ class AvregningBehandlerTest {
             get(1).referertFakturaVedAvregning.shouldBe(faktura2024AndreKvartal)
         }
 
-        every { fakturaService.hentFørstePositiveFaktura(fakturaerEtterFørsteAvregning[0]) } returns fakturaerEtterFørsteAvregning[0]
-        every { fakturaService.hentFørstePositiveFaktura(fakturaerEtterFørsteAvregning[1]) } returns fakturaerEtterFørsteAvregning[1]
-
-        println(fakturaerEtterFørsteAvregning[0])
         // Fakturaer må bestilles for å bli med i en avregning
         fakturaerEtterFørsteAvregning.map { it.status = BESTILT }
         val fakturaerEtterAndreAvregning =

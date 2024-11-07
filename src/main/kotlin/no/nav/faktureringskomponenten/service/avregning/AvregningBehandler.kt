@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
-import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.service.beregning.BeløpBeregner
 import org.springframework.stereotype.Component
 import org.threeten.extra.LocalDateRange
@@ -23,9 +22,7 @@ private data class FakturaOgNyePerioder(val faktura: Faktura, val nyePerioder: L
 
 @Component
 class AvregningBehandler(
-    private val avregningsfakturaGenerator: AvregningsfakturaGenerator,
-    private val fakturaService: FakturaService
-
+    private val avregningsfakturaGenerator: AvregningsfakturaGenerator
 ) {
 
     fun lagAvregningsfakturaer(
@@ -96,7 +93,7 @@ class AvregningBehandler(
             periodeFra = faktura.getPeriodeFra(),
             periodeTil = faktura.getPeriodeTil(),
             bestilteFaktura = faktura,
-            opprinneligFaktura = fakturaService.hentFørstePositiveFaktura(faktura),
+            opprinneligFaktura = faktura.hentFørstePositiveFaktura(),
             tidligereBeløp = sumAvregninger,
             nyttBeløp = BigDecimal.ZERO
         )
@@ -182,7 +179,7 @@ class AvregningBehandler(
             periodeFra = tidligereLinje.periodeFra,
             periodeTil = tidligereLinje.periodeTil,
             bestilteFaktura = faktura,
-            opprinneligFaktura = fakturaService.hentFørstePositiveFaktura(faktura),
+            opprinneligFaktura = faktura.hentFørstePositiveFaktura(),
             tidligereBeløp = sumAvregningerRekursivt(faktura),
             nyttBeløp = nyttBeløp,
         )
@@ -195,7 +192,7 @@ class AvregningBehandler(
             periodeFra = faktura.getPeriodeFra(),
             periodeTil = faktura.getPeriodeTil(),
             bestilteFaktura = faktura,
-            opprinneligFaktura = fakturaService.hentFørstePositiveFaktura(faktura),
+            opprinneligFaktura = faktura.hentFørstePositiveFaktura(),
             tidligereBeløp = faktura.totalbeløp(),
             nyttBeløp = nyttBeløp,
         )
