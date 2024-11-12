@@ -268,7 +268,7 @@ class AvregningBehandlerTest {
             }
 
 
-        avregningFakturaerFørsteGang.forEach{
+        avregningFakturaerFørsteGang.forEach {
             it.status = BESTILT
         }
 
@@ -334,7 +334,7 @@ class AvregningBehandlerTest {
                 totalbeløp().shouldBe(BigDecimal("-1470.00"))
             }
 
-        avregningFakturaerFørsteGang.forEach{
+        avregningFakturaerFørsteGang.forEach {
             it.status = BESTILT
         }
 
@@ -404,7 +404,7 @@ class AvregningBehandlerTest {
                 totalbeløp().shouldBe(BigDecimal("-3000.00"))
             }
 
-        avregningFakturaerFørsteGang.forEach{
+        avregningFakturaerFørsteGang.forEach {
             it.status = BESTILT
         }
 
@@ -905,7 +905,12 @@ class AvregningBehandlerTest {
 
         val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeSomSkalAvregnes,
-            listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal, faktura2024FjerdeKvartal)
+            listOf(
+                faktura2024FørsteKvartal,
+                faktura2024AndreKvartal,
+                faktura2024TredjeKvartal,
+                faktura2024FjerdeKvartal
+            )
         )
 
         avregningFakturaerFørsteGang
@@ -952,7 +957,12 @@ class AvregningBehandlerTest {
 
         val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeAndreGang,
-            listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2], avregningFakturaerFørsteGang[3])
+            listOf(
+                avregningFakturaerFørsteGang[0],
+                avregningFakturaerFørsteGang[1],
+                avregningFakturaerFørsteGang[2],
+                avregningFakturaerFørsteGang[3]
+            )
         )
 
         avregningFakturaerAndreGang
@@ -1122,7 +1132,12 @@ class AvregningBehandlerTest {
 
         val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeSomSkalAvregnes,
-            listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal, faktura2024FjerdeKvartal)
+            listOf(
+                faktura2024FørsteKvartal,
+                faktura2024AndreKvartal,
+                faktura2024TredjeKvartal,
+                faktura2024FjerdeKvartal
+            )
         )
 
         avregningFakturaerFørsteGang
@@ -1187,7 +1202,12 @@ class AvregningBehandlerTest {
 
         val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeAndreGang,
-            listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2], avregningFakturaerFørsteGang[3])
+            listOf(
+                avregningFakturaerFørsteGang[0],
+                avregningFakturaerFørsteGang[1],
+                avregningFakturaerFørsteGang[2],
+                avregningFakturaerFørsteGang[3]
+            )
         )
 
         avregningFakturaerAndreGang
@@ -1371,7 +1391,12 @@ class AvregningBehandlerTest {
 
         val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeSomSkalAvregnes,
-            listOf(faktura2024FørsteKvartal, faktura2024AndreKvartal, faktura2024TredjeKvartal, faktura2024FjerdeKvartal)
+            listOf(
+                faktura2024FørsteKvartal,
+                faktura2024AndreKvartal,
+                faktura2024TredjeKvartal,
+                faktura2024FjerdeKvartal
+            )
         )
 
         avregningFakturaerFørsteGang
@@ -1430,7 +1455,12 @@ class AvregningBehandlerTest {
 
         val avregningFakturaerAndreGang = avregningBehandler.lagAvregningsfakturaer(
             nyPeriodeAndreGang,
-            listOf(avregningFakturaerFørsteGang[0], avregningFakturaerFørsteGang[1], avregningFakturaerFørsteGang[2], avregningFakturaerFørsteGang[3])
+            listOf(
+                avregningFakturaerFørsteGang[0],
+                avregningFakturaerFørsteGang[1],
+                avregningFakturaerFørsteGang[2],
+                avregningFakturaerFørsteGang[3]
+            )
         )
 
         avregningFakturaerAndreGang

@@ -1,8 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
@@ -10,6 +9,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
 import java.math.BigDecimal
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
 
@@ -143,6 +143,75 @@ class FakturaserieService(
 
         fakturaBestillingService.bestillKreditnota(krediteringFakturaserie)
         return krediteringFakturaserie.referanse
+    }
+
+    @Transactional
+    fun lagNyFaktura(fakturaDto: FakturaDto): String {
+        val tidligereFakturaserie =
+            fakturaserieRepository.findByReferanse(fakturaDto.tidligereFakturaserieReferanse)
+                ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${fakturaDto.tidligereFakturaserieReferanse}")
+
+        require(
+            tidligereFakturaserie.status !in setOf(
+                FakturaserieStatus.ERSTATTET,
+                FakturaserieStatus.KANSELLERT
+            )
+        ) { "Tidligere fakturaserie med ref ${tidligereFakturaserie.referanse} er i feil status: ${tidligereFakturaserie.status}" }
+
+        val krediteringFakturaRef = hentKrediteringFakturaRef(tidligereFakturaserie, fakturaDto)
+
+        return Fakturaserie(
+            id = null,
+            referanse = fakturaDto.referanse,
+            fakturaGjelderInnbetalingstype = fakturaDto.fakturaGjelderInnbetalingstype,
+            fodselsnummer = fakturaDto.fodselsnummer,
+            fullmektig = fakturaDto.fullmektig,
+            referanseBruker = fakturaDto.referanseBruker,
+            referanseNAV = fakturaDto.referanseNAV,
+            startdato = fakturaDto.startDato,
+            sluttdato = fakturaDto.sluttDato,
+            intervall = FakturaserieIntervall.SINGEL,
+            faktura = listOf(
+                Faktura(
+                    referanseNr = ULID.randomULID(),
+                    datoBestilt = LocalDate.now(),
+                    krediteringFakturaRef = krediteringFakturaRef,
+                    fakturaLinje = listOf(
+                        FakturaLinje(
+                            periodeFra = fakturaDto.startDato,
+                            periodeTil = fakturaDto.sluttDato,
+                            belop = fakturaDto.belop,
+                            antall = BigDecimal.ONE,
+                            beskrivelse = fakturaDto.beskrivelse,
+                            enhetsprisPerManed = BigDecimal.ZERO
+                        )
+                    )
+                )
+            )
+        ).also {
+            fakturaserieRepository.save(it)
+            log.info("Lagret fakturaserie: $it")
+        }.referanse
+    }
+
+    /**
+     *  Hvis forrige fakturaserie var SINGEL(årsavregning) så tar vi krediteringFakturaRef som den igjen hentet fra sin
+     *  forrige fakturaserie. Denne må være en positiv faktura, ellers fungerer ikke OEBS. Siden alle årsavregninger potensielt
+     *  kan være negative så må vi opprinnelig hente fra fakturaserie som hører til et trygdeavgiftsvedtak.
+     */
+    private fun hentKrediteringFakturaRef(
+        fakturaserie: Fakturaserie,
+        fakturaDto: FakturaDto
+    ): String {
+        val krediteringFakturaRef = if (fakturaserie.intervall == FakturaserieIntervall.SINGEL) {
+            fakturaserie.faktura.single().krediteringFakturaRef
+        } else {
+            val faktura = fakturaserie.faktura.filter { it.overlapperMedÅr(fakturaDto.startDato.year) }
+                .sortedBy { faktura: Faktura -> faktura.fakturaLinje.first().periodeFra }
+                .first()
+            faktura.hentFørstePositiveFaktura().referanseNr
+        }
+        return krediteringFakturaRef
     }
 
 }
