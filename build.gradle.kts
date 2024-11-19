@@ -33,7 +33,7 @@ tasks.test {
 }
 
 object dependencyVersions {
-    const val testContainerVersion = "1.17.6"
+    const val testContainerVersion = "1.20.3"
     const val kotestVersion = "5.5.4"
     const val shedlockVersion = "4.4.0"
     const val shedlockProvicerJdbcVersion = "4.43.0"
