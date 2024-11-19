@@ -41,7 +41,7 @@ object dependencyVersions {
     const val openapiVersion = "1.6.14"
     const val springdocOpenapiStarter = "2.0.2"
     const val logstashLogbackEncoder = "7.2"
-    const val tokenSupportVersion = "3.0.2"
+    const val tokenSupportVersion = "3.2.0"
     const val awaitabilityVersion = "4.2.0"
     const val kotlinLogging = "3.0.5"
     const val archUnitVersion = "1.0.1"
