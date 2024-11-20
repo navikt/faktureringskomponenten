@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     val kotlinVersion = "1.9.10"
 
-    id("org.springframework.boot") version "3.1.2"
+    id("org.springframework.boot") version "3.3.5"
     id("io.spring.dependency-management") version "1.1.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
@@ -33,7 +33,7 @@ tasks.test {
 }
 
 object dependencyVersions {
-    const val testContainerVersion = "1.17.6"
+    const val testContainerVersion = "1.20.3"
     const val kotestVersion = "5.5.4"
     const val shedlockVersion = "4.4.0"
     const val shedlockProvicerJdbcVersion = "4.43.0"
@@ -41,7 +41,7 @@ object dependencyVersions {
     const val openapiVersion = "1.6.14"
     const val springdocOpenapiStarter = "2.0.2"
     const val logstashLogbackEncoder = "7.2"
-    const val tokenSupportVersion = "3.0.2"
+    const val tokenSupportVersion = "3.2.0"
     const val awaitabilityVersion = "4.2.0"
     const val kotlinLogging = "3.0.5"
     const val archUnitVersion = "1.0.1"
@@ -54,6 +54,7 @@ object dependencyVersions {
 
 dependencies {
     runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
     implementation("org.springdoc:springdoc-openapi-kotlin:${dependencyVersions.openapiVersion}")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${dependencyVersions.springdocOpenapiStarter}")
     implementation("org.springdoc:springdoc-openapi-starter-common:${dependencyVersions.springdocOpenapiStarter}")
