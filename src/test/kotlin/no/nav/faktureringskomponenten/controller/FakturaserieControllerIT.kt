@@ -1,9 +1,5 @@
 package no.nav.faktureringskomponenten.controller
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.nimbusds.jose.JOSEObjectType
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.booleans.shouldBeTrue
@@ -129,7 +125,6 @@ class FakturaserieControllerIT(
      * | s2           |   2000  |   3000         | 01.02.24 - 30.06.24 |
      *
      */
-
     @Test
     fun `erstatter opprinnelig fakturaserie med bestilt faktura med en ny fakturaserie med tidligere startdato`() {
         mockkStatic(LocalDate::class)
@@ -147,7 +142,7 @@ class FakturaserieControllerIT(
                     startDatoOpprinnelig,
                     sluttDatoOpprinnelig,
                     "Inntekt fra utlandet"
-                ),
+                )
             )
         )
 
@@ -178,49 +173,40 @@ class FakturaserieControllerIT(
         val nyFakturaserie =
             fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
 
-        val oppdatertOpprinneligFakturaserie =
-            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
+        fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse).shouldNotBeNull().run {
+            erstattetMed.shouldNotBeNull()
+                .id shouldBe nyFakturaserie.id
 
-        oppdatertOpprinneligFakturaserie.shouldNotBeNull()
-            .erstattetMed.shouldNotBeNull()
-            .id shouldBe nyFakturaserie.id
-
-        oppdatertOpprinneligFakturaserie.status shouldBe FakturaserieStatus.ERSTATTET
-        oppdatertOpprinneligFakturaserie.faktura.forEach {
-            it.status.shouldBe(FakturaStatus.BESTILT)
-        }
-
-        nyFakturaserie.shouldNotBeNull().status shouldBe FakturaserieStatus.UNDER_BESTILLING
-        nyFakturaserie.faktura.sortedBy { it.id }
-            .shouldHaveSize(2)
-            .run {
-                first().run {
-                    val fakturaEagerly = fakturaRepositoryForTesting.findByIdEagerly(id!!)
-                    fakturaEagerly!!.status shouldBe FakturaStatus.BESTILT
-                    fakturaEagerly.fakturaLinje[0].run {
-                        periodeFra shouldBe LocalDate.of(2024, 2, 1)
-                        belop shouldBe BigDecimal(2000)
-                    }
-                }
-                last().run {
-                    val fakturaEagerly = fakturaRepositoryForTesting.findByIdEagerly(id!!)
-                    fakturaEagerly!!.status shouldBe FakturaStatus.BESTILT
-                    fakturaEagerly.fakturaLinje[0].run {
-                        periodeFra shouldBe LocalDate.of(2024, 4, 1)
-                        belop shouldBe BigDecimal(3000)
-                    }
-                }
+            status shouldBe FakturaserieStatus.ERSTATTET
+            faktura.forEach { faktura ->
+                faktura.status.shouldBe(FakturaStatus.BESTILT)
             }
-    }
-
-    private val Any.toJsonNode: JsonNode
-        get() {
-            return jacksonObjectMapper()
-                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-                .registerModule(JavaTimeModule())
-                .valueToTree(this)
         }
 
+        nyFakturaserie.run {
+            status shouldBe FakturaserieStatus.UNDER_BESTILLING
+            faktura.sortedBy { it.id }
+                .shouldHaveSize(2)
+                .map { id.shouldNotBeNull() }
+                .map { fakturaRepositoryForTesting.findByIdEagerly(it).shouldNotBeNull() }
+                .run {
+                    first().run {
+                        status shouldBe FakturaStatus.BESTILT
+                        fakturaLinje.single().run {
+                            periodeFra shouldBe LocalDate.of(2024, 2, 1)
+                            belop shouldBe BigDecimal(2000)
+                        }
+                    }
+                    last().run {
+                        status shouldBe FakturaStatus.BESTILT
+                        fakturaLinje.single().run {
+                            periodeFra shouldBe LocalDate.of(2024, 4, 1)
+                            belop shouldBe BigDecimal(3000)
+                        }
+                    }
+                }
+        }
+    }
 
     @Test
     fun `erstatt fakturaserie, første faktura er Bestilt, erstatter opprinnelig og lager ny`() {
@@ -736,17 +722,6 @@ class FakturaserieControllerIT(
             .accept(MediaType.APPLICATION_JSON)
             .header("Nav-User-Id", NAV_IDENT)
             .bodyValue(fakturaserieRequestDto)
-            .headers {
-                it.set(HttpHeaders.CONTENT_TYPE, "application/json")
-                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
-            }
-            .exchange()
-
-    private fun getFakturaserieRequest(fakturaserieReferanse: String): WebTestClient.ResponseSpec =
-        webClient.get()
-            .uri("/fakturaserier/$fakturaserieReferanse")
-            .accept(MediaType.APPLICATION_JSON)
-            .header("Nav-User-Id", NAV_IDENT)
             .headers {
                 it.set(HttpHeaders.CONTENT_TYPE, "application/json")
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
