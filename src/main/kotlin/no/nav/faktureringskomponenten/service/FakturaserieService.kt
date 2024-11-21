@@ -45,7 +45,7 @@ class FakturaserieService(
             fakturaserieRepository.findAllByFodselsnummer(fakturaserie.fodselsnummer)
                 .filter { it.erAktiv() }
         if (listeAvAktiveFakturaserierForFodselsnummer.size > 1) {
-            log.error("Det finnes flere aktive fakturaserier for fødselsnummer av fakturaserie ${fakturaserie.referanse}")
+            log.warn("Det finnes flere aktive fakturaserier for fødselsnummer av fakturaserie ${fakturaserie.referanse}")
         }
         return fakturaserie.referanse
     }
