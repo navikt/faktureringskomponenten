@@ -7,6 +7,7 @@ import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.threeten.extra.LocalDateRange
 import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -19,6 +20,7 @@ class FakturaserieService(
     private val fakturaserieGenerator: FakturaserieGenerator,
     private val avregningBehandler: AvregningBehandler,
     private val fakturaBestillingService: FakturaBestillingService,
+    private val fakturaGenerator: FakturaGenerator
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -60,13 +62,24 @@ class FakturaserieService(
 
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes" }
 
+        val avregningsfaktura = avregningBehandler.lagAvregningsfakturaer(
+            fakturaserieDto.perioder,
+            opprinneligFakturaserie.bestilteFakturaer()
+        )
+        val fakturerbarePerioder = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
+
+        val nyeFakturaPerioder = fakturerbarePerioder.filter { faktuerbarPeriode ->
+            avregningsfaktura.none { faktuerbarPeriode.overlaps(LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil())) }
+        }
+        val nyFaktura: List<Faktura> = nyeFakturaPerioder.map {
+            val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.of(periode.startDato, periode.sluttDato).overlaps(it) }
+            fakturaGenerator.lagFaktura(it.start, it.end, perioder)
+        }
+
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
             fakturaserieDto,
             finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
-            avregningBehandler.lagAvregningsfakturaer(
-                fakturaserieDto.perioder,
-                opprinneligFakturaserie.bestilteFakturaer()
-            )
+            avregningsfaktura + nyFaktura
         )
 
 
