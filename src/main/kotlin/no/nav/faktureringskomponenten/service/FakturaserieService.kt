@@ -34,6 +34,7 @@ class FakturaserieService(
     @Transactional
     fun lagNyFakturaserie(fakturaserieDto: FakturaserieDto, forrigeReferanse: String? = null): String {
         if (!forrigeReferanse.isNullOrEmpty()) {
+            log.debug { "Erstatter fakturaserie: $forrigeReferanse" }
             return erstattFakturaserie(forrigeReferanse, fakturaserieDto)
         }
 
@@ -67,6 +68,8 @@ class FakturaserieService(
                 opprinneligFakturaserie.bestilteFakturaer()
             )
         )
+
+
         fakturaserieRepository.save(nyFakturaserie)
 
         opprinneligFakturaserie.erstattMed(nyFakturaserie)

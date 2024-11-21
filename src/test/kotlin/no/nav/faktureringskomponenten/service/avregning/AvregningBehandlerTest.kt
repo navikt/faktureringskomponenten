@@ -220,6 +220,170 @@ class AvregningBehandlerTest {
     }
 
     /**
+     *
+     * | Fakturaserie | q1    | q2    | q3    | q4 | Medlemskapsperiode  |
+     * |--------------|-------|-------|-------|----|---------------------|
+     * | s1           |       | 3000  |       |    | 01.04.24 - 30.06.24 |
+     * | s2           | 2000  | 0     |       |    | 01.02.24 - 30.06.24 |
+     *
+     */
+    @Test
+    fun `lagAvregningsfakturaer gjør det riktig`() {
+        val faktura2024AndreKvartal = Faktura(
+            id = 1,
+            datoBestilt = LocalDate.of(2023, 3, 19),
+            status = BESTILT,
+            eksternFakturaNummer = "123",
+            fakturaLinje = listOf(
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 4, 1),
+                    periodeTil = LocalDate.of(2024, 6, 30),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(1000),
+                    belop = BigDecimal("3000.00"),
+                )
+            )
+        )
+
+
+        val nyPeriode = listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 2, 15),
+                sluttDato = LocalDate.of(2024, 6, 30),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+        )
+
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
+            nyPeriode,
+            listOf(faktura2024AndreKvartal)
+        )
+
+        avregningFakturaerFørsteGang
+            .shouldHaveSize(2)
+            .filter { it.erAvregningsfaktura() }
+            .run {
+                shouldHaveSize(2)
+                sortedBy { it.getPeriodeFra() }
+                get(0).totalbeløp().shouldBe(BigDecimal("2000.00"))
+                get(1).totalbeløp().shouldBe(BigDecimal("0.00"))
+            }
+    }
+
+
+    /**
+     *
+     * | Fakturaserie | q1    | q2    | q3    | q4 | Medlemskapsperiode  |
+     * |--------------|-------|-------|-------|----|---------------------|
+     * | s1           |       | 3000  |       |    | 01.04.24 - 30.06.24 |
+     * | s2           |       | -3000 | 1000  |    | 01.07.24 - 31.07.24 |
+     *
+     */
+    @Test
+    fun `lagAvregningsfakturaer gjør det riktig sluttdato`() {
+        val faktura2024AndreKvartal = Faktura(
+            id = 1,
+            datoBestilt = LocalDate.of(2023, 3, 19),
+            status = BESTILT,
+            eksternFakturaNummer = "123",
+            fakturaLinje = listOf(
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 4, 1),
+                    periodeTil = LocalDate.of(2024, 6, 30),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(1000),
+                    belop = BigDecimal("3000.00"),
+                )
+            )
+        )
+
+
+        val nyPeriode = listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 7, 1),
+                sluttDato = LocalDate.of(2024, 7, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+        )
+
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
+            nyPeriode,
+            listOf(faktura2024AndreKvartal)
+        )
+
+        avregningFakturaerFørsteGang
+            .shouldHaveSize(2)
+            .filter { it.erAvregningsfaktura() }
+            .run {
+                shouldHaveSize(2)
+                sortedBy { it.getPeriodeFra() }
+                get(0).totalbeløp().shouldBe(BigDecimal("-3000.00"))
+                get(1).totalbeløp().shouldBe(BigDecimal("1000.00"))
+            }
+    }
+
+    /**
+     *
+     * | Fakturaserie | q1    | q2    | q3    | q4 | Medlemskapsperiode  |
+     * |--------------|-------|-------|-------|----|---------------------|
+     * | s1           |       | 3000  |       |    | 01.04.24 - 30.06.24 |
+     * | s2           |       | 0     | 1000  |    | 01.04.24 - 31.07.25 |
+     *
+     */
+    @Test
+    fun `lagAvregningsfakturaer gjør det riktig sluttdato men samme startdato`() {
+        val faktura2024AndreKvartal = Faktura(
+            id = 1,
+            datoBestilt = LocalDate.of(2023, 3, 19),
+            status = BESTILT,
+            eksternFakturaNummer = "123",
+            fakturaLinje = listOf(
+                FakturaLinje(
+                    id = 1,
+                    periodeFra = LocalDate.of(2024, 4, 1),
+                    periodeTil = LocalDate.of(2024, 6, 30),
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
+                    antall = BigDecimal(3),
+                    enhetsprisPerManed = BigDecimal(1000),
+                    belop = BigDecimal("3000.00"),
+                )
+            )
+        )
+
+
+        val nyPeriode = listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 4, 1),
+                sluttDato = LocalDate.of(2024, 7, 31),
+                enhetsprisPerManed = BigDecimal.valueOf(1000),
+                beskrivelse = "Dekning: Pensjon og helsedel, Sats 10%"
+            ),
+        )
+
+        val avregningFakturaerFørsteGang = avregningBehandler.lagAvregningsfakturaer(
+            nyPeriode,
+            listOf(faktura2024AndreKvartal)
+        )
+
+        avregningFakturaerFørsteGang
+            .shouldHaveSize(2)
+            .filter { it.erAvregningsfaktura() }
+            .run {
+                shouldHaveSize(2)
+                sortedBy { it.getPeriodeFra() }
+                get(0).totalbeløp().shouldBe(BigDecimal("0.00"))
+                get(1).totalbeløp().shouldBe(BigDecimal("1000.00"))
+            }
+    }
+
+
+    /**
      * | Fakturaserie | 2023 q3 | 2024 q1        | Medlemskapsperiode  |
      * |--------------|---------|----------------|---------------------|
      * | s1           | 3000    | (ikke bestilt) | 01.10.23 - 31.03.24 |
@@ -263,9 +427,7 @@ class AvregningBehandlerTest {
 
         avregningFakturaerFørsteGang
             .single { it.erAvregningsfaktura() }
-            .run {
-                totalbeløp().shouldBe(BigDecimal("-3000.00"))
-            }
+            .totalbeløp().shouldBe(BigDecimal("-3000.00"))
 
 
         avregningFakturaerFørsteGang.forEach {
