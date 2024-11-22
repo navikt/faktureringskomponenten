@@ -32,7 +32,7 @@ object PeriodiseringUtil {
                             intervall
                         )
                 }
-        }
+        }.distinct()
     }
 
     private fun YearMonth.toDateRange(
