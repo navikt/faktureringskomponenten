@@ -133,8 +133,6 @@ class FakturaserieControllerIT(
 
         val startDatoOpprinnelig = LocalDate.of(2024, 4, 1)
         val sluttDatoOpprinnelig = LocalDate.of(2024, 6, 30)
-        val startDatoNy = LocalDate.of(2024, 2, 1)
-        val sluttDatoNy = LocalDate.of(2024, 6, 30)
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
@@ -162,6 +160,8 @@ class FakturaserieControllerIT(
             .faktura.single().status.shouldBe(FakturaStatus.BESTILT)
 
         // Ny vurdering starter med periode 2024 q1 inkludert
+        val startDatoNy = LocalDate.of(2024, 2, 1)
+        val sluttDatoNy = LocalDate.of(2024, 6, 30)
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(BigDecimal(1000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
