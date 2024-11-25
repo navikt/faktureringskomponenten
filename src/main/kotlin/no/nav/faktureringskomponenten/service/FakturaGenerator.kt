@@ -19,6 +19,7 @@ class FakturaGenerator(
     private val unleash: Unleash,
     @Value("\${faktura.forste-faktura-offsett-dager}") private val forsteFakturaOffsettMedDager: Long
 ) {
+    // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
     fun lagFaktura(
         startDato: LocalDate,
         sluttDato: LocalDate,

@@ -65,6 +65,7 @@ class FakturaserieService(
             fakturaserieDto.perioder,
             opprinneligFakturaserie.bestilteFakturaer()
         )
+        // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
         val fakturerbarePerioder = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
 
         val nyeFakturaPerioder = fakturerbarePerioder.filter { faktuerbarPeriode ->
