@@ -1,7 +1,10 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.Unleash
-import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import ulid.ULID
@@ -16,6 +19,16 @@ class FakturaGenerator(
     private val unleash: Unleash,
     @Value("\${faktura.forste-faktura-offsett-dager}") private val forsteFakturaOffsettMedDager: Long
 ) {
+    // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
+    fun lagFaktura(
+        startDato: LocalDate,
+        sluttDato: LocalDate,
+        fakturaseriePerioder: List<FakturaseriePeriode>
+    ): Faktura {
+        val fakturaLinjer = lagFakturaLinjerForPeriode(startDato, sluttDato, fakturaseriePerioder, sluttDato)
+
+        return tilFaktura(startDato, fakturaLinjer)
+    }
 
     fun lagFakturaerFor(
         startDatoForHelePerioden: LocalDate,
