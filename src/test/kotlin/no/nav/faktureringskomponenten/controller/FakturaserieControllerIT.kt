@@ -219,12 +219,12 @@ class FakturaserieControllerIT(
     /**
      * | Fakturaserie | 2024 q1 | 2024 q2        | Medlemskapsperiode  |
      * |--------------|---------|----------------|---------------------|
-     * | s1           |  3000   |                | 01.01.24 - 30.06.24 |
-     * | s2           | -3000   |   3000         | 01.02.24 - 30.06.24 |
+     * | s1           |  3000   |                | 01.01.24 - 30.03.31 |
+     * | s2           | -3000   |   3000         | 01.04.24 - 30.06.24 |
      *
      */
     @Test
-    fun `erstatter opprinnelig fakturaserie med bestilt faktura med en ny fakturaserie med tidligere startdato - beløp blir riktig`() {
+    fun `flytter medlemskapsperiode fra a1 til q2`() {
         mockkStatic(LocalDate::class)
         // seter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
         every { LocalDate.now() } returns LocalDate.of(2024, 3, 19)
