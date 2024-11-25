@@ -226,12 +226,11 @@ class FakturaserieControllerIT(
     @Test
     fun `erstatter opprinnelig fakturaserie med bestilt faktura med en ny fakturaserie med tidligere startdato - beløp blir riktig`() {
         mockkStatic(LocalDate::class)
+        // seter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
         every { LocalDate.now() } returns LocalDate.of(2024, 3, 19)
 
         val startDatoOpprinnelig = LocalDate.of(2024, 1, 1)
         val sluttDatoOpprinnelig = LocalDate.of(2024, 3, 31)
-        val startDatoNy = LocalDate.of(2024, 4, 1)
-        val sluttDatoNy = LocalDate.of(2024, 6, 30)
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
@@ -251,6 +250,7 @@ class FakturaserieControllerIT(
 
         fakturaBestillCronjob.bestillFaktura()
 
+        // seter en dato som gir mening i forhold til hva LocalDate.now() var når ny vurdering fører til ny fakturaserie
         every { LocalDate.now() } returns LocalDate.of(2024, 6, 19)
 
         fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
@@ -258,6 +258,8 @@ class FakturaserieControllerIT(
             .faktura.single().status.shouldBe(FakturaStatus.BESTILT)
 
         // Ny vurdering starter med periode 2024 q1 inkludert
+        val startDatoNy = LocalDate.of(2024, 4, 1)
+        val sluttDatoNy = LocalDate.of(2024, 6, 30)
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto(BigDecimal(1000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
@@ -273,14 +275,18 @@ class FakturaserieControllerIT(
         val nyFakturaserie =
             fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
 
-        fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse).shouldNotBeNull().run {
+        val opprinneligFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse).shouldNotBeNull()
+
+        opprinneligFakturaserie.run {
             erstattetMed.shouldNotBeNull()
                 .id shouldBe nyFakturaserie.id
 
             status shouldBe FakturaserieStatus.ERSTATTET
-            faktura.forEach { faktura ->
-                faktura.status.shouldBe(FakturaStatus.BESTILT)
-            }
+
+            faktura.shouldHaveSize(1)
+                .single()
+                .status shouldBe FakturaStatus.BESTILT
         }
 
         nyFakturaserie.run {
