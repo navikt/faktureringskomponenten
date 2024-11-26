@@ -216,6 +216,94 @@ class FakturaserieControllerIT(
         }
     }
 
+    @Test
+    fun `Minas case`() {
+        mockkStatic(LocalDate::class)
+        // Setter en dato som skal gi umiddelbar fakturering
+        every { LocalDate.now() } returns LocalDate.of(2025, 1, 23)
+
+        val startDatoOpprinnelig = LocalDate.of(2024, 6, 1)
+        val sluttDatoOpprinnelig = LocalDate.of(2024, 9, 1)
+
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(1000),
+                    startDatoOpprinnelig,
+                    sluttDatoOpprinnelig,
+                    "Inntekt fra utlandet"
+                )
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(
+                NyFakturaserieResponseDto::class.java
+            ).returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
+            .shouldNotBeNull()
+            .faktura.single().status.shouldBe(FakturaStatus.BESTILT)
+
+        // Ny vurdering starter med periode 2024 q1 inkludert
+        val startDatoNy = LocalDate.of(2024, 5, 1)
+        val sluttDatoNy = LocalDate.of(2024, 9, 1)
+        val nyFakturaserieDto = lagFakturaserieDto(
+            referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(1000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
+            )
+        )
+
+        val nyFakturaserieReferanse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(
+            NyFakturaserieResponseDto::class.java
+        ).returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        val nyFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
+
+        val opprinneligFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse).shouldNotBeNull()
+
+        opprinneligFakturaserie.run {
+            erstattetMed.shouldNotBeNull()
+                .id shouldBe nyFakturaserie.id
+
+            status shouldBe FakturaserieStatus.ERSTATTET
+
+            faktura.shouldHaveSize(1)
+                .single()
+                .status shouldBe FakturaStatus.BESTILT
+        }
+
+        nyFakturaserie.run {
+            status shouldBe FakturaserieStatus.OPPRETTET // hvorfor ikke UNDER_BESTILLING?!!
+            faktura.sortedByDescending { it.id }
+                .shouldHaveSize(2) // manglende en faktura, skal være 2
+                .map { it.id.shouldNotBeNull() }
+                .map { fakturaRepositoryForTesting.findByIdEagerly(it).shouldNotBeNull() }
+                .run {
+                    first().run {
+                        status shouldBe FakturaStatus.BESTILT
+                        fakturaLinje.single().run {
+                            periodeFra shouldBe LocalDate.of(2024, 2, 1)
+                            belop.toString() shouldBe "2000.00"
+                        }
+                    }
+                    last().run {
+                        status shouldBe FakturaStatus.BESTILT
+                        fakturaLinje.single().run {
+                            periodeFra shouldBe LocalDate.of(2024, 4, 1)
+                            belop.toString() shouldBe "0.00"
+                        }
+                    }
+                }
+        }
+    }
+
     /**
      * | Fakturaserie | 2024 q1 | 2024 q2        | Medlemskapsperiode  |
      * |--------------|---------|----------------|---------------------|
