@@ -61,17 +61,17 @@ class FakturaserieService(
 
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes" }
 
-        val avregningsfaktura = avregningBehandler.lagAvregningsfakturaer(
+        val avregningsfakturaer = avregningBehandler.lagAvregningsfakturaer(
             fakturaserieDto.perioder,
             opprinneligFakturaserie.bestilteFakturaer()
         )
         // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
         val fakturerbarePerioder = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
 
-        val nyeFakturaPerioder = fakturerbarePerioder.filter { faktuerbarPeriode ->
-            avregningsfaktura.none { faktuerbarPeriode.overlaps(LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil())) }
+        val nyeFakturaPerioder = fakturerbarePerioder.filter { periode ->
+            avregningsfakturaer.none { periode.overlaps(LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil())) }
         }
-        val nyFaktura: List<Faktura> = nyeFakturaPerioder.map {
+        val nyeFakturaerForNyePerioder: List<Faktura> = nyeFakturaPerioder.map {
             val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.of(periode.startDato, periode.sluttDato).overlaps(it) }
             fakturaGenerator.lagFaktura(it.start, it.end, perioder)
         }
@@ -79,7 +79,7 @@ class FakturaserieService(
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
             fakturaserieDto,
             finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
-            avregningsfaktura + nyFaktura
+            avregningsfakturaer + nyeFakturaerForNyePerioder
         )
         fakturaserieRepository.save(nyFakturaserie)
 
