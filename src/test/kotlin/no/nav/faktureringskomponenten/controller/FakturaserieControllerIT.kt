@@ -128,7 +128,7 @@ class FakturaserieControllerIT(
     @Test
     fun `erstatter opprinnelig fakturaserie med bestilt faktura med en ny fakturaserie med tidligere startdato`() {
         mockkStatic(LocalDate::class)
-        // seter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
+        // setter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
         every { LocalDate.now() } returns LocalDate.of(2024, 3, 19)
 
         val startDatoOpprinnelig = LocalDate.of(2024, 4, 1)
@@ -152,7 +152,7 @@ class FakturaserieControllerIT(
 
         fakturaBestillCronjob.bestillFaktura()
 
-        // seter en dato som gir mening i forhold til hva LocalDate.now() var når ny vurdering fører til ny fakturaserie
+        // setter en dato som gir mening i forhold til hva LocalDate.now() var når ny vurdering fører til ny fakturaserie
         every { LocalDate.now() } returns LocalDate.of(2024, 6, 19)
 
         fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
@@ -321,7 +321,7 @@ class FakturaserieControllerIT(
     @Test
     fun `flytter medlemskapsperiode fra q1 til q2`() {
         mockkStatic(LocalDate::class)
-        // seter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
+        // setter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
         every { LocalDate.now() } returns LocalDate.of(2024, 3, 19)
 
         val startDatoOpprinnelig = LocalDate.of(2024, 1, 1)
@@ -345,7 +345,7 @@ class FakturaserieControllerIT(
 
         fakturaBestillCronjob.bestillFaktura()
 
-        // seter en dato som gir mening i forhold til hva LocalDate.now() var når ny vurdering fører til ny fakturaserie
+        // setter en dato som gir mening i forhold til hva LocalDate.now() var når ny vurdering fører til ny fakturaserie
         every { LocalDate.now() } returns LocalDate.of(2024, 6, 19)
 
         fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
