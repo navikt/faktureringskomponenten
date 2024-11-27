@@ -122,7 +122,7 @@ class FakturaserieControllerIT(
      * | Fakturaserie | 2024 q1 | 2024 q2        | Medlemskapsperiode  |
      * |--------------|---------|----------------|---------------------|
      * | s1           |         |   3000         | 01.04.24 - 30.06.24 |
-     * | s2           |   2000  |   3000         | 01.02.24 - 30.06.24 |
+     * | s2           |   2000  |      0         | 01.02.24 - 30.06.24 |
      *
      */
     @Test
@@ -216,6 +216,12 @@ class FakturaserieControllerIT(
         }
     }
 
+    /**
+     * | Fakturaserie | 2024 q2 | 2024 q2        | Medlemskapsperiode  |
+     * |--------------|---------|----------------|---------------------|
+     * | s1           |  1000   |   2000~        | 01.06.24 - 01.09.24 |
+     * | s2           |  1000   |      0         | 01.05.24 - 01.09.24 |
+     */
     @Test
     fun `Minas case`() {
         mockkStatic(LocalDate::class)
@@ -247,7 +253,7 @@ class FakturaserieControllerIT(
             .shouldNotBeNull()
             .faktura.single().status.shouldBe(FakturaStatus.BESTILT)
 
-        // Ny vurdering starter med periode 2024 q1 inkludert
+        // Ny vurdering starter en måned tidligere
         val startDatoNy = LocalDate.of(2024, 5, 1)
         val sluttDatoNy = LocalDate.of(2024, 9, 1)
         val nyFakturaserieDto = lagFakturaserieDto(
@@ -280,23 +286,24 @@ class FakturaserieControllerIT(
         }
 
         nyFakturaserie.run {
-            status shouldBe FakturaserieStatus.OPPRETTET // hvorfor ikke UNDER_BESTILLING?!!
+            status shouldBe FakturaserieStatus.UNDER_BESTILLING
             faktura.sortedByDescending { it.id }
-                .shouldHaveSize(2) // manglende en faktura, skal være 2
+                .shouldHaveSize(2)
                 .map { it.id.shouldNotBeNull() }
                 .map { fakturaRepositoryForTesting.findByIdEagerly(it).shouldNotBeNull() }
                 .run {
                     first().run {
                         status shouldBe FakturaStatus.BESTILT
                         fakturaLinje.single().run {
-                            periodeFra shouldBe LocalDate.of(2024, 2, 1)
-                            belop.toString() shouldBe "2000.00"
+                            periodeFra shouldBe LocalDate.of(2024, 5, 1)
+                            periodeTil shouldBe LocalDate.of(2024, 5, 31)
+                            belop.toString() shouldBe "1000.00"
                         }
                     }
                     last().run {
                         status shouldBe FakturaStatus.BESTILT
                         fakturaLinje.single().run {
-                            periodeFra shouldBe LocalDate.of(2024, 4, 1)
+                            periodeFra shouldBe LocalDate.of(2024, 6, 1)
                             belop.toString() shouldBe "0.00"
                         }
                     }
