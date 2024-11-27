@@ -70,8 +70,9 @@ class FakturaserieService(
         val fakturerbarePerioderPerIntervall = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
 
         val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.flatMap { periode ->
-            if (avregningsfakturaer.none { periode.overlaps(LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil())) }) listOf(periode)
-            else avregningsfakturaer.map { LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil()) }.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
+            val avregningsperioder = avregningsfakturaer.map { LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil()) }
+            if (avregningsperioder.none { it.overlaps(periode) }) listOf(periode)
+            else avregningsperioder.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
         }
         val nyeFakturaerForNyePerioder: List<Faktura> = nyeFakturaPerioder.map {
             val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.of(periode.startDato, periode.sluttDato).overlaps(it) }
