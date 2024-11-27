@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.service.PeriodiseringUtil.substract
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -68,8 +69,9 @@ class FakturaserieService(
         // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
         val fakturerbarePerioderPerIntervall = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
 
-        val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.filter { periode ->
-            avregningsfakturaer.none { periode.overlaps(LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil())) }
+        val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.flatMap { periode ->
+            if (avregningsfakturaer.none { periode.overlaps(LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil())) }) listOf(periode)
+            else avregningsfakturaer.map { LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil()) }.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
         }
         val nyeFakturaerForNyePerioder: List<Faktura> = nyeFakturaPerioder.map {
             val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.of(periode.startDato, periode.sluttDato).overlaps(it) }
