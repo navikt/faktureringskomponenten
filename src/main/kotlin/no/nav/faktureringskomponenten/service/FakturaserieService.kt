@@ -66,9 +66,9 @@ class FakturaserieService(
             opprinneligFakturaserie.bestilteFakturaer()
         )
         // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
-        val fakturerbarePerioder = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
+        val fakturerbarePerioderPerIntervall = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
 
-        val nyeFakturaPerioder = fakturerbarePerioder.filter { periode ->
+        val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.filter { periode ->
             avregningsfakturaer.none { periode.overlaps(LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil())) }
         }
         val nyeFakturaerForNyePerioder: List<Faktura> = nyeFakturaPerioder.map {
