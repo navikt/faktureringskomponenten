@@ -122,13 +122,13 @@ class FakturaserieControllerIT(
      * | Fakturaserie | 2024 q1 | 2024 q2        | Medlemskapsperiode  |
      * |--------------|---------|----------------|---------------------|
      * | s1           |         |   3000         | 01.04.24 - 30.06.24 |
-     * | s2           |   2000  |   3000         | 01.02.24 - 30.06.24 |
+     * | s2           |   2000  |      0         | 01.02.24 - 30.06.24 |
      *
      */
     @Test
-    fun `erstatter opprinnelig fakturaserie med bestilt faktura med en ny fakturaserie med tidligere startdato`() {
+    fun `erstatter opprinnelig fakturaserie med bestilt faktura for q2 med en ny fakturaserie med startdato i q1`() {
         mockkStatic(LocalDate::class)
-        // seter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
+        // setter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
         every { LocalDate.now() } returns LocalDate.of(2024, 3, 19)
 
         val startDatoOpprinnelig = LocalDate.of(2024, 4, 1)
@@ -152,7 +152,7 @@ class FakturaserieControllerIT(
 
         fakturaBestillCronjob.bestillFaktura()
 
-        // seter en dato som gir mening i forhold til hva LocalDate.now() var når ny vurdering fører til ny fakturaserie
+        // setter en dato som gir mening i forhold til hva LocalDate.now() var når ny vurdering fører til ny fakturaserie
         every { LocalDate.now() } returns LocalDate.of(2024, 6, 19)
 
         fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
@@ -217,6 +217,101 @@ class FakturaserieControllerIT(
     }
 
     /**
+     * | Fakturaserie | 2024 q2 | 2024 q2        | Medlemskapsperiode  |
+     * |--------------|---------|----------------|---------------------|
+     * | s1           |  1000   |   2000~        | 01.06.24 - 01.09.24 |
+     * | s2           |  1000   |      0         | 01.05.24 - 01.09.24 |
+     */
+    @Test
+    fun `erstatter opprinnelig fakturaserie med bestilt faktura med en ny fakturaserie med startdato 1 md tidligere`() {
+        mockkStatic(LocalDate::class)
+        // Setter en dato som skal gi umiddelbar fakturering
+        every { LocalDate.now() } returns LocalDate.of(2025, 1, 23)
+
+        val startDatoOpprinnelig = LocalDate.of(2024, 6, 1)
+        val sluttDatoOpprinnelig = LocalDate.of(2024, 9, 1)
+
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(1000),
+                    startDatoOpprinnelig,
+                    sluttDatoOpprinnelig,
+                    "Inntekt fra utlandet"
+                )
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody(
+                NyFakturaserieResponseDto::class.java
+            ).returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)
+            .shouldNotBeNull()
+            .faktura.single().status.shouldBe(FakturaStatus.BESTILT)
+
+        // Ny vurdering starter en måned tidligere
+        val startDatoNy = LocalDate.of(2024, 5, 1)
+        val sluttDatoNy = LocalDate.of(2024, 9, 1)
+        val nyFakturaserieDto = lagFakturaserieDto(
+            referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(BigDecimal(1000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
+            )
+        )
+
+        val nyFakturaserieReferanse = postLagNyFakturaserieRequest(nyFakturaserieDto).expectStatus().isOk.expectBody(
+            NyFakturaserieResponseDto::class.java
+        ).returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        val nyFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(nyFakturaserieReferanse).shouldNotBeNull()
+
+        val opprinneligFakturaserie =
+            fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse).shouldNotBeNull()
+
+        opprinneligFakturaserie.run {
+            erstattetMed.shouldNotBeNull()
+                .id shouldBe nyFakturaserie.id
+
+            status shouldBe FakturaserieStatus.ERSTATTET
+
+            faktura.shouldHaveSize(1)
+                .single()
+                .status shouldBe FakturaStatus.BESTILT
+        }
+
+        nyFakturaserie.run {
+            status shouldBe FakturaserieStatus.UNDER_BESTILLING
+            faktura.sortedByDescending { it.id }
+                .shouldHaveSize(2)
+                .map { it.id.shouldNotBeNull() }
+                .map { fakturaRepositoryForTesting.findByIdEagerly(it).shouldNotBeNull() }
+                .run {
+                    first().run {
+                        status shouldBe FakturaStatus.BESTILT
+                        fakturaLinje.single().run {
+                            periodeFra shouldBe LocalDate.of(2024, 5, 1)
+                            periodeTil shouldBe LocalDate.of(2024, 5, 31)
+                            belop.toString() shouldBe "1000.00"
+                        }
+                    }
+                    last().run {
+                        status shouldBe FakturaStatus.BESTILT
+                        fakturaLinje.single().run {
+                            periodeFra shouldBe LocalDate.of(2024, 6, 1)
+                            belop.toString() shouldBe "0.00"
+                        }
+                    }
+                }
+        }
+    }
+
+    /**
      * | Fakturaserie | 2024 q1 | 2024 q2        | Medlemskapsperiode  |
      * |--------------|---------|----------------|---------------------|
      * | s1           |  3000   |                | 01.01.24 - 30.03.31 |
@@ -226,7 +321,7 @@ class FakturaserieControllerIT(
     @Test
     fun `flytter medlemskapsperiode fra q1 til q2`() {
         mockkStatic(LocalDate::class)
-        // seter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
+        // setter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
         every { LocalDate.now() } returns LocalDate.of(2024, 3, 19)
 
         val startDatoOpprinnelig = LocalDate.of(2024, 1, 1)
@@ -250,7 +345,7 @@ class FakturaserieControllerIT(
 
         fakturaBestillCronjob.bestillFaktura()
 
-        // seter en dato som gir mening i forhold til hva LocalDate.now() var når ny vurdering fører til ny fakturaserie
+        // setter en dato som gir mening i forhold til hva LocalDate.now() var når ny vurdering fører til ny fakturaserie
         every { LocalDate.now() } returns LocalDate.of(2024, 6, 19)
 
         fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserieReferanse)

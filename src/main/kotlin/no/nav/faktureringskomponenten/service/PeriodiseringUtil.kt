@@ -64,4 +64,17 @@ object PeriodiseringUtil {
     private fun SingleErIkkeStøttet(): Nothing {
         throw IllegalArgumentException("Singelintervall er ikke støttet")
     }
+
+    fun LocalDateRange.substract(other: LocalDateRange): List<LocalDateRange> {
+        if (!isConnected(other)) return listOf(this)
+        return buildList {
+            if (start < other.start) {
+                add(LocalDateRange.of(start, other.start.minusDays(1)))
+            }
+            if (end > other.end) {
+                add(LocalDateRange.of(other.end.plusDays(1), end))
+            }
+        }
+    }
+
 }
