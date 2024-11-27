@@ -67,17 +67,7 @@ class FakturaserieService(
             opprinneligFakturaserie.bestilteFakturaer()
         )
         // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
-        val fakturerbarePerioderPerIntervall = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
-
-        val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.flatMap { periode ->
-            val avregningsperioder = avregningsfakturaer.map { LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil()) }
-            if (avregningsperioder.none { it.overlaps(periode) }) listOf(periode)
-            else avregningsperioder.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
-        }
-        val nyeFakturaerForNyePerioder: List<Faktura> = nyeFakturaPerioder.map {
-            val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.of(periode.startDato, periode.sluttDato).overlaps(it) }
-            fakturaGenerator.lagFaktura(it.start, it.end, perioder)
-        }
+        val nyeFakturaerForNyePerioder: List<Faktura> = lagNyeFakturaerForNyePerioder(fakturaserieDto, avregningsfakturaer)
 
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
             fakturaserieDto,
@@ -91,6 +81,24 @@ class FakturaserieService(
 
         log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
+    }
+
+    private fun lagNyeFakturaerForNyePerioder(
+        fakturaserieDto: FakturaserieDto,
+        avregningsfakturaer: List<Faktura>
+    ): List<Faktura> {
+        val fakturerbarePerioderPerIntervall = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
+
+        val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.flatMap { periode ->
+            val avregningsperioder = avregningsfakturaer.map { LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil()) }
+            if (avregningsperioder.none { it.overlaps(periode) }) listOf(periode)
+            else avregningsperioder.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
+        }
+        val nyeFakturaerForNyePerioder: List<Faktura> = nyeFakturaPerioder.map {
+            val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.of(periode.startDato, periode.sluttDato).overlaps(it) }
+            fakturaGenerator.lagFaktura(it.start, it.end, perioder)
+        }
+        return nyeFakturaerForNyePerioder
     }
 
     private fun finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie: Fakturaserie) =
