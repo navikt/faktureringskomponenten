@@ -126,7 +126,7 @@ class FakturaserieControllerIT(
      *
      */
     @Test
-    fun `erstatter opprinnelig fakturaserie med bestilt faktura med en ny fakturaserie med tidligere startdato`() {
+    fun `erstatter opprinnelig fakturaserie med bestilt faktura for q2 med en ny fakturaserie med startdato i q1`() {
         mockkStatic(LocalDate::class)
         // setter en dato som gir mening i forhold til hva LocalDate.now() var når fakturaseriene ble laget
         every { LocalDate.now() } returns LocalDate.of(2024, 3, 19)
@@ -223,7 +223,7 @@ class FakturaserieControllerIT(
      * | s2           |  1000   |      0         | 01.05.24 - 01.09.24 |
      */
     @Test
-    fun `Minas case`() {
+    fun `erstatter opprinnelig fakturaserie med bestilt faktura med en ny fakturaserie med startdato 1 md tidligere`() {
         mockkStatic(LocalDate::class)
         // Setter en dato som skal gi umiddelbar fakturering
         every { LocalDate.now() } returns LocalDate.of(2025, 1, 23)
