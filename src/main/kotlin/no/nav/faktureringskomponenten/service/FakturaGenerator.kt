@@ -54,13 +54,8 @@ class FakturaGenerator(
             gjeldendeFakturaLinjer.addAll(fakturaLinjerForPeriode)
 
             if (skalLageFakturaForPeriode(dagensDato(), gjeldendeFaktureringSluttDato) && gjeldendeFakturaLinjer.isNotEmpty()) {
-                var faktura = tilFaktura(gjeldendeFaktureringStartDato, gjeldendeFakturaLinjer.toList())
-
-                if (unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant")) {
-                    faktura = tilFakturaTemp(gjeldendeFakturaLinjer.toList())
-                }
-
-                samletFakturaListe.add(faktura)
+                val nyFaktura = tilFaktura(gjeldendeFaktureringStartDato, gjeldendeFakturaLinjer.toList())
+                samletFakturaListe.add(nyFaktura)
                 gjeldendeFakturaLinjer.clear()
             }
 
@@ -106,6 +101,7 @@ class FakturaGenerator(
 
     private fun tilFaktura(fakturaStartDato: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
         val bestillingsdato = utledBestillingsdato(fakturaStartDato)
+
         return Faktura(
             null,
             referanseNr = ULID.randomULID(),
@@ -129,6 +125,10 @@ class FakturaGenerator(
     }
 
     private fun utledBestillingsdato(fakturaStartDato: LocalDate): LocalDate {
+        if (unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant")) {
+            return dagensDato()
+        }
+
         if (fakturaStartDato <= dagensDato() || erInneværendeÅrOgKvartal(fakturaStartDato, dagensDato()) ||
             erNesteKvartalOgKvartalsbestillingHarKjørt(fakturaStartDato, dagensDato())
         ) {
@@ -143,14 +143,5 @@ class FakturaGenerator(
                 && datoA.year == datoB.year
     }
 
-    private fun tilFakturaTemp(fakturaLinjer: List<FakturaLinje>): Faktura {
-        return Faktura(
-            null,
-            referanseNr = ULID.randomULID(),
-            datoBestilt = dagensDato(),
-            fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
-    }
-
     protected fun dagensDato(): LocalDate = LocalDate.now()
-
 }
