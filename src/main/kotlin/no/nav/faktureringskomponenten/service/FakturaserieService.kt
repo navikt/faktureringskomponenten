@@ -1,15 +1,17 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.service.PeriodiseringUtil.substract
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.threeten.extra.LocalDateRange
 import ulid.ULID
 import java.math.BigDecimal
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
 
@@ -19,6 +21,7 @@ class FakturaserieService(
     private val fakturaserieGenerator: FakturaserieGenerator,
     private val avregningBehandler: AvregningBehandler,
     private val fakturaBestillingService: FakturaBestillingService,
+    private val fakturaGenerator: FakturaGenerator
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -45,7 +48,7 @@ class FakturaserieService(
             fakturaserieRepository.findAllByFodselsnummer(fakturaserie.fodselsnummer)
                 .filter { it.erAktiv() }
         if (listeAvAktiveFakturaserierForFodselsnummer.size > 1) {
-            log.error("Det finnes flere aktive fakturaserier for fødselsnummer av fakturaserie ${fakturaserie.referanse}")
+            log.warn("Det finnes flere aktive fakturaserier for fødselsnummer av fakturaserie ${fakturaserie.referanse}")
         }
         return fakturaserie.referanse
     }
@@ -59,13 +62,17 @@ class FakturaserieService(
 
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes" }
 
+        val avregningsfakturaer = avregningBehandler.lagAvregningsfakturaer(
+            fakturaserieDto.perioder,
+            opprinneligFakturaserie.bestilteFakturaer()
+        )
+        // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
+        val nyeFakturaerForNyePerioder: List<Faktura> = lagNyeFakturaerForNyePerioder(fakturaserieDto, avregningsfakturaer)
+
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
             fakturaserieDto,
             finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
-            avregningBehandler.lagAvregningsfaktura(
-                fakturaserieDto.perioder,
-                opprinneligFakturaserie.bestilteFakturaer()
-            )
+            avregningsfakturaer + nyeFakturaerForNyePerioder
         )
         fakturaserieRepository.save(nyFakturaserie)
 
@@ -74,6 +81,24 @@ class FakturaserieService(
 
         log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
+    }
+
+    private fun lagNyeFakturaerForNyePerioder(
+        fakturaserieDto: FakturaserieDto,
+        avregningsfakturaer: List<Faktura>
+    ): List<Faktura> {
+        val fakturerbarePerioderPerIntervall = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
+
+        val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.flatMap { periode ->
+            val avregningsperioder = avregningsfakturaer.map { LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil()) }
+            if (avregningsperioder.none { it.overlaps(periode) }) listOf(periode)
+            else avregningsperioder.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
+        }
+        val nyeFakturaerForNyePerioder: List<Faktura> = nyeFakturaPerioder.map {
+            val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.of(periode.startDato, periode.sluttDato).overlaps(it) }
+            fakturaGenerator.lagFaktura(it.start, it.end, perioder)
+        }
+        return nyeFakturaerForNyePerioder
     }
 
     private fun finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie: Fakturaserie) =
@@ -130,7 +155,7 @@ class FakturaserieService(
             fakturaserieDto,
             startDato,
             sluttDato,
-            avregningBehandler.lagAvregningsfaktura(
+            avregningBehandler.lagAvregningsfakturaer(
                 fakturaserieDto.perioder,
                 eksisterendeFakturaserie.bestilteFakturaer()
             )
@@ -143,6 +168,75 @@ class FakturaserieService(
 
         fakturaBestillingService.bestillKreditnota(krediteringFakturaserie)
         return krediteringFakturaserie.referanse
+    }
+
+    @Transactional
+    fun lagNyFaktura(fakturaDto: FakturaDto): String {
+        val tidligereFakturaserie =
+            fakturaserieRepository.findByReferanse(fakturaDto.tidligereFakturaserieReferanse)
+                ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${fakturaDto.tidligereFakturaserieReferanse}")
+
+        require(
+            tidligereFakturaserie.status !in setOf(
+                FakturaserieStatus.ERSTATTET,
+                FakturaserieStatus.KANSELLERT
+            )
+        ) { "Tidligere fakturaserie med ref ${tidligereFakturaserie.referanse} er i feil status: ${tidligereFakturaserie.status}" }
+
+        val krediteringFakturaRef = hentKrediteringFakturaRef(tidligereFakturaserie, fakturaDto)
+
+        return Fakturaserie(
+            id = null,
+            referanse = fakturaDto.referanse,
+            fakturaGjelderInnbetalingstype = fakturaDto.fakturaGjelderInnbetalingstype,
+            fodselsnummer = fakturaDto.fodselsnummer,
+            fullmektig = fakturaDto.fullmektig,
+            referanseBruker = fakturaDto.referanseBruker,
+            referanseNAV = fakturaDto.referanseNAV,
+            startdato = fakturaDto.startDato,
+            sluttdato = fakturaDto.sluttDato,
+            intervall = FakturaserieIntervall.SINGEL,
+            faktura = listOf(
+                Faktura(
+                    referanseNr = ULID.randomULID(),
+                    datoBestilt = LocalDate.now(),
+                    krediteringFakturaRef = krediteringFakturaRef,
+                    fakturaLinje = listOf(
+                        FakturaLinje(
+                            periodeFra = fakturaDto.startDato,
+                            periodeTil = fakturaDto.sluttDato,
+                            belop = fakturaDto.belop,
+                            antall = BigDecimal.ONE,
+                            beskrivelse = fakturaDto.beskrivelse,
+                            enhetsprisPerManed = BigDecimal.ZERO
+                        )
+                    )
+                )
+            )
+        ).also {
+            fakturaserieRepository.save(it)
+            log.info("Lagret fakturaserie: $it")
+        }.referanse
+    }
+
+    /**
+     *  Hvis forrige fakturaserie var SINGEL(årsavregning) så tar vi krediteringFakturaRef som den igjen hentet fra sin
+     *  forrige fakturaserie. Denne må være en positiv faktura, ellers fungerer ikke OEBS. Siden alle årsavregninger potensielt
+     *  kan være negative så må vi opprinnelig hente fra fakturaserie som hører til et trygdeavgiftsvedtak.
+     */
+    private fun hentKrediteringFakturaRef(
+        fakturaserie: Fakturaserie,
+        fakturaDto: FakturaDto
+    ): String {
+        val krediteringFakturaRef = if (fakturaserie.intervall == FakturaserieIntervall.SINGEL) {
+            fakturaserie.faktura.single().krediteringFakturaRef
+        } else {
+            val faktura = fakturaserie.faktura.filter { it.overlapperMedÅr(fakturaDto.startDato.year) }
+                .sortedBy { faktura: Faktura -> faktura.fakturaLinje.first().periodeFra }
+                .first()
+            faktura.hentFørstePositiveFaktura().referanseNr
+        }
+        return krediteringFakturaRef
     }
 
 }

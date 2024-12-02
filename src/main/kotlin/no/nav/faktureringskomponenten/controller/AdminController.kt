@@ -1,9 +1,12 @@
 package no.nav.faktureringskomponenten.controller
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
+import no.nav.faktureringskomponenten.service.AdminService
 import no.nav.faktureringskomponenten.service.EksternFakturaStatusService
 import no.nav.faktureringskomponenten.service.FakturaBestillingService
 import no.nav.faktureringskomponenten.service.FakturaService
@@ -28,7 +31,8 @@ class AdminController(
     val eksternFakturaStatusConsumer: EksternFakturaStatusConsumer,
     val eksternFakturaStatusService: EksternFakturaStatusService,
     val fakturaService: FakturaService,
-    val fakturaBestillingService: FakturaBestillingService
+    val fakturaBestillingService: FakturaBestillingService,
+    val adminService: AdminService
 ) {
 
     @Value("\${NAIS_CLUSTER_NAME}")
@@ -80,6 +84,13 @@ class AdminController(
 
         fakturaBestillingService.bestillFaktura(fakturaReferanse)
         return ResponseEntity.ok("Feilet faktura med referanse nr $fakturaReferanse bestilles på nytt")
+    }
+
+    @PostMapping("/faktura/{fakturaReferanse}/krediter")
+    fun krediterFaktura(@PathVariable fakturaReferanse: String): FakturaserieResponseDto {
+        log.info("Krediterer faktura med referanse nr $fakturaReferanse")
+
+        return adminService.krediterFaktura(fakturaReferanse).tilFakturaserieResponseDto
     }
 
     /**

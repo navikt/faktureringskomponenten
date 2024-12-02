@@ -1,0 +1,1 @@
+ALTER TYPE fakturaserie_intervall ADD VALUE 'SINGEL';
