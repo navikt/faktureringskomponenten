@@ -101,7 +101,7 @@ class AdminController(
         @PathVariable fakturaReferanse: String,
         @RequestParam(required = false, defaultValue = "0") betaltBelop: BigDecimal
     ): ResponseEntity<String> {
-        if (naisClusterName != naisClusterNameDev) {
+        if (naisClusterName != NAIS_CLUSTER_NAME_DEV) {
             log.warn("Endepunktet er kun tilgjengelig i testmiljø")
             return ResponseEntity.status(403)
                 .body("Endepunktet er kun tilgjengelig i testmiljø")
@@ -147,7 +147,7 @@ class AdminController(
         @PathVariable fakturaReferanse: String,
         @RequestParam(required = false, defaultValue = "BESTILT") status: FakturaStatus
     ): ResponseEntity<String> {
-        if (naisClusterName != naisClusterNameDev) {
+        if (naisClusterName != NAIS_CLUSTER_NAME_DEV) {
             log.warn("Endepunktet er kun tilgjengelig i testmiljø")
             return ResponseEntity.status(403)
                 .body("Endepunktet er kun tilgjengelig i testmiljø")
@@ -171,6 +171,6 @@ class AdminController(
     }
 
     companion object {
-        private val naisClusterNameDev = "dev-gcp"
+        private const val NAIS_CLUSTER_NAME_DEV = "dev-gcp"
     }
 }
