@@ -19,6 +19,9 @@ class FakturaGenerator(
     private val unleash: Unleash,
     @Value("\${faktura.forste-faktura-offsett-dager}") private val forsteFakturaOffsettMedDager: Long
 ) {
+    @Value("\${NAIS_CLUSTER_NAME}")
+    private lateinit var naisClusterName: String
+
     // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
     fun lagFaktura(
         startDato: LocalDate,
@@ -125,7 +128,7 @@ class FakturaGenerator(
     }
 
     private fun utledBestillingsdato(fakturaStartDato: LocalDate): LocalDate {
-        if (unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant")) {
+        if (unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant") && naisClusterName == NAIS_CLUSTER_NAME_DEV) {
             return dagensDato()
         }
 
@@ -144,4 +147,8 @@ class FakturaGenerator(
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()
+
+    companion object {
+        private const val NAIS_CLUSTER_NAME_DEV = "dev-gcp"
+    }
 }
