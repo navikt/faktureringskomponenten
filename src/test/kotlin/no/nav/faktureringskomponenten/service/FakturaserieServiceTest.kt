@@ -47,7 +47,7 @@ class FakturaserieServiceTest {
         val nyFakturaserieDto = lagFakturaserieDto(NY_REF)
 
 
-        fakturaserieService.erstattFakturaserie(OPPRINNELIG_REF, nyFakturaserieDto)
+        fakturaserieService.lagNyFakturaserie(nyFakturaserieDto, OPPRINNELIG_REF)
 
 
         val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
@@ -72,7 +72,7 @@ class FakturaserieServiceTest {
         val nyFakturaserieDto = lagFakturaserieDto(NY_REF)
 
 
-        fakturaserieService.erstattFakturaserie(OPPRINNELIG_REF, nyFakturaserieDto)
+        fakturaserieService.lagNyFakturaserie(nyFakturaserieDto, OPPRINNELIG_REF)
 
 
         val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
