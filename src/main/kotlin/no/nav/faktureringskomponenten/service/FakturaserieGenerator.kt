@@ -84,7 +84,7 @@ class FakturaserieGenerator(
         fakturaserieDto: FakturaserieDto,
         startDato: LocalDate,
         sluttDato: LocalDate,
-        avregningsfaktura: List<Faktura>
+        bestilteFakturaer: List<Faktura>
     ): Fakturaserie {
         return Fakturaserie(
             referanse = fakturaserieDto.fakturaserieReferanse,
@@ -96,7 +96,10 @@ class FakturaserieGenerator(
             startdato = startDato,
             sluttdato = sluttDato,
             intervall = fakturaserieDto.intervall,
-            faktura = avregningsfaktura
+            faktura = avregningBehandler.lagAvregningsfakturaer(
+                fakturaserieDto.perioder,
+                bestilteFakturaer
+            )
         )
     }
 

@@ -4,7 +4,6 @@ import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
-import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
@@ -17,7 +16,6 @@ private val log = KotlinLogging.logger { }
 class FakturaserieService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaserieGenerator: FakturaserieGenerator,
-    private val avregningBehandler: AvregningBehandler,
     private val fakturaBestillingService: FakturaBestillingService
 ) {
 
@@ -121,10 +119,7 @@ class FakturaserieService(
             fakturaserieDto,
             startDato,
             sluttDato,
-            avregningBehandler.lagAvregningsfakturaer(
-                fakturaserieDto.perioder,
-                eksisterendeFakturaserie.bestilteFakturaer()
-            )
+            eksisterendeFakturaserie.bestilteFakturaer()
         )
 
         fakturaserieRepository.save(krediteringFakturaserie)
