@@ -3,6 +3,8 @@ package no.nav.faktureringskomponenten.service
 import io.getunleash.FakeUnleash
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
+import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
@@ -477,7 +479,7 @@ class FakturaserieGeneratorTest {
         perioder: List<FakturaseriePeriode> = listOf()
     ): Fakturaserie {
         val fakturaMapper = FakturaGeneratorForTest(dagensDato, unleash = unleash)
-        return FakturaserieGenerator(fakturaGenerator = fakturaMapper).lagFakturaserie(
+        return FakturaserieGenerator(fakturaGenerator = fakturaMapper, AvregningBehandler(AvregningsfakturaGenerator())).lagFakturaserie(
             FakturaserieDto(
                 fakturaserieReferanse = ULID.randomULID(),
                 fodselsnummer = "30056928150",

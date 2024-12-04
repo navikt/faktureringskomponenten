@@ -66,10 +66,10 @@ class FakturaserieService(
             fakturaserieDto.perioder,
             opprinneligFakturaserie.bestilteFakturaer()
         )
-        // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
+
         val nyeFakturaerForNyePerioder: List<Faktura> = lagNyeFakturaerForNyePerioder(fakturaserieDto, avregningsfakturaer)
 
-        val nyFakturaserie = fakturaserieGenerator.lagFakturaserie(
+        val nyFakturaserie = fakturaserieGenerator.lagFakturaserieForEndring(
             fakturaserieDto,
             finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
             avregningsfakturaer + nyeFakturaerForNyePerioder
@@ -151,7 +151,7 @@ class FakturaserieService(
             perioder = listOf(FakturaseriePeriode(BigDecimal.ZERO, startDato, sluttDato, "Kansellering"))
         )
 
-        val krediteringFakturaserie = fakturaserieGenerator.lagFakturaserieKansellering(
+        val krediteringFakturaserie = fakturaserieGenerator.lagFakturaserieForKansellering(
             fakturaserieDto,
             startDato,
             sluttDato,

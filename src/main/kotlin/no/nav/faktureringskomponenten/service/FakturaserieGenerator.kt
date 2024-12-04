@@ -1,13 +1,14 @@
 package no.nav.faktureringskomponenten.service
 
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Component
-import ulid.ULID
 import java.time.LocalDate
 
 @Component
 class FakturaserieGenerator(
-    val fakturaGenerator: FakturaGenerator
+    val fakturaGenerator: FakturaGenerator,
+    val avregningBehandler: AvregningBehandler
 ) {
 
     fun lagFakturaserie(
@@ -40,11 +41,19 @@ class FakturaserieGenerator(
         )
     }
 
-    fun lagFakturaserieKansellering(
+    fun lagFakturaserieForEndring(
+        fakturaserieDto: FakturaserieDto,
+        startDato: LocalDate? = null,
+        avregningsfaktura: List<Faktura> = emptyList()
+    ): Fakturaserie {
+        return lagFakturaserie(fakturaserieDto, startDato, avregningsfaktura)
+    }
+
+    fun lagFakturaserieForKansellering(
         fakturaserieDto: FakturaserieDto,
         startDato: LocalDate,
         sluttDato: LocalDate,
-        avregningsfaktura: List<Faktura> = emptyList()
+        avregningsfaktura: List<Faktura>
     ): Fakturaserie {
         return Fakturaserie(
             referanse = fakturaserieDto.fakturaserieReferanse,

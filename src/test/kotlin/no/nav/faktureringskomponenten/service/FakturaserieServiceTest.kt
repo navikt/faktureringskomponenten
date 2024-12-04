@@ -24,7 +24,7 @@ private const val NY_REF = "456"
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
     private val fakturaserieGenerator =
-        FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0))
+        FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0), AvregningBehandler(AvregningsfakturaGenerator()))
     private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
     private val fakturaBestillingService = mockk<FakturaBestillingService>()
     private val fakturaGenerator = mockk<FakturaGenerator>(relaxed = true)
@@ -79,7 +79,7 @@ class FakturaserieServiceTest {
         fakturaserieService.erstattFakturaserie(OPPRINNELIG_REF, nyFakturaserieDto)
 
 
-        val nyFakturaserie = fakturaserier.filter { it.referanse == NY_REF }.single()
+        val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
         val fakturaLinjer = nyFakturaserie.faktura.flatMap { it.fakturaLinje }
         fakturaLinjer.forExactly(1) {
             it.periodeFra shouldBe LocalDate.of(2024, 1, 1)
