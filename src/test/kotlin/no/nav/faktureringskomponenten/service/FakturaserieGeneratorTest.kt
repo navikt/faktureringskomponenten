@@ -1,14 +1,20 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
+import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.FakturaserieGenerator.Companion.substract
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.threeten.extra.LocalDateRange
 import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -16,7 +22,7 @@ import java.time.format.DateTimeFormatter
 
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 class FakturaserieGeneratorTest {
-    val unleash: FakeUnleash = FakeUnleash()
+    private val unleash: FakeUnleash = FakeUnleash()
 
     @ParameterizedTest(name = "[{index}] {2} {0}")
     @MethodSource("data")
@@ -579,5 +585,46 @@ class FakturaserieGeneratorTest {
                 "             \"$fra\", \"$til\", $beløp,\n " +
                 "             \"$beskrivelse\"\n" +
                 "            ),"
+    }
+
+    @Nested
+    inner class LocalDateRangeSubstraction {
+        @Test
+        fun `substract a period`() {
+            val substracted = LocalDateRange.of(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 1, 10)
+            ).substract(
+                LocalDateRange.of(
+                    LocalDate.of(2024, 1, 3),
+                    LocalDate.of(2024, 2, 12)
+                )
+            )
+
+            substracted shouldBe listOf(
+                LocalDateRange.of(
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 1, 2)
+                )
+            )
+        }
+
+        @Test
+        fun `substract a period in the middle`() {
+            val substracted = LocalDateRange.of(
+                LocalDate.of(2023, 12, 16),
+                LocalDate.of(2024, 1, 15)
+            ).substract(
+                LocalDateRange.of(
+                    LocalDate.of(2023, 12, 31),
+                    LocalDate.of(2024, 1, 13)
+                )
+            )
+
+            substracted.shouldContainExactlyInAnyOrder(
+                LocalDateRange.of(LocalDate.of(2023, 12, 16), LocalDate.of(2023, 12, 30)),
+                LocalDateRange.of(LocalDate.of(2024, 1, 14), LocalDate.of(2024, 1, 15))
+            )
+        }
     }
 }

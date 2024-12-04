@@ -1,13 +1,12 @@
 package no.nav.faktureringskomponenten.service
 
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.Fullmektig
-import no.nav.faktureringskomponenten.service.PeriodiseringUtil.substract
+import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Component
 import org.threeten.extra.LocalDateRange
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 
 @Component
 class FakturaserieGenerator(
@@ -69,7 +68,7 @@ class FakturaserieGenerator(
         fakturaserieDto: FakturaserieDto,
         avregningsfakturaer: List<Faktura>
     ): List<Faktura> {
-        val fakturerbarePerioderPerIntervall = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
+        val fakturerbarePerioderPerIntervall = delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
 
         val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.flatMap { periode ->
             val avregningsperioder = avregningsfakturaer.map { LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil()) }
@@ -122,4 +121,74 @@ class FakturaserieGenerator(
         return null
     }
 
+    companion object {
+        private fun delIFakturerbarePerioder(
+            nyeFakturaseriePerioder: List<FakturaseriePeriode>,
+            intervall: FakturaserieIntervall
+        ): List<LocalDateRange> {
+            return nyeFakturaseriePerioder.flatMap { periode ->
+                val startYearMonth = YearMonth.from(periode.startDato)
+                val endYearMonth = YearMonth.from(periode.sluttDato)
+
+                (0..startYearMonth.until(endYearMonth, ChronoUnit.MONTHS))
+                    .filter { it % intervall.toMonthStep() == 0L }
+                    .map { monthsToAdd ->
+                        startYearMonth
+                            .plusMonths(monthsToAdd)
+                            .toDateRange(
+                                periode.startDato,
+                                periode.sluttDato,
+                                intervall
+                            )
+                    }
+            }.distinct()
+        }
+
+        private fun FakturaserieIntervall.toMonthStep() = when (this) {
+            FakturaserieIntervall.MANEDLIG -> 1L
+            FakturaserieIntervall.KVARTAL -> 3L
+            FakturaserieIntervall.SINGEL -> SingleErIkkeStøttet()
+        }
+
+        private fun YearMonth.toDateRange(
+            startConstraint: LocalDate,
+            endConstraint: LocalDate,
+            intervall: FakturaserieIntervall
+        ): LocalDateRange {
+            val periodStart = when (intervall) {
+                FakturaserieIntervall.MANEDLIG -> maxOf(this.atDay(1), startConstraint)
+                FakturaserieIntervall.KVARTAL -> maxOf(this.getQuarterStart().atDay(1), startConstraint)
+                FakturaserieIntervall.SINGEL -> SingleErIkkeStøttet()
+            }
+
+            val periodEnd = when (intervall) {
+                FakturaserieIntervall.MANEDLIG -> minOf(this.atEndOfMonth(), endConstraint)
+                FakturaserieIntervall.KVARTAL -> minOf(this.getQuarterStart().plusMonths(2).atEndOfMonth(), endConstraint)
+                FakturaserieIntervall.SINGEL -> SingleErIkkeStøttet()
+            }
+
+            return LocalDateRange.of(periodStart, periodEnd)
+        }
+
+        private fun YearMonth.getQuarterStart(): YearMonth {
+            val monthInQuarter = (monthValue - 1) % 3
+            return minusMonths(monthInQuarter.toLong())
+        }
+
+        private fun SingleErIkkeStøttet(): Nothing {
+            throw IllegalArgumentException("Singelintervall er ikke støttet")
+        }
+
+        fun LocalDateRange.substract(other: LocalDateRange): List<LocalDateRange> {
+            if (!isConnected(other)) return listOf(this)
+            return buildList {
+                if (start < other.start) {
+                    add(LocalDateRange.of(start, other.start.minusDays(1)))
+                }
+                if (end > other.end) {
+                    add(LocalDateRange.of(other.end.plusDays(1), end))
+                }
+            }
+        }
+    }
 }
