@@ -192,8 +192,7 @@ class FakturaserieService(
             fakturaserie.faktura.single().krediteringFakturaRef
         } else {
             val faktura = fakturaserie.faktura.filter { it.overlapperMedÅr(fakturaDto.startDato.year) }
-                .sortedBy { faktura: Faktura -> faktura.fakturaLinje.first().periodeFra }
-                .first()
+                .minBy { faktura: Faktura -> faktura.fakturaLinje.first().periodeFra }
             faktura.hentFørstePositiveFaktura().referanseNr
         }
         return krediteringFakturaRef
