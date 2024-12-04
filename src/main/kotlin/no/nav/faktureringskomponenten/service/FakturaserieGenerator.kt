@@ -71,12 +71,12 @@ class FakturaserieGenerator(
         val fakturerbarePerioderPerIntervall = delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
 
         val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.flatMap { periode ->
-            val avregningsperioder = avregningsfakturaer.map { LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil()) }
+            val avregningsperioder = avregningsfakturaer.map { LocalDateRange.ofClosed(it.getPeriodeFra(), it.getPeriodeTil()) }
             if (avregningsperioder.none { it.overlaps(periode) }) listOf(periode)
             else avregningsperioder.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
         }
         val nyeFakturaerForNyePerioder: List<Faktura> = nyeFakturaPerioder.map {
-            val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.of(periode.startDato, periode.sluttDato).overlaps(it) }
+            val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.ofClosed(periode.startDato, periode.sluttDato).overlaps(it) }
             fakturaGenerator.lagFaktura(it.start, it.end, perioder)
         }
         return nyeFakturaerForNyePerioder
