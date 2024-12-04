@@ -65,7 +65,7 @@ class FakturaserieService(
         opprinneligFakturaserie.erstattMed(nyFakturaserie)
         fakturaserieRepository.save(opprinneligFakturaserie)
 
-        log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
+        log.info("Erstattet fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
     }
 
