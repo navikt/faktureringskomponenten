@@ -27,15 +27,13 @@ class FakturaserieServiceTest {
         FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0), AvregningBehandler(AvregningsfakturaGenerator()))
     private val avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator())
     private val fakturaBestillingService = mockk<FakturaBestillingService>()
-    private val fakturaGenerator = mockk<FakturaGenerator>(relaxed = true)
 
     private val fakturaserieService =
         FakturaserieService(
             fakturaserieRepository,
             fakturaserieGenerator,
             avregningBehandler,
-            fakturaBestillingService,
-            fakturaGenerator
+            fakturaBestillingService
         )
 
     @Test

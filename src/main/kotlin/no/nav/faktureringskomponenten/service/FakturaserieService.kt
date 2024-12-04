@@ -4,11 +4,9 @@ import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
-import no.nav.faktureringskomponenten.service.PeriodiseringUtil.substract
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.threeten.extra.LocalDateRange
 import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -20,8 +18,7 @@ class FakturaserieService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaserieGenerator: FakturaserieGenerator,
     private val avregningBehandler: AvregningBehandler,
-    private val fakturaBestillingService: FakturaBestillingService,
-    private val fakturaGenerator: FakturaGenerator
+    private val fakturaBestillingService: FakturaBestillingService
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -62,17 +59,9 @@ class FakturaserieService(
 
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes" }
 
-        val avregningsfakturaer = avregningBehandler.lagAvregningsfakturaer(
-            fakturaserieDto.perioder,
-            opprinneligFakturaserie.bestilteFakturaer()
-        )
-
-        val nyeFakturaerForNyePerioder: List<Faktura> = lagNyeFakturaerForNyePerioder(fakturaserieDto, avregningsfakturaer)
-
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserieForEndring(
             fakturaserieDto,
-            finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie),
-            avregningsfakturaer + nyeFakturaerForNyePerioder
+            opprinneligFakturaserie
         )
         fakturaserieRepository.save(nyFakturaserie)
 
@@ -82,29 +71,6 @@ class FakturaserieService(
         log.info("Kansellert fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
     }
-
-    private fun lagNyeFakturaerForNyePerioder(
-        fakturaserieDto: FakturaserieDto,
-        avregningsfakturaer: List<Faktura>
-    ): List<Faktura> {
-        val fakturerbarePerioderPerIntervall = PeriodiseringUtil.delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
-
-        val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.flatMap { periode ->
-            val avregningsperioder = avregningsfakturaer.map { LocalDateRange.of(it.getPeriodeFra(), it.getPeriodeTil()) }
-            if (avregningsperioder.none { it.overlaps(periode) }) listOf(periode)
-            else avregningsperioder.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
-        }
-        val nyeFakturaerForNyePerioder: List<Faktura> = nyeFakturaPerioder.map {
-            val perioder = fakturaserieDto.perioder.filter { periode -> LocalDateRange.of(periode.startDato, periode.sluttDato).overlaps(it) }
-            fakturaGenerator.lagFaktura(it.start, it.end, perioder)
-        }
-        return nyeFakturaerForNyePerioder
-    }
-
-    private fun finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie: Fakturaserie) =
-        if (opprinneligFakturaserie.erUnderBestilling()) {
-            opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
-        } else null
 
     fun finnesReferanse(referanse: String): Boolean {
         return fakturaserieRepository.findByReferanse(referanse) != null
