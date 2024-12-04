@@ -1,6 +1,8 @@
 package no.nav.faktureringskomponenten.service
 
-import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import no.nav.faktureringskomponenten.service.PeriodiseringUtil.substract
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Component
@@ -21,7 +23,8 @@ class FakturaserieGenerator(
         val avregningsfakturaSistePeriodeTil = avregningsfaktura.maxByOrNull { it.getPeriodeTil() }?.getPeriodeTil()
         val startDatoForSamletPeriode =
             finnStartDatoForSamletPeriode(avregningsfakturaSistePeriodeTil, startDato, fakturaserieDto)
-        val sluttDatoForSamletPeriode = mapSluttdato(fakturaserieDto.perioder)
+        val sluttDatoForSamletPeriode = fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato
+
         val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(
             startDatoForSamletPeriode,
             sluttDatoForSamletPeriode,
@@ -107,9 +110,7 @@ class FakturaserieGenerator(
         avregningsfakturaSistePeriodeTil: LocalDate?,
         startDato: LocalDate?,
         fakturaserieDto: FakturaserieDto
-    ) = avregningsfakturaSistePeriodeTil?.plusDays(1) ?: startDato ?: mapStartdato(
-        fakturaserieDto.perioder
-    )
+    ) = avregningsfakturaSistePeriodeTil?.plusDays(1) ?: startDato ?: fakturaserieDto.perioder.minBy { it.startDato }.startDato
 
     private fun mapFullmektig(fullmektigDto: Fullmektig?): Fullmektig? {
         if (fullmektigDto != null) {
@@ -121,11 +122,4 @@ class FakturaserieGenerator(
         return null
     }
 
-    private fun mapStartdato(perioder: List<FakturaseriePeriode>): LocalDate {
-        return perioder.minByOrNull { it.startDato }!!.startDato
-    }
-
-    private fun mapSluttdato(perioder: List<FakturaseriePeriode>): LocalDate {
-        return perioder.maxByOrNull { it.sluttDato }!!.sluttDato
-    }
 }
