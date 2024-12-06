@@ -41,27 +41,32 @@ class FakturaGenerator(
     ): List<Faktura> {
         val periodisering = genererPeriodisering(startDatoForHelePerioden, sluttDatoForHelePerioden, faktureringsintervall)
 
-        val fakturaer = mutableListOf<Faktura>()
-        var gjeldendeFakturaLinjer = emptyList<FakturaLinje>()
+        return lagFakturaerFor(periodisering, fakturaseriePerioder)
+    }
 
-        for ((gjeldendeStartDato, gjeldendeSluttDato) in periodisering) {
+    private fun lagFakturaerFor(
+        periodisering: List<Pair<LocalDate, LocalDate>>,
+        fakturaseriePerioder: List<FakturaseriePeriode>
+    ): List<Faktura> {
+        // val sluttDatoForPeriodisering = periodisering.last().second
+        return periodisering.fold(
+            initial = emptyList<FakturaLinje>() to emptyList<Faktura>()
+        ) { (gjeldendeLinjer, akkumulerteFakturaer), (periodeStart, periodeSlutt) ->
             val nyeFakturaLinjer = lagFakturaLinjerForPeriode(
-                gjeldendeStartDato, gjeldendeSluttDato, fakturaseriePerioder, periodisering.last().second
+                periodeStart, periodeSlutt, fakturaseriePerioder, periodisering.last().second
             )
-            gjeldendeFakturaLinjer += nyeFakturaLinjer
+            val oppdaterteFakturaLinjer = gjeldendeLinjer + nyeFakturaLinjer
 
-            if ((gjeldendeSluttDato >= dagensDato() || erSisteDagIÅret(gjeldendeSluttDato)) && gjeldendeFakturaLinjer.isNotEmpty()) {
-                val nyFaktura = tilFaktura(gjeldendeStartDato, gjeldendeFakturaLinjer)
-                fakturaer += nyFaktura
-                gjeldendeFakturaLinjer = emptyList()
+            if ((periodeSlutt >= dagensDato() || erSisteDagIÅret(periodeSlutt)) && oppdaterteFakturaLinjer.isNotEmpty()) {
+                val nyFaktura = tilFaktura(periodeStart, oppdaterteFakturaLinjer)
+                emptyList<FakturaLinje>() to akkumulerteFakturaer + nyFaktura
+            } else if (periodeSlutt == periodisering.last().second && oppdaterteFakturaLinjer.isNotEmpty()) {
+                val sisteFaktura = tilFaktura(oppdaterteFakturaLinjer.minOf { it.periodeFra }, oppdaterteFakturaLinjer)
+                emptyList<FakturaLinje>() to akkumulerteFakturaer + sisteFaktura
+            } else {
+                oppdaterteFakturaLinjer to akkumulerteFakturaer
             }
-        }
-        if (gjeldendeFakturaLinjer.isNotEmpty()) {
-            val nyFaktura = tilFaktura(gjeldendeFakturaLinjer.minOf { it.periodeFra }, gjeldendeFakturaLinjer)
-            fakturaer += nyFaktura
-        }
-
-        return fakturaer
+        }.second
     }
 
     private fun genererPeriodisering(
