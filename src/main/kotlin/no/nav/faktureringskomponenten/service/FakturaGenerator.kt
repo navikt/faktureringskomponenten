@@ -39,32 +39,28 @@ class FakturaGenerator(
         fakturaseriePerioder: List<FakturaseriePeriode>,
         faktureringsintervall: FakturaserieIntervall
     ): List<Faktura> {
-        val samletFakturaListe = mutableListOf<Faktura>()
-        val gjeldendeFakturaLinjer = mutableListOf<FakturaLinje>()
-        var gjeldendeFaktureringStartDato = startDatoForHelePerioden
+        return generateSequence(
+            Triple(startDatoForHelePerioden, emptyList<FakturaLinje>(), emptyList<Faktura>())
+        ) { (gjeldendeStartDato, gjeldendeFakturaLinjer, fakturaer) ->
+            if (gjeldendeStartDato > sluttDatoForHelePerioden && gjeldendeFakturaLinjer.isEmpty()) return@generateSequence null
 
-        while (gjeldendeFaktureringStartDato <= sluttDatoForHelePerioden || gjeldendeFakturaLinjer.isNotEmpty()) {
-            val gjeldendeFaktureringSluttDato =
-                faktureringSluttDatoFra(gjeldendeFaktureringStartDato, faktureringsintervall)
-
-            val fakturaLinjerForPeriode = lagFakturaLinjerForPeriode(
-                gjeldendeFaktureringStartDato,
-                gjeldendeFaktureringSluttDato,
-                fakturaseriePerioder,
-                sluttDatoForHelePerioden
+            val gjeldendeSluttDato = faktureringSluttDatoFra(gjeldendeStartDato, faktureringsintervall)
+            val nyeFakturaLinjer = lagFakturaLinjerForPeriode(
+                gjeldendeStartDato, gjeldendeSluttDato, fakturaseriePerioder, sluttDatoForHelePerioden
             )
+            val oppdaterteFakturaLinjer = gjeldendeFakturaLinjer + nyeFakturaLinjer
 
-            gjeldendeFakturaLinjer.addAll(fakturaLinjerForPeriode)
-
-            if (skalLageFakturaForPeriode(dagensDato(), gjeldendeFaktureringSluttDato) && gjeldendeFakturaLinjer.isNotEmpty()) {
-                val nyFaktura = tilFaktura(gjeldendeFaktureringStartDato, gjeldendeFakturaLinjer.toList())
-                samletFakturaListe.add(nyFaktura)
-                gjeldendeFakturaLinjer.clear()
+            if (skalLageFakturaForPeriode(dagensDato(), gjeldendeSluttDato) && oppdaterteFakturaLinjer.isNotEmpty()) {
+                val nyFaktura = tilFaktura(gjeldendeStartDato, oppdaterteFakturaLinjer)
+                Triple(
+                    gjeldendeSluttDato.plusDays(1), emptyList(), fakturaer + nyFaktura
+                )
+            } else {
+                Triple(
+                    gjeldendeSluttDato.plusDays(1), oppdaterteFakturaLinjer, fakturaer
+                )
             }
-
-            gjeldendeFaktureringStartDato = gjeldendeFaktureringSluttDato.plusDays(1)
-        }
-        return samletFakturaListe
+        }.last().third
     }
 
     private fun faktureringSluttDatoFra(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
