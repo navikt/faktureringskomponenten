@@ -31,10 +31,10 @@ class FakturaserieGeneratorTest {
         dagensDato: LocalDate,
         intervall: FakturaserieIntervall,
         perioder: List<FakturaseriePeriode>,
-        expected: FakturaData
+        expected: ForventetFakturering
     ) {
         val fakturaserie = lagFakturaserie(dagensDato, intervall, perioder)
-        val result = FakturaData(fakturaserie.faktura)
+        val result = ForventetFakturering(fakturaserie.faktura)
 
         result.shouldBeEqualToComparingFields(expected)
     }
@@ -52,7 +52,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 1,
                 listOf(
                     FakturaMedLinjer(
@@ -90,7 +90,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 3,
                 listOf(
                     FakturaMedLinjer(
@@ -149,7 +149,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "periode - 1"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 1,
                 listOf(
                     FakturaMedLinjer(
@@ -181,7 +181,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "periode 1"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 1,
                 listOf(
                     FakturaMedLinjer(
@@ -213,7 +213,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 2,
                 listOf(
                     FakturaMedLinjer(
@@ -260,7 +260,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 3,
                 listOf(
                     FakturaMedLinjer(
@@ -316,7 +316,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 7,
                 listOf(
                     FakturaMedLinjer(
@@ -432,7 +432,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 3,
                 listOf(
                     FakturaMedLinjer(
@@ -507,8 +507,8 @@ class FakturaserieGeneratorTest {
         override fun dagensDato(): LocalDate = dagensDato
     }
 
-    data class FakturaData(
-        val size: Int,
+    data class ForventetFakturering(
+        val antallFakturaer: Int,
         val fakturaMedLinjer: List<FakturaMedLinjer>
 
     ) {
@@ -529,11 +529,11 @@ class FakturaserieGeneratorTest {
                         )
                     })
 
-        override fun toString() = "size=$size fakturaListe=$fakturaMedLinjer\n"
+        override fun toString() = "antall=$antallFakturaer fakturaListe=$fakturaMedLinjer\n"
 
         fun toTestCode(): String =
             "FakturaData(\n" +
-                    "  $size,\n  listOf(\n" +
+                    "  $antallFakturaer,\n  listOf(\n" +
                     fakturaMedLinjer.joinToString("\n") { it.toTestCode() } +
                     "\n )" +
                     "\n)"
