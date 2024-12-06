@@ -30,8 +30,11 @@ class FakturaGeneratorTest {
     @Test
     fun `Periode har opphold - setter ikke faktura for oppholdet`() {
         val faktura = generator.lagFakturaerFor(
-            LocalDate.parse("2020-01-01"),
-            LocalDate.parse("2022-12-31"),
+            FakturaserieGenerator.genererPeriodisering(
+                LocalDate.parse("2020-01-01"),
+                LocalDate.parse("2022-12-31"),
+                FakturaserieIntervall.KVARTAL
+            ),
             listOf(
                 FakturaseriePeriode(
                     BigDecimal(1000),
@@ -45,8 +48,7 @@ class FakturaGeneratorTest {
                     LocalDate.parse("2022-12-31"),
                     "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
                 )
-            ),
-            FakturaserieIntervall.KVARTAL
+            )
         )
 
 
@@ -69,8 +71,11 @@ class FakturaGeneratorTest {
     @Test
     fun `PeriodeStart på faktura tilbake i tid - DatoBestilt settes til dagens dato`() {
         val faktura = generator.lagFakturaerFor(
-            LocalDate.now().minusDays(1),
-            LocalDate.now().plusMonths(3),
+            FakturaserieGenerator.genererPeriodisering(
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusMonths(3),
+                FakturaserieIntervall.KVARTAL
+            ),
             listOf(
                 FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
@@ -78,8 +83,7 @@ class FakturaGeneratorTest {
                     sluttDato = LocalDate.now().plusMonths(3),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
-            ),
-            FakturaserieIntervall.KVARTAL
+            )
         )
         faktura.first().datoBestilt.shouldBe(LocalDate.now())
     }
@@ -91,8 +95,11 @@ class FakturaGeneratorTest {
         every { LocalDate.now() } returns begynnelseAvDesember
 
         val faktura = generator.lagFakturaerFor(
-            LocalDate.of(2024, 1, 1),
-            LocalDate.of(2024, 5, 20),
+            FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 5, 20),
+                FakturaserieIntervall.KVARTAL
+            ),
             listOf(
                 FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
@@ -106,8 +113,7 @@ class FakturaGeneratorTest {
                     sluttDato = LocalDate.of(2024, 5, 20),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
-            ),
-            FakturaserieIntervall.KVARTAL
+            )
         )
         faktura.sortedBy { it.datoBestilt }.map { it.datoBestilt }
             .shouldContainInOrder(LocalDate.of(2023, 12, 19), LocalDate.of(2024, 3, 19))
@@ -120,8 +126,11 @@ class FakturaGeneratorTest {
         every { LocalDate.now() } returns etterKvartal1kjøring2024
 
         val faktura = generator.lagFakturaerFor(
-            LocalDate.of(2024, 1, 1),
-            LocalDate.of(2025, 12, 31),
+            FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2025, 12, 31),
+                FakturaserieIntervall.KVARTAL
+            ),
             listOf(
                 FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
@@ -170,11 +179,10 @@ class FakturaGeneratorTest {
                     startDato = LocalDate.of(2025, 10, 1),
                     sluttDato = LocalDate.of(2025, 12, 31),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-
-                ),
-            FakturaserieIntervall.KVARTAL
+                )
+            )
         )
+
         faktura.sortedBy { it.datoBestilt }.map { it.datoBestilt }
             .shouldContainInOrder(
                 LocalDate.of(2024, 3, 22),
@@ -195,8 +203,11 @@ class FakturaGeneratorTest {
         every { LocalDate.now() } returns begynnelseAvDesember
 
         val faktura = generator.lagFakturaerFor(
-            begynnelseAvDesember.plusDays(4),
-            begynnelseAvDesember.plusDays(20),
+            FakturaserieGenerator.genererPeriodisering(
+                begynnelseAvDesember.plusDays(4),
+                begynnelseAvDesember.plusDays(20),
+                FakturaserieIntervall.KVARTAL
+            ),
             listOf(
                 FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
@@ -204,8 +215,7 @@ class FakturaGeneratorTest {
                     sluttDato = begynnelseAvDesember.plusDays(20),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
-            ),
-            FakturaserieIntervall.KVARTAL
+            )
         )
 
         faktura.single().datoBestilt.shouldBe(LocalDate.now())
@@ -218,8 +228,11 @@ class FakturaGeneratorTest {
         every { LocalDate.now() } returns begynnelseAvDesember
 
         val faktura = generator.lagFakturaerFor(
-            begynnelseAvDesember.plusYears(1),
-            begynnelseAvDesember.plusYears(1).plusDays(1),
+            FakturaserieGenerator.genererPeriodisering(
+                begynnelseAvDesember.plusYears(1),
+                begynnelseAvDesember.plusYears(1).plusDays(1),
+                FakturaserieIntervall.KVARTAL
+            ),
             listOf(
                 FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
@@ -227,8 +240,7 @@ class FakturaGeneratorTest {
                     sluttDato = begynnelseAvDesember.plusYears(1).plusDays(1),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
-            ),
-            FakturaserieIntervall.KVARTAL
+            )
         )
 
         faktura.single().datoBestilt.shouldBe(LocalDate.of(2024, 9, 19))
@@ -241,8 +253,11 @@ class FakturaGeneratorTest {
         every { LocalDate.now() } returns etter19SisteMånedIKvartal
 
         val faktura = generator.lagFakturaerFor(
-            LocalDate.of(2024, 2, 1),
-            LocalDate.of(2024, 3, 31),
+            FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2024, 2, 1),
+                LocalDate.of(2024, 3, 31),
+                FakturaserieIntervall.KVARTAL
+            ),
             listOf(
                 FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
@@ -250,8 +265,7 @@ class FakturaGeneratorTest {
                     sluttDato = LocalDate.of(2024, 3, 31),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
-            ),
-            FakturaserieIntervall.KVARTAL
+            )
         )
 
         faktura.single().datoBestilt.shouldBe(etter19SisteMånedIKvartal)
@@ -264,8 +278,11 @@ class FakturaGeneratorTest {
         every { LocalDate.now() } returns etter19SisteMånedIKvartal
 
         val faktura = generator.lagFakturaerFor(
-            LocalDate.of(2024, 1, 1),
-            LocalDate.of(2027, 3, 31),
+            FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2027, 3, 31),
+                FakturaserieIntervall.KVARTAL
+            ),
             listOf(
                 FakturaseriePeriode(
                     enhetsprisPerManed = BigDecimal(25470),
@@ -273,8 +290,7 @@ class FakturaGeneratorTest {
                     sluttDato = LocalDate.of(2027, 3, 31),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
-            ),
-            FakturaserieIntervall.KVARTAL
+            )
         )
 
         faktura.shouldHaveSize(13)
