@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.service
 import io.getunleash.Unleash
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -11,7 +10,6 @@ import ulid.ULID
 import java.time.LocalDate
 import java.time.Month
 import java.time.temporal.IsoFields
-import java.time.temporal.TemporalAdjusters
 
 @Component
 class FakturaGenerator(
@@ -22,7 +20,7 @@ class FakturaGenerator(
     @Value("\${NAIS_CLUSTER_NAME}")
     private lateinit var naisClusterName: String
 
-    // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
+    // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957, metoden tar ikke hensyn til dagens dato
     fun lagFaktura(
         startDato: LocalDate,
         sluttDato: LocalDate,
@@ -34,17 +32,6 @@ class FakturaGenerator(
     }
 
     fun lagFakturaerFor(
-        startDatoForHelePerioden: LocalDate,
-        sluttDatoForHelePerioden: LocalDate,
-        fakturaseriePerioder: List<FakturaseriePeriode>,
-        faktureringsintervall: FakturaserieIntervall
-    ): List<Faktura> {
-        val periodisering = genererPeriodisering(startDatoForHelePerioden, sluttDatoForHelePerioden, faktureringsintervall)
-
-        return lagFakturaerFor(periodisering, fakturaseriePerioder)
-    }
-
-    private fun lagFakturaerFor(
         periodisering: List<Pair<LocalDate, LocalDate>>,
         fakturaseriePerioder: List<FakturaseriePeriode>
     ): List<Faktura> {
@@ -67,32 +54,6 @@ class FakturaGenerator(
                 oppdaterteFakturaLinjer to akkumulerteFakturaer
             }
         }.second
-    }
-
-    private fun genererPeriodisering(
-        startDatoForPerioden: LocalDate,
-        sluttDatoForPerioden: LocalDate,
-        faktureringsintervall: FakturaserieIntervall
-    ): List<Pair<LocalDate, LocalDate>> = generateSequence(startDatoForPerioden) { startDato ->
-        sluttDatoFor(startDato, faktureringsintervall).plusDays(1)
-    }.takeWhile { it <= sluttDatoForPerioden }
-        .map { startDato ->
-            val sluttDato = minOf(sluttDatoFor(startDato, faktureringsintervall), sluttDatoForPerioden)
-            startDato to sluttDato
-        }.toList()
-
-    private fun sluttDatoFor(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
-        var sluttDato = if (intervall == FakturaserieIntervall.MANEDLIG) {
-            startDato.withDayOfMonth(startDato.lengthOfMonth())
-        } else {
-            startDato.withMonth(startDato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
-        }
-
-        if (startDato.year != sluttDato.year) {
-            sluttDato = LocalDate.of(startDato.year, 12, 31)
-        }
-
-        return sluttDato
     }
 
     private fun lagFakturaLinjerForPeriode(

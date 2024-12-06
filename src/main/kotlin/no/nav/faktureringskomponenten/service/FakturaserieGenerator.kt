@@ -7,6 +7,8 @@ import org.threeten.extra.LocalDateRange
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
+import java.time.temporal.IsoFields
+import java.time.temporal.TemporalAdjusters
 
 @Component
 class FakturaserieGenerator(
@@ -24,12 +26,9 @@ class FakturaserieGenerator(
             finnStartDatoForSamletPeriode(avregningsfakturaSistePeriodeTil, startDato, fakturaserieDto)
         val sluttDatoForSamletPeriode = fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato
 
-        val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(
-            startDatoForSamletPeriode,
-            sluttDatoForSamletPeriode,
-            fakturaserieDto.perioder,
-            fakturaserieDto.intervall
-        )
+        val periodisering = genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
+        val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(periodisering, fakturaserieDto.perioder)
+
         return Fakturaserie(
             id = null,
             referanse = fakturaserieDto.fakturaserieReferanse,
@@ -122,6 +121,32 @@ class FakturaserieGenerator(
     }
 
     companion object {
+        fun genererPeriodisering(
+            startDatoForPerioden: LocalDate,
+            sluttDatoForPerioden: LocalDate,
+            faktureringsintervall: FakturaserieIntervall
+        ): List<Pair<LocalDate, LocalDate>> = generateSequence(startDatoForPerioden) { startDato ->
+            sluttDatoFor(startDato, faktureringsintervall).plusDays(1)
+        }.takeWhile { it <= sluttDatoForPerioden }
+            .map { startDato ->
+                val sluttDato = minOf(sluttDatoFor(startDato, faktureringsintervall), sluttDatoForPerioden)
+                startDato to sluttDato
+            }.toList()
+
+        private fun sluttDatoFor(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
+            var sluttDato = if (intervall == FakturaserieIntervall.MANEDLIG) {
+                startDato.withDayOfMonth(startDato.lengthOfMonth())
+            } else {
+                startDato.withMonth(startDato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
+            }
+
+            if (startDato.year != sluttDato.year) {
+                sluttDato = LocalDate.of(startDato.year, 12, 31)
+            }
+
+            return sluttDato
+        }
+
         private fun delIFakturerbarePerioder(
             nyeFakturaseriePerioder: List<FakturaseriePeriode>,
             intervall: FakturaserieIntervall
