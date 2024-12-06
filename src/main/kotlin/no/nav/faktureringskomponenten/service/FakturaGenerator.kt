@@ -20,17 +20,6 @@ class FakturaGenerator(
     @Value("\${NAIS_CLUSTER_NAME}")
     private lateinit var naisClusterName: String
 
-    // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957, metoden tar ikke hensyn til dagens dato
-    fun lagFaktura(
-        startDato: LocalDate,
-        sluttDato: LocalDate,
-        fakturaseriePerioder: List<FakturaseriePeriode>
-    ): Faktura {
-        val fakturaLinjer = lagFakturaLinjerForPeriode(startDato, sluttDato, fakturaseriePerioder, sluttDato)
-
-        return tilFaktura(startDato, fakturaLinjer)
-    }
-
     fun lagFakturaerFor(
         periodisering: List<Pair<LocalDate, LocalDate>>,
         fakturaseriePerioder: List<FakturaseriePeriode>
