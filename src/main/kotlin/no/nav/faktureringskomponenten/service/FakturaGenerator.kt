@@ -124,7 +124,7 @@ class FakturaGenerator(
     }
 
     private fun utledBestillingsdato(fakturaStartDato: LocalDate): LocalDate {
-        if (naisClusterName == NAIS_CLUSTER_NAME_DEV && unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant")) {
+        if (unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant") && naisClusterName == NAIS_CLUSTER_NAME_DEV) {
             return dagensDato()
         }
 
