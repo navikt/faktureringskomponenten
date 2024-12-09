@@ -1,12 +1,13 @@
 package no.nav.faktureringskomponenten.service
 
-import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Component
 import org.threeten.extra.LocalDateRange
 import java.time.LocalDate
-import java.time.YearMonth
-import java.time.temporal.ChronoUnit
 import java.time.temporal.IsoFields
 import java.time.temporal.TemporalAdjusters
 
@@ -67,9 +68,13 @@ class FakturaserieGenerator(
         fakturaserieDto: FakturaserieDto,
         avregningsfakturaer: List<Faktura>
     ): List<Faktura> {
-        val fakturerbarePerioderPerIntervall = delIFakturerbarePerioder(fakturaserieDto.perioder, fakturaserieDto.intervall)
+        val fakturerbarePerioderPerIntervall = genererPeriodisering(
+            fakturaserieDto.perioder.minBy { it.startDato }.startDato,
+            fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato,
+            fakturaserieDto.intervall
+        )
 
-        val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.flatMap { periode ->
+        val nyeFakturaPerioder = fakturerbarePerioderPerIntervall.map { LocalDateRange.of(it.first, it.second) }.flatMap { periode ->
             val avregningsperioder = avregningsfakturaer.map { LocalDateRange.ofClosed(it.getPeriodeFra(), it.getPeriodeTil()) }
             if (avregningsperioder.none { it.overlaps(periode) }) listOf(periode)
             else avregningsperioder.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
@@ -133,71 +138,10 @@ class FakturaserieGenerator(
                 startDato to sluttDato
             }.toList()
 
-        private fun sluttDatoFor(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
-            var sluttDato = if (intervall == FakturaserieIntervall.MANEDLIG) {
-                startDato.withDayOfMonth(startDato.lengthOfMonth())
-            } else {
-                startDato.withMonth(startDato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
-            }
-
-            if (startDato.year != sluttDato.year) {
-                sluttDato = LocalDate.of(startDato.year, 12, 31)
-            }
-
-            return sluttDato
-        }
-
-        private fun delIFakturerbarePerioder(
-            nyeFakturaseriePerioder: List<FakturaseriePeriode>,
-            intervall: FakturaserieIntervall
-        ): List<LocalDateRange> {
-            return nyeFakturaseriePerioder.flatMap { periode ->
-                val startYearMonth = YearMonth.from(periode.startDato)
-                val endYearMonth = YearMonth.from(periode.sluttDato)
-
-                (0..startYearMonth.until(endYearMonth, ChronoUnit.MONTHS))
-                    .filter { it % intervall.toMonthStep() == 0L }
-                    .map { monthsToAdd ->
-                        startYearMonth
-                            .plusMonths(monthsToAdd)
-                            .toDateRange(
-                                periode.startDato,
-                                periode.sluttDato,
-                                intervall
-                            )
-                    }
-            }.distinct()
-        }
-
-        private fun FakturaserieIntervall.toMonthStep() = when (this) {
-            FakturaserieIntervall.MANEDLIG -> 1L
-            FakturaserieIntervall.KVARTAL -> 3L
+        private fun sluttDatoFor(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate = when (intervall) {
+            FakturaserieIntervall.MANEDLIG -> startDato.withDayOfMonth(startDato.lengthOfMonth())
+            FakturaserieIntervall.KVARTAL -> startDato.withMonth(startDato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
             FakturaserieIntervall.SINGEL -> SingleErIkkeStøttet()
-        }
-
-        private fun YearMonth.toDateRange(
-            startConstraint: LocalDate,
-            endConstraint: LocalDate,
-            intervall: FakturaserieIntervall
-        ): LocalDateRange {
-            val periodStart = when (intervall) {
-                FakturaserieIntervall.MANEDLIG -> maxOf(this.atDay(1), startConstraint)
-                FakturaserieIntervall.KVARTAL -> maxOf(this.getQuarterStart().atDay(1), startConstraint)
-                FakturaserieIntervall.SINGEL -> SingleErIkkeStøttet()
-            }
-
-            val periodEnd = when (intervall) {
-                FakturaserieIntervall.MANEDLIG -> minOf(this.atEndOfMonth(), endConstraint)
-                FakturaserieIntervall.KVARTAL -> minOf(this.getQuarterStart().plusMonths(2).atEndOfMonth(), endConstraint)
-                FakturaserieIntervall.SINGEL -> SingleErIkkeStøttet()
-            }
-
-            return LocalDateRange.of(periodStart, periodEnd)
-        }
-
-        private fun YearMonth.getQuarterStart(): YearMonth {
-            val monthInQuarter = (monthValue - 1) % 3
-            return minusMonths(monthInQuarter.toLong())
         }
 
         private fun SingleErIkkeStøttet(): Nothing {
