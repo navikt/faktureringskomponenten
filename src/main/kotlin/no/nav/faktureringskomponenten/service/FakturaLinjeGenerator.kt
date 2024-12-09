@@ -10,8 +10,6 @@ import java.time.format.DateTimeFormatter
 
 @Component
 class FakturaLinjeGenerator {
-    private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
-
     fun lagFakturaLinjer(
         perioder: List<FakturaseriePeriode>,
         faktureringFra: LocalDate,
@@ -39,5 +37,9 @@ class FakturaLinjeGenerator {
                 enhetsprisPerManed = it.enhetsprisPerManed
             )
         }.toList()
+    }
+
+    companion object {
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 }
