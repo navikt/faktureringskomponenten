@@ -12,7 +12,6 @@ import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -115,7 +114,7 @@ class FakturaGeneratorTest {
     }
 
     @Test
-    fun `PeriodeStart på faktura frem i tid, dagens dato etter kvartlskjøring, DatoBestilt settes til dagen etterpå`() {
+    fun `Dagens dato etter kvartalskjøring, DatoBestilt settes til dagen etterpå`() {
         val etterKvartal1kjøring2024 = LocalDate.of(2024, 3, 22)
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns etterKvartal1kjøring2024
@@ -213,7 +212,6 @@ class FakturaGeneratorTest {
     }
 
     @Test
-    @Disabled("Det kommer ny test for dette i en annen PR")
     fun `PeriodeStart på faktura frem i tid, i samme kvartal, men neste år - DatoBestilt settes til 19 i måneden før kvartalet`() {
         val begynnelseAvDesember = LocalDate.of(2023, 12, 1)
         mockkStatic(LocalDate::class)
@@ -233,7 +231,6 @@ class FakturaGeneratorTest {
             FakturaserieIntervall.KVARTAL
         )
 
-        val firstMonthOfQuarter = LocalDate.now().month.firstMonthOfQuarter()
         faktura.single().datoBestilt.shouldBe(LocalDate.of(2024, 9, 19))
     }
 
