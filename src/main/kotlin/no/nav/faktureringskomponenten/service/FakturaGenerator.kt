@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.service
 import io.getunleash.Unleash
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -11,7 +10,6 @@ import ulid.ULID
 import java.time.LocalDate
 import java.time.Month
 import java.time.temporal.IsoFields
-import java.time.temporal.TemporalAdjusters
 
 @Component
 class FakturaGenerator(
@@ -22,59 +20,29 @@ class FakturaGenerator(
     @Value("\${NAIS_CLUSTER_NAME}")
     private lateinit var naisClusterName: String
 
-    // FIXME: Dette er en midlertidig løsning for å fikse https://jira.adeo.no/browse/MELOSYS-6957
-    fun lagFaktura(
-        startDato: LocalDate,
-        sluttDato: LocalDate,
-        fakturaseriePerioder: List<FakturaseriePeriode>
-    ): Faktura {
-        val fakturaLinjer = lagFakturaLinjerForPeriode(startDato, sluttDato, fakturaseriePerioder, sluttDato)
-
-        return tilFaktura(startDato, fakturaLinjer)
-    }
-
     fun lagFakturaerFor(
-        startDatoForHelePerioden: LocalDate,
-        sluttDatoForHelePerioden: LocalDate,
-        fakturaseriePerioder: List<FakturaseriePeriode>,
-        faktureringsintervall: FakturaserieIntervall
+        periodisering: List<Pair<LocalDate, LocalDate>>,
+        fakturaseriePerioder: List<FakturaseriePeriode>
     ): List<Faktura> {
-        return generateSequence(
-            Triple(startDatoForHelePerioden, emptyList<FakturaLinje>(), emptyList<Faktura>())
-        ) { (gjeldendeStartDato, gjeldendeFakturaLinjer, fakturaer) ->
-            if (gjeldendeStartDato > sluttDatoForHelePerioden && gjeldendeFakturaLinjer.isEmpty()) return@generateSequence null
-
-            val gjeldendeSluttDato = faktureringSluttDatoFra(gjeldendeStartDato, faktureringsintervall)
+        // val sluttDatoForPeriodisering = periodisering.last().second
+        return periodisering.fold(
+            initial = emptyList<FakturaLinje>() to emptyList<Faktura>()
+        ) { (gjeldendeLinjer, akkumulerteFakturaer), (periodeStart, periodeSlutt) ->
             val nyeFakturaLinjer = lagFakturaLinjerForPeriode(
-                gjeldendeStartDato, gjeldendeSluttDato, fakturaseriePerioder, sluttDatoForHelePerioden
+                periodeStart, periodeSlutt, fakturaseriePerioder, periodisering.last().second
             )
-            val oppdaterteFakturaLinjer = gjeldendeFakturaLinjer + nyeFakturaLinjer
+            val oppdaterteFakturaLinjer = gjeldendeLinjer + nyeFakturaLinjer
 
-            if (skalLageFakturaForPeriode(dagensDato(), gjeldendeSluttDato) && oppdaterteFakturaLinjer.isNotEmpty()) {
-                val nyFaktura = tilFaktura(gjeldendeStartDato, oppdaterteFakturaLinjer)
-                Triple(
-                    gjeldendeSluttDato.plusDays(1), emptyList(), fakturaer + nyFaktura
-                )
+            if ((periodeSlutt >= dagensDato() || erSisteDagIÅret(periodeSlutt)) && oppdaterteFakturaLinjer.isNotEmpty()) {
+                val nyFaktura = tilFaktura(periodeStart, oppdaterteFakturaLinjer)
+                emptyList<FakturaLinje>() to akkumulerteFakturaer + nyFaktura
+            } else if (periodeSlutt == periodisering.last().second && oppdaterteFakturaLinjer.isNotEmpty()) {
+                val sisteFaktura = tilFaktura(oppdaterteFakturaLinjer.minOf { it.periodeFra }, oppdaterteFakturaLinjer)
+                emptyList<FakturaLinje>() to akkumulerteFakturaer + sisteFaktura
             } else {
-                Triple(
-                    gjeldendeSluttDato.plusDays(1), oppdaterteFakturaLinjer, fakturaer
-                )
+                oppdaterteFakturaLinjer to akkumulerteFakturaer
             }
-        }.last().third
-    }
-
-    private fun faktureringSluttDatoFra(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
-        var sluttDato = if (intervall == FakturaserieIntervall.MANEDLIG) {
-            startDato.withDayOfMonth(startDato.lengthOfMonth())
-        } else {
-            startDato.withMonth(startDato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
-        }
-
-        if (startDato.year != sluttDato.year) {
-            sluttDato = LocalDate.of(startDato.year, 12, 31)
-        }
-
-        return sluttDato
+        }.second
     }
 
     private fun lagFakturaLinjerForPeriode(
@@ -90,11 +58,6 @@ class FakturaGenerator(
 
     private fun sluttDatoFra(sisteDagAvPeriode: LocalDate, sluttDatoForHelePerioden: LocalDate) =
         if (sisteDagAvPeriode > sluttDatoForHelePerioden) sluttDatoForHelePerioden else sisteDagAvPeriode
-
-    private fun skalLageFakturaForPeriode(
-        dagensDato: LocalDate,
-        gjeldendeFaktureringSluttDato: LocalDate
-    ): Boolean = dagensDato <= gjeldendeFaktureringSluttDato || erSisteDagIÅret(gjeldendeFaktureringSluttDato)
 
     private fun erSisteDagIÅret(dato: LocalDate): Boolean = dato.month == Month.DECEMBER && dato.dayOfMonth == 31
 
