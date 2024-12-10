@@ -142,11 +142,7 @@ class FakturaserieGenerator(
         private fun sluttDatoFor(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate = when (intervall) {
             FakturaserieIntervall.MANEDLIG -> startDato.withDayOfMonth(startDato.lengthOfMonth())
             FakturaserieIntervall.KVARTAL -> startDato.withMonth(startDato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
-            FakturaserieIntervall.SINGEL -> SingleErIkkeStøttet()
-        }
-
-        private fun SingleErIkkeStøttet(): Nothing {
-            throw IllegalArgumentException("Singelintervall er ikke støttet")
+            FakturaserieIntervall.SINGEL -> throw IllegalArgumentException("Singelintervall er ikke støttet")
         }
 
         fun LocalDateRange.substract(other: LocalDateRange): List<LocalDateRange> {
