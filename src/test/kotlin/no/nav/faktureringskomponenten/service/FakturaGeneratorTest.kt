@@ -16,7 +16,6 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 
-
 class FakturaGeneratorTest {
     private val fakturaLinjeGenerator = FakturaLinjeGenerator()
     private val unleash = FakeUnleash()
