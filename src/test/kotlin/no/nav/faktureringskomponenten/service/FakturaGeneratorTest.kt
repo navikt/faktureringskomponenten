@@ -48,7 +48,8 @@ class FakturaGeneratorTest {
                     LocalDate.parse("2022-12-31"),
                     "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
 
@@ -83,7 +84,8 @@ class FakturaGeneratorTest {
                     sluttDato = LocalDate.now().plusMonths(3),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
         faktura.first().datoBestilt.shouldBe(LocalDate.now())
     }
@@ -113,7 +115,8 @@ class FakturaGeneratorTest {
                     sluttDato = LocalDate.of(2024, 5, 20),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
         faktura.sortedBy { it.datoBestilt }.map { it.datoBestilt }
             .shouldContainInOrder(LocalDate.of(2023, 12, 19), LocalDate.of(2024, 3, 19))
@@ -180,7 +183,8 @@ class FakturaGeneratorTest {
                     sluttDato = LocalDate.of(2025, 12, 31),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.sortedBy { it.datoBestilt }.map { it.datoBestilt }
@@ -215,7 +219,8 @@ class FakturaGeneratorTest {
                     sluttDato = begynnelseAvDesember.plusDays(20),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.single().datoBestilt.shouldBe(LocalDate.now())
@@ -240,7 +245,8 @@ class FakturaGeneratorTest {
                     sluttDato = begynnelseAvDesember.plusYears(1).plusDays(1),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.single().datoBestilt.shouldBe(LocalDate.of(2024, 9, 19))
@@ -265,7 +271,8 @@ class FakturaGeneratorTest {
                     sluttDato = LocalDate.of(2024, 3, 31),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.single().datoBestilt.shouldBe(etter19SisteMånedIKvartal)
@@ -291,7 +298,8 @@ class FakturaGeneratorTest {
                     LocalDate.of(2022, 12, 31),
                     "Test periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         // Skal få 3 fakturaer (2020, 2021, 2022) selv om siste periode ikke er på slutten av året
@@ -311,7 +319,8 @@ class FakturaGeneratorTest {
                     LocalDate.parse("2020-12-31"),
                     "Test periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.shouldHaveSize(0)
@@ -325,7 +334,8 @@ class FakturaGeneratorTest {
                 LocalDate.parse("2020-12-31"),
                 FakturaserieIntervall.KVARTAL
             ),
-            fakturaseriePerioder = emptyList()
+            fakturaseriePerioder = emptyList(),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.shouldHaveSize(0)
@@ -356,7 +366,8 @@ class FakturaGeneratorTest {
                     LocalDate.of(2026, 12, 31),
                     "Andre periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.flatMap { it.fakturaLinje }
@@ -384,7 +395,8 @@ class FakturaGeneratorTest {
                     LocalDate.of(2024, 12, 31), // Merk: Går utover total periodisering
                     "Test periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.flatMap { it.fakturaLinje }
@@ -413,7 +425,8 @@ class FakturaGeneratorTest {
                     LocalDate.of(2024, 12, 31),
                     "Test periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.shouldHaveSize(4) // Ett per kvartal
@@ -440,7 +453,8 @@ class FakturaGeneratorTest {
                     LocalDate.of(2022, 12, 31),
                     "Test periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.shouldHaveSize(3) // En per år (2020, 2021, 2022)
@@ -471,7 +485,8 @@ class FakturaGeneratorTest {
                     LocalDate.of(2024, 6, 30),
                     "Andre periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         // Verifiser at vi får korrekt antall fakturalinjer og beløp
@@ -497,7 +512,8 @@ class FakturaGeneratorTest {
                     LocalDate.of(2024, 6, 30),
                     "Test periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         // Verifiser at første fakturalinjes startdato er 15. januar
@@ -523,7 +539,8 @@ class FakturaGeneratorTest {
                     LocalDate.of(2024, 4, 15),  // Slutter etter periodisering
                     "Test periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.flatMap { it.fakturaLinje }.run {
@@ -551,7 +568,8 @@ class FakturaGeneratorTest {
                     LocalDate.of(2024, 6, 30),
                     "Test periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         // Første kvartal skal være historisk, andre kvartal fremtidig
@@ -580,7 +598,8 @@ class FakturaGeneratorTest {
                     sluttDato,
                     "Test periode"
                 )
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.flatMap { it.fakturaLinje }.run {
@@ -609,7 +628,8 @@ class FakturaGeneratorTest {
                     sluttDato = LocalDate.of(2027, 3, 31),
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 ),
-            )
+            ),
+            FakturaserieIntervall.KVARTAL
         )
 
         faktura.shouldHaveSize(13)
