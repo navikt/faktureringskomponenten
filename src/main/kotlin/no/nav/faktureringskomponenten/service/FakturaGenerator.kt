@@ -60,7 +60,23 @@ class FakturaGenerator(
             // Filtrer bort år som ikke har noen fakturaPerioder (f.eks. hvis det er opphold i faktureringen)
             .filterÅrMedFakturaPerioder(fakturaseriePerioder)
             // Lag én faktura per år med alle perioder samlet
-            .map { (_, perioderForÅr) -> perioderForÅr.tilFaktura(fakturaseriePerioder, sluttDatoForHelePerioden) }
+            .map { (_, perioderForÅr) ->
+                // Lager en fakturalinje for hver periode i året
+                val fakturaLinjer = perioderForÅr.flatMap { (periodeStart, periodeSlutt) ->
+                    lagFakturaLinjerForPeriode(
+                        periodeStart,
+                        periodeSlutt,
+                        fakturaseriePerioder,
+                        sluttDatoForHelePerioden
+                    )
+                }
+
+                tilFaktura(
+                    perioderForÅr.minOf { it.first },
+                    fakturaLinjer.sortedByDescending { it.periodeFra },
+                    intervall
+                )
+            }
             // Fjern eventuelle fakturaer som ikke inneholder noen linjer
             .filter { it.fakturaLinje.isNotEmpty() }
     }
