@@ -3,14 +3,13 @@ package no.nav.faktureringskomponenten.service
 import io.getunleash.Unleash
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.threeten.extra.LocalDateRange
 import ulid.ULID
 import java.time.LocalDate
-import java.time.Month
-import java.time.temporal.IsoFields
 
 @Component
 class FakturaGenerator(
@@ -32,7 +31,8 @@ class FakturaGenerator(
      */
     fun lagFakturaerFor(
         periodisering: List<Pair<LocalDate, LocalDate>>,
-        fakturaseriePerioder: List<FakturaseriePeriode>
+        fakturaseriePerioder: List<FakturaseriePeriode>,
+        intervall: FakturaserieIntervall
     ): List<Faktura> {
         val dagensDato = dagensDato()
 
@@ -40,8 +40,8 @@ class FakturaGenerator(
             !startDato.isAfter(dagensDato)
         }
 
-        return lagFakturaForHistoriskePerioder(historiskePerioder, fakturaseriePerioder) +
-            lagFremtidigeFakturaer(fremtidigePerioder, fakturaseriePerioder)
+        return lagFakturaForHistoriskePerioder(historiskePerioder, fakturaseriePerioder, intervall) +
+            lagFremtidigeFakturaer(fremtidigePerioder, fakturaseriePerioder, intervall)
     }
 
     /**
@@ -50,7 +50,8 @@ class FakturaGenerator(
      */
     private fun lagFakturaForHistoriskePerioder(
         historiskePerioder: List<Pair<LocalDate, LocalDate>>,
-        fakturaseriePerioder: List<FakturaseriePeriode>
+        fakturaseriePerioder: List<FakturaseriePeriode>,
+        intervall: FakturaserieIntervall
     ): List<Faktura> {
         if (historiskePerioder.isEmpty()) return emptyList()
         val sluttDatoForHelePerioden = historiskePerioder.maxOf { it.second }
@@ -87,7 +88,8 @@ class FakturaGenerator(
      */
     private fun lagFremtidigeFakturaer(
         fremtidigePerioder: List<Pair<LocalDate, LocalDate>>,
-        fakturaseriePerioder: List<FakturaseriePeriode>
+        fakturaseriePerioder: List<FakturaseriePeriode>,
+        intervall: FakturaserieIntervall
     ): List<Faktura> {
         if (fremtidigePerioder.isEmpty()) return emptyList()
         val sluttDatoForHelePerioden = fremtidigePerioder.maxOf { it.second }
@@ -98,7 +100,7 @@ class FakturaGenerator(
                     LocalDateRange.ofClosed(periode.startDato, periode.sluttDato).overlaps(periodeRange)
                 }
             }
-            .map { (start, slutt) -> lagFakturaForPeriode(start, slutt, fakturaseriePerioder, sluttDatoForHelePerioden) }
+            .map { (start, slutt) -> lagFakturaForPeriode(start, slutt, fakturaseriePerioder, sluttDatoForHelePerioden, intervall) }
             .filter { it.fakturaLinje.isNotEmpty() }
     }
 
@@ -121,24 +123,12 @@ class FakturaGenerator(
         }
     }
 
-    /**
-     * Konverterer en liste av perioder til én faktura.
-     * Start- og sluttdato for fakturaen blir henholdsvis den tidligste og seneste datoen fra periodene.
-     */
-    private fun List<Pair<LocalDate, LocalDate>>.tilFaktura(
-        fakturaseriePerioder: List<FakturaseriePeriode>,
-        sluttDatoForHelePerioden: LocalDate
-    ): Faktura {
-        val periodeStart = minOf { it.first }
-        val periodeSlutt = maxOf { it.second }
-        return lagFakturaForPeriode(periodeStart, periodeSlutt, fakturaseriePerioder, sluttDatoForHelePerioden)
-    }
-
     private fun lagFakturaForPeriode(
         periodeStart: LocalDate,
         periodeSlutt: LocalDate,
         fakturaseriePerioder: List<FakturaseriePeriode>,
-        sluttDatoForHelePerioden: LocalDate
+        sluttDatoForHelePerioden: LocalDate,
+        intervall: FakturaserieIntervall
     ): Faktura {
         val fakturaLinjer = lagFakturaLinjerForPeriode(
             periodeStart,
@@ -146,7 +136,7 @@ class FakturaGenerator(
             fakturaseriePerioder,
             sluttDatoForHelePerioden
         )
-        return tilFaktura(periodeStart, fakturaLinjer)
+        return tilFaktura(periodeStart, fakturaLinjer, intervall)
     }
 
     private fun lagFakturaLinjerForPeriode(
@@ -163,10 +153,8 @@ class FakturaGenerator(
     private fun sluttDatoFra(sisteDagAvPeriode: LocalDate, sluttDatoForHelePerioden: LocalDate) =
         if (sisteDagAvPeriode > sluttDatoForHelePerioden) sluttDatoForHelePerioden else sisteDagAvPeriode
 
-    private fun erSisteDagIÅret(dato: LocalDate): Boolean = dato.month == Month.DECEMBER && dato.dayOfMonth == 31
-
-    private fun tilFaktura(fakturaStartDato: LocalDate, fakturaLinjer: List<FakturaLinje>): Faktura {
-        val bestillingsdato = utledBestillingsdato(fakturaStartDato)
+    private fun tilFaktura(fakturaStartDato: LocalDate, fakturaLinjer: List<FakturaLinje>, intervall: FakturaserieIntervall): Faktura {
+        val bestillingsdato = utledBestillingsdato(fakturaStartDato, intervall)
 
         return Faktura(
             null,
@@ -175,38 +163,34 @@ class FakturaGenerator(
             fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
     }
 
-    private fun erNesteKvartalOgKvartalsbestillingHarKjørt(
-        fakturaStartDato: LocalDate,
-        dagensDato: LocalDate,
-    ): Boolean {
-        val erNesteKvartal = dagensDato < fakturaStartDato && dagensDato[IsoFields.QUARTER_OF_YEAR]
-            .plus(1) % 4 == fakturaStartDato[IsoFields.QUARTER_OF_YEAR] % 4
-        val sisteMånedIDagensKvartal = dagensDato.month.firstMonthOfQuarter().plus(2)
-        val kvartalsBestillingHarKjørt =
-            dagensDato > LocalDate.now().withMonth(sisteMånedIDagensKvartal.value).withDayOfMonth(19)
-        val datoErEtter19Desember = dagensDato >= LocalDate.now().withMonth(12).withDayOfMonth(19)
-        val fakturaStartDatoErÅretEtterOgFørsteKvartal =
-            fakturaStartDato.year == dagensDato.plusYears(1).year && fakturaStartDato.month.value <= 3
-        return erNesteKvartal && kvartalsBestillingHarKjørt && (fakturaStartDato.year == dagensDato.year || (datoErEtter19Desember && fakturaStartDatoErÅretEtterOgFørsteKvartal))
-    }
-
-    private fun utledBestillingsdato(fakturaStartDato: LocalDate): LocalDate {
+    private fun utledBestillingsdato(fakturaStartDato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
         if (unleash.isEnabled("melosys.faktureringskomponent.send_faktura_instant") && naisClusterName == NAIS_CLUSTER_NAME_DEV) {
             return dagensDato()
         }
 
-        if (fakturaStartDato <= dagensDato() || erInneværendeÅrOgKvartal(fakturaStartDato, dagensDato()) ||
-            erNesteKvartalOgKvartalsbestillingHarKjørt(fakturaStartDato, dagensDato())
-        ) {
+        // Hvis fakturaen starter i fortiden eller i dag
+        if (fakturaStartDato <= dagensDato()) {
             return dagensDato().plusDays(forsteFakturaOffsettMedDager)
         }
-        val førstMånedIKvartal = fakturaStartDato.month.firstMonthOfQuarter()
-        return fakturaStartDato.withMonth(førstMånedIKvartal.value).minusMonths(1).withDayOfMonth(19)
+
+        // Hvis bestillingsdato for perioden har kjørt
+        if (harBestillingsdatoKjørt(fakturaStartDato, intervall)) {
+            return dagensDato().plusDays(forsteFakturaOffsettMedDager)
+        }
+
+        // Planlegg for den 19. i måneden før periodestart
+        return fakturaStartDato.withDayOfMonth(1).minusMonths(1).withDayOfMonth(19)
     }
 
-    private fun erInneværendeÅrOgKvartal(datoA: LocalDate, datoB: LocalDate): Boolean {
-        return datoA[IsoFields.QUARTER_OF_YEAR] == datoB[IsoFields.QUARTER_OF_YEAR]
-                && datoA.year == datoB.year
+    private fun harBestillingsdatoKjørt(fakturaStartDato: LocalDate, intervall: FakturaserieIntervall): Boolean {
+        val førsteIPerioden = when(intervall) {
+            FakturaserieIntervall.MANEDLIG -> fakturaStartDato.withDayOfMonth(1)
+            FakturaserieIntervall.KVARTAL -> fakturaStartDato.withMonth(fakturaStartDato.month.firstMonthOfQuarter().value).withDayOfMonth(1)
+            FakturaserieIntervall.SINGEL -> throw IllegalArgumentException("Singelintervall er ikke støttet")
+        }
+
+        val bestillingsDato = førsteIPerioden.minusMonths(1).withDayOfMonth(19)
+        return dagensDato() >= bestillingsDato
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()

@@ -28,7 +28,7 @@ class FakturaserieGenerator(
         val sluttDatoForSamletPeriode = fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato
 
         val periodisering = genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
-        val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(periodisering, fakturaserieDto.perioder)
+        val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(periodisering, fakturaserieDto.perioder, fakturaserieDto.intervall)
 
         return Fakturaserie(
             id = null,
@@ -82,7 +82,8 @@ class FakturaserieGenerator(
 
         val nyeFakturaerForNyePerioder: List<Faktura> = fakturaGenerator.lagFakturaerFor(
             periodiseringUtenAvregning,
-            fakturaserieDto.perioder
+            fakturaserieDto.perioder,
+            fakturaserieDto.intervall
         )
         return nyeFakturaerForNyePerioder
     }
