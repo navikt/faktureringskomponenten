@@ -271,6 +271,325 @@ class FakturaGeneratorTest {
         faktura.single().datoBestilt.shouldBe(etter19SisteMånedIKvartal)
     }
 
+
+    @Test
+    fun `skal lage en faktura per år for historiske perioder selv om det ikke er siste dag i året`() {
+        val førsteKvartal2023 = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns førsteKvartal2023
+
+        val faktura = generator.lagFakturaerFor(
+            periodisering = FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2020, 1, 1),
+                LocalDate.of(2022, 11, 30),  // Merk: Ikke siste dag i året
+                FakturaserieIntervall.KVARTAL
+            ),
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2020, 1, 1),
+                    LocalDate.of(2022, 12, 31),
+                    "Test periode"
+                )
+            )
+        )
+
+        // Skal få 3 fakturaer (2020, 2021, 2022) selv om siste periode ikke er på slutten av året
+        faktura.shouldHaveSize(3).run {
+            map { it.fakturaLinje.first().periodeFra.year }.shouldContainInOrder(2020, 2021, 2022)
+        }
+    }
+
+    @Test
+    fun `tom periodisering gir tom liste med fakturaer`() {
+        val faktura = generator.lagFakturaerFor(
+            periodisering = emptyList(),
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.parse("2020-01-01"),
+                    LocalDate.parse("2020-12-31"),
+                    "Test periode"
+                )
+            )
+        )
+
+        faktura.shouldHaveSize(0)
+    }
+
+    @Test
+    fun `tomme fakturaseriePerioder gir tom liste med fakturaer`() {
+        val faktura = generator.lagFakturaerFor(
+            periodisering = FakturaserieGenerator.genererPeriodisering(
+                LocalDate.parse("2020-01-01"),
+                LocalDate.parse("2020-12-31"),
+                FakturaserieIntervall.KVARTAL
+            ),
+            fakturaseriePerioder = emptyList()
+        )
+
+        faktura.shouldHaveSize(0)
+    }
+
+    @Test
+    fun `fremtidige perioder med opphold - setter ikke faktura for oppholdet`() {
+        val dagensDato = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns dagensDato
+
+        val faktura = generator.lagFakturaerFor(
+            FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2026, 12, 31),
+                FakturaserieIntervall.KVARTAL
+            ),
+            listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 12, 31),
+                    "Første periode"
+                ),
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2026, 1, 1),
+                    LocalDate.of(2026, 12, 31),
+                    "Andre periode"
+                )
+            )
+        )
+
+        faktura.flatMap { it.fakturaLinje }
+            .map { it.periodeFra.year }
+            .distinct()
+            .shouldContainInOrder(2024, 2026) // Skal ikke inneholde 2025
+    }
+
+    @Test
+    fun `sluttDato som er etter total periodisering skal begrenses til total periodisering`() {
+        val dagensDato = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns dagensDato
+
+        val sluttDatoForPeriodisering = LocalDate.of(2024, 6, 30)
+        val faktura = generator.lagFakturaerFor(
+            periodisering = listOf(
+                LocalDate.of(2024, 1, 1) to LocalDate.of(2024, 3, 31),
+                LocalDate.of(2024, 4, 1) to sluttDatoForPeriodisering
+            ),
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 12, 31), // Merk: Går utover total periodisering
+                    "Test periode"
+                )
+            )
+        )
+
+        faktura.flatMap { it.fakturaLinje }
+            .maxOf { it.periodeTil }
+            .shouldBe(sluttDatoForPeriodisering)
+    }
+
+    @Test
+    fun `alle perioder er i fremtiden - skal lage separate fakturaer per periode`() {
+        val dagensDato = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns dagensDato
+
+        val periodisering = FakturaserieGenerator.genererPeriodisering(
+            LocalDate.of(2024, 1, 1),
+            LocalDate.of(2024, 12, 31),
+            FakturaserieIntervall.KVARTAL
+        )
+
+        val faktura = generator.lagFakturaerFor(
+            periodisering = periodisering,
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 12, 31),
+                    "Test periode"
+                )
+            )
+        )
+
+        faktura.shouldHaveSize(4) // Ett per kvartal
+    }
+
+    @Test
+    fun `alle perioder er historiske - skal grupperes per år`() {
+        val dagensDato = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns dagensDato
+
+        val periodisering = FakturaserieGenerator.genererPeriodisering(
+            LocalDate.of(2020, 1, 1),
+            LocalDate.of(2022, 12, 31),
+            FakturaserieIntervall.KVARTAL
+        )
+
+        val faktura = generator.lagFakturaerFor(
+            periodisering = periodisering,
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2020, 1, 1),
+                    LocalDate.of(2022, 12, 31),
+                    "Test periode"
+                )
+            )
+        )
+
+        faktura.shouldHaveSize(3) // En per år (2020, 2021, 2022)
+    }
+
+    @Test
+    fun `overlappende fakturaseriePerioder - skal håndtere overlapp korrekt`() {
+        val dagensDato = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns dagensDato
+
+        val faktura = generator.lagFakturaerFor(
+            periodisering = FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 6, 30),
+                FakturaserieIntervall.KVARTAL
+            ),
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 3, 31),
+                    "Første periode"
+                ),
+                FakturaseriePeriode(
+                    BigDecimal(2000),
+                    LocalDate.of(2024, 3, 15), // Merk: Overlapper med første periode
+                    LocalDate.of(2024, 6, 30),
+                    "Andre periode"
+                )
+            )
+        )
+
+        // Verifiser at vi får korrekt antall fakturalinjer og beløp
+        faktura.flatMap { it.fakturaLinje }.size.shouldBe(3) // Q1, overlapp periode, Q2
+    }
+
+    @Test
+    fun `periodisering som starter midt i en måned`() {
+        val dagensDato = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns dagensDato
+
+        val faktura = generator.lagFakturaerFor(
+            periodisering = FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2024, 1, 15), // Merk: Starter midt i måneden
+                LocalDate.of(2024, 6, 30),
+                FakturaserieIntervall.KVARTAL
+            ),
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 6, 30),
+                    "Test periode"
+                )
+            )
+        )
+
+        // Verifiser at første fakturalinjes startdato er 15. januar
+        faktura.first().fakturaLinje.first().periodeFra.shouldBe(LocalDate.of(2024, 1, 15))
+    }
+
+    @Test
+    fun `fakturaseriePeriode som delvis overlapper med periodisering`() {
+        val dagensDato = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns dagensDato
+
+        val faktura = generator.lagFakturaerFor(
+            periodisering = FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 3, 31),
+                FakturaserieIntervall.KVARTAL
+            ),
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2023, 12, 15), // Starter før periodisering
+                    LocalDate.of(2024, 4, 15),  // Slutter etter periodisering
+                    "Test periode"
+                )
+            )
+        )
+
+        faktura.flatMap { it.fakturaLinje }.run {
+            first().periodeFra.shouldBe(LocalDate.of(2024, 1, 1)) // Skal starte med periodiseringen
+            last().periodeTil.shouldBe(LocalDate.of(2024, 3, 31)) // Skal slutte med periodiseringen
+        }
+    }
+
+    @Test
+    fun `dagensDato er nøyaktig på grensen mellom historisk og fremtidig`() {
+        val grenseDato = LocalDate.of(2024, 3, 31)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns grenseDato
+
+        val faktura = generator.lagFakturaerFor(
+            periodisering = FakturaserieGenerator.genererPeriodisering(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 6, 30),
+                FakturaserieIntervall.KVARTAL
+            ),
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 6, 30),
+                    "Test periode"
+                )
+            )
+        )
+
+        // Første kvartal skal være historisk, andre kvartal fremtidig
+        faktura.shouldHaveSize(2)
+    }
+
+    @Test
+    fun `periodisering og fakturaseriePeriode har nøyaktig samme start og slutt`() {
+        val dagensDato = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns dagensDato
+
+        val startDato = LocalDate.of(2024, 1, 1)
+        val sluttDato = LocalDate.of(2024, 12, 31)
+
+        val faktura = generator.lagFakturaerFor(
+            periodisering = FakturaserieGenerator.genererPeriodisering(
+                startDato,
+                sluttDato,
+                FakturaserieIntervall.KVARTAL
+            ),
+            fakturaseriePerioder = listOf(
+                FakturaseriePeriode(
+                    BigDecimal(1000),
+                    startDato,
+                    sluttDato,
+                    "Test periode"
+                )
+            )
+        )
+
+        faktura.flatMap { it.fakturaLinje }.run {
+            first().periodeFra.shouldBe(startDato)
+            last().periodeTil.shouldBe(sluttDato)
+        }
+    }
+
+
     @Test
     fun `PeriodeStart på faktura er i neste kvartal, men dages dato er etter kvartalskjøring - over flere år fremover - DatoBestilt settes til dagens dato`() {
         val etter19SisteMånedIKvartal = LocalDate.of(2023, 12, 23)

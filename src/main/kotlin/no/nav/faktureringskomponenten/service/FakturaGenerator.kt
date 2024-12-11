@@ -6,6 +6,7 @@ import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import org.threeten.extra.LocalDateRange
 import ulid.ULID
 import java.time.LocalDate
 import java.time.Month
@@ -20,29 +21,116 @@ class FakturaGenerator(
     @Value("\${NAIS_CLUSTER_NAME}")
     private lateinit var naisClusterName: String
 
+    /**
+     * Genererer fakturaer basert på gitte perioder og faktureringsgrunnlag.
+     * Historiske perioder (til og med dagens dato) grupperes per år,
+     * mens fremtidige perioder faktureres per periode definert i 'periodisering'.
+     *
+     * @param periodisering Liste av perioder som definerer fakturaoppdelingen (typisk kvartalsvis, men kan være månedlig)
+     * @param fakturaseriePerioder Liste av perioder som definerer faktureringsgrunnlaget og enhetspris per måned
+     * @return Liste av fakturaer gruppert etter historiske (årlig) og fremtidige (per periode) perioder
+     */
     fun lagFakturaerFor(
         periodisering: List<Pair<LocalDate, LocalDate>>,
         fakturaseriePerioder: List<FakturaseriePeriode>
     ): List<Faktura> {
-        // val sluttDatoForPeriodisering = periodisering.last().second
-        return periodisering.fold(
-            initial = emptyList<FakturaLinje>() to emptyList<Faktura>()
-        ) { (gjeldendeLinjer, akkumulerteFakturaer), (periodeStart, periodeSlutt) ->
-            val nyeFakturaLinjer = lagFakturaLinjerForPeriode(
-                periodeStart, periodeSlutt, fakturaseriePerioder, periodisering.last().second
-            )
-            val oppdaterteFakturaLinjer = gjeldendeLinjer + nyeFakturaLinjer
+        val dagensDato = dagensDato()
 
-            if ((periodeSlutt >= dagensDato() || erSisteDagIÅret(periodeSlutt)) && oppdaterteFakturaLinjer.isNotEmpty()) {
-                val nyFaktura = tilFaktura(periodeStart, oppdaterteFakturaLinjer)
-                emptyList<FakturaLinje>() to akkumulerteFakturaer + nyFaktura
-            } else if (periodeSlutt == periodisering.last().second && oppdaterteFakturaLinjer.isNotEmpty()) {
-                val sisteFaktura = tilFaktura(oppdaterteFakturaLinjer.minOf { it.periodeFra }, oppdaterteFakturaLinjer)
-                emptyList<FakturaLinje>() to akkumulerteFakturaer + sisteFaktura
-            } else {
-                oppdaterteFakturaLinjer to akkumulerteFakturaer
+        val (historiskePerioder, fremtidigePerioder) = periodisering.partition { (_, sluttDato) ->
+            !sluttDato.isAfter(dagensDato)
+        }
+
+        return lagFakturaForHistoriskePerioder(historiskePerioder, fakturaseriePerioder) +
+            lagFremtidigeFakturaer(fremtidigePerioder, fakturaseriePerioder)
+    }
+
+    /**
+     * Lager fakturaer for historiske perioder (perioder som har forfalt).
+     * Historiske perioder blir gruppert per år og det lages én faktura per år.
+     */
+    private fun lagFakturaForHistoriskePerioder(
+        historiskePerioder: List<Pair<LocalDate, LocalDate>>,
+        fakturaseriePerioder: List<FakturaseriePeriode>
+    ): List<Faktura> {
+        if (historiskePerioder.isEmpty()) return emptyList()
+        val sluttDatoForHelePerioden = historiskePerioder.maxOf { it.second }
+        return historiskePerioder
+            // Grupper perioder per år
+            .groupBy { (_, sluttDato) -> sluttDato.year }
+            // Filtrer bort år som ikke har noen fakturaPerioder (f.eks. hvis det er opphold i faktureringen)
+            .filterÅrMedFakturaPerioder(fakturaseriePerioder)
+            // Lag én faktura per år med alle perioder samlet
+            .map { (_, perioderForÅr) -> perioderForÅr.tilFaktura(fakturaseriePerioder, sluttDatoForHelePerioden) }
+            // Fjern eventuelle fakturaer som ikke inneholder noen linjer
+            .filter { it.fakturaLinje.isNotEmpty() }
+    }
+
+    /**
+     * Lager fakturaer for fremtidige perioder.
+     * Hver periode i @param fremtidigePerioder får sin egen faktura hvis den overlapper med en fakturaseriePeriode.
+     */
+    private fun lagFremtidigeFakturaer(
+        fremtidigePerioder: List<Pair<LocalDate, LocalDate>>,
+        fakturaseriePerioder: List<FakturaseriePeriode>
+    ): List<Faktura> {
+        if (fremtidigePerioder.isEmpty()) return emptyList()
+        val sluttDatoForHelePerioden = fremtidigePerioder.maxOf { it.second }
+        return fremtidigePerioder
+            .filter { (start, slutt) ->
+                val periodeRange = LocalDateRange.ofClosed(start, slutt)
+                fakturaseriePerioder.any { periode ->
+                    LocalDateRange.ofClosed(periode.startDato, periode.sluttDato).overlaps(periodeRange)
+                }
             }
-        }.second
+            .map { (start, slutt) -> lagFakturaForPeriode(start, slutt, fakturaseriePerioder, sluttDatoForHelePerioden) }
+            .filter { it.fakturaLinje.isNotEmpty() }
+    }
+
+    /**
+     * Filtrerer bort år som ikke har noen overlappende fakturaperioder.
+     * Dette er nødvendig for å håndtere opphold i faktureringsperioder,
+     * f.eks. hvis det ikke skal faktureres for et helt år.
+     */
+    private fun Map<Int, List<Pair<LocalDate, LocalDate>>>.filterÅrMedFakturaPerioder(
+        fakturaseriePerioder: List<FakturaseriePeriode>
+    ): Map<Int, List<Pair<LocalDate, LocalDate>>> {
+        return filter { (år, _) ->
+            val årRange = LocalDateRange.ofClosed(
+                LocalDate.of(år, 1, 1),
+                LocalDate.of(år, 12, 31)
+            )
+            fakturaseriePerioder.any { periode ->
+                LocalDateRange.ofClosed(periode.startDato, periode.sluttDato).overlaps(årRange)
+            }
+        }
+    }
+
+    /**
+     * Konverterer en liste av perioder til én faktura.
+     * Start- og sluttdato for fakturaen blir henholdsvis den tidligste og seneste datoen fra periodene.
+     */
+    private fun List<Pair<LocalDate, LocalDate>>.tilFaktura(
+        fakturaseriePerioder: List<FakturaseriePeriode>,
+        sluttDatoForHelePerioden: LocalDate
+    ): Faktura {
+        val periodeStart = minOf { it.first }
+        val periodeSlutt = maxOf { it.second }
+        return lagFakturaForPeriode(periodeStart, periodeSlutt, fakturaseriePerioder, sluttDatoForHelePerioden)
+    }
+
+    private fun lagFakturaForPeriode(
+        periodeStart: LocalDate,
+        periodeSlutt: LocalDate,
+        fakturaseriePerioder: List<FakturaseriePeriode>,
+        sluttDatoForHelePerioden: LocalDate
+    ): Faktura {
+        val fakturaLinjer = lagFakturaLinjerForPeriode(
+            periodeStart,
+            periodeSlutt,
+            fakturaseriePerioder,
+            sluttDatoForHelePerioden
+        )
+        return tilFaktura(periodeStart, fakturaLinjer)
     }
 
     private fun lagFakturaLinjerForPeriode(
