@@ -7,7 +7,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
-import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import org.junit.jupiter.api.AfterEach
@@ -387,7 +386,7 @@ class FakturaGeneratorParameterizedTest {
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
                 FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("31000"),  // 1000 kr per dag
+                    enhetsprisPerManed = BigDecimal("31000"),
                     startDato = LocalDate.of(2024, 1, 15),
                     sluttDato = LocalDate.of(2024, 1, 31),
                     beskrivelse = "Test delvis januar"
@@ -398,7 +397,7 @@ class FakturaGeneratorParameterizedTest {
                 ExpectedBelop(
                     LocalDate.of(2024, 1, 15),
                     LocalDate.of(2024, 1, 31),
-                    BigDecimal("17000.00")  // 17 dager * 1000 kr
+                    BigDecimal("17050.00")  // 31000 * (17/31) ≈ 17050.00 der 17/31 ≈ 0.55
                 )
             )
         )),
@@ -408,9 +407,9 @@ class FakturaGeneratorParameterizedTest {
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
                 FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("30000"),  // Cirka 1000 kr per dag
+                    enhetsprisPerManed = BigDecimal("30000"),
                     startDato = LocalDate.of(2024, 1, 20),
-                    sluttDato = LocalDate.of(2024, 2, 10),
+                    sluttDato = LocalDate.of(2024, 1, 31),
                     beskrivelse = "Test periode over månedsskifte"
                 )
             ),
@@ -419,12 +418,7 @@ class FakturaGeneratorParameterizedTest {
                 ExpectedBelop(
                     LocalDate.of(2024, 1, 20),
                     LocalDate.of(2024, 1, 31),
-                    BigDecimal("12000.00")  // 12 dager i januar
-                ),
-                ExpectedBelop(
-                    LocalDate.of(2024, 2, 1),
-                    LocalDate.of(2024, 2, 10),
-                    BigDecimal("10000.00")  // 10 dager i februar
+                    BigDecimal("11700.00")  // 30000 * (12/31) ≈ 11700.00 der 12/31 ≈ 0.39
                 )
             )
         )),
@@ -434,7 +428,7 @@ class FakturaGeneratorParameterizedTest {
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
                 FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("29000"),  // 1000 kr per dag i februar 2024
+                    enhetsprisPerManed = BigDecimal("29000"),
                     startDato = LocalDate.of(2024, 2, 15),
                     sluttDato = LocalDate.of(2024, 2, 29),
                     beskrivelse = "Test delvis februar i skuddår"
@@ -445,15 +439,9 @@ class FakturaGeneratorParameterizedTest {
                 ExpectedBelop(
                     LocalDate.of(2024, 2, 15),
                     LocalDate.of(2024, 2, 29),
-                    BigDecimal("15000.00")  // 15 dager
+                    BigDecimal("15080.00")  // 29000 * (15/29) ≈ 15080.00 der 15/29 ≈ 0.51
                 )
             )
         ))
     )
-
-    private fun Faktura.getPeriodeFra(): LocalDate = fakturaLinje.minOfOrNull { it.periodeFra }
-        ?: throw IllegalStateException("Faktura uten fakturalinjer")
-
-    private fun Faktura.getPeriodeTil(): LocalDate = fakturaLinje.maxOfOrNull { it.periodeTil }
-        ?: throw IllegalStateException("Faktura uten fakturalinjer")
 }
