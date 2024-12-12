@@ -14,7 +14,7 @@ plugins {
 group = "no.nav"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_17
-
+extra["junit-jupiter.version"] = "5.11.3"
 
 repositories {
     mavenCentral()
@@ -81,7 +81,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.mockito", module = "mockito-core")
     }
-    testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("no.nav.security:token-validation-spring-test:${dependencyVersions.tokenSupportVersion}")
     testImplementation("io.kotest:kotest-assertions-core-jvm:${dependencyVersions.kotestVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")

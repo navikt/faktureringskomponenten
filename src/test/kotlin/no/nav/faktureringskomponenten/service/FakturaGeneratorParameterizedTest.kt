@@ -13,7 +13,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.Arguments.argumentSet
 import org.junit.jupiter.params.provider.MethodSource
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -62,7 +62,7 @@ class FakturaGeneratorParameterizedTest {
         val belop: BigDecimal
     )
 
-    @ParameterizedTest(name = "Beløpsberegning: {0}")
+    @ParameterizedTest(name = "{index} {argumentSetName}")
     @MethodSource("belopTestData")
     @DisplayName("Test beløpsberegning for delvise perioder")
     fun `test belop calculation for partial periods`(testCase: BelopTestCase) {
@@ -86,7 +86,7 @@ class FakturaGeneratorParameterizedTest {
     }
 
 
-    @ParameterizedTest(name = "Dato bestilt: {0}")
+    @ParameterizedTest(name = "{index} {argumentSetName}")
     @MethodSource("datoBestiltTestData")
     @DisplayName("Test ulike scenarioer for dato bestilt")
     fun `test dato bestilt scenarios`(testCase: DateTestCase) {
@@ -105,7 +105,7 @@ class FakturaGeneratorParameterizedTest {
         fakturaer.map { it.datoBestilt }.shouldContainExactlyInAnyOrder(testCase.expectedDatoBestilt)
     }
 
-    @ParameterizedTest(name = "Periodehåndtering: {0}")
+    @ParameterizedTest(name = "{index} {argumentSetName}")
     @MethodSource("periodTestData")
     @DisplayName("Test ulike scenarioer for periodebehandling")
     fun `test period handling scenarios`(testCase: PeriodTestCase) {
@@ -185,7 +185,7 @@ class FakturaGeneratorParameterizedTest {
                 LocalDate.of(2023, 12, 20)
             )
         )
-    ).map { Arguments.of(it) }
+    ).map { argumentSet(it.description, it) }
 
     private fun periodTestData() = listOf(
         // Test case: Overlappende perioder
@@ -346,7 +346,7 @@ class FakturaGeneratorParameterizedTest {
                 LocalDate.of(2024, 4, 1) to LocalDate.of(2024, 4, 30)    // hele april
             )
         ),
-    ).map { Arguments.of(it) }
+    ).map { argumentSet(it.description, it) }
 
     private fun belopTestData() = listOf(
         // Test case for avrunding av delvise måneder
@@ -412,5 +412,5 @@ class FakturaGeneratorParameterizedTest {
                 )
             )
         )
-    ).map { Arguments.of(it) }
+    ).map { argumentSet(it.description, it) }
 }
