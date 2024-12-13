@@ -93,14 +93,26 @@ class FakturaGenerator(
     ): List<Faktura> {
         if (fremtidigePerioder.isEmpty()) return emptyList()
         return fremtidigePerioder
+            // Filtrerer fremtidige perioder som overlapper med faktureringsgrunnlaget
             .filter { (start, slutt) ->
                 val periodeRange = LocalDateRange.ofClosed(start, slutt)
                 fakturaseriePerioder.any { periode ->
                     LocalDateRange.ofClosed(periode.startDato, periode.sluttDato).overlaps(periodeRange)
                 }
             }
-            .map { (start, slutt) -> lagFakturaForPeriode(start, slutt, fakturaseriePerioder, intervall) }
-            .filter { it.fakturaLinje.isNotEmpty() }
+            // Lag en Map med periode -> fakturalinjer
+            .associateWith { lagFakturaLinjerForPeriode(it.first, it.second, fakturaseriePerioder) }
+            // Lag en faktura per periode hvis det finnes fakturalinjer
+            .mapNotNull { (_, fakturaLinjer) ->
+                if (fakturaLinjer.isEmpty()) {
+                    null
+                } else {
+                    tilFaktura(
+                        fakturaLinjer.sortedByDescending { it.periodeFra },
+                        intervall
+                    )
+                }
+            }
     }
 
     /**
