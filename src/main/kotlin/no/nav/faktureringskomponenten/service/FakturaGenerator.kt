@@ -40,7 +40,7 @@ class FakturaGenerator(
             startDato.isBefore(dagensDato)
         }
 
-        return lagFakturaForHistoriskePerioder(historiskePerioder, fakturaseriePerioder, intervall) +
+        return lagFakturaerForHistoriskePerioder(historiskePerioder, fakturaseriePerioder, intervall) +
             lagFremtidigeFakturaer(fremtidigePerioder, fakturaseriePerioder, intervall)
     }
 
@@ -48,7 +48,7 @@ class FakturaGenerator(
      * Lager fakturaer for historiske perioder (perioder som har forfalt).
      * Historiske perioder blir gruppert per år og det lages én faktura per år.
      */
-    private fun lagFakturaForHistoriskePerioder(
+    private fun lagFakturaerForHistoriskePerioder(
         historiskePerioder: List<Pair<LocalDate, LocalDate>>,
         fakturaseriePerioder: List<FakturaseriePeriode>,
         intervall: FakturaserieIntervall
