@@ -59,24 +59,27 @@ class FakturaGenerator(
             .groupBy { (_, sluttDato) -> sluttDato.year }
             // Filtrer bort år uten fakturering, hvis det er opphold i faktureringen
             .filterÅrMedFakturaPerioder(fakturaseriePerioder)
-            // Lag én faktura per år med alle perioder samlet
-            .map { (_, perioderForÅr) ->
-                // Lager en fakturalinje for hver periode i året
-                val fakturaLinjer = perioderForÅr.flatMap { (periodeStart, periodeSlutt) ->
+            // Lager en fakturalinje for hver periode i året
+            .mapValues { (_, perioderForÅr) ->
+                perioderForÅr.flatMap { (periodeStart, periodeSlutt) ->
                     lagFakturaLinjerForPeriode(
                         periodeStart,
                         periodeSlutt,
                         fakturaseriePerioder
                     )
                 }
-
-                tilFaktura(
-                    fakturaLinjer.sortedByDescending { it.periodeFra },
-                    intervall
-                )
             }
-            // Fjern eventuelle fakturaer som ikke inneholder noen linjer
-            .filter { it.fakturaLinje.isNotEmpty() }
+            // Lag én faktura per år med alle perioder samlet
+            .mapNotNull { (_, fakturaLinjer) ->
+                if (fakturaLinjer.isEmpty()) {
+                    null // Ikke lag fakturaer som ikke inneholder linjer
+                } else {
+                    tilFaktura(
+                        fakturaLinjer.sortedByDescending { it.periodeFra },
+                        intervall
+                    )
+                }
+            }
     }
 
     /**
@@ -134,13 +137,13 @@ class FakturaGenerator(
     }
 
     private fun lagFakturaLinjerForPeriode(
-        gjeldendeFaktureringStartDato: LocalDate,
-        gjeldendeFaktureringSluttDato: LocalDate,
+        periodeStart: LocalDate,
+        periodeSlutt: LocalDate,
         fakturaseriePerioder: List<FakturaseriePeriode>
     ): List<FakturaLinje> = fakturalinjeGenerator.lagFakturaLinjer(
         perioder = fakturaseriePerioder,
-        faktureringFra = gjeldendeFaktureringStartDato,
-        faktureringTil = gjeldendeFaktureringSluttDato
+        faktureringFra = periodeStart,
+        faktureringTil = periodeSlutt
     )
 
 
