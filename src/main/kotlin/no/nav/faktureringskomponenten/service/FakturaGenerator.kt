@@ -55,9 +55,9 @@ class FakturaGenerator(
     ): List<Faktura> {
         if (historiskePerioder.isEmpty()) return emptyList()
         return historiskePerioder
-            // Grupper perioder per år
+            // Grupper perioder per år siden det lages én faktura per år.
             .groupBy { (_, sluttDato) -> sluttDato.year }
-            // Filtrer bort år som ikke har noen fakturaPerioder (f.eks. hvis det er opphold i faktureringen)
+            // Filtrer bort år uten fakturering, hvis det er opphold i faktureringen
             .filterÅrMedFakturaPerioder(fakturaseriePerioder)
             // Lag én faktura per år med alle perioder samlet
             .map { (_, perioderForÅr) ->
