@@ -72,7 +72,7 @@ class FakturaGenerator(
             // Lag én faktura per år med alle perioder samlet
             .mapNotNull { (_, fakturaLinjer) ->
                 if (fakturaLinjer.isEmpty()) {
-                    null // Ikke lag fakturaer som ikke inneholder linjer
+                    null // Lag kun fakturaer som inneholder linjer
                 } else {
                     tilFaktura(
                         fakturaLinjer.sortedByDescending { it.periodeFra },
@@ -84,7 +84,7 @@ class FakturaGenerator(
 
     /**
      * Lager fakturaer for fremtidige perioder.
-     * Hver periode i @param fremtidigePerioder får sin egen faktura hvis den overlapper med en fakturaseriePeriode.
+     * Hver periode i @param fremtidigePerioder får sin egen faktura hvis den overlapper med en FakturaseriePeriode.
      */
     private fun lagFremtidigeFakturaer(
         fremtidigePerioder: List<Pair<LocalDate, LocalDate>>,
