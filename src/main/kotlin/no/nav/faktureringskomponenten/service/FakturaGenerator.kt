@@ -134,20 +134,6 @@ class FakturaGenerator(
         }
     }
 
-    private fun lagFakturaForPeriode(
-        periodeStart: LocalDate,
-        periodeSlutt: LocalDate,
-        fakturaseriePerioder: List<FakturaseriePeriode>,
-        intervall: FakturaserieIntervall
-    ): Faktura {
-        val fakturaLinjer = lagFakturaLinjerForPeriode(
-            periodeStart,
-            periodeSlutt,
-            fakturaseriePerioder
-        )
-        return tilFaktura(fakturaLinjer, intervall)
-    }
-
     private fun lagFakturaLinjerForPeriode(
         periodeStart: LocalDate,
         periodeSlutt: LocalDate,
