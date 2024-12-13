@@ -37,7 +37,7 @@ class FakturaGenerator(
         val dagensDato = dagensDato()
 
         val (historiskePerioder, fremtidigePerioder) = periodisering.partition { (startDato, _) ->
-            !startDato.isAfter(dagensDato)
+            startDato.isBefore(dagensDato)
         }
 
         return lagFakturaForHistoriskePerioder(historiskePerioder, fakturaseriePerioder, intervall) +
