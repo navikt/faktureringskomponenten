@@ -1,11 +1,13 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -376,31 +378,27 @@ class FakturaGeneratorTest {
     }
 
     @Test
-    fun `sluttDato som er etter total periodisering skal begrenses til total periodisering`() {
+    fun `skal feile når periodisering går utenfor fakturaseriePerioder`() {
         val dagensDato = LocalDate.of(2023, 12, 1)
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns dagensDato
 
-        val sluttDatoForPeriodisering = LocalDate.of(2024, 6, 30)
-        val faktura = generator.lagFakturaerFor(
-            periodisering = listOf(
-                LocalDate.of(2024, 1, 1) to LocalDate.of(2024, 3, 31),
-                LocalDate.of(2024, 4, 1) to sluttDatoForPeriodisering
-            ),
-            fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2024, 1, 1),
-                    LocalDate.of(2024, 12, 31), // Merk: Går utover total periodisering
-                    "Test periode"
-                )
-            ),
-            FakturaserieIntervall.KVARTAL
-        )
-
-        faktura.flatMap { it.fakturaLinje }
-            .maxOf { it.periodeTil }
-            .shouldBe(sluttDatoForPeriodisering)
+        shouldThrow<IllegalArgumentException> {
+            generator.lagFakturaerFor(
+                periodisering = listOf(
+                    LocalDate.of(2024, 1, 1) to LocalDate.of(2024, 12, 31),
+                ),
+                fakturaseriePerioder = listOf(
+                    FakturaseriePeriode(
+                        BigDecimal(1000),
+                        LocalDate.of(2024, 1, 1),
+                        LocalDate.of(2024, 6, 30),
+                        "Test periode"
+                    )
+                ),
+                FakturaserieIntervall.KVARTAL
+            )
+        }.message shouldBe  "Periodisering (2024-01-01 til 2024-12-31) må være innenfor faktureringsperiodene (2024-01-01 til 2024-06-30)"
     }
 
     @Test

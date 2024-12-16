@@ -34,6 +34,8 @@ class FakturaGenerator(
         fakturaseriePerioder: List<FakturaseriePeriode>,
         intervall: FakturaserieIntervall
     ): List<Faktura> {
+        validerPerioder(periodisering, fakturaseriePerioder)
+
         val dagensDato = dagensDato()
 
         val (historiskePerioder, fremtidigePerioder) = periodisering.partition { (startDato, _) ->
@@ -153,6 +155,24 @@ class FakturaGenerator(
             referanseNr = ULID.randomULID(),
             datoBestilt = bestillingsdato,
             fakturaLinje = fakturaLinjer.sortedByDescending { it.periodeFra })
+    }
+
+    private fun validerPerioder(
+        periodisering: List<Pair<LocalDate, LocalDate>>,
+        fakturaseriePerioder: List<FakturaseriePeriode>
+    ) {
+        val periodiseringStart = periodisering.minOf { it.first }
+        val periodiseringSlutt = periodisering.maxOf { it.second }
+
+        val fakturaPeriodeStart = fakturaseriePerioder.minOf { it.startDato }
+        val fakturaPeriodeSlutt = fakturaseriePerioder.maxOf { it.sluttDato }
+
+        require(
+            !periodiseringStart.isBefore(fakturaPeriodeStart) &&
+                !periodiseringSlutt.isAfter(fakturaPeriodeSlutt)
+        ) {
+            "Periodisering ($periodiseringStart til $periodiseringSlutt) må være innenfor faktureringsperiodene ($fakturaPeriodeStart til $fakturaPeriodeSlutt)"
+        }
     }
 
     private fun utledBestillingsdato(fakturaStartDato: LocalDate, intervall: FakturaserieIntervall): LocalDate {
