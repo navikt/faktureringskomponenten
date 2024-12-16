@@ -69,7 +69,7 @@ class FakturaGeneratorParameterizedTest {
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns testCase.dagensDato
 
-        val periodisering = FakturaserieGenerator.genererPeriodisering(
+        val periodisering = FakturaIntervallPeriodisering.genererPeriodisering(
             testCase.perioder.minOf { it.startDato },
             testCase.perioder.maxOf { it.sluttDato },
             testCase.intervall
@@ -93,7 +93,7 @@ class FakturaGeneratorParameterizedTest {
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns testCase.dagensDato
 
-        val periodisering = FakturaserieGenerator.genererPeriodisering(
+        val periodisering = FakturaIntervallPeriodisering.genererPeriodisering(
             testCase.perioder.minOf { it.startDato },
             testCase.perioder.maxOf { it.sluttDato },
             testCase.intervall
@@ -112,7 +112,7 @@ class FakturaGeneratorParameterizedTest {
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns testCase.dagensDato
 
-        val periodisering = FakturaserieGenerator.genererPeriodisering(
+        val periodisering = FakturaIntervallPeriodisering.genererPeriodisering(
             testCase.perioder.minOf { it.startDato },
             testCase.perioder.maxOf { it.sluttDato },
             testCase.intervall

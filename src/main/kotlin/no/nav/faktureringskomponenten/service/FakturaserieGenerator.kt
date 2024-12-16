@@ -27,7 +27,7 @@ class FakturaserieGenerator(
             finnStartDatoForSamletPeriode(avregningsfakturaSistePeriodeTil, startDato, fakturaserieDto)
         val sluttDatoForSamletPeriode = fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato
 
-        val periodisering = genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
+        val periodisering = FakturaIntervallPeriodisering.genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
         val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(periodisering, fakturaserieDto.perioder, fakturaserieDto.intervall)
 
         return Fakturaserie(
@@ -68,7 +68,7 @@ class FakturaserieGenerator(
         fakturaserieDto: FakturaserieDto,
         avregningsfakturaer: List<Faktura>
     ): List<Faktura> {
-        val fellesPeriodisering = genererPeriodisering(
+        val fellesPeriodisering = FakturaIntervallPeriodisering.genererPeriodisering(
             fakturaserieDto.perioder.minBy { it.startDato }.startDato,
             fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato,
             fakturaserieDto.intervall
@@ -128,24 +128,6 @@ class FakturaserieGenerator(
     }
 
     companion object {
-        fun genererPeriodisering(
-            startDatoForPerioden: LocalDate,
-            sluttDatoForPerioden: LocalDate,
-            faktureringsintervall: FakturaserieIntervall
-        ): List<Pair<LocalDate, LocalDate>> = generateSequence(startDatoForPerioden) { startDato ->
-            sluttDatoFor(startDato, faktureringsintervall).plusDays(1)
-        }.takeWhile { it <= sluttDatoForPerioden }
-            .map { startDato ->
-                val sluttDato = minOf(sluttDatoFor(startDato, faktureringsintervall), sluttDatoForPerioden)
-                startDato to sluttDato
-            }.toList()
-
-        private fun sluttDatoFor(startDato: LocalDate, intervall: FakturaserieIntervall): LocalDate = when (intervall) {
-            FakturaserieIntervall.MANEDLIG -> startDato.withDayOfMonth(startDato.lengthOfMonth())
-            FakturaserieIntervall.KVARTAL -> startDato.withMonth(startDato[IsoFields.QUARTER_OF_YEAR] * 3).with(TemporalAdjusters.lastDayOfMonth())
-            FakturaserieIntervall.SINGEL -> throw IllegalArgumentException("Singelintervall er ikke støttet")
-        }
-
         fun LocalDateRange.substract(other: LocalDateRange): List<LocalDateRange> {
             if (!isConnected(other)) return listOf(this)
             return buildList {
