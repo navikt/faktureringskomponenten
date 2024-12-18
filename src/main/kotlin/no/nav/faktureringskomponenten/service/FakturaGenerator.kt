@@ -11,6 +11,9 @@ import org.threeten.extra.LocalDateRange
 import ulid.ULID
 import java.time.LocalDate
 
+/**
+ * Genererer fakturaer for en hel Fakturaserie basert på periodisering og faktureringsgrunnlag.
+ */
 @Component
 class FakturaGenerator(
     private val fakturalinjeGenerator: FakturaLinjeGenerator,
@@ -161,6 +164,7 @@ class FakturaGenerator(
         periodisering: List<Pair<LocalDate, LocalDate>>,
         fakturaseriePerioder: List<FakturaseriePeriode>
     ) {
+        if (periodisering.isEmpty() || fakturaseriePerioder.isEmpty()) return
         val periodiseringStart = periodisering.minOf { it.first }
         val periodiseringSlutt = periodisering.maxOf { it.second }
 

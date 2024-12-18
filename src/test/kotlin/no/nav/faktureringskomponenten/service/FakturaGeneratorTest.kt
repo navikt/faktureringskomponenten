@@ -462,31 +462,68 @@ class FakturaGeneratorTest {
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns dagensDato
 
-        val faktura = generator.lagFakturaerFor(
-            periodisering = FakturaserieGenerator.genererPeriodisering(
-                LocalDate.of(2024, 1, 1),
-                LocalDate.of(2024, 6, 30),
+        val startDato = LocalDate.of(2024, 1, 1)
+        val overlappStartDato = LocalDate.of(2024, 3, 15)
+        val sluttDatoFørstePeriode = LocalDate.of(2024, 3, 31)
+        val sluttDato = LocalDate.of(2024, 6, 30)
+
+        val beløpFørstePeriode = BigDecimal(1000)
+        val beløpAndrePeriode = BigDecimal(2000)
+
+        // Act
+        val fakturaer = generator.lagFakturaerFor(
+            periodisering = FakturaIntervallPeriodisering.genererPeriodisering(
+                startDato,
+                sluttDato,
                 FakturaserieIntervall.KVARTAL
             ),
             fakturaseriePerioder = listOf(
                 FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2024, 1, 1),
-                    LocalDate.of(2024, 3, 31),
+                    beløpFørstePeriode,
+                    startDato,
+                    sluttDatoFørstePeriode,
                     "Første periode"
                 ),
                 FakturaseriePeriode(
-                    BigDecimal(2000),
-                    LocalDate.of(2024, 3, 15), // Merk: Overlapper med første periode
-                    LocalDate.of(2024, 6, 30),
+                    beløpAndrePeriode,
+                    overlappStartDato,
+                    sluttDato,
                     "Andre periode"
                 )
             ),
             FakturaserieIntervall.KVARTAL
         )
 
-        // Verifiser at vi får korrekt antall fakturalinjer og beløp
-        faktura.flatMap { it.fakturaLinje }.size.shouldBe(3) // Q1, overlapp periode, Q2
+        val fakturaLinjer = fakturaer.flatMap { it.fakturaLinje }.sortedBy { it.periodeFra }
+
+        with(fakturaLinjer) {
+            size.shouldBe(3)
+            // Første kvartal (1. jan - 31. mars med 1000kr)
+            first().let { linje ->
+                linje.periodeFra.shouldBe(startDato)
+                linje.periodeTil.shouldBe(sluttDatoFørstePeriode)
+                linje.enhetsprisPerManed.shouldBe(beløpFørstePeriode)
+                // 3 måneder med 1000kr per måned
+                linje.belop.toString().shouldBe("3000.00")
+            }
+
+            // Overlappende periode (15. mars - 31. mars)
+            get(1).let { linje ->
+                linje.periodeFra.shouldBe(overlappStartDato)
+                linje.periodeTil.shouldBe(sluttDatoFørstePeriode)
+                linje.enhetsprisPerManed.shouldBe(2000.toBigDecimal())
+                linje.belop.toString().shouldBe("1100.00") // (31/16) * 2000
+            }
+
+            // Andre kvartal (1. april - 30. juni med 2000kr)
+            last().let { linje ->
+                linje.periodeFra.shouldBe(sluttDatoFørstePeriode.plusDays(1))
+                linje.periodeTil.shouldBe(sluttDato)
+                linje.enhetsprisPerManed.shouldBe(beløpAndrePeriode)
+                // 3 måneder med 2000kr per måned
+                linje.belop.toString().shouldBe("6000.00")
+            }
+        }
     }
 
     @Test
