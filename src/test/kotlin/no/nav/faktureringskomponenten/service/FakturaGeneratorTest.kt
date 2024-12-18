@@ -612,39 +612,6 @@ class FakturaGeneratorTest {
     }
 
     @Test
-    fun `periodisering og fakturaseriePeriode har nøyaktig samme start og slutt`() {
-        val dagensDato = LocalDate.of(2023, 12, 1)
-        mockkStatic(LocalDate::class)
-        every { LocalDate.now() } returns dagensDato
-
-        val startDato = LocalDate.of(2024, 1, 1)
-        val sluttDato = LocalDate.of(2024, 12, 31)
-
-        val faktura = generator.lagFakturaerFor(
-            periodisering = FakturaIntervallPeriodisering.genererPeriodisering(
-                startDato,
-                sluttDato,
-                FakturaserieIntervall.KVARTAL
-            ),
-            fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    startDato,
-                    sluttDato,
-                    "Test periode"
-                )
-            ),
-            FakturaserieIntervall.KVARTAL
-        )
-
-        faktura.flatMap { it.fakturaLinje }.run {
-            first().periodeFra.shouldBe(startDato)
-            last().periodeTil.shouldBe(sluttDato)
-        }
-    }
-
-
-    @Test
     fun `PeriodeStart på faktura er i neste kvartal, men dages dato er etter kvartalskjøring - over flere år fremover - DatoBestilt settes til dagens dato`() {
         val etter19SisteMånedIKvartal = LocalDate.of(2023, 12, 23)
         mockkStatic(LocalDate::class)

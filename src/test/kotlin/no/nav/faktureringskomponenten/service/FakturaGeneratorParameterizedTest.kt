@@ -65,7 +65,7 @@ class FakturaGeneratorParameterizedTest {
     @ParameterizedTest(name = "{index} {argumentSetName}")
     @MethodSource("belopTestData")
     @DisplayName("Test beløpsberegning for delvise perioder")
-    fun `test belop calculation for partial periods`(testCase: BelopTestCase) {
+    fun `test beløpsberegning for delvise perioder`(testCase: BelopTestCase) {
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns testCase.dagensDato
 
