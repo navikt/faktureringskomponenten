@@ -583,7 +583,7 @@ class FakturaGeneratorTest {
     }
 
     @Test
-    fun `dagensDato er nøyaktig på grensen mellom historisk og fremtidig`() {
+    fun `dagensDato er nøyaktig på grensen mellom historisk og fremtidig, produserer to faktura`() {
         val grenseDato = LocalDate.of(2024, 3, 31)
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns grenseDato
@@ -607,6 +607,8 @@ class FakturaGeneratorTest {
 
         // Første kvartal skal være historisk, andre kvartal fremtidig
         faktura.shouldHaveSize(2)
+        faktura.first().fakturaLinje.first().periodeFra.shouldBe(LocalDate.of(2024, 1, 1))
+        faktura.last().fakturaLinje.first().periodeFra.shouldBe(LocalDate.of(2024, 4, 1))
     }
 
     @Test
