@@ -8,7 +8,7 @@ import java.time.LocalDate
 data class FakturaDto(
     val referanse: String,
 
-    val tidligereFakturaserieReferanse: String,
+    val tidligereFakturaserieReferanse: String?,
 
     val fodselsnummer: String,
 

@@ -16,7 +16,7 @@ data class FakturaRequestDto(
     val fodselsnummer: String,
 
     @field:Schema(description = "Referanse til tidligere fakturaserie ifm kreditering")
-    var fakturaserieReferanse: String,
+    var fakturaserieReferanse: String?,
 
     val fullmektig: FullmektigDto?,
 
