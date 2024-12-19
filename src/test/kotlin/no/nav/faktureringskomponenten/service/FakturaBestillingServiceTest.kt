@@ -133,7 +133,7 @@ class FakturaBestillingServiceTest {
                         )
                     }.kvartal ${sluttDatoFaktura.year}",
                     artikkel = "F00008",
-                    faktureringsDato = LocalDate.of(2022, 5, 1),
+                    faktureringsDato = LocalDate.now(),
                     fakturaLinjer = listOf(
                         FakturaBestiltLinjeDto(
                             beskrivelse = "En beskrivelse",
