@@ -192,4 +192,26 @@ class FakturaBestiltDtoMapperTest {
         tilFakturaBestiltDto.krediteringFakturaRef.shouldBe("45678913")
     }
 
+    @Test
+    fun `faktureringsDato blir satt til dagens dato`() {
+        val fakturaserie = lagFakturaserie {
+            fakturaGjelderInnbetalingstype(Innbetalingstype.TRYGDEAVGIFT)
+            intervall(FakturaserieIntervall.MANEDLIG)
+            faktura(
+                lagFaktura {
+                    datoBestilt(LocalDate.now().minusDays(5))
+                    fakturaLinje(
+                        lagFakturalinje {
+                            beskrivelse("Test fakturalinje")
+                        }
+                    )
+                }
+            )
+        }
+
+        val fakturaBestiltDto =
+            FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
+
+        fakturaBestiltDto.faktureringsDato shouldBe LocalDate.now()
+    }
 }

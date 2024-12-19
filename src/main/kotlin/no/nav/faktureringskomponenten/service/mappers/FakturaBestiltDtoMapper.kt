@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.service.mappers
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.IsoFields
@@ -29,7 +30,7 @@ class FakturaBestiltDtoMapper {
                 faktura.erAvregningsfaktura()
             ),
             artikkel = mapArtikkel(fakturaserie.fakturaGjelderInnbetalingstype),
-            faktureringsDato = faktura.datoBestilt,
+            faktureringsDato = LocalDate.now(),
             fakturaLinjer = faktura.fakturaLinje.map {
                 FakturaBestiltLinjeDto(
                     beskrivelse = it.beskrivelse,
