@@ -200,7 +200,7 @@ class FakturaserieServiceTest {
                     periodeTil.shouldBe(LocalDate.of(2024, 12, 31))
                     beskrivelse.shouldBe("Testfaktura")
                     antall.shouldBe(BigDecimal.ONE)
-                    enhetsprisPerManed.shouldBe(BigDecimal.ZERO)
+                    enhetsprisPerManed.shouldBe(BigDecimal.valueOf(2500))
                 }
             }
         }
@@ -236,7 +236,7 @@ class FakturaserieServiceTest {
                     periodeTil.shouldBe(LocalDate.of(2024, 12, 31))
                     beskrivelse.shouldBe("Testfaktura")
                     antall.shouldBe(BigDecimal.ONE)
-                    enhetsprisPerManed.shouldBe(BigDecimal.ZERO)
+                    enhetsprisPerManed.shouldBe(BigDecimal.valueOf(2500))
                 }
             }
         }

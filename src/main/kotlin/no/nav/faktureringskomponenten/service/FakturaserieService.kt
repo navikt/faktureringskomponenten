@@ -132,10 +132,7 @@ class FakturaserieService(
 
     @Transactional
     fun lagNyFaktura(fakturaDto: FakturaDto): String {
-        val tidligereFakturaserie =
-            fakturaserieRepository.findByReferanse(fakturaDto.tidligereFakturaserieReferanse)
-
-        val krediteringFakturaRef = hentKrediteringFakturaRef(tidligereFakturaserie)
+        val krediteringFakturaRef = hentKrediteringFakturaRef(fakturaDto.tidligereFakturaserieReferanse)
 
         return Fakturaserie(
             id = null,
@@ -152,7 +149,7 @@ class FakturaserieService(
                 Faktura(
                     referanseNr = ULID.randomULID(),
                     datoBestilt = LocalDate.now(),
-                    krediteringFakturaRef = krediteringFakturaRef,
+                    krediteringFakturaRef = krediteringFakturaRef ?: "",
                     fakturaLinje = listOf(
                         FakturaLinje(
                             periodeFra = fakturaDto.startDato,
@@ -160,7 +157,7 @@ class FakturaserieService(
                             belop = fakturaDto.belop,
                             antall = BigDecimal.ONE,
                             beskrivelse = fakturaDto.beskrivelse,
-                            enhetsprisPerManed = BigDecimal.ZERO
+                            enhetsprisPerManed = fakturaDto.belop
                         )
                     )
                 )
@@ -172,11 +169,10 @@ class FakturaserieService(
     }
 
     private fun hentKrediteringFakturaRef(
-        tidligereFakturaserie: Fakturaserie?,
-    ): String {
-        if (tidligereFakturaserie == null) {
-            return ""
-        }
+        tidligereFakturaserieReferanse: String?,
+    ): String? {
+        val tidligereFakturaserie =
+            fakturaserieRepository.findByReferanse(tidligereFakturaserieReferanse) ?: return null
 
         require(
             tidligereFakturaserie.status !in setOf(
