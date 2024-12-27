@@ -290,6 +290,62 @@ class AvregningIT(
         totalBelop.shouldBe(orginalTotal.add(avregning1Total.add(avregning2Total)))
     }
 
+    @Test
+    fun `erstatt fakturaserie med endringer tilbake i tid, under 1 mnd medlemskap`() {
+        // Opprinnelig serie
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    1000,
+                    "2024-01-01",
+                    "2024-03-31",
+                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                ),
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        // "Bestiller" 2 fakturaer ved å sette status manuelt til BESTILT
+        val opprinneligeFakturaer = fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
+            .sortedBy(Faktura::getPeriodeFra)
+        opprinneligeFakturaer.shouldHaveSize(1)
+        opprinneligeFakturaer[0].run {
+            status = FakturaStatus.BESTILT
+            eksternFakturaNummer = "8272123"
+            fakturaRepository.save(this)
+        }
+
+        fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).shouldNotBeNull().run {
+            status = FakturaserieStatus.UNDER_BESTILLING
+            fakturaserieRepository.save(this)
+        }
+
+        // Serie 2 med avregning
+        val fakturaserieDto2 = lagFakturaserieDto(
+            referanseId = opprinneligFakturaserieReferanse,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    1000,
+                    "2024-01-16",
+                    "2024-01-31",
+                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                ),
+            )
+        )
+
+        val serieRef2 =
+            postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val fakturaserie = fakturaserieRepository.findByReferanse(serieRef2)
+        fakturaserie.shouldNotBeNull()
+        fakturaserie.startdato.shouldBe(LocalDate.of(2024,1,16))
+        fakturaserie.sluttdato.shouldBe(LocalDate.of(2024,1,31))
+    }
+
     fun lagFakturaserieDto(
         referanseId: String? = null,
         fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,

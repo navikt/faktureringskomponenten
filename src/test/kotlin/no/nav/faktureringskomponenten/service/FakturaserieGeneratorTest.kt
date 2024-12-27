@@ -136,6 +136,34 @@ class FakturaserieGeneratorTest {
             )
         ),
 
+        arguments(
+            "Datoer i samme måned",
+            LocalDate.of(2023, 1, 1),
+            FakturaserieIntervall.KVARTAL,
+            listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(1000),
+                    startDato = LocalDate.of(2023, 1, 15),
+                    sluttDato = LocalDate.of(2023, 1, 30),
+                    beskrivelse = "periode - 1"
+                )
+            ),
+            ForventetFakturering(
+                1,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2023-01-15", til = "2023-01-30",
+                        listOf(
+                            Linje(
+                                "2023-01-15", "2023-01-30", "520.00",
+                                "periode - 1"
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+
 
         arguments(
             "Slutt dato er før dagens dato",

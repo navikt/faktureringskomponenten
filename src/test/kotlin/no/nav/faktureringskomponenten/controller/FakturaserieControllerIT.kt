@@ -801,7 +801,37 @@ class FakturaserieControllerIT(
     }
 
     @Test
+    fun `test fakturaserie feil dato`() {
+        val startDato = LocalDate.parse("2024-01-16")
+        val sluttDato = LocalDate.parse("2024-01-31")
+        val fakturaSerieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal(12000),
+                    startDato,
+                    sluttDato,
+                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                )
+            )
+        )
 
+        val fakturaserieReferanse =
+            postLagNyFakturaserieRequest(fakturaSerieDto).expectStatus().isOk.expectBody(NyFakturaserieResponseDto::class.java)
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val response = hentFakturaserieRequest(fakturaserieReferanse)
+            .expectStatus().isOk
+            .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
+
+        response.shouldNotBeNull()
+        response.faktura.size.shouldBe(1)
+        response.faktura[0].fakturaLinje.shouldHaveSize(1)
+        val fakturaLinjer = response.faktura[0].fakturaLinje
+
+        fakturaLinjer[0].beskrivelse.shouldBe("Periode: 16.01.2024 - 31.01.2024\nInntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %")
+    }
+
+    @Test
     fun `lag ny enkelt faktura (årsavregning)`() {
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
