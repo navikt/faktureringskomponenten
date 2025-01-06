@@ -132,18 +132,7 @@ class FakturaserieService(
 
     @Transactional
     fun lagNyFaktura(fakturaDto: FakturaDto): String {
-        val tidligereFakturaserie =
-            fakturaserieRepository.findByReferanse(fakturaDto.tidligereFakturaserieReferanse)
-                ?: throw RuntimeException("Finner ikke fakturaserie på referanse ${fakturaDto.tidligereFakturaserieReferanse}")
-
-        require(
-            tidligereFakturaserie.status !in setOf(
-                FakturaserieStatus.ERSTATTET,
-                FakturaserieStatus.KANSELLERT
-            )
-        ) { "Tidligere fakturaserie med ref ${tidligereFakturaserie.referanse} er i feil status: ${tidligereFakturaserie.status}" }
-
-        val krediteringFakturaRef = hentKrediteringFakturaRef(tidligereFakturaserie, fakturaDto)
+        val krediteringFakturaRef = hentKrediteringFakturaRef(fakturaDto.tidligereFakturaserieReferanse)
 
         return Fakturaserie(
             id = null,
@@ -160,7 +149,7 @@ class FakturaserieService(
                 Faktura(
                     referanseNr = ULID.randomULID(),
                     datoBestilt = LocalDate.now(),
-                    krediteringFakturaRef = krediteringFakturaRef,
+                    krediteringFakturaRef = krediteringFakturaRef ?: "",
                     fakturaLinje = listOf(
                         FakturaLinje(
                             periodeFra = fakturaDto.startDato,
@@ -168,7 +157,7 @@ class FakturaserieService(
                             belop = fakturaDto.belop,
                             antall = BigDecimal.ONE,
                             beskrivelse = fakturaDto.beskrivelse,
-                            enhetsprisPerManed = BigDecimal.ZERO
+                            enhetsprisPerManed = fakturaDto.belop
                         )
                     )
                 )
@@ -179,23 +168,20 @@ class FakturaserieService(
         }.referanse
     }
 
-    /**
-     *  Hvis forrige fakturaserie var SINGEL(årsavregning) så tar vi krediteringFakturaRef som den igjen hentet fra sin
-     *  forrige fakturaserie. Denne må være en positiv faktura, ellers fungerer ikke OEBS. Siden alle årsavregninger potensielt
-     *  kan være negative så må vi opprinnelig hente fra fakturaserie som hører til et trygdeavgiftsvedtak.
-     */
     private fun hentKrediteringFakturaRef(
-        fakturaserie: Fakturaserie,
-        fakturaDto: FakturaDto
-    ): String {
-        val krediteringFakturaRef = if (fakturaserie.intervall == FakturaserieIntervall.SINGEL) {
-            fakturaserie.faktura.single().krediteringFakturaRef
-        } else {
-            val faktura = fakturaserie.faktura.filter { it.overlapperMedÅr(fakturaDto.startDato.year) }
-                .minBy { faktura: Faktura -> faktura.fakturaLinje.first().periodeFra }
-            faktura.hentFørstePositiveFaktura().referanseNr
-        }
-        return krediteringFakturaRef
+        tidligereFakturaserieReferanse: String?,
+    ): String? {
+        val tidligereFakturaserie =
+            fakturaserieRepository.findByReferanse(tidligereFakturaserieReferanse) ?: return null
+
+        require(
+            tidligereFakturaserie.status !in setOf(
+                FakturaserieStatus.ERSTATTET,
+                FakturaserieStatus.KANSELLERT
+            )
+        ) { "Tidligere fakturaserie med ref ${tidligereFakturaserie.referanse} er i feil status: ${tidligereFakturaserie.status}" }
+
+        return tidligereFakturaserie.faktura.single().krediteringFakturaRef
     }
 
 }
