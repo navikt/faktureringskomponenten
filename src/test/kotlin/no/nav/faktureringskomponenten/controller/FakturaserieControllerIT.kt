@@ -824,11 +824,9 @@ class FakturaserieControllerIT(
             .expectBody(FakturaserieResponseDto::class.java).returnResult().responseBody
 
         response.shouldNotBeNull()
-        response.faktura.size.shouldBe(1)
-        response.faktura[0].fakturaLinje.shouldHaveSize(1)
-        val fakturaLinjer = response.faktura[0].fakturaLinje
-
-        fakturaLinjer[0].beskrivelse.shouldBe("Periode: 16.01.2024 - 31.01.2024\nInntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %")
+            .faktura.shouldHaveSize(1).single()
+            .fakturaLinje.shouldHaveSize(1).single()
+            .beskrivelse.shouldBe("Periode: 16.01.2024 - 31.01.2024\nInntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %")
     }
 
     @Test
