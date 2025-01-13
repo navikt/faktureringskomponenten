@@ -801,7 +801,7 @@ class FakturaserieControllerIT(
     }
 
     @Test
-    fun `test fakturaserie feil dato`() {
+    fun `test fakturaserie, periode under 1 mnd skal gi korrekt dato for periode`() {
         val startDato = LocalDate.parse("2024-01-16")
         val sluttDato = LocalDate.parse("2024-01-31")
         val fakturaSerieDto = lagFakturaserieDto(

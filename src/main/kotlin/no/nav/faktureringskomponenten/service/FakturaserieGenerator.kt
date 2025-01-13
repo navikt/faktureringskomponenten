@@ -24,7 +24,7 @@ class FakturaserieGenerator(
     ): Fakturaserie {
         val avregningsfakturaSistePeriodeTil = avregningsfaktura.maxByOrNull { it.getPeriodeTil() }?.getPeriodeTil()
         val startDatoForSamletPeriode =
-            finnStartDatoForSamletPeriode(avregningsfakturaSistePeriodeTil, startDato, fakturaserieDto) //TODO hvorfor bruker vi sistePeriodeTil som startdato?
+            finnStartDatoForSamletPeriode(avregningsfakturaSistePeriodeTil, startDato, fakturaserieDto)
         val sluttDatoForSamletPeriode = fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato
 
         val periodisering = FakturaIntervallPeriodisering.genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
