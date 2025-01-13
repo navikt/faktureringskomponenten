@@ -26,14 +26,14 @@ class FakturaserieGenerator(
         avregningsfaktura: List<Faktura> = emptyList()
     ): Fakturaserie {
         val avregningsfakturaSistePeriodeTil = avregningsfaktura.maxByOrNull { it.getPeriodeTil() }?.getPeriodeTil()
-
-        log.info("Finner startdatoForSamletPeriode. avregningsfakturaSistePeriodeTil: $avregningsfakturaSistePeriodeTil startDato: $startDato fakturaserieDato: $fakturaserieDto")
         val startDatoForSamletPeriode =
             finnStartDatoForSamletPeriode(avregningsfakturaSistePeriodeTil, startDato, fakturaserieDto)
-        log.info("startDatoForSamletPeriode $startDatoForSamletPeriode")
-
         val sluttDatoForSamletPeriode = fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato
-        log.info("sluttDatoForSamletPeriode $sluttDatoForSamletPeriode")
+
+        if (startDato != null && startDato.isAfter(sluttDatoForSamletPeriode))
+            log.error("startDato er etter sluttdato. AvregningsfakturaSistePeriodeTil: $avregningsfakturaSistePeriodeTil" +
+                " startDato: $startDato startDatoForSamletPeriode $startDatoForSamletPeriode sluttDatoForSamletPeriode $sluttDatoForSamletPeriode" +
+                " fakturaserieDto: $fakturaserieDto")
 
         val periodisering = FakturaIntervallPeriodisering.genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
         val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(periodisering, fakturaserieDto.perioder, fakturaserieDto.intervall)
