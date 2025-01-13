@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
+import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
@@ -10,6 +11,8 @@ import org.threeten.extra.LocalDateRange
 import java.time.LocalDate
 import java.time.temporal.IsoFields
 import java.time.temporal.TemporalAdjusters
+
+private val log = KotlinLogging.logger { }
 
 @Component
 class FakturaserieGenerator(
@@ -26,6 +29,11 @@ class FakturaserieGenerator(
         val startDatoForSamletPeriode =
             finnStartDatoForSamletPeriode(avregningsfakturaSistePeriodeTil, startDato, fakturaserieDto)
         val sluttDatoForSamletPeriode = fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato
+
+        if (startDato != null && startDato.isAfter(sluttDatoForSamletPeriode))
+            log.error("startDato er etter sluttdato. AvregningsfakturaSistePeriodeTil: $avregningsfakturaSistePeriodeTil" +
+                " startDato: $startDato startDatoForSamletPeriode $startDatoForSamletPeriode sluttDatoForSamletPeriode $sluttDatoForSamletPeriode" +
+                " fakturaserieDto: $fakturaserieDto")
 
         val periodisering = FakturaIntervallPeriodisering.genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
         val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(periodisering, fakturaserieDto.perioder, fakturaserieDto.intervall)
