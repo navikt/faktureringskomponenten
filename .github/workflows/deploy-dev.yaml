@@ -12,7 +12,7 @@ permissions:
   contents: write
   packages: write
 env:
-  image: ghcr.io/${{ github.repository }}/faktureringskomponenten:${{ github.sha }}
+  image: ghcr.io/${{ github.repository }}/melosys-skattehendelser
 jobs:
   build:
     name: Build
@@ -60,9 +60,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          docker build --tag ${image} .
+          versioned_image="${image}:${{ github.sha }}"
+          latest_image="${image}:latest"
+          docker build --tag "$versioned_image" --tag "$latest_image" .
           docker login ghcr.io -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
-          docker push ${image}
+          docker push "$versioned_image"
+          docker push "$latest_image"
 
   deploy:
     runs-on: ubuntu-latest
@@ -82,7 +85,7 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: nais/nais.yml
-          VAR: image=${{env.image}}
+          VAR: image=${{env.image}}:${{ github.sha }}"
           VARS: nais/vars-q2.json
       - name: Deploy til dev (Q1)
         uses: nais/deploy/actions/deploy@v1
@@ -90,7 +93,7 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: nais/nais.yml
-          VAR: image=${{env.image}}
+          VAR: image=${{env.image}}:${{ github.sha }}"
           VARS: nais/vars-q1.json
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
