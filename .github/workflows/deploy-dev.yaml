@@ -12,7 +12,7 @@ permissions:
   contents: write
   packages: write
 env:
-  image: ghcr.io/${{ github.repository }}/melosys-skattehendelser
+  image: ghcr.io/${{ github.repository }}/faktureringskomponenten
 jobs:
   build:
     name: Build
