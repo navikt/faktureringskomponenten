@@ -85,7 +85,7 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: nais/nais.yml
-          VAR: image=${{env.image}}:${{ github.sha }}"
+          VAR: image=${{env.image}}:${{ github.sha }}
           VARS: nais/vars-q2.json
       - name: Deploy til dev (Q1)
         uses: nais/deploy/actions/deploy@v1
@@ -93,7 +93,7 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: nais/nais.yml
-          VAR: image=${{env.image}}:${{ github.sha }}"
+          VAR: image=${{env.image}}:${{ github.sha }}
           VARS: nais/vars-q1.json
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
