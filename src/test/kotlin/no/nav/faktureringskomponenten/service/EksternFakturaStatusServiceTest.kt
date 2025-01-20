@@ -27,7 +27,7 @@ class EksternFakturaStatusServiceTest {
         EksternFakturaStatusService(fakturaRepository, eksternFakturaStatusMapper, manglendeFakturabetalingProducer)
 
     @Test
-    fun `lagreEksternFakturaStatusMelding kaster ExternalErrorException når status er feil`() {
+    fun `håndterEksternFakturaStatusMelding kaster ExternalErrorException når status er feil`() {
         every { fakturaRepository.findByReferanseNr("123") } returns null
 
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
@@ -42,7 +42,7 @@ class EksternFakturaStatusServiceTest {
 
 
         shouldThrow<RessursIkkeFunnetException> {
-            service.lagreEksternFakturaStatusMelding(eksternFakturaStatusDto)
+            service.håndterEksternFakturaStatusMelding(eksternFakturaStatusDto)
         }.run {
             message shouldBe "Finner ikke faktura med faktura referanse nr 123"
             field shouldBe "faktura.referanseNr"
@@ -50,7 +50,7 @@ class EksternFakturaStatusServiceTest {
     }
 
     @Test
-    fun `lagreEksternfakturaStatusMelding sender ikke kafkamelding når melding fra OEBS er duplikat`() {
+    fun `håndterEksternFakturaStatusMelding sender ikke kafkamelding når melding fra OEBS er duplikat`() {
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
             fakturaReferanseNr = "123",
             fakturaNummer = "82",
@@ -81,7 +81,7 @@ class EksternFakturaStatusServiceTest {
         every { fakturaRepository.save(any()) } returns faktura
 
 
-        service.lagreEksternFakturaStatusMelding(eksternFakturaStatusDto)
+        service.håndterEksternFakturaStatusMelding(eksternFakturaStatusDto)
 
 
         verify { manglendeFakturabetalingProducer wasNot Called }
@@ -89,7 +89,7 @@ class EksternFakturaStatusServiceTest {
     }
 
     @Test
-    fun `lagreEksternFakturaStatusMelding sender kafkamelding ved manglende betaling med status IKKE_BETALT`() {
+    fun `håndterEksternFakturaStatusMelding sender kafkamelding ved manglende betaling med status IKKE_BETALT`() {
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
             fakturaReferanseNr = "123",
             fakturaNummer = "82",
@@ -119,7 +119,7 @@ class EksternFakturaStatusServiceTest {
         val manglendeFakturabetalingSlot = slot<ManglendeFakturabetalingDto>()
 
 
-        service.lagreEksternFakturaStatusMelding(eksternFakturaStatusDto)
+        service.håndterEksternFakturaStatusMelding(eksternFakturaStatusDto)
 
 
         verify { manglendeFakturabetalingProducer.produserBestillingsmelding(capture(manglendeFakturabetalingSlot)) }
@@ -132,7 +132,7 @@ class EksternFakturaStatusServiceTest {
     }
 
     @Test
-    fun `lagreEksternFakturaStatusMelding sender kafkamelding ved manglende betaling med status DELVIS_BETALT`() {
+    fun `håndterEksternFakturaStatusMelding sender kafkamelding ved manglende betaling med status DELVIS_BETALT`() {
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
             fakturaReferanseNr = "123",
             fakturaNummer = "82",
@@ -162,7 +162,7 @@ class EksternFakturaStatusServiceTest {
         val manglendeFakturabetalingSlot = slot<ManglendeFakturabetalingDto>()
 
 
-        service.lagreEksternFakturaStatusMelding(eksternFakturaStatusDto)
+        service.håndterEksternFakturaStatusMelding(eksternFakturaStatusDto)
 
 
         verify { manglendeFakturabetalingProducer.produserBestillingsmelding(capture(manglendeFakturabetalingSlot)) }
