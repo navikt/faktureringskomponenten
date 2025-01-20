@@ -138,6 +138,47 @@ class AdminController(
         return ResponseEntity.ok("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
     }
 
+    /**
+     * Simulerer at faktura ikke er betalt innen forfall. Endepunktet er KUN tilgjengelig i testmiljø.
+     */
+    @PostMapping("/faktura/{fakturaReferanse}/manglende-innbetaling")
+    fun simulerManglendeInnbetalingProd(
+        @PathVariable fakturaReferanse: String,
+        @PathVariable fakturaNummer: String,
+        @RequestParam(required = false, defaultValue = "0") betaltBelop: BigDecimal
+    ): ResponseEntity<String> {
+        val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return ResponseEntity.status(404)
+            .body("Finner ikke faktura med referanse nr $fakturaReferanse")
+
+        if (faktura.status != FakturaStatus.BESTILT) {
+            log.info("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
+            return ResponseEntity.status(400)
+                .body("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
+        }
+
+        if (faktura.totalbeløp() <= betaltBelop) {
+            log.info("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
+            return ResponseEntity.status(400)
+                .body("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
+        }
+
+        val simulertEksternFakturaStatusDto = EksternFakturaStatusDto(
+            fakturaReferanseNr = fakturaReferanse,
+            fakturaNummer = fakturaNummer,
+            fakturaBelop = faktura.totalbeløp(),
+            ubetaltBelop = faktura.totalbeløp() - betaltBelop,
+            status = FakturaStatus.MANGLENDE_INNBETALING,
+            dato = LocalDate.now(),
+            feilmelding = "Simulert manglende innbetaling"
+        )
+
+        eksternFakturaStatusService.lagreEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
+
+        log.info("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
+        return ResponseEntity.ok("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
+    }
+
+
 
     /**
      * Endrer status på faktura. Endepunktet er KUN tilgjengelig i testmiljø.
