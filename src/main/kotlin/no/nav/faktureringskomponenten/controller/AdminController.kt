@@ -132,20 +132,16 @@ class AdminController(
             feilmelding = "Simulert manglende innbetaling"
         )
 
-        eksternFakturaStatusService.lagreEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
+        eksternFakturaStatusService.håndterEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
 
         log.info("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
         return ResponseEntity.ok("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
     }
 
-    /**
-     * Simulerer at faktura ikke er betalt innen forfall. Endepunktet er KUN tilgjengelig i testmiljø.
-     */
-    @PostMapping("/faktura/{fakturaReferanse}/manglende-innbetaling")
+    @PostMapping("/faktura/{fakturaReferanse}/manglende-innbetaling-prod")
     fun simulerManglendeInnbetalingProd(
         @PathVariable fakturaReferanse: String,
-        @PathVariable fakturaNummer: String,
-        @RequestParam(required = false, defaultValue = "0") betaltBelop: BigDecimal
+        @RequestBody manglendeInnbetalingSimuleringDto: ManglendeInnbetalingSimuleringDto
     ): ResponseEntity<String> {
         val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return ResponseEntity.status(404)
             .body("Finner ikke faktura med referanse nr $fakturaReferanse")
@@ -156,7 +152,7 @@ class AdminController(
                 .body("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
         }
 
-        if (faktura.totalbeløp() <= betaltBelop) {
+        if (faktura.totalbeløp() <= manglendeInnbetalingSimuleringDto.betaltBelop) {
             log.info("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
             return ResponseEntity.status(400)
                 .body("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
@@ -164,21 +160,19 @@ class AdminController(
 
         val simulertEksternFakturaStatusDto = EksternFakturaStatusDto(
             fakturaReferanseNr = fakturaReferanse,
-            fakturaNummer = fakturaNummer,
+            fakturaNummer = manglendeInnbetalingSimuleringDto.fakturaNummer,
             fakturaBelop = faktura.totalbeløp(),
-            ubetaltBelop = faktura.totalbeløp() - betaltBelop,
+            ubetaltBelop = faktura.totalbeløp() - manglendeInnbetalingSimuleringDto.betaltBelop,
             status = FakturaStatus.MANGLENDE_INNBETALING,
             dato = LocalDate.now(),
             feilmelding = "Simulert manglende innbetaling"
         )
 
-        eksternFakturaStatusService.lagreEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
+        eksternFakturaStatusService.håndterEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
 
         log.info("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
         return ResponseEntity.ok("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
     }
-
-
 
     /**
      * Endrer status på faktura. Endepunktet er KUN tilgjengelig i testmiljø.
@@ -215,3 +209,10 @@ class AdminController(
         private const val NAIS_CLUSTER_NAME_DEV = "dev-gcp"
     }
 }
+
+data class ManglendeInnbetalingSimuleringDto(
+    val betaltBelop: BigDecimal,
+    val fakturaNummer: String
+)
+
+
