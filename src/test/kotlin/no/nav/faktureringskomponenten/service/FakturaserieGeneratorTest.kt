@@ -1,12 +1,20 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
+import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.FakturaserieGenerator.Companion.substract
+import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
+import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
+import org.junit.jupiter.api.Nested
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.threeten.extra.LocalDateRange
 import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -14,7 +22,7 @@ import java.time.format.DateTimeFormatter
 
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 class FakturaserieGeneratorTest {
-    val unleash: FakeUnleash = FakeUnleash()
+    private val unleash: FakeUnleash = FakeUnleash()
 
     @ParameterizedTest(name = "[{index}] {2} {0}")
     @MethodSource("data")
@@ -23,10 +31,10 @@ class FakturaserieGeneratorTest {
         dagensDato: LocalDate,
         intervall: FakturaserieIntervall,
         perioder: List<FakturaseriePeriode>,
-        expected: FakturaData
+        expected: ForventetFakturering
     ) {
         val fakturaserie = lagFakturaserie(dagensDato, intervall, perioder)
-        val result = FakturaData(fakturaserie.faktura)
+        val result = ForventetFakturering(fakturaserie.faktura)
 
         result.shouldBeEqualToComparingFields(expected)
     }
@@ -44,7 +52,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 1,
                 listOf(
                     FakturaMedLinjer(
@@ -82,7 +90,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 3,
                 listOf(
                     FakturaMedLinjer(
@@ -128,6 +136,34 @@ class FakturaserieGeneratorTest {
             )
         ),
 
+        arguments(
+            "Datoer i samme måned",
+            LocalDate.of(2023, 1, 1),
+            FakturaserieIntervall.KVARTAL,
+            listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(1000),
+                    startDato = LocalDate.of(2023, 1, 15),
+                    sluttDato = LocalDate.of(2023, 1, 30),
+                    beskrivelse = "periode - 1"
+                )
+            ),
+            ForventetFakturering(
+                1,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2023-01-15", til = "2023-01-30",
+                        listOf(
+                            Linje(
+                                "2023-01-15", "2023-01-30", "520.00",
+                                "periode - 1"
+                            )
+                        )
+                    )
+                )
+            )
+        ),
+
 
         arguments(
             "Slutt dato er før dagens dato",
@@ -141,7 +177,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "periode - 1"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 1,
                 listOf(
                     FakturaMedLinjer(
@@ -173,7 +209,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "periode 1"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 1,
                 listOf(
                     FakturaMedLinjer(
@@ -205,7 +241,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 2,
                 listOf(
                     FakturaMedLinjer(
@@ -252,7 +288,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 3,
                 listOf(
                     FakturaMedLinjer(
@@ -308,7 +344,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 7,
                 listOf(
                     FakturaMedLinjer(
@@ -424,7 +460,7 @@ class FakturaserieGeneratorTest {
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
                 )
             ),
-            FakturaData(
+            ForventetFakturering(
                 3,
                 listOf(
                     FakturaMedLinjer(
@@ -477,7 +513,7 @@ class FakturaserieGeneratorTest {
         perioder: List<FakturaseriePeriode> = listOf()
     ): Fakturaserie {
         val fakturaMapper = FakturaGeneratorForTest(dagensDato, unleash = unleash)
-        return FakturaserieGenerator(fakturaGenerator = fakturaMapper).lagFakturaserie(
+        return FakturaserieGenerator(fakturaGenerator = fakturaMapper, AvregningBehandler(AvregningsfakturaGenerator())).lagFakturaserie(
             FakturaserieDto(
                 fakturaserieReferanse = ULID.randomULID(),
                 fodselsnummer = "30056928150",
@@ -499,8 +535,8 @@ class FakturaserieGeneratorTest {
         override fun dagensDato(): LocalDate = dagensDato
     }
 
-    data class FakturaData(
-        val size: Int,
+    data class ForventetFakturering(
+        val antallFakturaer: Int,
         val fakturaMedLinjer: List<FakturaMedLinjer>
 
     ) {
@@ -521,11 +557,11 @@ class FakturaserieGeneratorTest {
                         )
                     })
 
-        override fun toString() = "size=$size fakturaListe=$fakturaMedLinjer\n"
+        override fun toString() = "antall=$antallFakturaer fakturaListe=$fakturaMedLinjer\n"
 
         fun toTestCode(): String =
             "FakturaData(\n" +
-                    "  $size,\n  listOf(\n" +
+                    "  $antallFakturaer,\n  listOf(\n" +
                     fakturaMedLinjer.joinToString("\n") { it.toTestCode() } +
                     "\n )" +
                     "\n)"
@@ -577,5 +613,46 @@ class FakturaserieGeneratorTest {
                 "             \"$fra\", \"$til\", $beløp,\n " +
                 "             \"$beskrivelse\"\n" +
                 "            ),"
+    }
+
+    @Nested
+    inner class LocalDateRangeSubstraction {
+        @Test
+        fun `substract a period`() {
+            val substracted = LocalDateRange.of(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 1, 10)
+            ).substract(
+                LocalDateRange.of(
+                    LocalDate.of(2024, 1, 3),
+                    LocalDate.of(2024, 2, 12)
+                )
+            )
+
+            substracted shouldBe listOf(
+                LocalDateRange.of(
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 1, 2)
+                )
+            )
+        }
+
+        @Test
+        fun `substract a period in the middle`() {
+            val substracted = LocalDateRange.of(
+                LocalDate.of(2023, 12, 16),
+                LocalDate.of(2024, 1, 15)
+            ).substract(
+                LocalDateRange.of(
+                    LocalDate.of(2023, 12, 31),
+                    LocalDate.of(2024, 1, 13)
+                )
+            )
+
+            substracted.shouldContainExactlyInAnyOrder(
+                LocalDateRange.of(LocalDate.of(2023, 12, 16), LocalDate.of(2023, 12, 30)),
+                LocalDateRange.of(LocalDate.of(2024, 1, 14), LocalDate.of(2024, 1, 15))
+            )
+        }
     }
 }

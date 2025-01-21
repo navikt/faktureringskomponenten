@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import org.springframework.stereotype.Component
@@ -14,6 +15,11 @@ class FakturaService(
 ) {
 
     fun hentFaktura(fakturaReferanseNr: String) = fakturaRepository.findByReferanseNr(fakturaReferanseNr)
+
+    @Transactional
+    fun lagreFaktura(faktura: Faktura): Faktura {
+        return fakturaRepository.save(faktura)
+    }
 
     fun hentAntallFeiledeFakturaer(): Int {
         return fakturaRepository.countByStatusIsFeil()

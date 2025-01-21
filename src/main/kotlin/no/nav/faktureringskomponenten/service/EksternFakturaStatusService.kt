@@ -27,7 +27,7 @@ class EksternFakturaStatusService(
 ) {
 
     @Transactional
-    fun lagreEksternFakturaStatusMelding(eksternFakturaStatusDto: EksternFakturaStatusDto) {
+    fun håndterEksternFakturaStatusMelding(eksternFakturaStatusDto: EksternFakturaStatusDto) {
         log.info("Mottatt $eksternFakturaStatusDto")
 
         val faktura = fakturaRepository.findByReferanseNr(eksternFakturaStatusDto.fakturaReferanseNr)

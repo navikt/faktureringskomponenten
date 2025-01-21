@@ -1,9 +1,12 @@
 package no.nav.faktureringskomponenten.controller
 
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
+import no.nav.faktureringskomponenten.service.AdminService
 import no.nav.faktureringskomponenten.service.EksternFakturaStatusService
 import no.nav.faktureringskomponenten.service.FakturaBestillingService
 import no.nav.faktureringskomponenten.service.FakturaService
@@ -28,7 +31,8 @@ class AdminController(
     val eksternFakturaStatusConsumer: EksternFakturaStatusConsumer,
     val eksternFakturaStatusService: EksternFakturaStatusService,
     val fakturaService: FakturaService,
-    val fakturaBestillingService: FakturaBestillingService
+    val fakturaBestillingService: FakturaBestillingService,
+    val adminService: AdminService
 ) {
 
     @Value("\${NAIS_CLUSTER_NAME}")
@@ -82,6 +86,13 @@ class AdminController(
         return ResponseEntity.ok("Feilet faktura med referanse nr $fakturaReferanse bestilles på nytt")
     }
 
+    @PostMapping("/faktura/{fakturaReferanse}/krediter")
+    fun krediterFaktura(@PathVariable fakturaReferanse: String): FakturaserieResponseDto {
+        log.info("Krediterer faktura med referanse nr $fakturaReferanse")
+
+        return adminService.krediterFaktura(fakturaReferanse).tilFakturaserieResponseDto
+    }
+
     /**
      * Simulerer at faktura ikke er betalt innen forfall. Endepunktet er KUN tilgjengelig i testmiljø.
      */
@@ -90,7 +101,7 @@ class AdminController(
         @PathVariable fakturaReferanse: String,
         @RequestParam(required = false, defaultValue = "0") betaltBelop: BigDecimal
     ): ResponseEntity<String> {
-        if (naisClusterName != naisClusterNameDev) {
+        if (naisClusterName != NAIS_CLUSTER_NAME_DEV) {
             log.warn("Endepunktet er kun tilgjengelig i testmiljø")
             return ResponseEntity.status(403)
                 .body("Endepunktet er kun tilgjengelig i testmiljø")
@@ -121,12 +132,47 @@ class AdminController(
             feilmelding = "Simulert manglende innbetaling"
         )
 
-        eksternFakturaStatusService.lagreEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
+        eksternFakturaStatusService.håndterEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
 
         log.info("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
         return ResponseEntity.ok("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
     }
 
+    @PostMapping("/faktura/{fakturaReferanse}/manglende-innbetaling-prod")
+    fun simulerManglendeInnbetalingProd(
+        @PathVariable fakturaReferanse: String,
+        @RequestBody manglendeInnbetalingSimuleringDto: ManglendeInnbetalingSimuleringDto
+    ): ResponseEntity<String> {
+        val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return ResponseEntity.status(404)
+            .body("Finner ikke faktura med referanse nr $fakturaReferanse")
+
+        if (faktura.status != FakturaStatus.BESTILT) {
+            log.info("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
+            return ResponseEntity.status(400)
+                .body("Faktura med referanse nr $fakturaReferanse må ha status BESTILT")
+        }
+
+        if (faktura.totalbeløp() <= manglendeInnbetalingSimuleringDto.betaltBelop) {
+            log.info("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
+            return ResponseEntity.status(400)
+                .body("Faktura med referanse nr $fakturaReferanse må ha betalt beløp mindre enn totalbeløp")
+        }
+
+        val simulertEksternFakturaStatusDto = EksternFakturaStatusDto(
+            fakturaReferanseNr = fakturaReferanse,
+            fakturaNummer = manglendeInnbetalingSimuleringDto.fakturaNummer,
+            fakturaBelop = faktura.totalbeløp(),
+            ubetaltBelop = faktura.totalbeløp() - manglendeInnbetalingSimuleringDto.betaltBelop,
+            status = FakturaStatus.MANGLENDE_INNBETALING,
+            dato = LocalDate.now(),
+            feilmelding = "Simulert manglende innbetaling"
+        )
+
+        eksternFakturaStatusService.håndterEksternFakturaStatusMelding(simulertEksternFakturaStatusDto)
+
+        log.info("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
+        return ResponseEntity.ok("Simulert manglende innbetaling for faktura med referanse nr $fakturaReferanse")
+    }
 
     /**
      * Endrer status på faktura. Endepunktet er KUN tilgjengelig i testmiljø.
@@ -136,7 +182,7 @@ class AdminController(
         @PathVariable fakturaReferanse: String,
         @RequestParam(required = false, defaultValue = "BESTILT") status: FakturaStatus
     ): ResponseEntity<String> {
-        if (naisClusterName != naisClusterNameDev) {
+        if (naisClusterName != NAIS_CLUSTER_NAME_DEV) {
             log.warn("Endepunktet er kun tilgjengelig i testmiljø")
             return ResponseEntity.status(403)
                 .body("Endepunktet er kun tilgjengelig i testmiljø")
@@ -160,6 +206,13 @@ class AdminController(
     }
 
     companion object {
-        private val naisClusterNameDev = "dev-gcp"
+        private const val NAIS_CLUSTER_NAME_DEV = "dev-gcp"
     }
 }
+
+data class ManglendeInnbetalingSimuleringDto(
+    val betaltBelop: BigDecimal,
+    val fakturaNummer: String
+)
+
+

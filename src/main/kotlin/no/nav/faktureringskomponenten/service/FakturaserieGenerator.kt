@@ -1,13 +1,23 @@
 package no.nav.faktureringskomponenten.service
 
-import no.nav.faktureringskomponenten.domain.models.*
+import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.Fullmektig
+import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Component
-import ulid.ULID
+import org.threeten.extra.LocalDateRange
 import java.time.LocalDate
+import java.time.temporal.IsoFields
+import java.time.temporal.TemporalAdjusters
+
+private val log = KotlinLogging.logger { }
 
 @Component
 class FakturaserieGenerator(
-    val fakturaGenerator: FakturaGenerator
+    val fakturaGenerator: FakturaGenerator,
+    val avregningBehandler: AvregningBehandler
 ) {
 
     fun lagFakturaserie(
@@ -18,13 +28,16 @@ class FakturaserieGenerator(
         val avregningsfakturaSistePeriodeTil = avregningsfaktura.maxByOrNull { it.getPeriodeTil() }?.getPeriodeTil()
         val startDatoForSamletPeriode =
             finnStartDatoForSamletPeriode(avregningsfakturaSistePeriodeTil, startDato, fakturaserieDto)
-        val sluttDatoForSamletPeriode = mapSluttdato(fakturaserieDto.perioder)
-        val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(
-            startDatoForSamletPeriode,
-            sluttDatoForSamletPeriode,
-            fakturaserieDto.perioder,
-            fakturaserieDto.intervall
-        )
+        val sluttDatoForSamletPeriode = fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato
+
+        if (startDato != null && startDato.isAfter(sluttDatoForSamletPeriode))
+            log.error("startDato er etter sluttdato. AvregningsfakturaSistePeriodeTil: $avregningsfakturaSistePeriodeTil" +
+                " startDato: $startDato startDatoForSamletPeriode $startDatoForSamletPeriode sluttDatoForSamletPeriode $sluttDatoForSamletPeriode" +
+                " fakturaserieDto: $fakturaserieDto")
+
+        val periodisering = FakturaIntervallPeriodisering.genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
+        val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(periodisering, fakturaserieDto.perioder, fakturaserieDto.intervall)
+
         return Fakturaserie(
             id = null,
             referanse = fakturaserieDto.fakturaserieReferanse,
@@ -40,11 +53,54 @@ class FakturaserieGenerator(
         )
     }
 
-    fun lagFakturaserieKansellering(
+    fun lagFakturaserieForEndring(
+        fakturaserieDto: FakturaserieDto,
+        opprinneligFakturaserie: Fakturaserie
+    ): Fakturaserie {
+        val startDato = finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie)
+        val avregningsfakturaer = avregningBehandler.lagAvregningsfakturaer(
+            fakturaserieDto.perioder,
+            opprinneligFakturaserie.bestilteFakturaer()
+        )
+        val nyeFakturaerForNyePerioder: List<Faktura> = lagNyeFakturaerForNyePerioder(fakturaserieDto, avregningsfakturaer)
+
+        return lagFakturaserie(fakturaserieDto, startDato, avregningsfakturaer + nyeFakturaerForNyePerioder)
+    }
+
+    private fun finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie: Fakturaserie) =
+        if (opprinneligFakturaserie.erUnderBestilling()) {
+            opprinneligFakturaserie.planlagteFakturaer().minByOrNull { it.getPeriodeFra() }?.getPeriodeFra()
+        } else null
+
+    private fun lagNyeFakturaerForNyePerioder(
+        fakturaserieDto: FakturaserieDto,
+        avregningsfakturaer: List<Faktura>
+    ): List<Faktura> {
+        val fellesPeriodisering = FakturaIntervallPeriodisering.genererPeriodisering(
+            fakturaserieDto.perioder.minBy { it.startDato }.startDato,
+            fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato,
+            fakturaserieDto.intervall
+        ).map { LocalDateRange.of(it.first, it.second) }
+
+        val periodiseringUtenAvregning = fellesPeriodisering.flatMap { periode ->
+            val avregningsperioder = avregningsfakturaer.map { LocalDateRange.ofClosed(it.getPeriodeFra(), it.getPeriodeTil()) }
+            if (avregningsperioder.none { it.overlaps(periode) }) listOf(periode)
+            else avregningsperioder.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
+        }.map { Pair(it.start, it.end) }
+
+        val nyeFakturaerForNyePerioder: List<Faktura> = fakturaGenerator.lagFakturaerFor(
+            periodiseringUtenAvregning,
+            fakturaserieDto.perioder,
+            fakturaserieDto.intervall
+        )
+        return nyeFakturaerForNyePerioder
+    }
+
+    fun lagFakturaserieForKansellering(
         fakturaserieDto: FakturaserieDto,
         startDato: LocalDate,
         sluttDato: LocalDate,
-        avregningsfaktura: List<Faktura> = emptyList()
+        bestilteFakturaer: List<Faktura>
     ): Fakturaserie {
         return Fakturaserie(
             referanse = fakturaserieDto.fakturaserieReferanse,
@@ -56,7 +112,10 @@ class FakturaserieGenerator(
             startdato = startDato,
             sluttdato = sluttDato,
             intervall = fakturaserieDto.intervall,
-            faktura = avregningsfaktura
+            faktura = avregningBehandler.lagAvregningsfakturaer(
+                fakturaserieDto.perioder,
+                bestilteFakturaer
+            )
         )
     }
 
@@ -64,9 +123,7 @@ class FakturaserieGenerator(
         avregningsfakturaSistePeriodeTil: LocalDate?,
         startDato: LocalDate?,
         fakturaserieDto: FakturaserieDto
-    ) = avregningsfakturaSistePeriodeTil?.plusDays(1) ?: startDato ?: mapStartdato(
-        fakturaserieDto.perioder
-    )
+    ) = avregningsfakturaSistePeriodeTil?.plusDays(1) ?: startDato ?: fakturaserieDto.perioder.minBy { it.startDato }.startDato
 
     private fun mapFullmektig(fullmektigDto: Fullmektig?): Fullmektig? {
         if (fullmektigDto != null) {
@@ -78,11 +135,17 @@ class FakturaserieGenerator(
         return null
     }
 
-    private fun mapStartdato(perioder: List<FakturaseriePeriode>): LocalDate {
-        return perioder.minByOrNull { it.startDato }!!.startDato
-    }
-
-    private fun mapSluttdato(perioder: List<FakturaseriePeriode>): LocalDate {
-        return perioder.maxByOrNull { it.sluttDato }!!.sluttDato
+    companion object {
+        fun LocalDateRange.substract(other: LocalDateRange): List<LocalDateRange> {
+            if (!isConnected(other)) return listOf(this)
+            return buildList {
+                if (start < other.start) {
+                    add(LocalDateRange.of(start, other.start.minusDays(1)))
+                }
+                if (end > other.end) {
+                    add(LocalDateRange.of(other.end.plusDays(1), end))
+                }
+            }
+        }
     }
 }

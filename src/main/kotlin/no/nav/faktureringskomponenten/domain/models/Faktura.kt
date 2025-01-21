@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import jakarta.persistence.*
+import org.threeten.extra.LocalDateRange
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -67,11 +68,32 @@ class Faktura(
         return fakturaserie?.id
     }
 
+    fun erAvregningsfaktura(): Boolean {
+        return referertFakturaVedAvregning != null
+    }
+
+    fun erBestilt(): Boolean {
+        return status == FakturaStatus.BESTILT || status == FakturaStatus.MANGLENDE_INNBETALING || status == FakturaStatus.FEIL || status == FakturaStatus.INNE_I_OEBS
+    }
+
     fun totalbeløp(): BigDecimal {
         return fakturaLinje.sumOf(FakturaLinje::belop)
     }
 
-    fun erAvregningsfaktura(): Boolean {
-        return referertFakturaVedAvregning != null
+    fun overlapperMedÅr(år: Int): Boolean {
+        val fakturaLinjeFom = fakturaLinje.minOf { getPeriodeFra() }
+        val fakturaLinjeTom = fakturaLinje.minOf { getPeriodeTil() }
+        val localDateRangeForPeriode = LocalDateRange.ofClosed(fakturaLinjeFom, fakturaLinjeTom)
+        val localDateRangeForÅr = LocalDateRange.ofClosed(LocalDate.of(år, 1, 1), LocalDate.of(år, 12, 31))
+        return localDateRangeForPeriode.overlaps(localDateRangeForÅr)
     }
+
+    fun hentFørstePositiveFaktura(): Faktura {
+        if (totalbeløp() > BigDecimal.ZERO) {
+            return this
+        }
+        return referertFakturaVedAvregning?.hentFørstePositiveFaktura()
+            ?: throw RuntimeException("Faktura med referanse: $referanseNr mangler referertFakturaVedAvregning")
+    }
+
 }

@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter
 
 @Component
 class FakturaLinjeGenerator {
-
     fun lagFakturaLinjer(
         perioder: List<FakturaseriePeriode>,
         faktureringFra: LocalDate,
@@ -19,11 +18,10 @@ class FakturaLinjeGenerator {
         return perioder.filter {
             it.startDato <= faktureringTil && it.sluttDato >= faktureringFra
         }.map {
-            val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
             val fakturaLinjerPeriodeFra = if (it.startDato < faktureringFra) faktureringFra else it.startDato
             val fakturaLinjerPeriodeTil = if (it.sluttDato >= faktureringTil) faktureringTil else it.sluttDato
 
-            check(fakturaLinjerPeriodeFra <= fakturaLinjerPeriodeTil) { "fakturaLinjerPeriodeFra($fakturaLinjerPeriodeFra) > periodeFra($fakturaLinjerPeriodeTil)" }
+            check(fakturaLinjerPeriodeFra <= fakturaLinjerPeriodeTil) { "periodeFra($fakturaLinjerPeriodeFra) > periodeTil($fakturaLinjerPeriodeTil)" }
 
             FakturaLinje(
                 id = null,
@@ -35,9 +33,13 @@ class FakturaLinjeGenerator {
                     fakturaLinjerPeriodeTil
                 ),
                 antall = AntallMdBeregner(fakturaLinjerPeriodeFra, fakturaLinjerPeriodeTil).beregn(),
-                beskrivelse = "Periode: ${fakturaLinjerPeriodeFra.format(FORMATTER)} - ${fakturaLinjerPeriodeTil.format(FORMATTER)}\n${it.beskrivelse}",
+                beskrivelse = "Periode: ${fakturaLinjerPeriodeFra.format(DATE_FORMATTER)} - ${fakturaLinjerPeriodeTil.format(DATE_FORMATTER)}\n${it.beskrivelse}",
                 enhetsprisPerManed = it.enhetsprisPerManed
             )
         }.toList()
+    }
+
+    companion object {
+        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 }

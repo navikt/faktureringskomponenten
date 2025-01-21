@@ -15,5 +15,5 @@ data class FakturaBestiltDto(
     val beskrivelse: String,
     val artikkel: String,
     val fakturaLinjer: List<FakturaBestiltLinjeDto>,
-    val faktureringsDato: LocalDate
+    val faktureringsDato: LocalDate = LocalDate.now()
 )
