@@ -8,6 +8,7 @@ on:
       - "CODEOWNERS"
     branches:
       - master
+      - MELOSYS-6952_7145_distroless
 permissions:
   contents: write
   packages: write
@@ -84,8 +85,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: pre-deploy
-        uses: navikt/digihot-deploy/actions/pre-deploy@v2
+#      - name: pre-deploy
+#        uses: navikt/digihot-deploy/actions/pre-deploy@v2
       - name: Deploy til dev (Q2)
         uses: nais/deploy/actions/deploy@v1
         env:
@@ -113,13 +114,13 @@ jobs:
           SLACK_TITLE: "faktureringskomponenten ${{ job.status == 'success' && 'ble deployet' || 'kunne ikke deployes' }} til dev-gcp (Q1, Q2)"
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           SLACK_MESSAGE: ${{ env.COMMIT_MSG }}
-      - name: post-deploy
-        uses: navikt/digihot-deploy/actions/post-deploy@v2
-      - name: draft release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.VERSION_TAG }}
-          name: ${{ env.APPLICATION }} ${{ env.VERSION_TAG }}
-          body: ${{ env.CHANGE_LOG }}
-          draft: true
-          prerelease: false
+#      - name: post-deploy
+#        uses: navikt/digihot-deploy/actions/post-deploy@v2
+#      - name: draft release
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          tag_name: ${{ env.VERSION_TAG }}
+#          name: ${{ env.APPLICATION }} ${{ env.VERSION_TAG }}
+#          body: ${{ env.CHANGE_LOG }}
+#          draft: true
+#          prerelease: false
