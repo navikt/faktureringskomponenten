@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.config.AuditorContextHolder
+import no.nav.faktureringskomponenten.config.SubjectHandler
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 
@@ -20,18 +21,18 @@ class AuditorAwareFilter : Filter {
         val httpRequest = request as HttpServletRequest
 
         if (httpRequest.method.equals("POST", false) || httpRequest.method.equals("PUT", false)) {
-            val auditor = httpRequest.getHeader(NAV_USER_ID)
+            val auditor = httpRequest.getHeader(NAV_USER_ID) ?: SubjectHandler.getInstance().getTokenUsername()
+
             if (auditor == null) {
                 val httpResponse = response as HttpServletResponse
-                log.error { "NAV ident må oppgis for sporing, path=" + httpRequest.requestURI  }
-                httpResponse.sendError(HttpStatus.BAD_REQUEST.value(), "NAV ident må oppgis for sporing")
+                log.error { "Ident må oppgis for sporing, path=" + httpRequest.requestURI  }
+                httpResponse.sendError(HttpStatus.BAD_REQUEST.value(), "Ident må oppgis for sporing")
                 return
             }
 
             log.debug { "Request med $NAV_USER_ID: $auditor" }
             AuditorContextHolder.setCurrentAuditor(auditor)
         }
-
 
         try {
             chain.doFilter(request, response)
