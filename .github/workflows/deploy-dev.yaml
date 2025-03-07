@@ -11,25 +11,22 @@ on:
 permissions:
   contents: write
   packages: write
+  id-token: write
 env:
-  image: ghcr.io/${{ github.repository }}/faktureringskomponenten
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      PASSWORD: ${{ secrets.READER_TOKEN }}
-      REGISTRY: ghcr.io
-
+    outputs:
+      image: ${{ steps.docker-push.outputs.image }}
+      telemetry: ${{ steps.docker-push.outputs.telemetry }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: deploy new Unleash Apikey to ${{github.event.inputs.environment}}
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: nais/unleash-apitoken.yml
           VARS: nais/vars-q2.json
@@ -47,34 +44,21 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/.*gradle*') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.READER_TOKEN }}
       - name: Run tests
         run: ./gradlew test
       - name: Build
         run: ./gradlew clean build -x test
 
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u THIS_IS_NOT_USED --password-stdin
-
-      - name: Build and push multi-arch Docker image
-        run: |
-          versioned_image="${image}:${{ github.sha }}"
-          latest_image="${image}:latest"
-
-          # Build and push multi-architecture image
-          docker buildx build --platform linux/amd64,linux/arm64 \
-            --push \
-            --tag "$versioned_image" \
-            --tag "$latest_image" \
-            .
+      - name: Build and publish Docker images (multi-arch)
+        id: docker-push
+        uses: nais/docker-build-push@v0
+        with:
+          team: teammelosys
+          tag: |
+            type=raw,value=latest,priority=9001
+            type=raw,value=${{ github.sha }},priority=9000
+          platforms: linux/amd64,linux/arm64
+          salsa: true
 
   deploy:
     runs-on: ubuntu-latest
@@ -86,22 +70,24 @@ jobs:
           fetch-depth: 0
       - name: pre-deploy
         uses: navikt/digihot-deploy/actions/pre-deploy@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Deploy til dev (Q2)
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: nais/nais.yml
-          VAR: image=${{env.image}}:${{ github.sha }}
+          IMAGE: ${{ needs.build.outputs.image }}
           VARS: nais/vars-q2.json
+          TELEMETRY: ${{ needs.build.outputs.telemetry }}
       - name: Deploy til dev (Q1)
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: nais/nais.yml
-          VAR: image=${{env.image}}:${{ github.sha }}
+          IMAGE: ${{ needs.build.outputs.image }}
           VARS: nais/vars-q1.json
+          TELEMETRY: ${{ needs.build.outputs.telemetry }}
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
       - name: Slack Notification
@@ -115,8 +101,12 @@ jobs:
           SLACK_MESSAGE: ${{ env.COMMIT_MSG }}
       - name: post-deploy
         uses: navikt/digihot-deploy/actions/post-deploy@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: draft release
         uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.VERSION_TAG }}
           name: ${{ env.APPLICATION }} ${{ env.VERSION_TAG }}
