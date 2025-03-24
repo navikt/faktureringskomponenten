@@ -22,6 +22,8 @@ jobs:
           CLUSTER: prod-gcp
           RESOURCE: nais/unleash-apitoken.yml
           VARS: nais/vars-prod.json
+      - name: Cleanup file created by deploy
+        run: rm -f deploy.json
       - name: Login to NAIS registry
         uses: nais/login@v0
         with:
