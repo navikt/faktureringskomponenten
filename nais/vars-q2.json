@@ -9,6 +9,7 @@
   "melosys_web_api_cluster": "dev-fss",
   "app_name_melosys_api": "melosys",
   "app_name_melosys_web": "melosys-web",
+  "app_name_melosys_console": "melosys-console-q2",
   "kafka_topic_name_faktura_bestilt": "teammelosys.faktura-bestilt.v1-q2",
   "kafka_topic_name_manglende_fakturabetaling": "teammelosys.manglende-fakturabetaling.v1-q2",
   "unleash_environment": "development",

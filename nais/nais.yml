@@ -55,6 +55,8 @@ spec:
         - application: {{app_name_melosys_web}}
           namespace: teammelosys
           cluster: {{melosys_web_api_cluster}}
+        - application: {{app_name_melosys_console}}
+
     outbound:
       external:
         - host: "melosys-unleash-api.nav.cloud.nais.io"
