@@ -37,6 +37,28 @@ class FakturaBestiltDtoMapperTest {
     }
 
     @Test
+    fun `Innbetalingstype AARSAVREGNING setter riktig beskrivelse`() {
+        val fakturaserie = lagFakturaserie {
+            fakturaGjelderInnbetalingstype(Innbetalingstype.AARSAVREGNING)
+            intervall(FakturaserieIntervall.KVARTAL)
+            faktura(
+                lagFaktura {
+                    fakturaLinje(
+                        lagFakturalinje {
+                            beskrivelse("Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%")
+                        }
+                    )
+                }
+            )
+        }
+
+        val fakturaBestiltDto =
+            FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
+
+        fakturaBestiltDto.beskrivelse.shouldContain("Faktura for oppgjør av trygdeavgift for ${LocalDate.now().year}")
+    }
+
+    @Test
     fun `intervall MANEDLIG setter rett beskrivelse`() {
         val fakturaserie = lagFakturaserie {
             fakturaGjelderInnbetalingstype(Innbetalingstype.TRYGDEAVGIFT)

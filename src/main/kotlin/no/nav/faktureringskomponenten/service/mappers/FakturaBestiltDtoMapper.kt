@@ -49,6 +49,9 @@ class FakturaBestiltDtoMapper {
         erAvregning: Boolean
     ): String {
         return when (fakturaGjelder) {
+            Innbetalingstype.AARSAVREGNING -> {
+                return "Faktura for oppgjør av trygdeavgift for ${fakturalinjer.first().periodeFra.year}"
+            }
             Innbetalingstype.TRYGDEAVGIFT -> {
                 if (erAvregning) {
                     return "Faktura for avregning mot tidligere fakturert trygdeavgift"
@@ -72,6 +75,7 @@ class FakturaBestiltDtoMapper {
     private fun mapArtikkel(fakturaGjelder: Innbetalingstype): String {
         return when (fakturaGjelder) {
             Innbetalingstype.TRYGDEAVGIFT -> AVGIFT_TIL_FOLKETRYGDEN
+            Innbetalingstype.AARSAVREGNING -> AVGIFT_TIL_FOLKETRYGDEN
         }
     }
 }
