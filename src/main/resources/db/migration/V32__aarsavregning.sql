@@ -1,0 +1,2 @@
+ALTER TYPE innbetalingstype
+    ADD VALUE 'AARSAVREGNING';
