@@ -94,7 +94,7 @@ class FakturaserieService(
     @Transactional
     fun kansellerFakturaserie(referanse: String): String {
         val eksisterendeFakturaserie = fakturaserieRepository.findByReferanse(referanse)
-            ?: throw throw RessursIkkeFunnetException(
+            ?: throw RessursIkkeFunnetException(
                 field = "fakturaserieId",
                 message = "Finner ikke fakturaserie med referanse $referanse"
             )
