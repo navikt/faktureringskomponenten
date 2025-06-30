@@ -60,6 +60,11 @@ spec:
     outbound:
       external:
         - host: "melosys-unleash-api.nav.cloud.nais.io"
+  observability:
+    logging:
+      destinations:
+        - id: elastic
+        - id: loki
   prometheus:
     enabled: true
     path: /internal/prometheus
