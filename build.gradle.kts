@@ -1,9 +1,10 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    val kotlinVersion = "1.9.10"
+    val kotlinVersion = "2.2.0"
 
-    id("org.springframework.boot") version "3.3.5"
+    id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
@@ -13,8 +14,8 @@ plugins {
 
 group = "no.nav"
 version = "0.0.1-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_17
-extra["junit-jupiter.version"] = "5.11.3"
+java.sourceCompatibility = JavaVersion.VERSION_21
+extra["junit-jupiter.version"] = "5.13.3"
 
 repositories {
     mavenCentral()
@@ -33,22 +34,22 @@ tasks.test {
 }
 
 object dependencyVersions {
-    const val testContainerVersion = "1.20.3"
+    const val testContainerVersion = "1.21.3"
     const val kotestVersion = "5.5.4"
-    const val shedlockVersion = "4.4.0"
-    const val shedlockProvicerJdbcVersion = "4.43.0"
+    const val shedlockVersion = "6.9.0"
+    const val shedlockProvicerJdbcVersion = "6.9.0"
     const val mockkVersion = "1.13.3"
-    const val openapiVersion = "1.6.14"
-    const val springdocOpenapiStarter = "2.0.2"
-    const val logstashLogbackEncoder = "7.2"
-    const val tokenSupportVersion = "3.2.0"
-    const val awaitabilityVersion = "4.2.0"
+    const val openapiVersion = "1.8.0"
+    const val springdocOpenapiStarter = "2.8.9"
+    const val logstashLogbackEncoder = "8.1"
+    const val tokenSupportVersion = "5.0.30"
+    const val awaitabilityVersion = "4.3.0"
     const val kotlinLogging = "3.0.5"
-    const val archUnitVersion = "1.0.1"
+    const val archUnitVersion = "1.4.1"
     const val micrometerJvmExtrasVersion = "0.2.2"
-    const val micrometerVersion = "1.10.5"
+    const val micrometerVersion = "1.15.1"
     const val threeTenExtraVersion = "1.7.2"
-    const val unleashVersion = "8.3.0"
+    const val unleashVersion = "8.4.0" // For å oppgradere til > 8, må vi endre LocalUnleash.kt
     const val ULIDVersion = "1.3.0"
 }
 
@@ -95,9 +96,9 @@ dependencies {
 
 tasks {
     withType<KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = "17"
+        compilerOptions {
+            freeCompilerArgs.addAll("-Xjsr305=strict")
+            jvmTarget.set(JvmTarget.JVM_21)
         }
     }
 
@@ -111,3 +112,12 @@ tasks {
     }
 }
 
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.compilerOptions {
+    freeCompilerArgs.set(listOf("-Xannotation-default-target=param-property"))
+}
+
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.compilerOptions {
+    freeCompilerArgs.set(listOf("-Xannotation-default-target=param-property"))
+}

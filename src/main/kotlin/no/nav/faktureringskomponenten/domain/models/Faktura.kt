@@ -41,7 +41,7 @@ class Faktura(
     @Column(name = "kreditering_faktura_ref", nullable = true, unique = true)
     var krediteringFakturaRef: String = "",
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinColumn(name = "avregning_faktura_id")
     val referertFakturaVedAvregning: Faktura? = null,
 
