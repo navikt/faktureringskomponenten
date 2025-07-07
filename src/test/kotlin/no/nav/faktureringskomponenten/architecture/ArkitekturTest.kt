@@ -12,7 +12,7 @@ class ArkitekturTest {
 
     val importedClasses: JavaClasses = ClassFileImporter()
         .withImportOption(DoNotIncludeTests())
-        .importPackages(appPath)
+        .importClasspath()
 
     val definedLayers = Architectures.layeredArchitecture().consideringAllDependencies()
         .layer("Controller").definedBy("$appPath.controller..")

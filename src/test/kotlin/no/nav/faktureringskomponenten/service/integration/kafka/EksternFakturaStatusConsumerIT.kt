@@ -17,6 +17,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
