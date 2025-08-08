@@ -212,7 +212,7 @@ class AdminController(
 
     @DeleteMapping("/fakturaserie/{fakturaserieReferanse}")
     fun kansellerFakturaserie(
-        @PathVariable("referanse", required = true) referanse: String,
+        @PathVariable("fakturaserieReferanse", required = true) referanse: String,
     ): ResponseEntity<NyFakturaserieResponseDto> {
         log.info("Mottatt ADMIN forespørsel om kansellering av fakturaserie: $referanse")
         //Sjekk at dato er 8. august
