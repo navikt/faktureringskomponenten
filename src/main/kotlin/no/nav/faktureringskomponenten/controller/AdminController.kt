@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.controller
 
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
@@ -10,6 +11,7 @@ import no.nav.faktureringskomponenten.service.AdminService
 import no.nav.faktureringskomponenten.service.EksternFakturaStatusService
 import no.nav.faktureringskomponenten.service.FakturaBestillingService
 import no.nav.faktureringskomponenten.service.FakturaService
+import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.faktureringskomponenten.service.integration.kafka.EksternFakturaStatusConsumer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.core.api.Protected
@@ -17,8 +19,10 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
+import org.threeten.extra.Months
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.Month
 
 private val log = KotlinLogging.logger { }
 
@@ -32,7 +36,8 @@ class AdminController(
     val eksternFakturaStatusService: EksternFakturaStatusService,
     val fakturaService: FakturaService,
     val fakturaBestillingService: FakturaBestillingService,
-    val adminService: AdminService
+    val adminService: AdminService,
+    val faktureringService: FakturaserieService
 ) {
 
     @Value("\${NAIS_CLUSTER_NAME}")
@@ -203,6 +208,31 @@ class AdminController(
 
         log.info("Status på faktura $fakturaReferanse har blitt oppdatert fra fra $originalStatus til $status")
         return ResponseEntity.ok("Status på faktura $fakturaReferanse har blitt oppdatert fra fra $originalStatus til $status")
+    }
+
+    @DeleteMapping("/fakturaserie/{fakturaserieReferanse}")
+    fun kansellerFakturaserie(
+        @PathVariable("referanse", required = true) referanse: String,
+    ): ResponseEntity<NyFakturaserieResponseDto> {
+        log.info("Mottatt ADMIN forespørsel om kansellering av fakturaserie: $referanse")
+        //Sjekk at dato er 8. august
+        /*if (naisClusterName != NAIS_CLUSTER_NAME_DEV) {
+            log.warn("Endepunktet er kun tilgjengelig i testmiljø")
+            return ResponseEntity.status(403)
+                .body(NyFakturaserieResponseDto("Endepunktet er kun tilgjengelig i testmiljø"))
+        }*/
+
+        val dato = LocalDate.now()
+        if (dato.month != Month.AUGUST || dato.dayOfMonth != 8 || dato.year != 2025) {
+            log.warn("Endepunktet er kun tilgjengelig 8. august")
+            return ResponseEntity.status(403)
+                .body(NyFakturaserieResponseDto("Endepunkt er kun tilgjengelig 8. august"))
+        }
+
+        val nyFakturaserieRefereanse = faktureringService.kansellerFakturaserie(referanse)
+
+        log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: $nyFakturaserieRefereanse")
+        return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))
     }
 
     companion object {
