@@ -223,8 +223,8 @@ class AdminController(
         }*/
 
         val dato = LocalDate.now()
-        if (dato.month != Month.AUGUST || dato.dayOfMonth != 8 || dato.year != 2025) {
-            log.warn("Endepunktet er kun tilgjengelig 8. august")
+        if (dato.month != Month.AUGUST || dato.dayOfMonth != 11 || dato.year != 2025) {
+            log.warn("Endepunktet er kun tilgjengelig 11. august")
             return ResponseEntity.status(403)
                 .body(NyFakturaserieResponseDto("Endepunkt er kun tilgjengelig 8. august"))
         }
