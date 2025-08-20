@@ -51,6 +51,7 @@ object dependencyVersions {
     const val threeTenExtraVersion = "1.7.2"
     const val unleashVersion = "8.3.0"
     const val ULIDVersion = "1.3.0"
+    const val springmockk = "4.0.2"
 }
 
 dependencies {
@@ -92,6 +93,7 @@ dependencies {
     testImplementation("org.awaitility:awaitility:${dependencyVersions.awaitabilityVersion}")
     testImplementation("org.awaitility:awaitility-kotlin:${dependencyVersions.awaitabilityVersion}")
     testImplementation("com.tngtech.archunit:archunit:${dependencyVersions.archUnitVersion}")
+    testImplementation("com.ninja-squad:springmockk:${dependencyVersions.springmockk}")
 }
 
 tasks {

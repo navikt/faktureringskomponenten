@@ -915,35 +915,6 @@ class FakturaserieControllerIT(
     }
     //endregion
 
-    fun lagFakturaserieDto(
-        referanseId: String? = null,
-        fodselsnummer: String = "12345678911",
-        fullmektig: FullmektigDto? = FullmektigDto("11987654321", "123456789"),
-        referanseBruker: String = "Nasse Nøff",
-        referanseNav: String = "NAV referanse",
-        fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
-        intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
-        fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
-            FakturaseriePeriodeDto(
-                BigDecimal.valueOf(123),
-                LocalDate.of(2022, 1, 1),
-                LocalDate.of(2022, 11, 30),
-                "Beskrivelse"
-            )
-        ),
-    ): FakturaserieRequestDto {
-        return FakturaserieRequestDto(
-            fodselsnummer,
-            referanseId,
-            fullmektig,
-            referanseBruker,
-            referanseNav,
-            fakturaGjelderInnbetalingstype,
-            intervall,
-            fakturaseriePeriode
-        )
-    }
-
     private fun postLagNyFakturaserieRequest(fakturaserieRequestDto: FakturaserieRequestDto): WebTestClient.ResponseSpec =
         webClient.post()
             .uri("/fakturaserier")
@@ -1034,6 +1005,35 @@ class FakturaserieControllerIT(
     companion object {
         const val NAV_IDENT = "Z123456"
         const val NAV_IDENT_ENDRING = "T222222"
+
+        fun lagFakturaserieDto(
+            referanseId: String? = null,
+            fodselsnummer: String = "12345678911",
+            fullmektig: FullmektigDto? = FullmektigDto("11987654321", "123456789"),
+            referanseBruker: String = "Nasse Nøff",
+            referanseNav: String = "NAV referanse",
+            fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+            intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
+            fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
+                FakturaseriePeriodeDto(
+                    BigDecimal.valueOf(123),
+                    LocalDate.of(2022, 1, 1),
+                    LocalDate.of(2022, 11, 30),
+                    "Beskrivelse"
+                )
+            ),
+        ): FakturaserieRequestDto {
+            return FakturaserieRequestDto(
+                fodselsnummer,
+                referanseId,
+                fullmektig,
+                referanseBruker,
+                referanseNav,
+                fakturaGjelderInnbetalingstype,
+                intervall,
+                fakturaseriePeriode
+            )
+        }
     }
 }
 

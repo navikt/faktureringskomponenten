@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import no.nav.faktureringskomponenten.controller.validators.StartdatoErIkkeFraTidligereÅr
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -13,10 +14,11 @@ data class FakturaseriePeriodeDto(
     val enhetsprisPerManed: BigDecimal,
 
 
-    @Schema(
+    @field:Schema(
         description = "Startdato for perioden",
         example = "01.01.2022",
     )
+    @field:StartdatoErIkkeFraTidligereÅr
     val startDato: LocalDate,
 
 
