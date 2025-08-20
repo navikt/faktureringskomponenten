@@ -91,7 +91,6 @@ class FakturaserieControllerTest(
         )
             .andExpect(status().isOk)
             .andExpect { result ->
-                ;
                 val response = result.response.contentAsString
                 val nyFakturaserieResponseDto = objectMapper.readValue(response, NyFakturaserieResponseDto::class.java)
                 nyFakturaserieResponseDto.fakturaserieReferanse shouldBe "123456"
@@ -114,7 +113,6 @@ class FakturaserieControllerTest(
         )
             .andExpect(status().isOk)
             .andExpect { result ->
-                ;
                 val response = result.response.contentAsString
                 val nyFakturaserieResponseDto = objectMapper.readValue(response, NyFakturaserieResponseDto::class.java)
                 nyFakturaserieResponseDto.fakturaserieReferanse shouldBe "123456"
