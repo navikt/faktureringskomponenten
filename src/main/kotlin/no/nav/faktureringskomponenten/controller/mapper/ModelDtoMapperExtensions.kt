@@ -9,11 +9,11 @@ import ulid.ULID
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
-    get() = FakturaserieResponseDto(
+fun Fakturaserie.tilFakturaserieResponseDto(inkluderFodselsnummer: Boolean = true): FakturaserieResponseDto {
+    return FakturaserieResponseDto(
         fakturaserieReferanse = this.referanse,
         fakturaGjelderInnbetalingstype = this.fakturaGjelderInnbetalingstype,
-        fodselsnummer = this.fodselsnummer,
+        fodselsnummer = if (inkluderFodselsnummer) this.fodselsnummer else "",
         fullmektig = this.fullmektig?.tilDto,
         referanseBruker = this.referanseBruker,
         referanseNAV = this.referanseNAV,
@@ -24,6 +24,7 @@ val Fakturaserie.tilFakturaserieResponseDto: FakturaserieResponseDto
         opprettetTidspunkt = LocalDateTime.ofInstant(this.opprettetTidspunkt, ZoneId.systemDefault()),
         faktura = this.faktura.map { it.tilResponseDto },
     )
+}
 
 val FakturaserieRequestDto.tilFakturaserieDto: FakturaserieDto
     get() = FakturaserieDto(

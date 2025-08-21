@@ -1,17 +1,16 @@
 package no.nav.faktureringskomponenten.controller
 
+import io.swagger.v3.oas.annotations.Operation
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.controller.dto.FakturaAdminDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.dto.toFakturaAdminDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
-import no.nav.faktureringskomponenten.service.AdminService
-import no.nav.faktureringskomponenten.service.EksternFakturaStatusService
-import no.nav.faktureringskomponenten.service.FakturaBestillingService
-import no.nav.faktureringskomponenten.service.FakturaService
-import no.nav.faktureringskomponenten.service.FakturaserieService
+import no.nav.faktureringskomponenten.service.*
 import no.nav.faktureringskomponenten.service.integration.kafka.EksternFakturaStatusConsumer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.core.api.Protected
@@ -19,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
-import org.threeten.extra.Months
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.Month
@@ -95,7 +93,7 @@ class AdminController(
     fun krediterFaktura(@PathVariable fakturaReferanse: String): FakturaserieResponseDto {
         log.info("Krediterer faktura med referanse nr $fakturaReferanse")
 
-        return adminService.krediterFaktura(fakturaReferanse).tilFakturaserieResponseDto
+        return adminService.krediterFaktura(fakturaReferanse).tilFakturaserieResponseDto()
     }
 
     /**
@@ -233,6 +231,26 @@ class AdminController(
 
         log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: $nyFakturaserieRefereanse")
         return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))
+    }
+
+    @Operation(summary = "Henter fakturaserie på referanse")
+    @GetMapping("/fakturaserie/{referanse}")
+    fun hentFakturaserie(@PathVariable("referanse") referanse: String): FakturaserieResponseDto {
+        return faktureringService.hentFakturaserie(referanse).tilFakturaserieResponseDto(inkluderFodselsnummer = false)
+    }
+
+    @Operation(summary = "Henter faktura med ekstern faktura status og fakturaserie referanse")
+    @GetMapping("/faktura/status")
+    fun hentFakturaMedStatus(
+        @RequestParam status: FakturaStatus
+    ): ResponseEntity<List<FakturaAdminDto>> {
+
+        if (status !in listOf(FakturaStatus.FEIL, FakturaStatus.MANGLENDE_INNBETALING)) {
+            throw IllegalArgumentException("Kun FEIL og MANGLENDE_INNBETALING er tillatt som status")
+        }
+
+        val fakturaer = fakturaService.hentFakturaerMedStatus(status)
+        return ResponseEntity.ok(fakturaer.map { it.toFakturaAdminDto() })
     }
 
     companion object {

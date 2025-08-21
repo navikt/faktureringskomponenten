@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.domain.models
 
 import jakarta.persistence.*
+import org.hibernate.annotations.ColumnTransformer
 import org.threeten.extra.LocalDateRange
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -21,6 +22,10 @@ class Faktura(
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
+    @ColumnTransformer(
+        read = "status::text",
+        write = "?::faktura_status"
+    )
     var status: FakturaStatus = FakturaStatus.OPPRETTET,
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)

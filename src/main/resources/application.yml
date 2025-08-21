@@ -15,7 +15,6 @@ spring:
   web:
     resources:
       add-mappings: false
-
 kafka:
   aiven:
     brokers: ${KAFKA_BROKERS}
