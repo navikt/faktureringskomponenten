@@ -17,7 +17,7 @@ interface FakturaRepository : JpaRepository<Faktura, String> {
 
     fun findByReferanseNr(referanseNr: String): Faktura?
 
-    @EntityGraph(attributePaths = ["fakturaserie"])
+    @EntityGraph(attributePaths = ["eksternFakturaStatus", "fakturaserie"])
     fun findByStatus(status: FakturaStatus): List<Faktura>
 
     @Query("SELECT COUNT(f) FROM Faktura f WHERE f.status = 'FEIL'")

@@ -24,14 +24,11 @@ data class FakturaAdminDto(
     val eksternFakturaNummer: String,
     val krediteringFakturaRef: String?,
 
-    // From Fakturaserie
     val fakturaserieReferanse: String?,
 
-    // EksternFakturaStatus as separate DTOs
     val eksternFakturaStatus: List<EksternFakturaStatusAdminDto> = emptyList()
 )
 
-// Extension functions to convert from entity to DTO
 fun EksternFakturaStatus.toEksternFakturaStatusAdminDto(): EksternFakturaStatusAdminDto {
     return EksternFakturaStatusAdminDto(
         id = this.id,
