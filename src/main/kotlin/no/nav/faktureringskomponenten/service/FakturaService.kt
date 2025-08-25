@@ -31,4 +31,9 @@ class FakturaService(
         log.info { "Oppdaterer faktura med referanse $fakturaReferanseNr fra status ${faktura?.status} til $nyStatus" }
         faktura?.status = nyStatus
     }
+
+    @Transactional
+    fun hentFakturaerMedStatus(status: FakturaStatus): List<Faktura> {
+        return fakturaRepository.findByStatus(status)
+    }
 }
