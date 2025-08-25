@@ -51,7 +51,6 @@ object dependencyVersions {
     const val threeTenExtraVersion = "1.7.2"
     const val unleashVersion = "8.3.0"
     const val ULIDVersion = "1.3.0"
-    const val springmockk = "4.0.2"
 }
 
 dependencies {
@@ -80,9 +79,7 @@ dependencies {
     implementation("org.threeten:threeten-extra:${dependencyVersions.threeTenExtraVersion}")
     implementation("com.aallam.ulid:ulid-kotlin:${dependencyVersions.ULIDVersion}")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test") {
-        exclude(group = "org.mockito", module = "mockito-core")
-    }
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("no.nav.security:token-validation-spring-test:${dependencyVersions.tokenSupportVersion}")
     testImplementation("io.kotest:kotest-assertions-core-jvm:${dependencyVersions.kotestVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -93,7 +90,6 @@ dependencies {
     testImplementation("org.awaitility:awaitility:${dependencyVersions.awaitabilityVersion}")
     testImplementation("org.awaitility:awaitility-kotlin:${dependencyVersions.awaitabilityVersion}")
     testImplementation("com.tngtech.archunit:archunit:${dependencyVersions.archUnitVersion}")
-    testImplementation("com.ninja-squad:springmockk:${dependencyVersions.springmockk}")
 }
 
 tasks {

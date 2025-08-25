@@ -6,7 +6,7 @@ import jakarta.validation.ConstraintValidatorContext
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.LocalDate
 
-class IkkeTidligerePerioderValidator(
+class StartdatoErIkkeFraTidligereÅrValidator(
     @Autowired private val unleash: Unleash
 ) : ConstraintValidator<StartdatoErIkkeFraTidligereÅr, LocalDate> {
 

@@ -4,7 +4,7 @@ import jakarta.validation.Constraint
 import jakarta.validation.Payload
 import kotlin.reflect.KClass
 
-@Constraint(validatedBy = [IkkeTidligerePerioderValidator::class])
+@Constraint(validatedBy = [StartdatoErIkkeFraTidligereÅrValidator::class])
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class StartdatoErIkkeFraTidligereÅr(

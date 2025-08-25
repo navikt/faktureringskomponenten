@@ -1,12 +1,12 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.ninjasquad.springmockk.MockkBean
 import io.getunleash.FakeUnleash
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
+import io.mockk.mockk
 import no.nav.faktureringskomponenten.controller.AuditorAwareFilter.Companion.NAV_USER_ID
 import no.nav.faktureringskomponenten.controller.FakturaserieControllerIT.Companion.lagFakturaserieDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
@@ -31,7 +31,7 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 @ActiveProfiles("itest")
-@Import(FeatureToggleConfig::class, FakturaserieControllerTest.EncodingTestConfig::class)
+@Import(FeatureToggleConfig::class, FakturaserieControllerTest.TestConfig::class)
 @WebMvcTest(FakturaserieController::class)
 class FakturaserieControllerTest(
     @Autowired private val mockMvc: MockMvc,
@@ -39,7 +39,7 @@ class FakturaserieControllerTest(
     @Autowired private val unleash: FakeUnleash,
 ) {
 
-    @MockkBean
+    @Autowired
     private lateinit var faktureringServiceMock: FakturaserieService
 
 
@@ -120,7 +120,7 @@ class FakturaserieControllerTest(
     }
 
     @TestConfiguration
-    class EncodingTestConfig {
+    class TestConfig {
 
         @Bean
         @Primary
@@ -129,6 +129,12 @@ class FakturaserieControllerTest(
             filter.encoding = "UTF-8"
             filter.setForceEncoding(true)
             return filter
+        }
+
+        @Bean
+        @Primary
+        fun fakturaserieService(): FakturaserieService {
+            return mockk()
         }
     }
 
