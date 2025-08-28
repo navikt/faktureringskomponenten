@@ -4,10 +4,14 @@ import io.getunleash.FakeUnleash
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaserieGenerator.Companion.substract
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -23,6 +27,12 @@ import java.time.format.DateTimeFormatter
 @TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 class FakturaserieGeneratorTest {
     private val unleash: FakeUnleash = FakeUnleash()
+
+    @AfterEach
+    fun tearDown() {
+        unleash.disableAll()
+        unmockkStatic(LocalDate::class)
+    }
 
     @ParameterizedTest(name = "[{index}] {2} {0}")
     @MethodSource("data")
@@ -507,13 +517,155 @@ class FakturaserieGeneratorTest {
         )
     )
 
+    @Test
+    fun `Finnes eksisterende fakturaserie fra tidligere kalenderår - disse skal avregnes når toggle er av`() {
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns LocalDate.of(2025, 8, 27)
+
+
+        val opprinneligFakturaSerie = lagFakturaserie(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2024, 1, 1),
+                    sluttDato = LocalDate.of(2025, 12, 31),
+                    beskrivelse = "Inntekt: 10000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                )
+            )
+        )
+
+        opprinneligFakturaSerie.faktura.forEach {
+            it.status = FakturaStatus.BESTILT
+        }
+
+        val nyFakturaSerie = lagFakturaserieForEndring(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(5000),
+                    startDato = LocalDate.of(2025, 1, 1),
+                    sluttDato = LocalDate.of(2025, 12, 31),
+                    beskrivelse = "Inntekt: 5000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                )
+            ),
+            opprinneligFakturaserie = opprinneligFakturaSerie
+        )
+
+        ForventetFakturering(nyFakturaSerie.faktura).shouldBeEqualToComparingFields(
+            ForventetFakturering(
+                3,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2025-01-01", til = "2025-09-30",
+                        listOf(
+                            Linje(
+                                fra = LocalDate.of(2025, 1, 1),
+                                til = LocalDate.of(2025, 9, 30),
+                                beløp = BigDecimal("-45000.00"),
+                                beskrivelse = "Periode: 01.01.2025 - 30.09.2025\nNytt beløp: 45000,00 - tidligere beløp: 90000,00"
+                            )
+                        )
+                    ),
+
+                    FakturaMedLinjer(
+                        fra = "2025-10-01", til = "2025-12-31",
+                        listOf(
+                            Linje(
+                                fra = LocalDate.of(2025, 10, 1),
+                                til = LocalDate.of(2025, 12, 31),
+                                beløp = BigDecimal("-15000.00"),
+                                beskrivelse = "Periode: 01.10.2025 - 31.12.2025\nNytt beløp: 15000,00 - tidligere beløp: 30000,00"
+                            )
+                        )
+                    ),
+
+                    FakturaMedLinjer(
+                        fra = "2024-01-01", til = "2024-12-31",
+                        listOf(
+                            Linje(
+                                fra = LocalDate.of(2024, 1, 1),
+                                til = LocalDate.of(2024, 12, 31),
+                                beløp = BigDecimal("-120000.00"),
+                                beskrivelse = "Periode: 01.01.2024 - 31.12.2024\nNytt beløp: 0,00 - tidligere beløp: 120000,00"
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `Finnes eksisterende fakturaserie fra tidligere kalenderår - disse skal ikke avregnes ved ny fakturaserie`() {
+        unleash.apply { enable("melosys.faktureringskomponenten.ikke-tidligere-perioder") }
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns LocalDate.of(2025, 8, 27)
+
+
+        val opprinneligFakturaSerie = lagFakturaserie(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2024, 1, 1),
+                    sluttDato = LocalDate.of(2025, 12, 31),
+                    beskrivelse = "Inntekt: 10000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                )
+            )
+        )
+
+        opprinneligFakturaSerie.faktura.forEach {
+            it.status = FakturaStatus.BESTILT
+        }
+
+        val nyFakturaSerie = lagFakturaserieForEndring(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(5000),
+                    startDato = LocalDate.of(2025, 1, 1),
+                    sluttDato = LocalDate.of(2025, 12, 31),
+                    beskrivelse = "Inntekt: 5000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                )
+            ),
+            opprinneligFakturaserie = opprinneligFakturaSerie
+        )
+
+        ForventetFakturering(nyFakturaSerie.faktura).shouldBeEqualToComparingFields(
+            ForventetFakturering(
+                2,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2025-01-01", til = "2025-09-30",
+                        listOf(
+                            Linje(
+                                "2025-01-01", "2025-09-30", "-45000.00",
+                                "Nytt beløp: 45000,00 - tidligere beløp: 90000,00"
+                            ),
+                        )
+                    ),
+                    FakturaMedLinjer(
+                        fra = "2025-10-01", til = "2025-12-31",
+                        listOf(
+                            Linje(
+                                "2025-10-01", "2025-12-31", "-15000.00",
+                                "Nytt beløp: 15000,00 - tidligere beløp: 30000,00"
+                            ),
+                        )
+                    )
+                )
+            )
+        )
+    }
+
     private fun lagFakturaserie(
         dagensDato: LocalDate = LocalDate.now(),
         intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
         perioder: List<FakturaseriePeriode> = listOf()
     ): Fakturaserie {
         val fakturaMapper = FakturaGeneratorForTest(dagensDato, unleash = unleash)
-        return FakturaserieGenerator(fakturaGenerator = fakturaMapper, AvregningBehandler(AvregningsfakturaGenerator())).lagFakturaserie(
+        return FakturaserieGenerator(fakturaGenerator = fakturaMapper, AvregningBehandler(AvregningsfakturaGenerator()), unleash).lagFakturaserie(
             FakturaserieDto(
                 fakturaserieReferanse = ULID.randomULID(),
                 fodselsnummer = "30056928150",
@@ -530,6 +682,36 @@ class FakturaserieGeneratorTest {
         )
     }
 
+    private fun lagFakturaserieForEndring(
+        dagensDato: LocalDate = LocalDate.now(),
+        intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
+        perioder: List<FakturaseriePeriode> = listOf(),
+        opprinneligFakturaserie: Fakturaserie
+    ): Fakturaserie {
+        val fakturaMapper = FakturaGeneratorForTest(dagensDato, unleash = unleash)
+        return FakturaserieGenerator(
+            fakturaGenerator = fakturaMapper,
+            AvregningBehandler(AvregningsfakturaGenerator()),
+            unleash
+        ).lagFakturaserieForEndring(
+            FakturaserieDto(
+                fakturaserieReferanse = ULID.randomULID(),
+                fodselsnummer = "30056928150",
+                fullmektig = Fullmektig(
+                    fodselsnummer = null,
+                    organisasjonsnummer = "999999999",
+                ),
+                referanseBruker = "Vedtak om medlemskap datert 19-01-2023",
+                referanseNAV = "Medlemskap og avgift",
+                fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+                intervall = intervall,
+                perioder = perioder
+            ),
+            opprinneligFakturaserie
+        )
+    }
+
+
     class FakturaGeneratorForTest(private val dagensDato: LocalDate, unleash: FakeUnleash) :
         FakturaGenerator(FakturaLinjeGenerator(), unleash = unleash, 0) {
         override fun dagensDato(): LocalDate = dagensDato
@@ -541,30 +723,31 @@ class FakturaserieGeneratorTest {
 
     ) {
         constructor(fakturaListe: List<Faktura>) :
-                this(fakturaListe.size,
-                    fakturaListe.map { f ->
-                        FakturaMedLinjer(
-                            f.getPeriodeFra(),
-                            f.getPeriodeTil(),
-                            f.fakturaLinje.map { fl ->
-                                Linje(
-                                    fl.periodeFra,
-                                    fl.periodeTil,
-                                    fl.belop,
-                                    fl.beskrivelse
-                                )
-                            }
-                        )
-                    })
+            this(
+                fakturaListe.size,
+                fakturaListe.map { f ->
+                    FakturaMedLinjer(
+                        f.getPeriodeFra(),
+                        f.getPeriodeTil(),
+                        f.fakturaLinje.map { fl ->
+                            Linje(
+                                fl.periodeFra,
+                                fl.periodeTil,
+                                fl.belop,
+                                fl.beskrivelse
+                            )
+                        }
+                    )
+                })
 
         override fun toString() = "antall=$antallFakturaer fakturaListe=$fakturaMedLinjer\n"
 
         fun toTestCode(): String =
             "FakturaData(\n" +
-                    "  $antallFakturaer,\n  listOf(\n" +
-                    fakturaMedLinjer.joinToString("\n") { it.toTestCode() } +
-                    "\n )" +
-                    "\n)"
+                "  $antallFakturaer,\n  listOf(\n" +
+                fakturaMedLinjer.joinToString("\n") { it.toTestCode() } +
+                "\n )" +
+                "\n)"
 
     }
 
@@ -574,17 +757,17 @@ class FakturaserieGeneratorTest {
         val fakturaLinjer: List<Linje>
     ) {
         constructor(fra: String, til: String, fakturaLinjer: List<Linje>) :
-                this(LocalDate.parse(fra), LocalDate.parse(til), fakturaLinjer)
+            this(LocalDate.parse(fra), LocalDate.parse(til), fakturaLinjer)
 
         override fun toString() = "\n" +
-                "  fra:$fra, til:$til fakturaLinjer:$fakturaLinjer\n"
+            "  fra:$fra, til:$til fakturaLinjer:$fakturaLinjer\n"
 
         fun toTestCode(): String = "    FakturaMedLinjer(\n" +
-                "      fra = \"$fra\", til = \"$til\",\n" +
-                "      listOf(\n" +
-                "${fakturaLinjer.joinToString("\n") { it.toTestCode() }}\n" +
-                "      )\n" +
-                "  ),"
+            "      fra = \"$fra\", til = \"$til\",\n" +
+            "      listOf(\n" +
+            "${fakturaLinjer.joinToString("\n") { it.toTestCode() }}\n" +
+            "      )\n" +
+            "  ),"
     }
 
     data class Linje(
@@ -599,7 +782,7 @@ class FakturaserieGeneratorTest {
         }
 
         constructor(fra: String, til: String, beløp: String, beskrivelse: String)
-                : this(
+            : this(
             LocalDate.parse(fra),
             LocalDate.parse(til),
             BigDecimal(beløp),
@@ -610,9 +793,9 @@ class FakturaserieGeneratorTest {
 
         override fun toString() = "\n    fra=$fra, til:$til, beløp:$beløp, $beskrivelse"
         fun toTestCode(): String = "           Linje(\n" +
-                "             \"$fra\", \"$til\", $beløp,\n " +
-                "             \"$beskrivelse\"\n" +
-                "            ),"
+            "             \"$fra\", \"$til\", $beløp,\n " +
+            "             \"$beskrivelse\"\n" +
+            "            ),"
     }
 
     @Nested

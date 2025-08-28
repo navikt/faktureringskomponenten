@@ -23,9 +23,11 @@ private const val NY_REF = "456"
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
+    private val unleash: FakeUnleash = FakeUnleash().apply { enable("melosys.faktureringskomponenten.ikke-tidligere-perioder") }
     private val fakturaserieGenerator =
-        FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0), AvregningBehandler(AvregningsfakturaGenerator()))
+        FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0), AvregningBehandler(AvregningsfakturaGenerator()), unleash)
     private val fakturaBestillingService = mockk<FakturaBestillingService>()
+    private val kalenderÅrNå = LocalDate.now().year
 
     private val fakturaserieService =
         FakturaserieService(
@@ -78,8 +80,8 @@ class FakturaserieServiceTest {
         val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
         val fakturaLinjer = nyFakturaserie.faktura.flatMap { it.fakturaLinje }
         fakturaLinjer.forExactly(1) {
-            it.periodeFra shouldBe LocalDate.of(2024, 1, 1)
-            it.periodeTil shouldBe LocalDate.of(2024, 3, 31)
+            it.periodeFra shouldBe LocalDate.of(kalenderÅrNå, 1, 1)
+            it.periodeTil shouldBe LocalDate.of(kalenderÅrNå, 3, 31)
             it.antall shouldBe BigDecimal(1)
             it.enhetsprisPerManed shouldBe BigDecimal("1000.00")
             it.belop shouldBe BigDecimal("1000.00")
@@ -196,8 +198,8 @@ class FakturaserieServiceTest {
                 krediteringFakturaRef.shouldBe("")
                 fakturaLinje.single().run {
                     belop.shouldBe(BigDecimal.valueOf(2500))
-                    periodeFra.shouldBe(LocalDate.of(2024, 1, 1))
-                    periodeTil.shouldBe(LocalDate.of(2024, 12, 31))
+                    periodeFra.shouldBe(LocalDate.of(kalenderÅrNå, 1, 1))
+                    periodeTil.shouldBe(LocalDate.of(kalenderÅrNå, 12, 31))
                     beskrivelse.shouldBe("Testfaktura")
                     antall.shouldBe(BigDecimal.ONE)
                     enhetsprisPerManed.shouldBe(BigDecimal.valueOf(2500))
@@ -232,8 +234,8 @@ class FakturaserieServiceTest {
                 krediteringFakturaRef.shouldBe("1234")
                 fakturaLinje.single().run {
                     belop.shouldBe(BigDecimal.valueOf(2500))
-                    periodeFra.shouldBe(LocalDate.of(2024, 1, 1))
-                    periodeTil.shouldBe(LocalDate.of(2024, 12, 31))
+                    periodeFra.shouldBe(LocalDate.of(kalenderÅrNå, 1, 1))
+                    periodeTil.shouldBe(LocalDate.of(kalenderÅrNå, 12, 31))
                     beskrivelse.shouldBe("Testfaktura")
                     antall.shouldBe(BigDecimal.ONE)
                     enhetsprisPerManed.shouldBe(BigDecimal.valueOf(2500))
@@ -251,8 +253,8 @@ class FakturaserieServiceTest {
         "Referanse NAV",
         Innbetalingstype.TRYGDEAVGIFT,
         BigDecimal.valueOf(2500),
-        LocalDate.of(2024, 1, 1),
-        LocalDate.of(2024, 12, 31),
+        LocalDate.of(kalenderÅrNå, 1, 1),
+        LocalDate.of(kalenderÅrNå, 12, 31),
         "Testfaktura"
     )
 
@@ -263,22 +265,22 @@ class FakturaserieServiceTest {
             fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
             referanseBruker = "Referanse bruker",
             referanseNAV = "Referanse NAV",
-            startdato = LocalDate.of(2024, 1, 1),
-            sluttdato = LocalDate.of(2024, 12, 31),
+            startdato = LocalDate.of(kalenderÅrNå, 1, 1),
+            sluttdato = LocalDate.of(kalenderÅrNå, 12, 31),
             status = FakturaserieStatus.OPPRETTET,
             intervall = FakturaserieIntervall.KVARTAL,
             faktura = mutableListOf(
                 Faktura(
                     id = 1,
                     referanseNr = "1234",
-                    datoBestilt = LocalDate.of(2023, 12, 19),
+                    datoBestilt = LocalDate.of(kalenderÅrNå - 1, 12, 19),
                     status = FakturaStatus.BESTILT,
                     eksternFakturaNummer = "8272123",
                     fakturaLinje = listOf(
                         FakturaLinje(
                             id = 1,
-                            periodeFra = LocalDate.of(2024, 1, 1),
-                            periodeTil = LocalDate.of(2024, 3, 31),
+                            periodeFra = LocalDate.of(kalenderÅrNå, 1, 1),
+                            periodeTil = LocalDate.of(kalenderÅrNå, 3, 31),
                             beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
                             antall = BigDecimal(3),
                             enhetsprisPerManed = BigDecimal(1000),
@@ -286,8 +288,8 @@ class FakturaserieServiceTest {
                         ),
                         FakturaLinje(
                             id = 2,
-                            periodeFra = LocalDate.of(2024, 1, 1),
-                            periodeTil = LocalDate.of(2024, 3, 31),
+                            periodeFra = LocalDate.of(kalenderÅrNå, 1, 1),
+                            periodeTil = LocalDate.of(kalenderÅrNå, 3, 31),
                             beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
                             antall = BigDecimal(3),
                             enhetsprisPerManed = BigDecimal(2000),
@@ -304,8 +306,8 @@ class FakturaserieServiceTest {
                     fakturaLinje = listOf(
                         FakturaLinje(
                             id = 3,
-                            periodeFra = LocalDate.of(2024, 4, 1),
-                            periodeTil = LocalDate.of(2024, 6, 30),
+                            periodeFra = LocalDate.of(kalenderÅrNå, 4, 1),
+                            periodeTil = LocalDate.of(kalenderÅrNå, 6, 30),
                             beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
                             antall = BigDecimal(3),
                             enhetsprisPerManed = BigDecimal(1000),
@@ -313,8 +315,8 @@ class FakturaserieServiceTest {
                         ),
                         FakturaLinje(
                             id = 4,
-                            periodeFra = LocalDate.of(2024, 4, 1),
-                            periodeTil = LocalDate.of(2024, 6, 30),
+                            periodeFra = LocalDate.of(kalenderÅrNå, 4, 1),
+                            periodeTil = LocalDate.of(kalenderÅrNå, 6, 30),
                             beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
                             antall = BigDecimal(3),
                             enhetsprisPerManed = BigDecimal(2000),
@@ -342,20 +344,20 @@ class FakturaserieServiceTest {
         fakturaseriePeriode: List<FakturaseriePeriode> = listOf(
             FakturaseriePeriode(
                 BigDecimal.valueOf(1000),
-                LocalDate.of(2024, 1, 1),
-                LocalDate.of(2024, 12, 31),
+                LocalDate.of(kalenderÅrNå, 1, 1),
+                LocalDate.of(kalenderÅrNå, 12, 31),
                 "Dekning: Pensjon og helsedel, Sats 10%"
             ),
             FakturaseriePeriode(
                 BigDecimal.valueOf(2000),
-                LocalDate.of(2024, 1, 1),
-                LocalDate.of(2024, 2, 29),
+                LocalDate.of(kalenderÅrNå, 1, 1),
+                LocalDate.of(kalenderÅrNå, 2, 28),
                 "Dekning: Pensjon og helsedel, Sats 10%"
             ),
             FakturaseriePeriode(
                 BigDecimal.valueOf(3000),
-                LocalDate.of(2024, 3, 1),
-                LocalDate.of(2024, 12, 31),
+                LocalDate.of(kalenderÅrNå, 3, 1),
+                LocalDate.of(kalenderÅrNå, 12, 31),
                 "Dekning: Pensjon og helsedel, Sats 10%"
             ),
         ),
