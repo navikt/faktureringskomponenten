@@ -1,23 +1,22 @@
 package no.nav.faktureringskomponenten.service
 
+import io.getunleash.Unleash
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Component
 import org.threeten.extra.LocalDateRange
 import java.time.LocalDate
-import java.time.temporal.IsoFields
-import java.time.temporal.TemporalAdjusters
 
 private val log = KotlinLogging.logger { }
 
 @Component
 class FakturaserieGenerator(
     val fakturaGenerator: FakturaGenerator,
-    val avregningBehandler: AvregningBehandler
+    val avregningBehandler: AvregningBehandler,
+    val unleash: Unleash
 ) {
 
     fun lagFakturaserie(
@@ -58,9 +57,14 @@ class FakturaserieGenerator(
         opprinneligFakturaserie: Fakturaserie
     ): Fakturaserie {
         val startDato = finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie)
+        val fakturaSomSkalBrukesIAvregning = if (unleash.isEnabled("melosys.faktureringskomponenten.ikke-tidligere-perioder")) {
+            opprinneligFakturaserie.bestilteFakturaer().filter { it.alleFakturaLinjerErFraIÅrEllerFremover() }
+        } else {
+            opprinneligFakturaserie.bestilteFakturaer()
+        }
         val avregningsfakturaer = avregningBehandler.lagAvregningsfakturaer(
             fakturaserieDto.perioder,
-            opprinneligFakturaserie.bestilteFakturaer()
+            fakturaSomSkalBrukesIAvregning
         )
         val nyeFakturaerForNyePerioder: List<Faktura> = lagNyeFakturaerForNyePerioder(fakturaserieDto, avregningsfakturaer)
 
