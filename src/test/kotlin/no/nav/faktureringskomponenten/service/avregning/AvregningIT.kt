@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.service.avregning
 
 import com.nimbusds.jose.JOSEObjectType
+import io.getunleash.FakeUnleash
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -49,6 +50,7 @@ class AvregningIT(
     @Autowired private val fakturaserieService: FakturaserieService,
     @Autowired private val fakturaRepositoryForTesting: FakturaRepositoryForTesting,
     @Autowired private val fakturaserieRepositoryForTesting: FakturaserieRepositoryForTesting,
+    @Autowired private val unleash: FakeUnleash
 ) : PostgresTestContainerBase() {
     @AfterEach
     fun cleanUp() {
@@ -56,6 +58,7 @@ class AvregningIT(
             fakturaserieRepository.deleteAll()
         }
         unmockkStatic(LocalDate::class)
+        unleash.disableAll()
     }
 
     @Test
@@ -230,32 +233,32 @@ class AvregningIT(
                     status.shouldBe(FakturaStatus.OPPRETTET)
                     fakturaLinje.shouldHaveSize(1).run {
                         single() shouldBe
-                                FakturaLinje(
-                                    periodeFra = LocalDate.of(2024, 1, 1),
-                                    periodeTil = LocalDate.of(2024, 3, 31),
-                                    beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
-                                    antall = BigDecimal("1.00"),
-                                    enhetsprisPerManed = BigDecimal("1000.00"),
-                                    avregningNyttBeloep = BigDecimal("11000.00"),
-                                    avregningForrigeBeloep = BigDecimal("10000.00"),
-                                    belop = BigDecimal("1000.00"),
-                                )
+                            FakturaLinje(
+                                periodeFra = LocalDate.of(2024, 1, 1),
+                                periodeTil = LocalDate.of(2024, 3, 31),
+                                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
+                                antall = BigDecimal("1.00"),
+                                enhetsprisPerManed = BigDecimal("1000.00"),
+                                avregningNyttBeloep = BigDecimal("11000.00"),
+                                avregningForrigeBeloep = BigDecimal("10000.00"),
+                                belop = BigDecimal("1000.00"),
+                            )
                     }
                 }
                 get(1).run {
                     status.shouldBe(FakturaStatus.BESTILT)
                     fakturaLinje.shouldHaveSize(1).run {
                         single() shouldBe
-                                FakturaLinje(
-                                    periodeFra = LocalDate.of(2024, 4, 1),
-                                    periodeTil = LocalDate.of(2024, 6, 30),
-                                    beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 12000,00",
-                                    antall = BigDecimal("1.00"),
-                                    enhetsprisPerManed = BigDecimal("0.00"),
-                                    avregningNyttBeloep = BigDecimal("12000.00"),
-                                    avregningForrigeBeloep = BigDecimal("12000.00"),
-                                    belop = BigDecimal("0.00"),
-                                )
+                            FakturaLinje(
+                                periodeFra = LocalDate.of(2024, 4, 1),
+                                periodeTil = LocalDate.of(2024, 6, 30),
+                                beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 12000,00",
+                                antall = BigDecimal("1.00"),
+                                enhetsprisPerManed = BigDecimal("0.00"),
+                                avregningNyttBeloep = BigDecimal("12000.00"),
+                                avregningForrigeBeloep = BigDecimal("12000.00"),
+                                belop = BigDecimal("0.00"),
+                            )
                     }
                 }
             }
@@ -274,20 +277,162 @@ class AvregningIT(
             .map { it?.totalbeløp() }
             .fold(BigDecimal.ZERO, BigDecimal::add)
         val avregning1Total = fakturaserieRepositoryForTesting.findByReferanseEagerly(serieRef2)!!.bestilteFakturaer()
-                .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
-                .map { it?.totalbeløp() }
-                .fold(BigDecimal.ZERO, BigDecimal::add)
+            .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
+            .map { it?.totalbeløp() }
+            .fold(BigDecimal.ZERO, BigDecimal::add)
         val avregning2Total = fakturaserieRepositoryForTesting.findByReferanseEagerly(serieRef3)!!.faktura
             .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
             .map { it?.totalbeløp() }
             .fold(BigDecimal.ZERO, BigDecimal::add)
 
-        println(totalBelop)
-        println(orginalTotal)
-        println(avregning1Total)
-        println(avregning2Total)
-
         totalBelop.shouldBe(orginalTotal.add(avregning1Total.add(avregning2Total)))
+    }
+
+    @Test
+    fun `erstatt fakturaserie med endringer tilbake i tid - avregner kun mot faktura i dette kalenderåret`() {
+        unleash.enableAll()
+        val begynnelseAvDesember2022 = LocalDate.of(2022, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns begynnelseAvDesember2022
+        // Opprinnelig serie
+        val opprinneligFakturaserieDto = lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    1000,
+                    "2022-01-01",
+                    "2023-12-31",
+                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                ),
+                FakturaseriePeriodeDto(
+                    2000,
+                    "2022-01-01",
+                    "2023-12-31",
+                    "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+                ),
+            )
+        )
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val opprinneligeFakturaer = fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
+            .sortedBy(Faktura::getPeriodeFra)
+        opprinneligeFakturaer.shouldHaveSize(5)
+        opprinneligeFakturaer.forEach {
+            it.status = FakturaStatus.BESTILT
+            fakturaRepository.save(it)
+
+        }
+
+        fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).shouldNotBeNull().run {
+            status = FakturaserieStatus.UNDER_BESTILLING
+            fakturaserieRepository.save(this)
+        }
+
+        // Serie 2 med avregning
+        val fakturaserieDto2 = lagFakturaserieDto(
+            referanseId = opprinneligFakturaserieReferanse,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto(
+                    1000,
+                    "2023-01-01",
+                    "2023-12-31",
+                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                ),
+                FakturaseriePeriodeDto(
+                    2000,
+                    "2023-01-01",
+                    "2023-02-28",
+                    "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+                ),
+                FakturaseriePeriodeDto(
+                    3000,
+                    "2023-03-01",
+                    "2023-12-31",
+                    "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"
+                ),
+            )
+        )
+
+        // Setter now frem et år slik at 2022 fakturaer ikke skal brukes i avregning
+        val begynnelseAvDesember2023 = LocalDate.of(2023, 12, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns begynnelseAvDesember2023
+
+        val serieRef2 =
+            postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val fakturaer2 = fakturaRepository.findByFakturaserieReferanse(serieRef2)
+        val avregningsfakturaer2 = fakturaer2.filter { it.erAvregningsfaktura() }
+
+
+        avregningsfakturaer2.shouldHaveSize(4).sortedBy { it.getPeriodeFra() }
+            .run {
+                get(0).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje(
+                                periodeFra = LocalDate.of(2023, 1, 1),
+                                periodeTil = LocalDate.of(2023, 3, 31),
+                                beskrivelse = "Periode: 01.01.2023 - 31.03.2023\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
+                                antall = BigDecimal("1.00"),
+                                enhetsprisPerManed = BigDecimal("1000.00"),
+                                avregningNyttBeloep = BigDecimal("10000.00"),
+                                avregningForrigeBeloep = BigDecimal("9000.00"),
+                                belop = BigDecimal("1000.00"),
+                            )
+                        )
+                }
+                get(1).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje(
+                                periodeFra = LocalDate.of(2023, 4, 1),
+                                periodeTil = LocalDate.of(2023, 6, 30),
+                                beskrivelse = "Periode: 01.04.2023 - 30.06.2023\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
+                                antall = BigDecimal("1.00"),
+                                enhetsprisPerManed = BigDecimal("3000.00"),
+                                avregningNyttBeloep = BigDecimal("12000.00"),
+                                avregningForrigeBeloep = BigDecimal("9000.00"),
+                                belop = BigDecimal("3000.00"),
+                            )
+                        )
+                }
+                get(2).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje(
+                                periodeFra = LocalDate.of(2023, 7, 1),
+                                periodeTil = LocalDate.of(2023, 9, 30),
+                                beskrivelse = "Periode: 01.07.2023 - 30.09.2023\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
+                                antall = BigDecimal("1.00"),
+                                enhetsprisPerManed = BigDecimal("3000.00"),
+                                avregningNyttBeloep = BigDecimal("12000.00"),
+                                avregningForrigeBeloep = BigDecimal("9000.00"),
+                                belop = BigDecimal("3000.00"),
+                            )
+                        )
+                }
+                get(3).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje(
+                                periodeFra = LocalDate.of(2023, 10, 1),
+                                periodeTil = LocalDate.of(2023, 12, 31),
+                                beskrivelse = "Periode: 01.10.2023 - 31.12.2023\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
+                                antall = BigDecimal("1.00"),
+                                enhetsprisPerManed = BigDecimal("3000.00"),
+                                avregningNyttBeloep = BigDecimal("12000.00"),
+                                avregningForrigeBeloep = BigDecimal("9000.00"),
+                                belop = BigDecimal("3000.00"),
+                            )
+                        )
+                }
+            }
+
+
     }
 
     fun lagFakturaserieDto(
