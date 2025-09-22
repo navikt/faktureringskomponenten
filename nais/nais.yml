@@ -22,6 +22,12 @@ spec:
         flags:
           - name: timezone
             value: "Europe/Oslo"
+          - name: "cloudsql.enable_pgaudit"
+            value: "on"
+          - name: "pgaudit.log"
+            value: "write,ddl,role"
+          - name: "pgaudit.log_parameter"
+            value: "on"
   image: {{image}}
   port: 8080
   replicas:
