@@ -106,7 +106,7 @@ class Fakturaserie(
         return faktura.filter { it.status == FakturaStatus.OPPRETTET }
     }
 
-    private fun avbrytPlanlagteFakturaer() {
+    public fun avbrytPlanlagteFakturaer() {
         planlagteFakturaer().forEach { it.status = FakturaStatus.AVBRUTT }
     }
 

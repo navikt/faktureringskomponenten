@@ -1,18 +1,21 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
+import io.kotest.inspectors.forAll
 import io.kotest.inspectors.forExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.*
+import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.lagFaktura
 import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import ulid.ULID
 import java.math.BigDecimal
@@ -23,18 +26,24 @@ private const val NY_REF = "456"
 
 class FakturaserieServiceTest {
     private val fakturaserieRepository = mockk<FakturaserieRepository>()
-    private val unleash: FakeUnleash = FakeUnleash().apply { enable("melosys.faktureringskomponenten.ikke-tidligere-perioder") }
+    private val unleash: FakeUnleash = FakeUnleash().apply { enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) }
     private val fakturaserieGenerator =
         FakturaserieGenerator(FakturaGenerator(FakturaLinjeGenerator(), FakeUnleash(), 0), AvregningBehandler(AvregningsfakturaGenerator()), unleash)
     private val fakturaBestillingService = mockk<FakturaBestillingService>()
-    private val kalenderÅrNå = LocalDate.now().year
+    private var kalenderÅrNå = LocalDate.now().year
 
     private val fakturaserieService =
         FakturaserieService(
             fakturaserieRepository,
             fakturaserieGenerator,
-            fakturaBestillingService
+            fakturaBestillingService,
+            unleash
         )
+
+    @AfterEach
+    fun tearDown() {
+        kalenderÅrNå = LocalDate.now().year
+    }
 
     @Test
     fun `Endrer fakturaserie, erstatter opprinnelig og lager ny`() {
@@ -244,6 +253,32 @@ class FakturaserieServiceTest {
         }
     }
 
+    @Test
+    fun `erstatter fakturaserie - ingen periode eller faktura som skal avregnes`() {
+        kalenderÅrNå = LocalDate.now().minusYears(1).year
+        val opprinneligFakturaserie = lagOpprinneligFakturaserie().apply { faktura.forEach { it.status = FakturaStatus.OPPRETTET } }
+        every {
+            fakturaserieRepository.findByReferanse(OPPRINNELIG_REF)
+        } returns opprinneligFakturaserie
+
+        val fakturaserier = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.save(capture(fakturaserier)) } returns mockk()
+
+        val nyFakturaserieDto = lagFakturaserieDto(NY_REF, fakturaseriePeriode = emptyList())
+
+
+        fakturaserieService.lagNyFakturaserie(nyFakturaserieDto, OPPRINNELIG_REF)
+
+
+        val opprinneligFakturaserieOppdatert = fakturaserier.single { it.referanse == OPPRINNELIG_REF }
+
+        opprinneligFakturaserieOppdatert.faktura.shouldHaveSize(2)
+        opprinneligFakturaserieOppdatert.erstattetMed shouldBe null
+        opprinneligFakturaserieOppdatert.faktura.forAll {
+            it.status shouldBe FakturaStatus.AVBRUTT
+        }
+    }
+
     private fun lagFakturaDto() = FakturaDto(
         ULID.randomULID(),
         ULID.randomULID(),
@@ -258,7 +293,7 @@ class FakturaserieServiceTest {
         "Testfaktura"
     )
 
-    private fun lagOpprinneligFakturaserie(): Fakturaserie {
+    fun lagOpprinneligFakturaserie(): Fakturaserie {
         return Fakturaserie(
             id = 100,
             referanse = OPPRINNELIG_REF,

@@ -1,10 +1,12 @@
 package no.nav.faktureringskomponenten.controller
 
+import io.getunleash.Unleash
 import io.micrometer.core.instrument.Metrics
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.controller.dto.FakturamottakerRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
@@ -33,6 +35,7 @@ private val log = KotlinLogging.logger { }
 @RequestMapping("/fakturaserier")
 class FakturaserieController @Autowired constructor(
     val faktureringService: FakturaserieService,
+    val unleash: Unleash
 ) {
 
     @Operation(summary = "Lager en ny fakturaserie")
@@ -53,6 +56,15 @@ class FakturaserieController @Autowired constructor(
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ProblemDetailFactory.of(bindingResult))
+        }
+
+        if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)) {
+            if (fakturaserieRequestDto.perioder.isEmpty() && fakturaserieRequestDto.fakturaserieReferanse.isNullOrEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(mapTilErrorResponse("perioder", "Må ha minst en periode hvis ikke er erstatning av tidligere fakturaserie"))
+            }
+        } else if (fakturaserieRequestDto.perioder.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapTilErrorResponse("perioder", "Du må oppgi minst én periode"))
         }
 
         val forrigeReferanse = fakturaserieRequestDto.fakturaserieReferanse
@@ -113,4 +125,16 @@ class FakturaserieController @Autowired constructor(
         log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: ${nyFakturaserieRefereanse}")
         return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))
     }
+
+    fun mapTilErrorResponse(field: String, message: String) =
+        mapOf(
+            "status" to 400,
+            "violations" to listOf(
+                mapOf(
+                    "field" to field,
+                    "message" to message
+                )
+            ),
+            "title" to "Constraint Violation"
+        )
 }
