@@ -1,5 +1,5 @@
 package no.nav.faktureringskomponenten.config
 
 object ToggleName {
-    const val MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER = "MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER"
+    const val MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER = "melosys.faktureringskomponenten.ikke-tidligere-perioder"
 }
