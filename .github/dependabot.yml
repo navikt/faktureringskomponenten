@@ -2,11 +2,11 @@
 
 version: 2
 updates:
-  - package-ecosystem: "maven"
+  - package-ecosystem: "gradle"
     directory: "/"
     schedule:
       interval: "weekly"
-    # Disable all pull requests for Maven (Snyk will create fixes for vulnerabilites)
+    # Disable all pull requests for Gradle (Snyk will create fixes for vulnerabilites)
     open-pull-requests-limit: 0
 
   - package-ecosystem: "github-actions"
