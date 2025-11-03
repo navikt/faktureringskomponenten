@@ -360,23 +360,19 @@ class AvregningBehandlerTest {
      */
     @Test
     fun `lagAvregningsfakturaer fakturerer den tredje gangen når de to andre nulles ut`() {
-        val faktura2023FjerdeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 9, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2023, 10, 1),
-                    periodeTil = LocalDate.of(2023, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2023FjerdeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-09-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2023-10-01"
+                til = "2023-12-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
         val nyPeriodeFørsteGang = listOf(
             FakturaseriePeriode(
@@ -430,59 +426,47 @@ class AvregningBehandlerTest {
      */
     @Test
     fun `lagAvregningsfakturaer krediterer ikke den tredje gangen når det er flere bestilte faktura i slutten av perioden`() {
-        val faktura2024FørsteKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 1, 1),
-                    periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024FørsteKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
-        val faktura2024AndreKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 4, 1),
-                    periodeTil = LocalDate.of(2024, 6, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024AndreKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-04-01"
+                til = "2024-06-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
-        val faktura2024TredjeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 7, 1),
-                    periodeTil = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024TredjeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-07-01"
+                til = "2024-09-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
         val nyPeriodeFørsteGang = listOf(
             FakturaseriePeriode(
                 startDato = LocalDate.of(2024, 1, 1),
@@ -546,59 +530,47 @@ class AvregningBehandlerTest {
      */
     @Test
     fun `lagAvregningsfakturaer fakturerer den tredje gangen når det er flere bestilte faktura i slutten av perioden, og det har vært forkortelse og forlengelse`() {
-        val faktura2024FørsteKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 1, 1),
-                    periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024FørsteKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
-        val faktura2024AndreKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 4, 1),
-                    periodeTil = LocalDate.of(2024, 6, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024AndreKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-04-01"
+                til = "2024-06-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
-        val faktura2024TredjeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 7, 1),
-                    periodeTil = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024TredjeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-07-01"
+                til = "2024-09-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
         val nyPeriodeFørsteGang = listOf(
             FakturaseriePeriode(
                 startDato = LocalDate.of(2024, 1, 1),
@@ -665,59 +637,47 @@ class AvregningBehandlerTest {
      */
     @Test
     fun `lagAvregningsfaktura, periodene overlapper, krediteres på slutten av s2, og fakturerers igjen i s3`() {
-        val faktura2024FørsteKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 1, 1),
-                    periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024FørsteKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
-        val faktura2024AndreKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 4, 1),
-                    periodeTil = LocalDate.of(2024, 6, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024AndreKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-04-01"
+                til = "2024-06-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
-        val faktura2024TredjeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 7, 1),
-                    periodeTil = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024TredjeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-07-01"
+                til = "2024-09-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
         val nyPeriodeSomSkalAvregnes = listOf(
             FakturaseriePeriode(
@@ -803,77 +763,61 @@ class AvregningBehandlerTest {
      */
     @Test
     fun `lagAvregningsfaktura, periodene overlapper, krediteres i midten av s2, og fakturerers igjen i s3`() {
-        val faktura2024FørsteKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 1, 1),
-                    periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024FørsteKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
-        val faktura2024AndreKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 4, 1),
-                    periodeTil = LocalDate.of(2024, 6, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024AndreKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-04-01"
+                til = "2024-06-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
-        val faktura2024TredjeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 7, 1),
-                    periodeTil = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024TredjeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-07-01"
+                til = "2024-09-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
-        val faktura2024FjerdeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 10, 1),
-                    periodeTil = LocalDate.of(2024, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                )
-            )
-        )
+        val faktura2024FjerdeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-10-01"
+                til = "2024-12-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
 
         val nyPeriodeSomSkalAvregnes = listOf(
             FakturaseriePeriode(
@@ -982,113 +926,89 @@ class AvregningBehandlerTest {
      */
     @Test
     fun `lagAvregningsfaktura, periodene overlapper, flere fakturalinjer, krediteres og faktureres igjen`() {
-        val faktura2024FørsteKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 1, 1),
-                    periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                ),
-                FakturaLinje(
-                    id = 2,
-                    periodeFra = LocalDate.of(2024, 1, 1),
-                    periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(2000),
-                    belop = BigDecimal("6000.00"),
-                )
-            )
-        )
+        val faktura2024FørsteKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+            fakturaLinje {
+                id = 2
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(3)
+                månedspris = 2000
+            }
+        }
 
-        val faktura2024AndreKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 4, 1),
-                    periodeTil = LocalDate.of(2024, 6, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                ),
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 4, 1),
-                    periodeTil = LocalDate.of(2024, 6, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(2000),
-                    belop = BigDecimal("6000.00"),
-                )
-            )
-        )
+        val faktura2024AndreKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-04-01"
+                til = "2024-06-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+            fakturaLinje {
+                id = 1
+                fra = "2024-04-01"
+                til = "2024-06-30"
+                antall = BigDecimal(3)
+                månedspris = 2000
+            }
+        }
 
-        val faktura2024TredjeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 7, 1),
-                    periodeTil = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                ),
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 7, 1),
-                    periodeTil = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(2000),
-                    belop = BigDecimal("6000.00"),
-                )
-            )
-        )
+        val faktura2024TredjeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-07-01"
+                til = "2024-09-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+            fakturaLinje {
+                id = 1
+                fra = "2024-07-01"
+                til = "2024-09-30"
+                antall = BigDecimal(3)
+                månedspris = 2000
+            }
+        }
 
-        val faktura2024FjerdeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 10, 1),
-                    periodeTil = LocalDate.of(2024, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                ),
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 10, 1),
-                    periodeTil = LocalDate.of(2024, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(2000),
-                    belop = BigDecimal("6000.00"),
-                )
-            )
-        )
+        val faktura2024FjerdeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-10-01"
+                til = "2024-12-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+            fakturaLinje {
+                id = 1
+                fra = "2024-10-01"
+                til = "2024-12-31"
+                antall = BigDecimal(3)
+                månedspris = 2000
+            }
+        }
 
         val nyPeriodeSomSkalAvregnes = listOf(
             FakturaseriePeriode(
@@ -1229,113 +1149,89 @@ class AvregningBehandlerTest {
      */
     @Test
     fun `lagAvregningsfaktura, perioden forkortes midt i kvartal, flere fakturalinjer, krediteres helt og delvis`() {
-        val faktura2024FørsteKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 1, 1),
-                    periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                ),
-                FakturaLinje(
-                    id = 2,
-                    periodeFra = LocalDate.of(2024, 1, 1),
-                    periodeTil = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(2000),
-                    belop = BigDecimal("6000.00"),
-                )
-            )
-        )
+        val faktura2024FørsteKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+            fakturaLinje {
+                id = 2
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(3)
+                månedspris = 2000
+            }
+        }
 
-        val faktura2024AndreKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 4, 1),
-                    periodeTil = LocalDate.of(2024, 6, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                ),
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 4, 1),
-                    periodeTil = LocalDate.of(2024, 6, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(2000),
-                    belop = BigDecimal("6000.00"),
-                )
-            )
-        )
+        val faktura2024AndreKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-04-01"
+                til = "2024-06-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+            fakturaLinje {
+                id = 1
+                fra = "2024-04-01"
+                til = "2024-06-30"
+                antall = BigDecimal(3)
+                månedspris = 2000
+            }
+        }
 
-        val faktura2024TredjeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 7, 1),
-                    periodeTil = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                ),
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 7, 1),
-                    periodeTil = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(2000),
-                    belop = BigDecimal("6000.00"),
-                )
-            )
-        )
+        val faktura2024TredjeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-07-01"
+                til = "2024-09-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+            fakturaLinje {
+                id = 1
+                fra = "2024-07-01"
+                til = "2024-09-30"
+                antall = BigDecimal(3)
+                månedspris = 2000
+            }
+        }
 
-        val faktura2024FjerdeKvartal = Faktura(
-            id = 1,
-            datoBestilt = LocalDate.of(2023, 3, 19),
-            status = BESTILT,
-            eksternFakturaNummer = "123",
-            fakturaLinje = listOf(
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 10, 1),
-                    periodeTil = LocalDate.of(2024, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(1000),
-                    belop = BigDecimal("3000.00"),
-                ),
-                FakturaLinje(
-                    id = 1,
-                    periodeFra = LocalDate.of(2024, 10, 1),
-                    periodeTil = LocalDate.of(2024, 12, 31),
-                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                    antall = BigDecimal(3),
-                    enhetsprisPerManed = BigDecimal(2000),
-                    belop = BigDecimal("6000.00"),
-                )
-            )
-        )
+        val faktura2024FjerdeKvartal = Faktura.forTest {
+            id = 1
+            bestilt = "2023-03-19"
+            status = BESTILT
+            eksternFakturaNummer = "123"
+            fakturaLinje {
+                id = 1
+                fra = "2024-10-01"
+                til = "2024-12-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+            fakturaLinje {
+                id = 1
+                fra = "2024-10-01"
+                til = "2024-12-31"
+                antall = BigDecimal(3)
+                månedspris = 2000
+            }
+        }
 
         val nyPeriodeSomSkalAvregnes = listOf(
             FakturaseriePeriode(
