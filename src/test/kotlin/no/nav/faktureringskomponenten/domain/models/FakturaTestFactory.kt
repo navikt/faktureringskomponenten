@@ -11,6 +11,9 @@ import java.time.LocalDate
  * ```
  * val faktura = Faktura.forTest {
  *     status = BESTILT
+ *     fakturaserie {
+ *         referanse = "MEL-123"
+ *     }
  *     fakturaLinje {
  *         fra = "2024-01-01"
  *         til = "2024-03-31"
@@ -66,6 +69,13 @@ object FakturaTestFactory {
          */
         fun leggTilFakturaLinje(linje: FakturaLinje) {
             this.fakturaLinje.add(linje)
+        }
+
+        /**
+         * Setter fakturaserie ved hjelp av DSL.
+         */
+        fun fakturaserie(init: FakturaserieTestFactory.Builder.() -> Unit) {
+            this.fakturaserie = Fakturaserie.forTest(init)
         }
 
         fun build(): Faktura {

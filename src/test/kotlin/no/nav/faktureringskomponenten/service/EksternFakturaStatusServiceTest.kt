@@ -103,7 +103,7 @@ class EksternFakturaStatusServiceTest {
         val faktura = Faktura.forTest {
             id = 1L
             referanseNr = "123"
-            fakturaserie = Fakturaserie.forTest {
+            fakturaserie {
                 referanse = "321"
             }
         }
@@ -152,7 +152,7 @@ class EksternFakturaStatusServiceTest {
         val faktura = Faktura.forTest {
             id = 1L
             referanseNr = "123"
-            fakturaserie = Fakturaserie.forTest {
+            fakturaserie {
                 referanse = "321"
             }
         }
