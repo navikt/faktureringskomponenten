@@ -68,22 +68,20 @@ class AvregningIT(
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns begynnelseAvDesember2023
         // Opprinnelig serie
-        val opprinneligFakturaserieDto = lagFakturaserieDto(
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    1000,
-                    "2024-01-01",
-                    "2024-12-31",
-                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-                FakturaseriePeriodeDto(
-                    2000,
-                    "2024-01-01",
-                    "2024-12-31",
-                    "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-            )
-        )
+        val opprinneligFakturaserieDto = FakturaserieRequestDto.forTest {
+            periode {
+                månedspris = 1000
+                fra = "2024-01-01"
+                til = "2024-12-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 2000
+                fra = "2024-01-01"
+                til = "2024-12-31"
+                beskrivelse = "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+        }
 
         val opprinneligFakturaserieReferanse =
             postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
@@ -110,29 +108,27 @@ class AvregningIT(
         }
 
         // Serie 2 med avregning
-        val fakturaserieDto2 = lagFakturaserieDto(
-            referanseId = opprinneligFakturaserieReferanse,
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    1000,
-                    "2024-01-01",
-                    "2024-12-31",
-                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-                FakturaseriePeriodeDto(
-                    2000,
-                    "2024-01-01",
-                    "2024-02-29",
-                    "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-                FakturaseriePeriodeDto(
-                    3000,
-                    "2024-03-01",
-                    "2024-12-31",
-                    "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-            )
-        )
+        val fakturaserieDto2 = FakturaserieRequestDto.forTest {
+            fakturaserieReferanse = opprinneligFakturaserieReferanse
+            periode {
+                månedspris = 1000
+                fra = "2024-01-01"
+                til = "2024-12-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 2000
+                fra = "2024-01-01"
+                til = "2024-02-29"
+                beskrivelse = "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 3000
+                fra = "2024-03-01"
+                til = "2024-12-31"
+                beskrivelse = "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+        }
 
         val serieRef2 =
             postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
@@ -197,29 +193,27 @@ class AvregningIT(
         }
 
         // Serie 3 med avregning
-        val fakturaserieDto3 = lagFakturaserieDto(
-            referanseId = serieRef2,
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    1000,
-                    "2024-01-01",
-                    "2024-12-31",
-                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-                FakturaseriePeriodeDto(
-                    2000,
-                    "2024-01-01",
-                    "2024-01-31",
-                    "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-                FakturaseriePeriodeDto(
-                    3000,
-                    "2024-02-01",
-                    "2024-12-31",
-                    "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-            )
-        )
+        val fakturaserieDto3 = FakturaserieRequestDto.forTest {
+            fakturaserieReferanse = serieRef2
+            periode {
+                månedspris = 1000
+                fra = "2024-01-01"
+                til = "2024-12-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 2000
+                fra = "2024-01-01"
+                til = "2024-01-31"
+                beskrivelse = "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 3000
+                fra = "2024-02-01"
+                til = "2024-12-31"
+                beskrivelse = "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+        }
 
         val serieRef3 =
             postLagNyFakturaserieRequest(fakturaserieDto3).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
@@ -296,22 +290,20 @@ class AvregningIT(
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns begynnelseAvDesember2022
         // Opprinnelig serie
-        val opprinneligFakturaserieDto = lagFakturaserieDto(
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    1000,
-                    "2022-01-01",
-                    "2023-12-31",
-                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-                FakturaseriePeriodeDto(
-                    2000,
-                    "2022-01-01",
-                    "2023-12-31",
-                    "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-            )
-        )
+        val opprinneligFakturaserieDto = FakturaserieRequestDto.forTest {
+            periode {
+                månedspris = 1000
+                fra = "2022-01-01"
+                til = "2023-12-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 2000
+                fra = "2022-01-01"
+                til = "2023-12-31"
+                beskrivelse = "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+        }
 
         val opprinneligFakturaserieReferanse =
             postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
@@ -332,29 +324,27 @@ class AvregningIT(
         }
 
         // Serie 2 med avregning
-        val fakturaserieDto2 = lagFakturaserieDto(
-            referanseId = opprinneligFakturaserieReferanse,
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    1000,
-                    "2023-01-01",
-                    "2023-12-31",
-                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-                FakturaseriePeriodeDto(
-                    2000,
-                    "2023-01-01",
-                    "2023-02-28",
-                    "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-                FakturaseriePeriodeDto(
-                    3000,
-                    "2023-03-01",
-                    "2023-12-31",
-                    "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-            )
-        )
+        val fakturaserieDto2 = FakturaserieRequestDto.forTest {
+            fakturaserieReferanse = opprinneligFakturaserieReferanse
+            periode {
+                månedspris = 1000
+                fra = "2023-01-01"
+                til = "2023-12-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 2000
+                fra = "2023-01-01"
+                til = "2023-02-28"
+                beskrivelse = "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 3000
+                fra = "2023-03-01"
+                til = "2023-12-31"
+                beskrivelse = "Inntekt: 30000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+        }
 
         // Setter now frem et år slik at 2022 fakturaer ikke skal brukes i avregning
         val begynnelseAvDesember2023 = LocalDate.of(2023, 12, 1)
@@ -434,22 +424,6 @@ class AvregningIT(
             }
 
 
-    }
-
-    fun lagFakturaserieDto(
-        referanseId: String? = null,
-        fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
-        intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
-        fakturaseriePeriode: List<FakturaseriePeriodeDto>,
-    ) = FakturaserieRequestDto.forTest {
-        fodselsnummer = "12345678911"
-        fakturaserieReferanse = referanseId
-        fullmektig = null
-        referanseBruker = "referanseBruker"
-        referanseNAV = "referanseNav"
-        this.fakturaGjelderInnbetalingstype = fakturaGjelderInnbetalingstype
-        this.intervall = intervall
-        fakturaseriePeriode.forEach { leggTilPeriode(it) }
     }
 
     private fun postLagNyFakturaserieRequest(fakturaserieRequestDto: FakturaserieRequestDto): WebTestClient.ResponseSpec =
