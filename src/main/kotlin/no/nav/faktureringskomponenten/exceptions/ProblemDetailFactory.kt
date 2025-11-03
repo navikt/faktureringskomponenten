@@ -24,5 +24,20 @@ class ProblemDetailFactory {
             )
             return problemDetail
         }
+
+        fun mapTilProblemDetail(field: String, message: String): ProblemDetail {
+            val problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST)
+            problemDetail.apply {
+                title = "Constraint Violation"
+                setProperty(
+                    "violations",
+                    mapOf(
+                        "field" to field,
+                        "message" to message
+                    )
+                )
+            }
+            return problemDetail
+        }
     }
 }

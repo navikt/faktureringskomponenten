@@ -73,6 +73,9 @@ class FakturaserieGenerator(
 
         if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)) {
             if (fakturaserieDto.perioder.isEmpty()) {
+                if (avregningsfakturaer.isEmpty()) {
+                    error { "Kan ikke opprette fakturaserie med tomme perioder og ingen avregningsfakturaer. FakturaserieDto: $fakturaserieDto" }
+                }
                 return Fakturaserie(
                     id = null,
                     referanse = fakturaserieDto.fakturaserieReferanse,

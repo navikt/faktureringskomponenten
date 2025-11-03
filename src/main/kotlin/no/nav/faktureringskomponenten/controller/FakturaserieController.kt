@@ -15,6 +15,7 @@ import no.nav.faktureringskomponenten.controller.mapper.tilFakturamottakerDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory
+import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory.Companion.mapTilProblemDetail
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.security.token.support.core.api.Protected
@@ -61,10 +62,10 @@ class FakturaserieController @Autowired constructor(
         if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)) {
             if (fakturaserieRequestDto.perioder.isEmpty() && fakturaserieRequestDto.fakturaserieReferanse.isNullOrEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(mapTilErrorResponse("perioder", "Må ha minst en periode hvis ikke er erstatning av tidligere fakturaserie"))
+                    .body(mapTilProblemDetail("perioder", "Må ha minst en periode hvis ikke er erstatning av tidligere fakturaserie"))
             }
         } else if (fakturaserieRequestDto.perioder.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapTilErrorResponse("perioder", "Du må oppgi minst én periode"))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapTilProblemDetail("perioder", "Du må oppgi minst én periode"))
         }
 
         val forrigeReferanse = fakturaserieRequestDto.fakturaserieReferanse
@@ -125,16 +126,4 @@ class FakturaserieController @Autowired constructor(
         log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: ${nyFakturaserieRefereanse}")
         return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))
     }
-
-    fun mapTilErrorResponse(field: String, message: String) =
-        mapOf(
-            "status" to 400,
-            "violations" to listOf(
-                mapOf(
-                    "field" to field,
-                    "message" to message
-                )
-            ),
-            "title" to "Constraint Violation"
-        )
 }
