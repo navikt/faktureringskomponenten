@@ -439,6 +439,222 @@ val request = FakturaserieRequestDto.forTest {
 - Se `TestDslExampleTest.kt` for flere eksempler
 - Pattern: Builder pattern med Kotlin DSL
 
+## Migreringsstatus og neste steg
+
+### Status per 2025-11-03
+
+#### ✅ Fullført
+- **Test DSL infrastruktur** implementert og testet
+  - `TestDsl.kt` - DslMarker annotation
+  - `FakturaLinjeTestFactory.kt` - Med ergonomiske aliaser
+  - `FakturaTestFactory.kt` - Med nested builder support
+  - `FakturaserieTestFactory.kt` - Med automatisk relationship wiring
+  - `TestDslExampleTest.kt` - 6 demonstrasjonstester
+  - `docs/TEST_DSL.md` - Denne dokumentasjonen
+
+- **AvregningBehandlerTest** - 100% migrert
+  - 28 Faktura-objekter bruker forTest DSL
+  - 0 gamle Faktura(...) konstruksjoner igjen
+  - 136 linjer spart (8% reduksjon)
+  - Alle 14 tester passerer
+
+#### 🔄 Påbegynt men ikke fullført
+Ingen - tidligere arbeid er fullført
+
+#### 📋 Gjenstående filer for migrering
+
+**Høy prioritet (mest boilerplate):**
+1. **AvregningIT.kt** (~482 linjer)
+   - Estimat: ~100+ linjer kan spares
+   - Mange inline Faktura og Fakturaserie konstruksjoner
+   - Bruker også DTO-er (FakturaserieRequestDto, FakturaseriePeriodeDto)
+   - Kommando: `grep -c "= Faktura(" src/test/kotlin/.../AvregningIT.kt`
+
+2. **FakturaserieGeneratorTest.kt**
+   - Har mange private val fixtures
+   - Bruker både Faktura og FakturaseriePeriode
+   - Parametriserte tester med mange test cases
+
+3. **FakturaserieControllerIT.kt** / **FakturaserieControllerTest.kt**
+   - Bruker DTOer (FakturaserieRequestDto)
+   - Kan ha nytte av DTO factories
+
+**Middels prioritet:**
+4. **FakturaBestillCronjobTest.kt**
+5. **FakturaIntervallPeriodiseringTest.kt**
+6. Andre service/controller tester
+
+**Lav prioritet:**
+- Små unittester med minimal boilerplate
+
+### Neste steg for ny session
+
+#### Steg 1: Identifiser måltest-fil
+```bash
+# Finn filer med gamle Faktura-konstruksjoner
+grep -r "= Faktura(" src/test/kotlin/ --include="*.kt" -l
+
+# Tell antall per fil
+for file in $(grep -r "= Faktura(" src/test/kotlin/ --include="*.kt" -l); do
+  echo "$file: $(grep -c "= Faktura(" $file)"
+done | sort -t: -k2 -rn
+```
+
+#### Steg 2: Analyser fil
+```bash
+# Åpne filen og se på strukturen
+# - Hvor mange Faktura-objekter?
+# - Er det private val fixtures eller inline konstruksjoner?
+# - Brukes også Fakturaserie eller kun Faktura?
+# - Brukes DTOer?
+```
+
+#### Steg 3: Migrer systematisk
+1. **Legg til import:**
+   ```kotlin
+   import no.nav.faktureringskomponenten.domain.models.forTest
+   ```
+
+2. **Migrer private val fixtures først**
+   - Start med enkleste (1 fakturalinje)
+   - Deretter mer komplekse (flere linjer)
+
+3. **Migrer inline konstruksjoner i tester**
+   - Bruk samme pattern som fixtures
+
+4. **Kjør tester underveis**
+   ```bash
+   ./gradlew test --tests "TestClassName"
+   ```
+
+#### Steg 4: Verifiser og commit
+```bash
+# Sjekk at ingen gamle konstruksjoner gjenstår
+grep -c "= Faktura(" src/test/kotlin/.../TestFile.kt
+
+# Kjør alle tester
+./gradlew test
+
+# Commit med norsk melding
+git add <files>
+git commit -m "Migrer <TestClassName> til test DSL"
+```
+
+### Tips og fallgruver
+
+#### ⚠️ BigDecimal presisjon
+DSL setter automatisk `.setScale(2)` på alle BigDecimal-verdier for konsistens.
+Husk å oppdatere assertions:
+```kotlin
+// Før
+totalbeløp() shouldBe BigDecimal(3000)
+
+// Etter
+totalbeløp() shouldBe BigDecimal("3000.00")
+```
+
+#### ⚠️ Companion object
+Sørg for at Companion object eksisterer på domain-klassene:
+```kotlin
+companion object
+```
+Dette trengs for å bruke `DomainClass.forTest { }` syntax.
+
+#### ⚠️ Imports
+Ikke glem å importere `forTest` extension function:
+```kotlin
+import no.nav.faktureringskomponenten.domain.models.forTest
+```
+
+#### 💡 Ergonomiske aliaser
+Bruk alltid de ergonomiske aliasene når mulig:
+- `fra`/`til` i stedet for `periodeFra`/`periodeTil`
+- `månedspris` i stedet for `enhetsprisPerManed`
+- `bestilt` i stedet for `datoBestilt`
+
+#### 💡 Kun overstyr nødvendig
+Ikke spesifiser standardverdier med mindre de er relevante for testen:
+```kotlin
+// Godt
+val faktura = Faktura.forTest {
+    status = BESTILT
+}
+
+// Unødvendig verbose
+val faktura = Faktura.forTest {
+    id = null
+    status = BESTILT
+    referanseNr = ULID.randomULID()
+    eksternFakturaNummer = "TEST-123"
+    // ...alle defaultverdier...
+}
+```
+
+### Kommandoer for statussjekk
+
+```bash
+# Tell totalt antall forTest bruk i prosjektet
+grep -r "\.forTest {" src/test/kotlin/ | wc -l
+
+# Tell gamle Faktura-konstruksjoner
+grep -r "= Faktura(" src/test/kotlin/ | wc -l
+
+# Finn alle TestFactory filer
+find src/test/kotlin -name "*TestFactory.kt"
+
+# Sjekk testresultater
+./gradlew test --console=plain | grep -E "tests completed|FAILED"
+```
+
+### Fremtidige utvidelser
+
+#### FakturaseriePeriodeTestFactory
+Ikke implementert ennå, men kan være nyttig for tester som lager mange perioder:
+```kotlin
+// Fremtidig API
+val periode = FakturaseriePeriode.forTest {
+    fra = "2024-01-01"
+    til = "2024-03-31"
+    månedspris = 1000
+    beskrivelse = "Test periode"
+}
+```
+
+#### DTO Factories
+For controller/IT-tester som bruker DTOer:
+```kotlin
+// Fremtidig API
+val request = FakturaserieRequestDto.forTest {
+    fodselsnummer = "12345678901"
+    intervall = KVARTAL
+    periode {
+        fra = "2024-01-01"
+        til = "2024-12-31"
+        månedspris = 1000
+    }
+}
+```
+
+### Branch og commits
+
+**Branch:** `feature/legg-til-forTest-dsl`
+
+**Commits:**
+```
+1932b56 Fikse BigDecimal presisjon i TestDslExampleTest
+3eabf3e Fullfør migrering av AvregningBehandlerTest til test DSL
+d3e546e Migrer AvregningBehandlerTest til test DSL
+0fa27c8 Legg til companion object så vi kan bruke Companion.forTest
+733c567 Legg til test DSL for enklere opprettelse av testdata
+```
+
+**For merge til master:**
+```bash
+git checkout master
+git merge feature/legg-til-forTest-dsl
+git push
+```
+
 ## Support
 
 Ved spørsmål eller ønsker om nye features, kontakt teamet på Slack: #teammelosys
