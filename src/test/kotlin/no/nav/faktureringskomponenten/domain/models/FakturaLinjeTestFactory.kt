@@ -68,8 +68,8 @@ object FakturaLinjeTestFactory {
             }
 
         fun build(): FakturaLinje {
-            // Beregn beløp automatisk hvis ikke satt
-            val calculatedBelop = belop ?: (enhetsprisPerManed * antall)
+            // Beregn beløp automatisk hvis ikke satt, med riktig skala (2 desimaler)
+            val calculatedBelop = (belop ?: (enhetsprisPerManed * antall)).setScale(2)
 
             return FakturaLinje(
                 id = id,
@@ -77,10 +77,10 @@ object FakturaLinjeTestFactory {
                 periodeTil = periodeTil,
                 beskrivelse = beskrivelse,
                 antall = antall,
-                enhetsprisPerManed = enhetsprisPerManed,
+                enhetsprisPerManed = enhetsprisPerManed.setScale(2),
                 belop = calculatedBelop,
-                avregningForrigeBeloep = avregningForrigeBeloep,
-                avregningNyttBeloep = avregningNyttBeloep
+                avregningForrigeBeloep = avregningForrigeBeloep?.setScale(2),
+                avregningNyttBeloep = avregningNyttBeloep?.setScale(2)
             )
         }
     }
