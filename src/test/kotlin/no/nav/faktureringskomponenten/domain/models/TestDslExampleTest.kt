@@ -44,14 +44,14 @@ class TestDslExampleTest {
         faktura.fakturaLinje[0].run {
             periodeFra shouldBe LocalDate.of(2024, 1, 1)
             periodeTil shouldBe LocalDate.of(2024, 3, 31)
-            enhetsprisPerManed shouldBe BigDecimal(1000)
-            belop shouldBe BigDecimal(1000)
+            enhetsprisPerManed shouldBe BigDecimal("1000.00")
+            belop shouldBe BigDecimal("1000.00")
         }
         faktura.fakturaLinje[1].run {
             periodeFra shouldBe LocalDate.of(2024, 4, 1)
             periodeTil shouldBe LocalDate.of(2024, 6, 30)
-            enhetsprisPerManed shouldBe BigDecimal(2000)
-            belop shouldBe BigDecimal(2000)
+            enhetsprisPerManed shouldBe BigDecimal("2000.00")
+            belop shouldBe BigDecimal("2000.00")
         }
     }
 
@@ -108,14 +108,14 @@ class TestDslExampleTest {
                 status shouldBe FakturaStatus.BESTILT
                 datoBestilt shouldBe LocalDate.of(2024, 3, 19)
                 fakturaLinje.shouldHaveSize(2)
-                totalbeløp() shouldBe BigDecimal(3000)
+                totalbeløp() shouldBe BigDecimal("3000.00")
             }
 
             faktura[1].run {
                 status shouldBe FakturaStatus.BESTILT
                 datoBestilt shouldBe LocalDate.of(2024, 6, 19)
                 fakturaLinje.shouldHaveSize(2)
-                totalbeløp() shouldBe BigDecimal(3000)
+                totalbeløp() shouldBe BigDecimal("3000.00")
             }
         }
     }
@@ -182,7 +182,7 @@ class TestDslExampleTest {
 
         // Før ville dette vært 50+ linjer med manuell konstruksjon
         // Nå: 30 linjer med tydelig intent
-        faktura2024Q1.totalbeløp() shouldBe BigDecimal(3000)
-        faktura2024Q2.totalbeløp() shouldBe BigDecimal(3000)
+        faktura2024Q1.totalbeløp() shouldBe BigDecimal("3000.00")
+        faktura2024Q2.totalbeløp() shouldBe BigDecimal("3000.00")
     }
 }
