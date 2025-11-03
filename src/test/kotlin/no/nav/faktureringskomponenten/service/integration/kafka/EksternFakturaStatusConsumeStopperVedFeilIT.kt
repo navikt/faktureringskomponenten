@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.forTest
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
@@ -45,7 +46,10 @@ class EksternFakturaStatusConsumeStopperVedFeilIT(
     fun `les faktura fra kafka kø skal stoppe ved feil og ikke avansere offset`() {
         val (_, faktura) = (1..2).map {
             lagFakturaMedSerie(
-                faktura = Faktura(status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT, referanseNr = ULID.randomULID()),
+                faktura = Faktura.forTest {
+                    status = if (it == 1) FakturaStatus.OPPRETTET else FakturaStatus.BESTILT
+                    referanseNr = ULID.randomULID()
+                },
                 referanse = "MEL-$it-$it"
             ).apply {
                 kafkaTemplate.send(
