@@ -78,6 +78,13 @@ object FakturaTestFactory {
             this.fakturaserie = Fakturaserie.forTest(init)
         }
 
+        /**
+         * Legger til en ekstern faktura status.
+         */
+        fun leggTilEksternFakturaStatus(status: EksternFakturaStatus) {
+            this.eksternFakturaStatus.add(status)
+        }
+
         fun build(): Faktura {
             val faktura = Faktura(
                 id = id,

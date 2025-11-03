@@ -68,7 +68,7 @@ class EksternFakturaStatusServiceTest {
         val faktura = Faktura.forTest {
             id = 1L
             status = FakturaStatus.MANGLENDE_INNBETALING
-            this.eksternFakturaStatus = mutableListOf(eksternFakturaStatus)
+            leggTilEksternFakturaStatus(eksternFakturaStatus)
         }
 
         every { fakturaRepository.findByReferanseNr("123") } returns faktura
