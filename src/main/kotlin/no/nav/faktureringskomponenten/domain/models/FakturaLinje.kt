@@ -72,4 +72,6 @@ class FakturaLinje(
                 (avregningNyttBeloep?.let { " avregningNyttBeloep=$avregningNyttBeloep," } ?: "") +
                 " belop=$belop)"
     }
+
+    companion object
 }

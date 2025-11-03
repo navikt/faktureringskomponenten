@@ -110,4 +110,5 @@ class Fakturaserie(
         planlagteFakturaer().forEach { it.status = FakturaStatus.AVBRUTT }
     }
 
+    companion object
 }
