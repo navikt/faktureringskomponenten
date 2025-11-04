@@ -16,8 +16,6 @@ import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.lagFaktura
-import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.FakturaBestillingService
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
@@ -92,12 +90,13 @@ class FakturaKanselleringIT(
 
     @Test
     fun `Kansellerer fakturaserie - oppretter ny serie med kreditnota - disse sendes umiddelbart`() {
-        val opprinneligFakturaserie = lagFakturaserie {
-            faktura(
-                lagFaktura {
-                    status(FakturaStatus.BESTILT)
+        val opprinneligFakturaserie = Fakturaserie.forTest {
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    månedspris = 10000
                 }
-            )
+            }
         }
 
         fakturaserieRepository.save(opprinneligFakturaserie)

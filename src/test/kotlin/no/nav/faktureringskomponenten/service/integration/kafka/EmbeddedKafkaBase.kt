@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.service.integration.kafka
 import no.nav.faktureringskomponenten.PostgresTestContainerBase
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.forTest
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import org.springframework.context.annotation.Import
 import org.springframework.kafka.test.context.EmbeddedKafka
@@ -24,11 +25,11 @@ open class EmbeddedKafkaBase(
     @Transactional
     protected open fun lagFakturaMedSerie(faktura: Faktura, referanse: String = ULID.randomULID()): Faktura =
         fakturaserieRepository.saveAndFlush(
-            Fakturaserie(
-                referanse = referanse,
-                fodselsnummer = "01234567890",
-                faktura = mutableListOf(faktura)
-            ).apply { this.faktura.forEach { it.fakturaserie = this } }
+            Fakturaserie.forTest {
+                this.referanse = referanse
+                fodselsnummer = "01234567890"
+                leggTilFaktura(faktura)
+            }
         ).faktura.first().apply {
             addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
         }

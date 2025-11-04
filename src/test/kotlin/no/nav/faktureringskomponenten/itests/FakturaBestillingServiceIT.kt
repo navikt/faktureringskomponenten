@@ -9,6 +9,7 @@ import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.forTest
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.FakturaBestillingService
@@ -79,23 +80,17 @@ class FakturaBestillingServiceIT(
 
     private fun lagFakturaSerie(): String =
         fakturaserieRepository.saveAndFlush(
-            Fakturaserie(
-                referanse = ULID.randomULID(),
-                fodselsnummer = "01234567890",
-                faktura = mutableListOf(
-                    Faktura(
-                        referanseNr = ULID.randomULID(),
-                        datoBestilt = LocalDate.now().plusDays(-1),
-                        fakturaLinje = mutableListOf(
-                            FakturaLinje(
-                                beskrivelse = "test 1",
-                                belop = BigDecimal(1000),
-                                enhetsprisPerManed = BigDecimal(100)
-                            )
-                        )
-                    )
-                )
-            ).apply { faktura.forEach { it.fakturaserie = this } }
+            Fakturaserie.forTest {
+                fodselsnummer = "01234567890"
+                faktura {
+                    datoBestilt = LocalDate.now().plusDays(-1)
+                    fakturaLinje {
+                        beskrivelse = "test 1"
+                        belop = BigDecimal(1000)
+                        månedspris = 100
+                    }
+                }
+            }
         ).faktura.first().apply {
             addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
         }.referanseNr
