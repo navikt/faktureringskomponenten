@@ -9,6 +9,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.forTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.TestInstance
@@ -131,12 +132,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Kvartalsvis fakturering for fremtidig periode",
             dagensDato = LocalDate.of(2024, 1, 15),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 4, 1),
-                    sluttDato = LocalDate.of(2024, 12, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-04-01"
+                    til = "2024-12-31"
                     beskrivelse = "Test periode 1"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.KVARTAL,
             expectedDatoBestilt = listOf(
@@ -151,12 +152,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Månedsvis fakturering med historiske og fremtidige perioder",
             dagensDato = LocalDate.of(2024, 1, 15),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2023, 12, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2023-12-01"
+                    til = "2024-03-31"
                     beskrivelse = "Test periode 2"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.MANEDLIG,
             expectedDatoBestilt = listOf(
@@ -172,12 +173,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Kvartalsvis fakturering over årsskifte",
             dagensDato = LocalDate.of(2023, 12, 20),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2023, 12, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2023-12-01"
+                    til = "2024-03-31"
                     beskrivelse = "Test periode 3"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.KVARTAL,
             expectedDatoBestilt = listOf(
@@ -193,18 +194,18 @@ class FakturaGeneratorParameterizedTest {
             description = "Overlappende perioder",
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-03-31"
                     beskrivelse = "Periode 1"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("2000"),
-                    startDato = LocalDate.of(2024, 3, 15),
-                    sluttDato = LocalDate.of(2024, 6, 30),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 2000
+                    fra = "2024-03-15"
+                    til = "2024-06-30"
                     beskrivelse = "Periode 2"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.KVARTAL,
             expectedPerioder = listOf(
@@ -218,18 +219,18 @@ class FakturaGeneratorParameterizedTest {
             description = "Perioder med opphold",
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-03-31"
                     beskrivelse = "Periode 1"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 7, 1),
-                    sluttDato = LocalDate.of(2024, 9, 30),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-07-01"
+                    til = "2024-09-30"
                     beskrivelse = "Periode 2"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.KVARTAL,
             expectedPerioder = listOf(
@@ -243,12 +244,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Periode starter midt i måneden",
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 1, 15),
-                    sluttDato = LocalDate.of(2024, 3, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-15"
+                    til = "2024-03-31"
                     beskrivelse = "Delvis måned"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.MANEDLIG,
             expectedPerioder = listOf(
@@ -263,12 +264,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Skuddår håndtering 2024",
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 2, 1),
-                    sluttDato = LocalDate.of(2024, 3, 15),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-02-01"
+                    til = "2024-03-15"
                     beskrivelse = "Skuddår periode"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.MANEDLIG,
             expectedPerioder = listOf(
@@ -281,12 +282,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Årsskifte med delvis kvartaler",
             dagensDato = LocalDate.of(2023, 12, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2023, 11, 15),
-                    sluttDato = LocalDate.of(2024, 2, 15),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2023-11-15"
+                    til = "2024-02-15"
                     beskrivelse = "Årsskifte periode"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.KVARTAL,
             expectedPerioder = listOf(
@@ -299,24 +300,24 @@ class FakturaGeneratorParameterizedTest {
             description = "Tre overlappende perioder med ulike priser",
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2024, 4, 30),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-04-30"
                     beskrivelse = "Periode 1"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("2000"),
-                    startDato = LocalDate.of(2024, 3, 15),
-                    sluttDato = LocalDate.of(2024, 7, 15),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 2000
+                    fra = "2024-03-15"
+                    til = "2024-07-15"
                     beskrivelse = "Periode 2"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("3000"),
-                    startDato = LocalDate.of(2024, 6, 1),
-                    sluttDato = LocalDate.of(2024, 9, 30),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 3000
+                    fra = "2024-06-01"
+                    til = "2024-09-30"
                     beskrivelse = "Periode 3"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.KVARTAL,
             expectedPerioder = listOf(
@@ -331,12 +332,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Periode starter siste dag i måneder med ulik lengde",
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("30000"),  // 1000 kr per dag
-                    startDato = LocalDate.of(2024, 1, 31),     // 31 dager
-                    sluttDato = LocalDate.of(2024, 4, 30),     // 30 dager
+                FakturaseriePeriode.forTest {
+                    månedspris = 30000  // 1000 kr per dag
+                    fra = "2024-01-31"  // 31 dager
+                    til = "2024-04-30"  // 30 dager
                     beskrivelse = "Test periode siste dag"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.MANEDLIG,
             expectedPerioder = listOf(
@@ -354,12 +355,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Avrunding for delvis måned med 31 dager",
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("31000"),
-                    startDato = LocalDate.of(2024, 1, 15),
-                    sluttDato = LocalDate.of(2024, 1, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 31000
+                    fra = "2024-01-15"
+                    til = "2024-01-31"
                     beskrivelse = "Test delvis januar"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.MANEDLIG,
             expectedBelopPerFaktura = listOf(
@@ -375,12 +376,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Avrunding for delvis måned med overgang mellom måneder",
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("30000"),
-                    startDato = LocalDate.of(2024, 1, 20),
-                    sluttDato = LocalDate.of(2024, 1, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 30000
+                    fra = "2024-01-20"
+                    til = "2024-01-31"
                     beskrivelse = "Test periode over månedsskifte"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.MANEDLIG,
             expectedBelopPerFaktura = listOf(
@@ -396,12 +397,12 @@ class FakturaGeneratorParameterizedTest {
             description = "Avrunding for delvis måned i skuddår (februar)",
             dagensDato = LocalDate.of(2024, 1, 1),
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("29000"),
-                    startDato = LocalDate.of(2024, 2, 15),
-                    sluttDato = LocalDate.of(2024, 2, 29),
+                FakturaseriePeriode.forTest {
+                    månedspris = 29000
+                    fra = "2024-02-15"
+                    til = "2024-02-29"
                     beskrivelse = "Test delvis februar i skuddår"
-                )
+                }
             ),
             intervall = FakturaserieIntervall.MANEDLIG,
             expectedBelopPerFaktura = listOf(
