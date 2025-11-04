@@ -12,9 +12,9 @@
 |----------|----------|-------|--------|
 | **Test Factories** | 7/7 | 100% | ✅ Complete |
 | **High Priority** | 5/5 | 100% | ✅ Complete |
-| **Medium Priority** | 7/9 | 78% | 🟡 In Progress |
-| **Low Priority** | 1/5 | 20% | 🟡 In Progress |
-| **Total Tests** | 13/24 | 54% | 🟡 In Progress |
+| **Medium Priority** | 8/9 | 89% | 🟢 Near Complete |
+| **Low Priority** | 2/5 | 40% | 🟡 In Progress |
+| **Total Tests** | 14/24 | 58% | 🟡 In Progress |
 
 ---
 
@@ -150,9 +150,9 @@
 
 ---
 
-## 📈 Phase 3: Medium Priority Migrations (7/9)
+## 📈 Phase 3: Medium Priority Migrations (8/9)
 
-### Integration Tests (5/6)
+### Integration Tests (6/6)
 
 #### FakturaBestillingServiceIT.kt ✅
 - **Status:** COMPLETED (2025-11-04)
@@ -206,14 +206,18 @@
 - **Migration:** Indirectly migrated through EmbeddedKafkaBase.kt
 - **Test results:** All tests passing
 
-#### FakturaserieRepositoryIT.kt 🔴
-- **Status:** Not Started
+#### FakturaserieRepositoryIT.kt ✅
+- **Status:** COMPLETED (2025-11-04)
 - **Priority:** ⭐⭐
-- **Uses:** Mixed - Some new DSL
-- **Estimated savings:** 10+ lines
-- **Estimated time:** 45 min
+- **LOC:** 62 lines
+- **Migration:** Converted direct Fakturaserie(...) constructors to .forTest DSL
+- **Instances converted:** 2 direct constructor calls
+- **Actual savings:** 0 lines (reformatted)
+- **Actual time:** 10 minutes
+- **Test results:** All 2 tests passing
+- **Commit:** `c94a7e6`
 
-### Service Tests (2/3)
+### Service Tests (3/3)
 
 #### FakturaBestillingServiceTest.kt ✅
 - **Status:** COMPLETED (2025-11-04)
@@ -238,16 +242,17 @@
 - **Test results:** All 8 tests passing
 - **Commit:** `281e4fb`
 
-#### AvregningsfakturaGeneratorTest.kt 🔴
-- **Status:** Not Started
+#### AvregningsfakturaGeneratorTest.kt ✅
+- **Status:** COMPLETED (Pre-migrated)
 - **Priority:** ⭐⭐
-- **Uses:** Old DSL
-- **Estimated savings:** 15+ lines
-- **Estimated time:** 1 hour
+- **LOC:** 45 lines
+- **Migration:** Already using .forTest DSL
+- **Test results:** All tests passing
+- **Note:** Found to be already migrated when checked in Session 3
 
 ---
 
-## 🔍 Phase 4: Low Priority Migrations (1/5)
+## 🔍 Phase 4: Low Priority Migrations (2/5)
 
 ### ✅ Completed
 
@@ -260,14 +265,15 @@
 - **Migrations:** 28 Faktura objects converted
 - **Test status:** All 14 tests passing
 
-### 🔴 Not Started
-
-#### EksternFakturaStatusServiceTest.kt 🔴
-- **Status:** Not Started
+#### EksternFakturaStatusServiceTest.kt ✅
+- **Status:** COMPLETED (Pre-migrated)
 - **Priority:** ⭐
-- **Blocked by:** EksternFakturaStatusTestFactory
-- **Estimated savings:** 10+ lines
-- **Estimated time:** 45 min
+- **LOC:** 188 lines
+- **Migration:** Already using .forTest DSL with leggTilEksternFakturaStatus
+- **Test results:** All 4 tests passing
+- **Note:** Found to be already migrated when checked in Session 3
+
+### 🔴 Not Started
 
 #### FakturaBestiltDtoMapperTest.kt 🔴
 - **Status:** Not Started
@@ -460,18 +466,24 @@
 ## 📝 Migration Notes & Learnings
 
 ### 2025-11-04 (Session 3 - Phase 3)
-- ✅ Migrated 5 medium-priority test files + 1 base class
+- ✅ Migrated **6 test files + 1 base class** (7 migrations total)
 - ✅ **Integration tests:**
   - FakturaBestillingServiceIT.kt - converted direct constructors
   - FakturaKanselleringIT.kt - converted old lagFakturaserie/lagFaktura DSL
+  - FakturaserieRepositoryIT.kt - converted direct constructors to .forTest DSL
   - EmbeddedKafkaBase.kt - infrastructure migration benefits 2+ test files
 - ✅ **Service tests:**
   - FakturaBestillingServiceTest.kt - 11 old DSL instances converted
   - FakturaserieServiceTest.kt - 2 old DSL instances converted
+- ✅ **Discovered pre-migrated files:**
+  - AvregningsfakturaGeneratorTest.kt - already using .forTest
+  - EksternFakturaStatusServiceTest.kt - already using .forTest
 - 🔧 Discovered old DSL vs new DSL default value differences (enhetsprisPerManed: 10000 vs 1000)
 - 🔧 Old DSL creates default FakturaLinje, new DSL doesn't - must be explicit
 - 🔧 BigDecimal scale precision in assertions - must use .setScale(2) in expected values
-- ⚡ Completed 7/9 medium priority files (78%)
+- ⚡ **Phase 3**: 89% complete (8/9 medium priority files)
+- ⚡ **Phase 4**: 40% complete (2/5 low priority files)
+- ⚡ **Overall**: 58% complete (14/24 total test files)
 
 ### 2025-11-04 (Session 2 - Phase 2)
 - ✅ Migrated 4 high-priority test files (67 instances)
