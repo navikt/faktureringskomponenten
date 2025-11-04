@@ -112,8 +112,3 @@ object FakturaTestFactory {
         }
     }
 }
-
-/**
- * Companion object for Faktura må være tilgjengelig
- */
-fun Faktura.Companion() = Faktura

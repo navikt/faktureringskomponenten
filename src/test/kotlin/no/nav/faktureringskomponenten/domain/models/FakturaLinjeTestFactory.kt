@@ -85,8 +85,3 @@ object FakturaLinjeTestFactory {
         }
     }
 }
-
-/**
- * Companion object for FakturaLinje må være tilgjengelig
- */
-fun FakturaLinje.Companion() = FakturaLinje

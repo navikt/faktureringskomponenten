@@ -73,8 +73,3 @@ object FakturaseriePeriodeTestFactory {
         }
     }
 }
-
-/**
- * Companion object for FakturaseriePeriode må være tilgjengelig
- */
-fun FakturaseriePeriode.Companion() = FakturaseriePeriode

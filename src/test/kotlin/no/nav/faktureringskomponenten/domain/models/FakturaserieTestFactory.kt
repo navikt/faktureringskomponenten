@@ -127,8 +127,3 @@ object FakturaserieTestFactory {
         }
     }
 }
-
-/**
- * Companion object for Fakturaserie må være tilgjengelig
- */
-fun Fakturaserie.Companion() = Fakturaserie

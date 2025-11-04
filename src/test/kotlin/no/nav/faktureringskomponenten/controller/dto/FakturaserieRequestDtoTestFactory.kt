@@ -87,8 +87,3 @@ object FakturaserieRequestDtoTestFactory {
         }
     }
 }
-
-/**
- * Companion object for FakturaserieRequestDto må være tilgjengelig
- */
-fun FakturaserieRequestDto.Companion() = FakturaserieRequestDto

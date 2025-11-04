@@ -81,8 +81,3 @@ object EksternFakturaStatusTestFactory {
         }
     }
 }
-
-/**
- * Companion object for EksternFakturaStatus må være tilgjengelig
- */
-fun EksternFakturaStatus.Companion() = EksternFakturaStatus
