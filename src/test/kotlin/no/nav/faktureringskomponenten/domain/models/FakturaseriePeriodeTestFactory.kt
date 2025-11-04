@@ -72,15 +72,6 @@ object FakturaseriePeriodeTestFactory {
             )
         }
     }
-
-    /**
-     * Builder-metoder for Java-kompatibilitet
-     */
-    @JvmStatic
-    fun builder() = Builder()
-
-    @JvmStatic
-    fun lagFakturaseriePeriode() = builder().build()
 }
 
 /**

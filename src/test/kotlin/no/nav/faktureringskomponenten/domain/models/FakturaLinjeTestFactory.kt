@@ -84,15 +84,6 @@ object FakturaLinjeTestFactory {
             )
         }
     }
-
-    /**
-     * Builder-metoder for Java-kompatibilitet
-     */
-    @JvmStatic
-    fun builder() = Builder()
-
-    @JvmStatic
-    fun lagFakturaLinje() = builder().build()
 }
 
 /**

@@ -80,15 +80,6 @@ object EksternFakturaStatusTestFactory {
             )
         }
     }
-
-    /**
-     * Builder-metoder for Java-kompatibilitet
-     */
-    @JvmStatic
-    fun builder() = Builder()
-
-    @JvmStatic
-    fun lagEksternFakturaStatus() = builder().build()
 }
 
 /**

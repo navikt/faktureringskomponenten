@@ -126,39 +126,6 @@ object FakturaserieTestFactory {
             return fakturaserie
         }
     }
-
-    /**
-     * Builder-metoder for Java-kompatibilitet
-     */
-    @JvmStatic
-    fun builder() = Builder()
-
-    @JvmStatic
-    fun lagFakturaserie() = builder().build()
-
-    /**
-     * Hjelpemetode for å lage en fakturaserie med to bestilte fakturaer for Q1 og Q2.
-     */
-    @JvmStatic
-    fun lagFakturaserieMedBestilteFakturaer(): Fakturaserie = Fakturaserie.forTest {
-        status = FakturaserieStatus.UNDER_BESTILLING
-        faktura {
-            status = FakturaStatus.BESTILT
-            fakturaLinje {
-                fra = "2024-01-01"
-                til = "2024-03-31"
-                månedspris = 3000
-            }
-        }
-        faktura {
-            status = FakturaStatus.BESTILT
-            fakturaLinje {
-                fra = "2024-04-01"
-                til = "2024-06-30"
-                månedspris = 3000
-            }
-        }
-    }
 }
 
 /**

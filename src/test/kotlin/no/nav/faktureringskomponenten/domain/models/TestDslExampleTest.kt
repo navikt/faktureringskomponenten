@@ -121,9 +121,27 @@ class TestDslExampleTest {
     }
 
     @Test
-    fun `eksempel på bruk av hjelpemetoder`() {
-        // Bruker ferdiglaget hjelpemetode
-        val fakturaserie = FakturaserieTestFactory.lagFakturaserieMedBestilteFakturaer()
+    fun `eksempel på fakturaserie med bestilte fakturaer`() {
+        // Lager en fakturaserie med to bestilte fakturaer
+        val fakturaserie = Fakturaserie.forTest {
+            status = FakturaserieStatus.UNDER_BESTILLING
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    fra = "2024-01-01"
+                    til = "2024-03-31"
+                    månedspris = 3000
+                }
+            }
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    fra = "2024-04-01"
+                    til = "2024-06-30"
+                    månedspris = 3000
+                }
+            }
+        }
 
         fakturaserie.run {
             status shouldBe FakturaserieStatus.UNDER_BESTILLING

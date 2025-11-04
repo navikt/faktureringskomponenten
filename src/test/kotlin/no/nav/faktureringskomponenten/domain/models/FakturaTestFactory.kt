@@ -111,32 +111,6 @@ object FakturaTestFactory {
             return faktura
         }
     }
-
-    /**
-     * Builder-metoder for Java-kompatibilitet
-     */
-    @JvmStatic
-    fun builder() = Builder()
-
-    @JvmStatic
-    fun lagFaktura() = builder().build()
-
-    /**
-     * Hjelpemetode for å lage en faktura med bestilt status.
-     */
-    @JvmStatic
-    fun lagBestiltFaktura(
-        periodeFra: LocalDate = LocalDate.of(2024, 1, 1),
-        periodeTil: LocalDate = LocalDate.of(2024, 3, 31),
-        enhetspris: Int = 1000
-    ): Faktura = Faktura.forTest {
-        status = FakturaStatus.BESTILT
-        fakturaLinje {
-            fra = periodeFra.toString()
-            til = periodeTil.toString()
-            månedspris = enhetspris
-        }
-    }
 }
 
 /**
