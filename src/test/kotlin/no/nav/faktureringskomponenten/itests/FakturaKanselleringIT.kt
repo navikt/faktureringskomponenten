@@ -233,31 +233,31 @@ class FakturaKanselleringIT(
                 get(0).run {
                     fakturaLinje.single()
                         .shouldBe(
-                            FakturaLinje(
-                                periodeFra = LocalDate.of(2024, 1, 1),
-                                periodeTil = LocalDate.of(2024, 3, 31),
-                                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
-                                antall = BigDecimal("1.00"),
-                                enhetsprisPerManed = BigDecimal("1000.00"),
-                                avregningNyttBeloep = BigDecimal("10000.00"),
-                                avregningForrigeBeloep = BigDecimal("9000.00"),
-                                belop = BigDecimal("1000.00"),
-                            )
+                            FakturaLinje.forTest {
+                                fra = "2024-01-01"
+                                til = "2024-03-31"
+                                beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 1000
+                                avregningNyttBeloep = BigDecimal("10000.00")
+                                avregningForrigeBeloep = BigDecimal("9000.00")
+                                belop = BigDecimal("1000.00")
+                            }
                         )
                 }
                 get(1).run {
                     fakturaLinje.single()
                         .shouldBe(
-                            FakturaLinje(
-                                periodeFra = LocalDate.of(2024, 4, 1),
-                                periodeTil = LocalDate.of(2024, 6, 30),
-                                beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
-                                antall = BigDecimal("1.00"),
-                                enhetsprisPerManed = BigDecimal("3000.00"),
-                                avregningNyttBeloep = BigDecimal("12000.00"),
-                                avregningForrigeBeloep = BigDecimal("9000.00"),
-                                belop = BigDecimal("3000.00"),
-                            )
+                            FakturaLinje.forTest {
+                                fra = "2024-04-01"
+                                til = "2024-06-30"
+                                beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 3000
+                                avregningNyttBeloep = BigDecimal("12000.00")
+                                avregningForrigeBeloep = BigDecimal("9000.00")
+                                belop = BigDecimal("3000.00")
+                            }
                         )
                 }
             }

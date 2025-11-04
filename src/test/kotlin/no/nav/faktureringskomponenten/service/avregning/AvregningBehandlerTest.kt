@@ -29,32 +29,32 @@ class AvregningBehandlerTest {
             shouldHaveSize(2)
             get(0).run {
                 fakturaLinje[0].shouldBe(
-                    FakturaLinje(
-                        id = null,
-                        periodeFra = LocalDate.of(2024, 1, 1),
-                        periodeTil = LocalDate.of(2024, 3, 31),
-                        beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00",
-                        antall = BigDecimal(1),
-                        enhetsprisPerManed = BigDecimal("1000.00"),
-                        avregningForrigeBeloep = BigDecimal("9000.00"),
-                        avregningNyttBeloep = BigDecimal("10000.00"),
-                        belop = BigDecimal("1000.00"),
-                    )
+                    FakturaLinje.forTest {
+                        id = null
+                        fra = "2024-01-01"
+                        til = "2024-03-31"
+                        beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 10000,00 - tidligere beløp: 9000,00"
+                        antall = BigDecimal(1)
+                        månedspris = 1000
+                        avregningForrigeBeloep = BigDecimal("9000.00")
+                        avregningNyttBeloep = BigDecimal("10000.00")
+                        belop = BigDecimal("1000.00")
+                    }
                 )
             }
             get(1).run {
                 fakturaLinje[0].shouldBe(
-                    FakturaLinje(
-                        id = null,
-                        periodeFra = LocalDate.of(2024, 4, 1),
-                        periodeTil = LocalDate.of(2024, 6, 30),
-                        beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00",
-                        antall = BigDecimal(1),
-                        enhetsprisPerManed = BigDecimal("3000.00"),
-                        avregningForrigeBeloep = BigDecimal("9000.00"),
-                        avregningNyttBeloep = BigDecimal("12000.00"),
-                        belop = BigDecimal("3000.00"),
-                    )
+                    FakturaLinje.forTest {
+                        id = null
+                        fra = "2024-04-01"
+                        til = "2024-06-30"
+                        beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 9000,00"
+                        antall = BigDecimal(1)
+                        månedspris = 3000
+                        avregningForrigeBeloep = BigDecimal("9000.00")
+                        avregningNyttBeloep = BigDecimal("12000.00")
+                        belop = BigDecimal("3000.00")
+                    }
                 )
             }
         }
@@ -87,32 +87,32 @@ class AvregningBehandlerTest {
                     referertFakturaVedAvregning.shouldBe(fakturaerEtterFørsteAvregning[0])
                     krediteringFakturaRef.shouldBe(fakturaerEtterFørsteAvregning[0].referanseNr)
                     fakturaLinje[0].shouldBe(
-                        FakturaLinje(
-                            periodeFra = LocalDate.of(2024, 1, 1),
-                            periodeTil = LocalDate.of(2024, 3, 31),
-                            beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00",
-                            antall = BigDecimal(1),
-                            avregningForrigeBeloep = BigDecimal("10000.00"),
-                            avregningNyttBeloep = BigDecimal("11000.00"),
-                            enhetsprisPerManed = BigDecimal("1000.00"),
+                        FakturaLinje.forTest {
+                            fra = "2024-01-01"
+                            til = "2024-03-31"
+                            beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: 10000,00"
+                            antall = BigDecimal(1)
+                            avregningForrigeBeloep = BigDecimal("10000.00")
+                            avregningNyttBeloep = BigDecimal("11000.00")
+                            månedspris = 1000
                             belop = BigDecimal("1000.00")
-                        )
+                        }
                     )
                 }
                 get(1).run {
                     referertFakturaVedAvregning.shouldBe(fakturaerEtterFørsteAvregning[1])
                     krediteringFakturaRef.shouldBe(fakturaerEtterFørsteAvregning[1].referanseNr)
                     fakturaLinje[0].shouldBe(
-                        FakturaLinje(
-                            periodeFra = LocalDate.of(2024, 4, 1),
-                            periodeTil = LocalDate.of(2024, 6, 30),
-                            beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 12000,00",
-                            antall = BigDecimal(1),
-                            avregningForrigeBeloep = BigDecimal("12000.00"),
-                            avregningNyttBeloep = BigDecimal("12000.00"),
-                            enhetsprisPerManed = BigDecimal("0.00"),
+                        FakturaLinje.forTest {
+                            fra = "2024-04-01"
+                            til = "2024-06-30"
+                            beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: 12000,00"
+                            antall = BigDecimal(1)
+                            avregningForrigeBeloep = BigDecimal("12000.00")
+                            avregningNyttBeloep = BigDecimal("12000.00")
+                            månedspris = 0
                             belop = BigDecimal("0.00")
-                        )
+                        }
                     )
                 }
 
@@ -146,32 +146,32 @@ class AvregningBehandlerTest {
                     referertFakturaVedAvregning.shouldBe(fakturaerEtterFørsteAvregning[0])
                     krediteringFakturaRef.shouldBe(faktura2024ForsteKvartal.referanseNr)
                     fakturaLinje[0].shouldBe(
-                        FakturaLinje(
-                            periodeFra = LocalDate.of(2024, 1, 1),
-                            periodeTil = LocalDate.of(2024, 3, 31),
-                            beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: −11000,00",
-                            antall = BigDecimal(1),
-                            avregningForrigeBeloep = BigDecimal("-11000.00"),
-                            avregningNyttBeloep = BigDecimal("11000.00"),
-                            enhetsprisPerManed = BigDecimal("22000.00"),
+                        FakturaLinje.forTest {
+                            fra = "2024-01-01"
+                            til = "2024-03-31"
+                            beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 11000,00 - tidligere beløp: −11000,00"
+                            antall = BigDecimal(1)
+                            avregningForrigeBeloep = BigDecimal("-11000.00")
+                            avregningNyttBeloep = BigDecimal("11000.00")
+                            månedspris = 22000
                             belop = BigDecimal("22000.00")
-                        )
+                        }
                     )
                 }
                 get(1).run {
                     referertFakturaVedAvregning.shouldBe(fakturaerEtterFørsteAvregning[1])
                     krediteringFakturaRef.shouldBe(faktura2024AndreKvartal.referanseNr)
                     fakturaLinje[0].shouldBe(
-                        FakturaLinje(
-                            periodeFra = LocalDate.of(2024, 4, 1),
-                            periodeTil = LocalDate.of(2024, 6, 30),
-                            beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: −12000,00",
-                            antall = BigDecimal(1),
-                            avregningForrigeBeloep = BigDecimal("-12000.00"),
-                            avregningNyttBeloep = BigDecimal("12000.00"),
-                            enhetsprisPerManed = BigDecimal("24000.00"),
+                        FakturaLinje.forTest {
+                            fra = "2024-04-01"
+                            til = "2024-06-30"
+                            beskrivelse = "Periode: 01.04.2024 - 30.06.2024\nNytt beløp: 12000,00 - tidligere beløp: −12000,00"
+                            antall = BigDecimal(1)
+                            avregningForrigeBeloep = BigDecimal("-12000.00")
+                            avregningNyttBeloep = BigDecimal("12000.00")
+                            månedspris = 24000
                             belop = BigDecimal("24000.00")
-                        )
+                        }
                     )
                 }
 

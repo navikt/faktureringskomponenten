@@ -258,78 +258,74 @@ class FakturaserieServiceTest {
     )
 
     private fun lagOpprinneligFakturaserie(): Fakturaserie {
-        return Fakturaserie(
-            id = 100,
-            referanse = OPPRINNELIG_REF,
-            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
-            referanseBruker = "Referanse bruker",
-            referanseNAV = "Referanse NAV",
-            startdato = LocalDate.of(kalenderÅrNå, 1, 1),
-            sluttdato = LocalDate.of(kalenderÅrNå, 12, 31),
-            status = FakturaserieStatus.OPPRETTET,
-            intervall = FakturaserieIntervall.KVARTAL,
-            faktura = mutableListOf(
-                Faktura(
-                    id = 1,
-                    referanseNr = "1234",
-                    datoBestilt = LocalDate.of(kalenderÅrNå - 1, 12, 19),
-                    status = FakturaStatus.BESTILT,
-                    eksternFakturaNummer = "8272123",
-                    fakturaLinje = listOf(
-                        FakturaLinje(
-                            id = 1,
-                            periodeFra = LocalDate.of(kalenderÅrNå, 1, 1),
-                            periodeTil = LocalDate.of(kalenderÅrNå, 3, 31),
-                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                            antall = BigDecimal(3),
-                            enhetsprisPerManed = BigDecimal(1000),
-                            belop = BigDecimal(3000),
-                        ),
-                        FakturaLinje(
-                            id = 2,
-                            periodeFra = LocalDate.of(kalenderÅrNå, 1, 1),
-                            periodeTil = LocalDate.of(kalenderÅrNå, 3, 31),
-                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                            antall = BigDecimal(3),
-                            enhetsprisPerManed = BigDecimal(2000),
-                            belop = BigDecimal(6000),
-                        ),
-                    )
-                ),
-                Faktura(
-                    id = 2,
-                    referanseNr = "5678",
-                    datoBestilt = LocalDate.of(2024, 3, 19),
-                    status = FakturaStatus.BESTILT,
-                    eksternFakturaNummer = "8272123",
-                    fakturaLinje = listOf(
-                        FakturaLinje(
-                            id = 3,
-                            periodeFra = LocalDate.of(kalenderÅrNå, 4, 1),
-                            periodeTil = LocalDate.of(kalenderÅrNå, 6, 30),
-                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                            antall = BigDecimal(3),
-                            enhetsprisPerManed = BigDecimal(1000),
-                            belop = BigDecimal(6000),
-                        ),
-                        FakturaLinje(
-                            id = 4,
-                            periodeFra = LocalDate.of(kalenderÅrNå, 4, 1),
-                            periodeTil = LocalDate.of(kalenderÅrNå, 6, 30),
-                            beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z",
-                            antall = BigDecimal(3),
-                            enhetsprisPerManed = BigDecimal(2000),
-                            belop = BigDecimal(6000),
-                        ),
-                    )
-                )
-            ),
-            fodselsnummer = "12345678911",
+        return Fakturaserie.forTest {
+            id = 100
+            referanse = OPPRINNELIG_REF
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            referanseBruker = "Referanse bruker"
+            referanseNAV = "Referanse NAV"
+            fra = LocalDate.of(kalenderÅrNå, 1, 1).toString()
+            til = LocalDate.of(kalenderÅrNå, 12, 31).toString()
+            status = FakturaserieStatus.OPPRETTET
+            intervall = FakturaserieIntervall.KVARTAL
+            fodselsnummer = "12345678911"
             fullmektig = Fullmektig(
                 fodselsnummer = "12129012345",
                 organisasjonsnummer = ""
-            ),
-        )
+            )
+
+            faktura {
+                id = 1
+                referanseNr = "1234"
+                bestilt = LocalDate.of(kalenderÅrNå - 1, 12, 19).toString()
+                status = FakturaStatus.BESTILT
+                eksternFakturaNummer = "8272123"
+                fakturaLinje {
+                    id = 1
+                    fra = LocalDate.of(kalenderÅrNå, 1, 1).toString()
+                    til = LocalDate.of(kalenderÅrNå, 3, 31).toString()
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z"
+                    antall = BigDecimal(3)
+                    månedspris = 1000
+                    belop = BigDecimal(3000)
+                }
+                fakturaLinje {
+                    id = 2
+                    fra = LocalDate.of(kalenderÅrNå, 1, 1).toString()
+                    til = LocalDate.of(kalenderÅrNå, 3, 31).toString()
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z"
+                    antall = BigDecimal(3)
+                    månedspris = 2000
+                    belop = BigDecimal(6000)
+                }
+            }
+
+            faktura {
+                id = 2
+                referanseNr = "5678"
+                bestilt = "2024-03-19"
+                status = FakturaStatus.BESTILT
+                eksternFakturaNummer = "8272123"
+                fakturaLinje {
+                    id = 3
+                    fra = LocalDate.of(kalenderÅrNå, 4, 1).toString()
+                    til = LocalDate.of(kalenderÅrNå, 6, 30).toString()
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z"
+                    antall = BigDecimal(3)
+                    månedspris = 1000
+                    belop = BigDecimal(6000)
+                }
+                fakturaLinje {
+                    id = 4
+                    fra = LocalDate.of(kalenderÅrNå, 4, 1).toString()
+                    til = LocalDate.of(kalenderÅrNå, 6, 30).toString()
+                    beskrivelse = "Inntekt: X, Dekning: Y, Sats: Z"
+                    antall = BigDecimal(3)
+                    månedspris = 2000
+                    belop = BigDecimal(6000)
+                }
+            }
+        }
     }
 
     private fun lagFakturaserieDto(
