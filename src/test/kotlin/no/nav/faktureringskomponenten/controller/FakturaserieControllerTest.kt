@@ -7,6 +7,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.controller.AuditorAwareFilter.Companion.NAV_USER_ID
 import no.nav.faktureringskomponenten.controller.FakturaserieControllerIT.Companion.lagFakturaserieDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
@@ -47,7 +48,7 @@ class FakturaserieControllerTest(
     @Test
     fun `Fakturaserie perioder kan ikke starte i tidligere år`() {
         unleash.enableAll()
-        unleash.enable("melosys.faktureringskomponenten.ikke-tidligere-perioder")
+        unleash.enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)
         val lagFakturaserieDto = lagFakturaserieDto()
 
 
@@ -70,7 +71,7 @@ class FakturaserieControllerTest(
     @Test
     fun `Fakturaserie perioder kan starte i nåværende år`() {
         unleash.enableAll()
-        unleash.enable("melosys.faktureringskomponenten.ikke-tidligere-perioder")
+        unleash.enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)
         val lagFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
                 FakturaseriePeriodeDto.forTest {
@@ -101,7 +102,7 @@ class FakturaserieControllerTest(
     @Test
     fun `Fakturaserie perioder kan starte i tidligere år med toggle av`() {
         unleash.disableAll()
-        unleash.disable("melosys.faktureringskomponenten.ikke-tidligere-perioder")
+        unleash.disable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)
         val lagFakturaserieDto = lagFakturaserieDto()
 
         every { faktureringServiceMock.lagNyFakturaserie(any(), any()) } returns "123456"

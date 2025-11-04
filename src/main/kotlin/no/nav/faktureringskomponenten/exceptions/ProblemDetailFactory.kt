@@ -24,5 +24,20 @@ class ProblemDetailFactory {
             )
             return problemDetail
         }
+
+        fun mapTilProblemDetail(field: String, message: String): ProblemDetail {
+            return ProblemDetail.forStatus(HttpStatus.BAD_REQUEST).apply {
+                title = "Constraint Violation"
+                setProperty(
+                    "violations",
+                    listOf(
+                        mapOf(
+                            "field" to field,
+                            "message" to message
+                        )
+                    )
+                )
+            }
+        }
     }
 }

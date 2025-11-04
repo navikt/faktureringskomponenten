@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.controller.dto
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
@@ -50,7 +49,6 @@ data class FakturaserieRequestDto(
     val intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
 
     @field:Schema(description = "Liste av betalingsperioder, kan ikke være tom")
-    @field:NotEmpty(message = "Du må oppgi minst én periode")
     @field:Valid
     val perioder: List<FakturaseriePeriodeDto>
 ) {
