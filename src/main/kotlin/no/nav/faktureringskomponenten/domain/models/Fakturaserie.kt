@@ -71,11 +71,11 @@ class Fakturaserie(
 
     override fun toString(): String {
         return "referanse: $referanse, " +
-                "fakturaGjelderInnbetalingstype: $fakturaGjelderInnbetalingstype, " +
-                "referanseNAV: $referanseNAV, " +
-                "startdato: $startdato, " +
-                "sluttDato: $sluttdato, " +
-                "faktura: $faktura"
+            "fakturaGjelderInnbetalingstype: $fakturaGjelderInnbetalingstype, " +
+            "referanseNAV: $referanseNAV, " +
+            "startdato: $startdato, " +
+            "sluttDato: $sluttdato, " +
+            "faktura: $faktura"
     }
 
     fun erAktiv(): Boolean {
@@ -106,7 +106,7 @@ class Fakturaserie(
         return faktura.filter { it.status == FakturaStatus.OPPRETTET }
     }
 
-    public fun avbrytPlanlagteFakturaer() {
+    fun avbrytPlanlagteFakturaer() {
         planlagteFakturaer().forEach { it.status = FakturaStatus.AVBRUTT }
     }
 

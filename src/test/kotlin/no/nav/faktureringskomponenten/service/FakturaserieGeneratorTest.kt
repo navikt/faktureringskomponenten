@@ -1,9 +1,11 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -659,6 +661,38 @@ class FakturaserieGeneratorTest {
             )
         )
     }
+
+    @Test
+    fun `Skal kaste feil hvis ingen avregningsfaktura eller periode`() {
+        unleash.apply { enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) }
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns LocalDate.of(2025, 8, 27)
+
+
+        val opprinneligFakturaSerie = lagFakturaserie(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2024, 1, 1),
+                    sluttDato = LocalDate.of(2025, 12, 31),
+                    beskrivelse = "Inntekt: 10000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                )
+            )
+        )
+
+        val exception = shouldThrow<IllegalStateException> {
+            lagFakturaserieForEndring(
+                intervall = FakturaserieIntervall.KVARTAL,
+                perioder = emptyList(),
+                opprinneligFakturaserie = opprinneligFakturaSerie
+            )
+        }
+        exception.message shouldContain "Kan ikke opprette fakturaserie med tomme perioder og ingen avregningsfakturaer"
+
+    }
+
+
 
     @Test
     fun `Fakturaserie skal kun avregne inneværende og fremtidige perioder ved tom periodeinput`() {

@@ -62,7 +62,12 @@ class FakturaserieController @Autowired constructor(
         if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)) {
             if (fakturaserieRequestDto.perioder.isEmpty() && fakturaserieRequestDto.fakturaserieReferanse.isNullOrEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(mapTilProblemDetail("perioder", "Må ha minst en periode hvis ikke er erstatning av tidligere fakturaserie"))
+                    .body(
+                        mapTilProblemDetail(
+                            "perioder",
+                            "Tomme perioder er kun tillatt ved erstatning av eksisterende fakturaserie. For nye fakturaserier må minst én periode oppgis."
+                        )
+                    )
             }
         } else if (fakturaserieRequestDto.perioder.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapTilProblemDetail("perioder", "Du må oppgi minst én periode"))
