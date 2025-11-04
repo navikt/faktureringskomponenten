@@ -7,6 +7,7 @@ import no.nav.faktureringskomponenten.PostgresTestContainerBase
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
+import no.nav.faktureringskomponenten.domain.models.forTest
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
@@ -25,11 +26,11 @@ class FakturaserieRepositoryIT(
     @Test
     fun test_findAllByDatoBestiltIsLessThanEqualAndStatusIs() {
         fakturaserieRepository.save(
-            Fakturaserie(
-                faktura = mutableListOf(
-                    Faktura(datoBestilt = LocalDate.now().plusDays(100))
-                )
-            )
+            Fakturaserie.forTest {
+                faktura {
+                    datoBestilt = LocalDate.now().plusDays(100)
+                }
+            }
         ).apply { addCleanUpAction { fakturaserieRepository.delete(this) } }
 
         val fakturaList =
@@ -41,13 +42,12 @@ class FakturaserieRepositoryIT(
     @Test
     fun `lag fødselsnummer med 11 char og last igjen`() {
         val fakturaserie = fakturaserieRepository.save(
-            Fakturaserie(
-                fodselsnummer = "01234567890",
+            Fakturaserie.forTest {
+                fodselsnummer = "01234567890"
                 fullmektig = Fullmektig(
                     fodselsnummer = "-123456789-"
-                ),
-                faktura = mutableListOf()
-            )
+                )
+            }
         ).apply { addCleanUpAction { fakturaserieRepository.delete(this) } }
 
         fakturaserieRepository.findById(
