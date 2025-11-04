@@ -12,9 +12,9 @@
 |----------|----------|-------|--------|
 | **Test Factories** | 7/7 | 100% | ✅ Complete |
 | **High Priority** | 5/5 | 100% | ✅ Complete |
-| **Medium Priority** | 5/9 | 56% | 🟡 In Progress |
+| **Medium Priority** | 7/9 | 78% | 🟡 In Progress |
 | **Low Priority** | 1/5 | 20% | 🟡 In Progress |
-| **Total Tests** | 11/24 | 46% | 🟡 In Progress |
+| **Total Tests** | 13/24 | 54% | 🟡 In Progress |
 
 ---
 
@@ -150,7 +150,7 @@
 
 ---
 
-## 📈 Phase 3: Medium Priority Migrations (5/9)
+## 📈 Phase 3: Medium Priority Migrations (7/9)
 
 ### Integration Tests (5/6)
 
@@ -213,21 +213,30 @@
 - **Estimated savings:** 10+ lines
 - **Estimated time:** 45 min
 
-### Service Tests (0/3)
+### Service Tests (2/3)
 
-#### FakturaserieServiceTest.kt 🔴
-- **Status:** Not Started
+#### FakturaBestillingServiceTest.kt ✅
+- **Status:** COMPLETED (2025-11-04)
 - **Priority:** ⭐⭐
-- **Uses:** Old DSL, FakturaseriePeriode constructions
-- **Estimated savings:** 20+ lines
-- **Estimated time:** 1-2 hours
+- **LOC:** 184 lines
+- **Migration:** Converted lagFaktura/lagFakturalinje/lagFakturaserie to .forTest DSL
+- **Instances converted:** 11 old DSL calls
+- **Actual savings:** 2 lines (net)
+- **Actual time:** 30 minutes
+- **Challenges:** BigDecimal scale precision in test assertions
+- **Test results:** All 3 tests passing
+- **Commit:** `099c081`
 
-#### FakturaBestillingServiceTest.kt 🔴
-- **Status:** Not Started
+#### FakturaserieServiceTest.kt ✅
+- **Status:** COMPLETED (2025-11-04)
 - **Priority:** ⭐⭐
-- **Uses:** Old DSL
-- **Estimated savings:** 10+ lines
-- **Estimated time:** 1 hour
+- **LOC:** 376 lines
+- **Migration:** Converted lagFaktura/lagFakturaserie to .forTest DSL
+- **Instances converted:** 2 old DSL calls
+- **Actual savings:** 1 line (net)
+- **Actual time:** 20 minutes
+- **Test results:** All 8 tests passing
+- **Commit:** `281e4fb`
 
 #### AvregningsfakturaGeneratorTest.kt 🔴
 - **Status:** Not Started
@@ -451,13 +460,18 @@
 ## 📝 Migration Notes & Learnings
 
 ### 2025-11-04 (Session 3 - Phase 3)
-- ✅ Migrated 3 integration test files + 1 base class
-- ✅ FakturaBestillingServiceIT.kt - converted direct constructors
-- ✅ FakturaKanselleringIT.kt - converted old lagFakturaserie/lagFaktura DSL
-- ✅ EmbeddedKafkaBase.kt - infrastructure migration benefits 2+ test files
+- ✅ Migrated 5 medium-priority test files + 1 base class
+- ✅ **Integration tests:**
+  - FakturaBestillingServiceIT.kt - converted direct constructors
+  - FakturaKanselleringIT.kt - converted old lagFakturaserie/lagFaktura DSL
+  - EmbeddedKafkaBase.kt - infrastructure migration benefits 2+ test files
+- ✅ **Service tests:**
+  - FakturaBestillingServiceTest.kt - 11 old DSL instances converted
+  - FakturaserieServiceTest.kt - 2 old DSL instances converted
 - 🔧 Discovered old DSL vs new DSL default value differences (enhetsprisPerManed: 10000 vs 1000)
 - 🔧 Old DSL creates default FakturaLinje, new DSL doesn't - must be explicit
-- ⚡ Completed 5/9 medium priority files (56%)
+- 🔧 BigDecimal scale precision in assertions - must use .setScale(2) in expected values
+- ⚡ Completed 7/9 medium priority files (78%)
 
 ### 2025-11-04 (Session 2 - Phase 2)
 - ✅ Migrated 4 high-priority test files (67 instances)
