@@ -1,6 +1,8 @@
 package no.nav.faktureringskomponenten.service
 
+import io.getunleash.Unleash
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
@@ -16,7 +18,8 @@ private val log = KotlinLogging.logger { }
 class FakturaserieService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaserieGenerator: FakturaserieGenerator,
-    private val fakturaBestillingService: FakturaBestillingService
+    private val fakturaBestillingService: FakturaBestillingService,
+    private val unleash: Unleash
 ) {
 
     fun hentFakturaserie(referanse: String): Fakturaserie =
@@ -56,6 +59,16 @@ class FakturaserieService(
             )
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes" }
 
+        if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) && harIngenAvregning(
+                fakturaserieDto,
+                opprinneligFakturaserie
+            )
+        ) {
+            log.info("Ingen avregning nødvendig ved erstatning av fakturaserie ${opprinneligFakturaserie.referanse}, returnerer opprinnelig referanse")
+            opprinneligFakturaserie.avbrytPlanlagteFakturaer()
+            fakturaserieRepository.save(opprinneligFakturaserie)
+            return opprinneligFakturaserie.referanse
+        }
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserieForEndring(
             fakturaserieDto,
             opprinneligFakturaserie
@@ -67,6 +80,14 @@ class FakturaserieService(
 
         log.info("Erstattet fakturaserie: ${opprinneligFakturaserie.referanse}, lagret ny: ${nyFakturaserie.referanse}")
         return nyFakturaserie.referanse
+    }
+
+    private fun harIngenAvregning(
+        fakturaserieDto: FakturaserieDto,
+        opprinneligFakturaserie: Fakturaserie
+    ): Boolean {
+        val bestilteFakturaFraIÅrOgFremover = opprinneligFakturaserie.bestilteFakturaer().filter { it.alleFakturaLinjerErFraIÅrEllerFremover() }
+        return fakturaserieDto.perioder.isEmpty() && bestilteFakturaFraIÅrOgFremover.isEmpty()
     }
 
     fun finnesReferanse(referanse: String): Boolean {

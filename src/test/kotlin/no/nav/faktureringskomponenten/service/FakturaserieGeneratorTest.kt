@@ -1,12 +1,15 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaserieGenerator.Companion.substract
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
@@ -30,7 +33,7 @@ class FakturaserieGeneratorTest {
 
     @AfterEach
     fun tearDown() {
-        unleash.disableAll()
+        unleash.apply { disable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) }
         unmockkStatic(LocalDate::class)
     }
 
@@ -598,7 +601,7 @@ class FakturaserieGeneratorTest {
 
     @Test
     fun `Finnes eksisterende fakturaserie fra tidligere kalenderår - disse skal ikke avregnes ved ny fakturaserie`() {
-        unleash.apply { enable("melosys.faktureringskomponenten.ikke-tidligere-perioder") }
+        unleash.apply { enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) }
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns LocalDate.of(2025, 8, 27)
 
@@ -651,6 +654,94 @@ class FakturaserieGeneratorTest {
                             Linje(
                                 "2025-10-01", "2025-12-31", "-15000.00",
                                 "Nytt beløp: 15000,00 - tidligere beløp: 30000,00"
+                            ),
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `Skal kaste feil hvis ingen avregningsfaktura eller periode`() {
+        unleash.apply { enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) }
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns LocalDate.of(2025, 8, 27)
+
+
+        val opprinneligFakturaSerie = lagFakturaserie(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2024, 1, 1),
+                    sluttDato = LocalDate.of(2025, 12, 31),
+                    beskrivelse = "Inntekt: 10000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                )
+            )
+        )
+
+        val exception = shouldThrow<IllegalStateException> {
+            lagFakturaserieForEndring(
+                intervall = FakturaserieIntervall.KVARTAL,
+                perioder = emptyList(),
+                opprinneligFakturaserie = opprinneligFakturaSerie
+            )
+        }
+        exception.message shouldContain "Kan ikke opprette fakturaserie med tomme perioder og ingen avregningsfakturaer"
+
+    }
+
+
+
+    @Test
+    fun `Fakturaserie skal kun avregne inneværende og fremtidige perioder ved tom periodeinput`() {
+        unleash.apply { enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) }
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns LocalDate.of(2025, 8, 27)
+
+
+        val opprinneligFakturaSerie = lagFakturaserie(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode(
+                    enhetsprisPerManed = BigDecimal(10000),
+                    startDato = LocalDate.of(2024, 1, 1),
+                    sluttDato = LocalDate.of(2025, 12, 31),
+                    beskrivelse = "Inntekt: 10000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
+                )
+            )
+        )
+
+        opprinneligFakturaSerie.faktura.forEach {
+            it.status = FakturaStatus.BESTILT
+        }
+
+        val nyFakturaSerie = lagFakturaserieForEndring(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = emptyList(),
+            opprinneligFakturaserie = opprinneligFakturaSerie
+        )
+
+        ForventetFakturering(nyFakturaSerie.faktura).shouldBeEqualToComparingFields(
+            ForventetFakturering(
+                2,
+                listOf(
+                    FakturaMedLinjer(
+                        fra = "2025-01-01", til = "2025-09-30",
+                        listOf(
+                            Linje(
+                                "2025-01-01", "2025-09-30", "-90000.00",
+                                "Nytt beløp: 0,00 - tidligere beløp: 90000,00"
+                            ),
+                        )
+                    ),
+                    FakturaMedLinjer(
+                        fra = "2025-10-01", til = "2025-12-31",
+                        listOf(
+                            Linje(
+                                "2025-10-01", "2025-12-31", "-30000.00",
+                                "Nytt beløp: 0,00 - tidligere beløp: 30000,00"
                             ),
                         )
                     )

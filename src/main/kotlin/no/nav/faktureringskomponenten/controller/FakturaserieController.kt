@@ -1,10 +1,12 @@
 package no.nav.faktureringskomponenten.controller
 
+import io.getunleash.Unleash
 import io.micrometer.core.instrument.Metrics
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.controller.dto.FakturamottakerRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
@@ -13,6 +15,7 @@ import no.nav.faktureringskomponenten.controller.mapper.tilFakturamottakerDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory
+import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory.Companion.mapTilProblemDetail
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import no.nav.security.token.support.core.api.Protected
@@ -33,6 +36,7 @@ private val log = KotlinLogging.logger { }
 @RequestMapping("/fakturaserier")
 class FakturaserieController @Autowired constructor(
     val faktureringService: FakturaserieService,
+    val unleash: Unleash
 ) {
 
     @Operation(summary = "Lager en ny fakturaserie")
@@ -53,6 +57,20 @@ class FakturaserieController @Autowired constructor(
 
         if (bindingResult.hasErrors()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ProblemDetailFactory.of(bindingResult))
+        }
+
+        if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)) {
+            if (fakturaserieRequestDto.perioder.isEmpty() && fakturaserieRequestDto.fakturaserieReferanse.isNullOrEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(
+                        mapTilProblemDetail(
+                            "perioder",
+                            "Tomme perioder er kun tillatt ved erstatning av eksisterende fakturaserie. For nye fakturaserier må minst én periode oppgis."
+                        )
+                    )
+            }
+        } else if (fakturaserieRequestDto.perioder.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapTilProblemDetail("perioder", "Du må oppgi minst én periode"))
         }
 
         val forrigeReferanse = fakturaserieRequestDto.fakturaserieReferanse

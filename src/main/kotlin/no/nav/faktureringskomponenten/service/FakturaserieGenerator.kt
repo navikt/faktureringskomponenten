@@ -2,6 +2,7 @@ package no.nav.faktureringskomponenten.service
 
 import io.getunleash.Unleash
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
@@ -30,11 +31,14 @@ class FakturaserieGenerator(
         val sluttDatoForSamletPeriode = fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato
 
         if (startDato != null && startDato.isAfter(sluttDatoForSamletPeriode))
-            log.error("startDato er etter sluttdato. AvregningsfakturaSistePeriodeTil: $avregningsfakturaSistePeriodeTil" +
-                " startDato: $startDato startDatoForSamletPeriode $startDatoForSamletPeriode sluttDatoForSamletPeriode $sluttDatoForSamletPeriode" +
-                " fakturaserieDto: $fakturaserieDto")
+            log.error(
+                "startDato er etter sluttdato. AvregningsfakturaSistePeriodeTil: $avregningsfakturaSistePeriodeTil" +
+                    " startDato: $startDato startDatoForSamletPeriode $startDatoForSamletPeriode sluttDatoForSamletPeriode $sluttDatoForSamletPeriode" +
+                    " fakturaserieDto: $fakturaserieDto"
+            )
 
-        val periodisering = FakturaIntervallPeriodisering.genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
+        val periodisering =
+            FakturaIntervallPeriodisering.genererPeriodisering(startDatoForSamletPeriode, sluttDatoForSamletPeriode, fakturaserieDto.intervall)
         val fakturaerForSamletPeriode = fakturaGenerator.lagFakturaerFor(periodisering, fakturaserieDto.perioder, fakturaserieDto.intervall)
 
         return Fakturaserie(
@@ -57,7 +61,7 @@ class FakturaserieGenerator(
         opprinneligFakturaserie: Fakturaserie
     ): Fakturaserie {
         val startDato = finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie)
-        val fakturaSomSkalBrukesIAvregning = if (unleash.isEnabled("melosys.faktureringskomponenten.ikke-tidligere-perioder")) {
+        val fakturaSomSkalBrukesIAvregning = if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)) {
             opprinneligFakturaserie.bestilteFakturaer().filter { it.alleFakturaLinjerErFraIÅrEllerFremover() }
         } else {
             opprinneligFakturaserie.bestilteFakturaer()
@@ -66,9 +70,32 @@ class FakturaserieGenerator(
             fakturaserieDto.perioder,
             fakturaSomSkalBrukesIAvregning
         )
-        val nyeFakturaerForNyePerioder: List<Faktura> = lagNyeFakturaerForNyePerioder(fakturaserieDto, avregningsfakturaer)
 
+        if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)) {
+            if (fakturaserieDto.perioder.isEmpty()) {
+                if (avregningsfakturaer.isEmpty()) {
+                    error("Kan ikke opprette fakturaserie med tomme perioder og ingen avregningsfakturaer. FakturaserieDto: $fakturaserieDto")
+                }
+                return Fakturaserie(
+                    id = null,
+                    referanse = fakturaserieDto.fakturaserieReferanse,
+                    fakturaGjelderInnbetalingstype = fakturaserieDto.fakturaGjelderInnbetalingstype,
+                    fodselsnummer = fakturaserieDto.fodselsnummer,
+                    fullmektig = mapFullmektig(fakturaserieDto.fullmektig),
+                    referanseBruker = fakturaserieDto.referanseBruker,
+                    referanseNAV = fakturaserieDto.referanseNAV,
+                    startdato = avregningsfakturaer.minBy { it.getPeriodeFra() }.getPeriodeFra(),
+                    sluttdato = avregningsfakturaer.maxBy { it.getPeriodeTil() }.getPeriodeTil(),
+                    intervall = fakturaserieDto.intervall,
+                    faktura = avregningsfakturaer
+                )
+            }
+        }
+
+        val nyeFakturaerForNyePerioder: List<Faktura> = lagNyeFakturaerForNyePerioder(fakturaserieDto, avregningsfakturaer)
         return lagFakturaserie(fakturaserieDto, startDato, avregningsfakturaer + nyeFakturaerForNyePerioder)
+
+
     }
 
     private fun finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie: Fakturaserie) =
