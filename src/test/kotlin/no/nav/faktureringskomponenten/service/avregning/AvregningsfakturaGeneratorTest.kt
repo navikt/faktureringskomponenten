@@ -5,6 +5,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.forTest
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -14,7 +15,9 @@ class AvregningsfakturaGeneratorTest {
 
     @Test
     fun lagFaktura() {
-        val bestilteFaktura = Faktura(eksternFakturaNummer = "123")
+        val bestilteFaktura = Faktura.forTest {
+            eksternFakturaNummer = "123"
+        }
         val avregningsperiode = Avregningsperiode(
             bestilteFaktura = bestilteFaktura,
             opprinneligFaktura = bestilteFaktura,
@@ -28,16 +31,15 @@ class AvregningsfakturaGeneratorTest {
 
         faktura.shouldNotBeNull()
         faktura.krediteringFakturaRef.shouldBe(avregningsperiode.bestilteFaktura.referanseNr)
-        faktura.fakturaLinje shouldContain FakturaLinje(
-            id = null,
-            periodeFra = LocalDate.of(2024, 1, 1),
-            periodeTil = LocalDate.of(2024, 3, 31),
-            beskrivelse = "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 1000,00 - tidligere beløp: 2000,00",
-            antall = BigDecimal(-1),
-            enhetsprisPerManed = BigDecimal(1000),
-            avregningForrigeBeloep = avregningsperiode.tidligereBeløp,
-            avregningNyttBeloep = avregningsperiode.nyttBeløp,
-            belop = BigDecimal(-1000),
-        )
+
+        val fakturaLinje = faktura.fakturaLinje.single()
+        fakturaLinje.periodeFra shouldBe LocalDate.of(2024, 1, 1)
+        fakturaLinje.periodeTil shouldBe LocalDate.of(2024, 3, 31)
+        fakturaLinje.beskrivelse shouldBe "Periode: 01.01.2024 - 31.03.2024\nNytt beløp: 1000,00 - tidligere beløp: 2000,00"
+        fakturaLinje.antall shouldBe BigDecimal(-1)
+        fakturaLinje.enhetsprisPerManed shouldBe BigDecimal(1000)
+        fakturaLinje.avregningForrigeBeloep shouldBe BigDecimal(2000)
+        fakturaLinje.avregningNyttBeloep shouldBe BigDecimal(1000)
+        fakturaLinje.belop shouldBe BigDecimal(-1000)
     }
 }

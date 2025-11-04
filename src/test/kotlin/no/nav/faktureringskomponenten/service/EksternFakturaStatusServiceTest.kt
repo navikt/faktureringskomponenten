@@ -6,7 +6,7 @@ import io.mockk.*
 import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.forTest
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.integration.kafka.ManglendeFakturabetalingProducer
@@ -65,11 +65,11 @@ class EksternFakturaStatusServiceTest {
             status = eksternFakturaStatusDto.status,
             feilMelding = eksternFakturaStatusDto.feilmelding,
         )
-        val faktura = Faktura(
-            id = 1L,
-            status = FakturaStatus.MANGLENDE_INNBETALING,
-            eksternFakturaStatus = mutableListOf(eksternFakturaStatus)
-        )
+        val faktura = Faktura.forTest {
+            id = 1L
+            status = FakturaStatus.MANGLENDE_INNBETALING
+            leggTilEksternFakturaStatus(eksternFakturaStatus)
+        }
 
         every { fakturaRepository.findByReferanseNr("123") } returns faktura
         every {
@@ -99,7 +99,13 @@ class EksternFakturaStatusServiceTest {
             ubetaltBelop = BigDecimal(1000),
             feilmelding = null
         )
-        val faktura = Faktura(id = 1L, referanseNr = "123", fakturaserie = Fakturaserie(referanse = "321"))
+        val faktura = Faktura.forTest {
+            id = 1L
+            referanseNr = "123"
+            fakturaserie {
+                referanse = "321"
+            }
+        }
         every { fakturaRepository.findByReferanseNr("123") } returns faktura
         every {
             eksternFakturaStatusMapper.tilEksternFakturaStatus(
@@ -142,7 +148,13 @@ class EksternFakturaStatusServiceTest {
             ubetaltBelop = BigDecimal(1000),
             feilmelding = null
         )
-        val faktura = Faktura(id = 1L, referanseNr = "123", fakturaserie = Fakturaserie(referanse = "321"))
+        val faktura = Faktura.forTest {
+            id = 1L
+            referanseNr = "123"
+            fakturaserie {
+                referanse = "321"
+            }
+        }
         every { fakturaRepository.findByReferanseNr("123") } returns faktura
         every {
             eksternFakturaStatusMapper.tilEksternFakturaStatus(

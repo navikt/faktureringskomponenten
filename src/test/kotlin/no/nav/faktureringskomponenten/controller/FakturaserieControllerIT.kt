@@ -14,6 +14,7 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.controller.dto.*
+import no.nav.faktureringskomponenten.controller.dto.forTest
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
@@ -75,12 +76,12 @@ class FakturaserieControllerIT(
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Inntekt fra utlandet"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    startDato = startDatoOpprinnelig
+                    sluttDato = sluttDatoOpprinnelig
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -91,8 +92,18 @@ class FakturaserieControllerIT(
 
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(18000), startDatoNy, sluttDatoNy, "Inntekt fra Norge"),
-                FakturaseriePeriodeDto(BigDecimal(24000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 18000
+                    startDato = startDatoNy
+                    sluttDato = sluttDatoNy
+                    beskrivelse = "Inntekt fra Norge"
+                },
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 24000
+                    startDato = startDatoNy
+                    sluttDato = sluttDatoNy
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -136,12 +147,12 @@ class FakturaserieControllerIT(
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(1000),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Inntekt fra utlandet"
-                )
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = startDatoOpprinnelig
+                    sluttDato = sluttDatoOpprinnelig
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -164,7 +175,12 @@ class FakturaserieControllerIT(
         val sluttDatoNy = LocalDate.of(2024, 6, 30)
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(1000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = startDatoNy
+                    sluttDato = sluttDatoNy
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -233,12 +249,12 @@ class FakturaserieControllerIT(
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(1000),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Inntekt fra utlandet"
-                )
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = startDatoOpprinnelig
+                    sluttDato = sluttDatoOpprinnelig
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -258,7 +274,12 @@ class FakturaserieControllerIT(
         val sluttDatoNy = LocalDate.of(2024, 9, 1)
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(1000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = startDatoNy
+                    sluttDato = sluttDatoNy
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -329,12 +350,12 @@ class FakturaserieControllerIT(
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(1000),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Inntekt fra utlandet"
-                )
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = startDatoOpprinnelig
+                    sluttDato = sluttDatoOpprinnelig
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -357,7 +378,12 @@ class FakturaserieControllerIT(
         val sluttDatoNy = LocalDate.of(2024, 6, 30)
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(1000), startDatoNy, sluttDatoNy, "Inntekt fra utlandet"),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = startDatoNy
+                    sluttDato = sluttDatoNy
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -420,12 +446,12 @@ class FakturaserieControllerIT(
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Inntekt fra utlandet"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    startDato = startDatoOpprinnelig
+                    sluttDato = sluttDatoOpprinnelig
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -438,12 +464,12 @@ class FakturaserieControllerIT(
 
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(20000),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Inntekt fra utlandet"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 20000
+                    startDato = startDatoOpprinnelig
+                    sluttDato = sluttDatoOpprinnelig
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -491,12 +517,12 @@ class FakturaserieControllerIT(
 
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Inntekt fra utlandet"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    startDato = startDatoOpprinnelig
+                    sluttDato = sluttDatoOpprinnelig
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -513,12 +539,12 @@ class FakturaserieControllerIT(
 
         val nyFakturaserieDto = lagFakturaserieDto(
             referanseId = opprinneligFakturaserieReferanse, fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(20000),
-                    startDatoOpprinnelig,
-                    sluttDatoOpprinnelig,
-                    "Inntekt fra utlandet"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 20000
+                    startDato = startDatoOpprinnelig
+                    sluttDato = sluttDatoOpprinnelig
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -560,8 +586,18 @@ class FakturaserieControllerIT(
         val sluttDato = LocalDate.parse("2024-03-31")
         val fakturaSerieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(12000), startDato, sluttDato, "Inntekt fra utlandet"),
-                FakturaseriePeriodeDto(BigDecimal(500), startDato, sluttDato, "Misjonær")
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt fra utlandet"
+                },
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 500
+                    this.startDato = startDato
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Misjonær"
+                }
             )
         )
 
@@ -595,12 +631,12 @@ class FakturaserieControllerIT(
         val fakturaserieDto = lagFakturaserieDto(
             fullmektig = null,
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    LocalDate.now().minusMonths(3),
-                    LocalDate.now().plusMonths(9),
-                    "Inntekt fra utlandet"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    startDato = LocalDate.now().minusMonths(3)
+                    sluttDato = LocalDate.now().plusMonths(9)
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
         val referanse =
@@ -628,8 +664,18 @@ class FakturaserieControllerIT(
         val sluttDato = LocalDate.parse("2023-03-31")
         val fakturaSerieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(BigDecimal(12000), startDato, sluttDato, "Inntekt fra utlandet"),
-                FakturaseriePeriodeDto(BigDecimal(500), startDato, sluttDato, "Misjonær")
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt fra utlandet"
+                },
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 500
+                    this.startDato = startDato
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Misjonær"
+                }
             )
         )
 
@@ -657,12 +703,12 @@ class FakturaserieControllerIT(
         val sluttDato = LocalDate.parse("2023-03-31")
         val fakturaSerieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDato,
-                    sluttDato,
-                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                }
             )
         )
 
@@ -688,42 +734,42 @@ class FakturaserieControllerIT(
         val sluttDato = LocalDate.parse("2023-03-31")
         val fakturaSerieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDato,
-                    sluttDato,
-                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
-                ),
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDato.plusDays(10),
-                    sluttDato,
-                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
-                ),
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDato.plusDays(40),
-                    sluttDato,
-                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
-                ),
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDato.plusDays(80),
-                    sluttDato,
-                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
-                ),
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDato.plusDays(90),
-                    sluttDato,
-                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
-                ),
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDato.plusDays(200),
-                    sluttDato,
-                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                },
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato.plusDays(10)
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                },
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato.plusDays(40)
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                },
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato.plusDays(80)
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                },
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato.plusDays(90)
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                },
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato.plusDays(200)
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                }
             )
         )
 
@@ -750,12 +796,12 @@ class FakturaserieControllerIT(
     fun `kansellerFakturaserie kansellerer fakturaserie og returnerer ny fakturaseriereferanse`() {
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    LocalDate.now(),
-                    LocalDate.now().plusDays(2),
-                    "Inntekt fra utlandet"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    startDato = LocalDate.now()
+                    sluttDato = LocalDate.now().plusDays(2)
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -806,12 +852,12 @@ class FakturaserieControllerIT(
         val sluttDato = LocalDate.parse("2024-01-31")
         val fakturaSerieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    startDato,
-                    sluttDato,
-                    "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
-                )
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    this.startDato = startDato
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Inntekt: 5000.0, Dekning: Helse- og pensjonsdel med syke- og foreldrepenger (§ 2-9), Sats: 3.5 %"
+                }
             )
         )
 
@@ -833,12 +879,12 @@ class FakturaserieControllerIT(
     fun `lag ny enkelt faktura (årsavregning)`() {
         val opprinneligFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal(12000),
-                    LocalDate.of(2023, 1, 1),
-                    LocalDate.of(2023, 12, 31),
-                    "Inntekt fra utlandet"
-                ),
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 12000
+                    startDato = LocalDate.of(2023, 1, 1)
+                    sluttDato = LocalDate.of(2023, 12, 31)
+                    beskrivelse = "Inntekt fra utlandet"
+                }
             )
         )
 
@@ -1015,12 +1061,12 @@ class FakturaserieControllerIT(
             fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
             intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL,
             fakturaseriePeriode: List<FakturaseriePeriodeDto> = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal.valueOf(123),
-                    LocalDate.of(2022, 1, 1),
-                    LocalDate.of(2022, 11, 30),
-                    "Beskrivelse"
-                )
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 123
+                    startDato = LocalDate.of(2022, 1, 1)
+                    sluttDato = LocalDate.of(2022, 11, 30)
+                    beskrivelse = "Beskrivelse"
+                }
             ),
         ): FakturaserieRequestDto {
             return FakturaserieRequestDto(

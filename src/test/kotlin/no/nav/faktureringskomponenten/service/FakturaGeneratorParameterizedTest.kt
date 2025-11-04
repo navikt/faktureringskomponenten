@@ -9,6 +9,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.forTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.TestInstance
@@ -61,6 +62,100 @@ class FakturaGeneratorParameterizedTest {
         val periodeTil: LocalDate,
         val belop: BigDecimal
     )
+
+    // Test case builders - hides boilerplate and makes tests more readable
+    private fun dateTestCase(init: DateTestCaseBuilder.() -> Unit) =
+        DateTestCaseBuilder().apply(init).build()
+
+    private fun periodTestCase(init: PeriodTestCaseBuilder.() -> Unit) =
+        PeriodTestCaseBuilder().apply(init).build()
+
+    private fun belopTestCase(init: BelopTestCaseBuilder.() -> Unit) =
+        BelopTestCaseBuilder().apply(init).build()
+
+    class DateTestCaseBuilder {
+        lateinit var name: String
+        var dagensDato: LocalDate = LocalDate.of(2024, 1, 1)
+        var perioder = mutableListOf<FakturaseriePeriode>()
+        var intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL
+        var expectedDatoBestilt = mutableListOf<LocalDate>()
+
+        fun periode(månedspris: Int, fra: String, til: String, beskrivelse: String = "Test periode") {
+            perioder.add(FakturaseriePeriode.forTest {
+                this.månedspris = månedspris
+                this.fra = fra
+                this.til = til
+                this.beskrivelse = beskrivelse
+            })
+        }
+
+        fun forventBestilt(vararg datoer: String) {
+            expectedDatoBestilt.addAll(datoer.map { LocalDate.parse(it) })
+        }
+
+        fun build() = argumentSet(
+            name,
+            DateTestCase(name, dagensDato, perioder, intervall, expectedDatoBestilt)
+        )
+    }
+
+    class PeriodTestCaseBuilder {
+        lateinit var name: String
+        var dagensDato: LocalDate = LocalDate.of(2024, 1, 1)
+        var perioder = mutableListOf<FakturaseriePeriode>()
+        var intervall: FakturaserieIntervall = FakturaserieIntervall.KVARTAL
+        var expectedPerioder = mutableListOf<Pair<LocalDate, LocalDate>>()
+
+        fun periode(månedspris: Int, fra: String, til: String, beskrivelse: String = "Test periode") {
+            perioder.add(FakturaseriePeriode.forTest {
+                this.månedspris = månedspris
+                this.fra = fra
+                this.til = til
+                this.beskrivelse = beskrivelse
+            })
+        }
+
+        fun forventPeriode(fra: String, til: String) {
+            expectedPerioder.add(LocalDate.parse(fra) to LocalDate.parse(til))
+        }
+
+        fun build() = argumentSet(
+            name,
+            PeriodTestCase(name, dagensDato, perioder, intervall, expectedPerioder)
+        )
+    }
+
+    class BelopTestCaseBuilder {
+        lateinit var name: String
+        var dagensDato: LocalDate = LocalDate.of(2024, 1, 1)
+        var perioder = mutableListOf<FakturaseriePeriode>()
+        var intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG
+        var expectedBelopPerFaktura = mutableListOf<ExpectedBelop>()
+
+        fun periode(månedspris: Int, fra: String, til: String, beskrivelse: String = "Test periode") {
+            perioder.add(FakturaseriePeriode.forTest {
+                this.månedspris = månedspris
+                this.fra = fra
+                this.til = til
+                this.beskrivelse = beskrivelse
+            })
+        }
+
+        fun forventBelop(fra: String, til: String, belop: String) {
+            expectedBelopPerFaktura.add(
+                ExpectedBelop(
+                    LocalDate.parse(fra),
+                    LocalDate.parse(til),
+                    BigDecimal(belop)
+                )
+            )
+        }
+
+        fun build() = argumentSet(
+            name,
+            BelopTestCase(name, dagensDato, perioder, intervall, expectedBelopPerFaktura)
+        )
+    }
 
     @ParameterizedTest(name = "{index} {argumentSetName}")
     @MethodSource("belopTestData")
@@ -126,291 +221,109 @@ class FakturaGeneratorParameterizedTest {
     }
 
     private fun datoBestiltTestData() = listOf(
-        // Test case: Kvartalsvis fakturering, fremtidig periode
-        DateTestCase(
-            description = "Kvartalsvis fakturering for fremtidig periode",
-            dagensDato = LocalDate.of(2024, 1, 15),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 4, 1),
-                    sluttDato = LocalDate.of(2024, 12, 31),
-                    beskrivelse = "Test periode 1"
-                )
-            ),
-            intervall = FakturaserieIntervall.KVARTAL,
-            expectedDatoBestilt = listOf(
-                LocalDate.of(2024, 3, 19),
-                LocalDate.of(2024, 6, 19),
-                LocalDate.of(2024, 9, 19)
-            )
-        ),
+        dateTestCase {
+            name = "Kvartalsvis fakturering for fremtidig periode"
+            dagensDato = LocalDate.of(2024, 1, 15)
+            periode(månedspris = 1000, fra = "2024-04-01", til = "2024-12-31")
+            forventBestilt("2024-03-19", "2024-06-19", "2024-09-19")
+        },
 
-        // Test case: Månedsvis fakturering, blandet historisk og fremtidig
-        DateTestCase(
-            description = "Månedsvis fakturering med historiske og fremtidige perioder",
-            dagensDato = LocalDate.of(2024, 1, 15),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2023, 12, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Test periode 2"
-                )
-            ),
-            intervall = FakturaserieIntervall.MANEDLIG,
-            expectedDatoBestilt = listOf(
-                LocalDate.of(2024, 1, 15),
-                LocalDate.of(2024, 1, 15),
-                LocalDate.of(2024, 1, 19),
-                LocalDate.of(2024, 2, 19)
-            )
-        ),
+        dateTestCase {
+            name = "Månedsvis fakturering med historiske og fremtidige perioder"
+            dagensDato = LocalDate.of(2024, 1, 15)
+            intervall = FakturaserieIntervall.MANEDLIG
+            periode(månedspris = 1000, fra = "2023-12-01", til = "2024-03-31")
+            forventBestilt("2024-01-15", "2024-01-15", "2024-01-19", "2024-02-19")
+        },
 
-        // Test case: Kvartalsvis på årsskifte
-        DateTestCase(
-            description = "Kvartalsvis fakturering over årsskifte",
-            dagensDato = LocalDate.of(2023, 12, 20),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2023, 12, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Test periode 3"
-                )
-            ),
-            intervall = FakturaserieIntervall.KVARTAL,
-            expectedDatoBestilt = listOf(
-                LocalDate.of(2023, 12, 20),
-                LocalDate.of(2023, 12, 20)
-            )
-        )
-    ).map { argumentSet(it.description, it) }
+        dateTestCase {
+            name = "Kvartalsvis fakturering over årsskifte"
+            dagensDato = LocalDate.of(2023, 12, 20)
+            periode(månedspris = 1000, fra = "2023-12-01", til = "2024-03-31")
+            forventBestilt("2023-12-20", "2023-12-20")
+        }
+    )
 
     private fun periodTestData() = listOf(
-        // Test case: Overlappende perioder
-        PeriodTestCase(
-            description = "Overlappende perioder",
-            dagensDato = LocalDate.of(2024, 1, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Periode 1"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("2000"),
-                    startDato = LocalDate.of(2024, 3, 15),
-                    sluttDato = LocalDate.of(2024, 6, 30),
-                    beskrivelse = "Periode 2"
-                )
-            ),
-            intervall = FakturaserieIntervall.KVARTAL,
-            expectedPerioder = listOf(
-                LocalDate.of(2024, 1, 1) to LocalDate.of(2024, 3, 31),
-                LocalDate.of(2024, 4, 1) to LocalDate.of(2024, 6, 30)
-            )
-        ),
+        periodTestCase {
+            name = "Overlappende perioder"
+            periode(månedspris = 1000, fra = "2024-01-01", til = "2024-03-31")
+            periode(månedspris = 2000, fra = "2024-03-15", til = "2024-06-30")
+            forventPeriode(fra = "2024-01-01", til = "2024-03-31")
+            forventPeriode(fra = "2024-04-01", til = "2024-06-30")
+        },
 
-        // Test case: Perioder med opphold
-        PeriodTestCase(
-            description = "Perioder med opphold",
-            dagensDato = LocalDate.of(2024, 1, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Periode 1"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 7, 1),
-                    sluttDato = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Periode 2"
-                )
-            ),
-            intervall = FakturaserieIntervall.KVARTAL,
-            expectedPerioder = listOf(
-                LocalDate.of(2024, 1, 1) to LocalDate.of(2024, 3, 31),
-                LocalDate.of(2024, 7, 1) to LocalDate.of(2024, 9, 30)
-            )
-        ),
+        periodTestCase {
+            name = "Perioder med opphold"
+            periode(månedspris = 1000, fra = "2024-01-01", til = "2024-03-31")
+            periode(månedspris = 1000, fra = "2024-07-01", til = "2024-09-30")
+            forventPeriode(fra = "2024-01-01", til = "2024-03-31")
+            forventPeriode(fra = "2024-07-01", til = "2024-09-30")
+        },
 
-        // Test case: Delvis måned
-        PeriodTestCase(
-            description = "Periode starter midt i måneden",
-            dagensDato = LocalDate.of(2024, 1, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 1, 15),
-                    sluttDato = LocalDate.of(2024, 3, 31),
-                    beskrivelse = "Delvis måned"
-                )
-            ),
-            intervall = FakturaserieIntervall.MANEDLIG,
-            expectedPerioder = listOf(
-                LocalDate.of(2024, 1, 15) to LocalDate.of(2024, 1, 31),
-                LocalDate.of(2024, 2, 1) to LocalDate.of(2024, 2, 29),
-                LocalDate.of(2024, 3, 1) to LocalDate.of(2024, 3, 31)
-            )
-        ),
+        periodTestCase {
+            name = "Periode starter midt i måneden"
+            intervall = FakturaserieIntervall.MANEDLIG
+            periode(månedspris = 1000, fra = "2024-01-15", til = "2024-03-31")
+            forventPeriode(fra = "2024-01-15", til = "2024-01-31")
+            forventPeriode(fra = "2024-02-01", til = "2024-02-29")
+            forventPeriode(fra = "2024-03-01", til = "2024-03-31")
+        },
 
-        // Test case: Skuddårhåndtering
-        PeriodTestCase(
-            description = "Skuddår håndtering 2024",
-            dagensDato = LocalDate.of(2024, 1, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 2, 1),
-                    sluttDato = LocalDate.of(2024, 3, 15),
-                    beskrivelse = "Skuddår periode"
-                )
-            ),
-            intervall = FakturaserieIntervall.MANEDLIG,
-            expectedPerioder = listOf(
-                LocalDate.of(2024, 2, 1) to LocalDate.of(2024, 2, 29),
-                LocalDate.of(2024, 3, 1) to LocalDate.of(2024, 3, 15)
-            )
-        ),
+        periodTestCase {
+            name = "Skuddår håndtering 2024"
+            intervall = FakturaserieIntervall.MANEDLIG
+            periode(månedspris = 1000, fra = "2024-02-01", til = "2024-03-15")
+            forventPeriode(fra = "2024-02-01", til = "2024-02-29")
+            forventPeriode(fra = "2024-03-01", til = "2024-03-15")
+        },
 
-        PeriodTestCase(
-            description = "Årsskifte med delvis kvartaler",
-            dagensDato = LocalDate.of(2023, 12, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2023, 11, 15),
-                    sluttDato = LocalDate.of(2024, 2, 15),
-                    beskrivelse = "Årsskifte periode"
-                )
-            ),
-            intervall = FakturaserieIntervall.KVARTAL,
-            expectedPerioder = listOf(
-                LocalDate.of(2023, 11, 15) to LocalDate.of(2023, 12, 31),
-                LocalDate.of(2024, 1, 1) to LocalDate.of(2024, 2, 15)
-            )
-        ),
+        periodTestCase {
+            name = "Årsskifte med delvis kvartaler"
+            dagensDato = LocalDate.of(2023, 12, 1)
+            periode(månedspris = 1000, fra = "2023-11-15", til = "2024-02-15")
+            forventPeriode(fra = "2023-11-15", til = "2023-12-31")
+            forventPeriode(fra = "2024-01-01", til = "2024-02-15")
+        },
 
-        PeriodTestCase(
-            description = "Tre overlappende perioder med ulike priser",
-            dagensDato = LocalDate.of(2024, 1, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("1000"),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2024, 4, 30),
-                    beskrivelse = "Periode 1"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("2000"),
-                    startDato = LocalDate.of(2024, 3, 15),
-                    sluttDato = LocalDate.of(2024, 7, 15),
-                    beskrivelse = "Periode 2"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("3000"),
-                    startDato = LocalDate.of(2024, 6, 1),
-                    sluttDato = LocalDate.of(2024, 9, 30),
-                    beskrivelse = "Periode 3"
-                )
-            ),
-            intervall = FakturaserieIntervall.KVARTAL,
-            expectedPerioder = listOf(
-                LocalDate.of(2024, 1, 1) to LocalDate.of(2024, 3, 31),
-                LocalDate.of(2024, 4, 1) to LocalDate.of(2024, 6, 30),
-                LocalDate.of(2024, 7, 1) to LocalDate.of(2024, 9, 30)
-            )
-        ),
+        periodTestCase {
+            name = "Tre overlappende perioder med ulike priser"
+            periode(månedspris = 1000, fra = "2024-01-01", til = "2024-04-30")
+            periode(månedspris = 2000, fra = "2024-03-15", til = "2024-07-15")
+            periode(månedspris = 3000, fra = "2024-06-01", til = "2024-09-30")
+            forventPeriode(fra = "2024-01-01", til = "2024-03-31")
+            forventPeriode(fra = "2024-04-01", til = "2024-06-30")
+            forventPeriode(fra = "2024-07-01", til = "2024-09-30")
+        },
 
-        // Test case for periode som starter siste dag i måneden
-        PeriodTestCase(
-            description = "Periode starter siste dag i måneder med ulik lengde",
-            dagensDato = LocalDate.of(2024, 1, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("30000"),  // 1000 kr per dag
-                    startDato = LocalDate.of(2024, 1, 31),     // 31 dager
-                    sluttDato = LocalDate.of(2024, 4, 30),     // 30 dager
-                    beskrivelse = "Test periode siste dag"
-                )
-            ),
-            intervall = FakturaserieIntervall.MANEDLIG,
-            expectedPerioder = listOf(
-                LocalDate.of(2024, 1, 31) to LocalDate.of(2024, 1, 31),  // 1 dag i januar
-                LocalDate.of(2024, 2, 1) to LocalDate.of(2024, 2, 29),   // hele februar (skuddår)
-                LocalDate.of(2024, 3, 1) to LocalDate.of(2024, 3, 31),   // hele mars
-                LocalDate.of(2024, 4, 1) to LocalDate.of(2024, 4, 30)    // hele april
-            )
-        ),
-    ).map { argumentSet(it.description, it) }
+        periodTestCase {
+            name = "Periode starter siste dag i måneder med ulik lengde"
+            intervall = FakturaserieIntervall.MANEDLIG
+            periode(månedspris = 30000, fra = "2024-01-31", til = "2024-04-30")
+            forventPeriode(fra = "2024-01-31", til = "2024-01-31")
+            forventPeriode(fra = "2024-02-01", til = "2024-02-29")
+            forventPeriode(fra = "2024-03-01", til = "2024-03-31")
+            forventPeriode(fra = "2024-04-01", til = "2024-04-30")
+        },
+    )
 
     private fun belopTestData() = listOf(
-        // Test case for avrunding av delvise måneder
-        BelopTestCase(
-            description = "Avrunding for delvis måned med 31 dager",
-            dagensDato = LocalDate.of(2024, 1, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("31000"),
-                    startDato = LocalDate.of(2024, 1, 15),
-                    sluttDato = LocalDate.of(2024, 1, 31),
-                    beskrivelse = "Test delvis januar"
-                )
-            ),
-            intervall = FakturaserieIntervall.MANEDLIG,
-            expectedBelopPerFaktura = listOf(
-                ExpectedBelop(
-                    LocalDate.of(2024, 1, 15),
-                    LocalDate.of(2024, 1, 31),
-                    BigDecimal("17050.00")  // 31000 * (17/31) ≈ 17050.00 der 17/31 ≈ 0.55
-                )
-            )
-        ),
+        belopTestCase {
+            name = "Avrunding for delvis måned med 31 dager"
+            periode(månedspris = 31000, fra = "2024-01-15", til = "2024-01-31")
+            forventBelop(fra = "2024-01-15", til = "2024-01-31", belop = "17050.00")
+        },
 
-        BelopTestCase(
-            description = "Avrunding for delvis måned med overgang mellom måneder",
-            dagensDato = LocalDate.of(2024, 1, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("30000"),
-                    startDato = LocalDate.of(2024, 1, 20),
-                    sluttDato = LocalDate.of(2024, 1, 31),
-                    beskrivelse = "Test periode over månedsskifte"
-                )
-            ),
-            intervall = FakturaserieIntervall.MANEDLIG,
-            expectedBelopPerFaktura = listOf(
-                ExpectedBelop(
-                    LocalDate.of(2024, 1, 20),
-                    LocalDate.of(2024, 1, 31),
-                    BigDecimal("11700.00")  // 30000 * (12/31) ≈ 11700.00 der 12/31 ≈ 0.39
-                )
-            )
-        ),
+        belopTestCase {
+            name = "Avrunding for delvis måned med overgang mellom måneder"
+            periode(månedspris = 30000, fra = "2024-01-20", til = "2024-01-31")
+            forventBelop(fra = "2024-01-20", til = "2024-01-31", belop = "11700.00")
+        },
 
-        BelopTestCase(
-            description = "Avrunding for delvis måned i skuddår (februar)",
-            dagensDato = LocalDate.of(2024, 1, 1),
-            perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal("29000"),
-                    startDato = LocalDate.of(2024, 2, 15),
-                    sluttDato = LocalDate.of(2024, 2, 29),
-                    beskrivelse = "Test delvis februar i skuddår"
-                )
-            ),
-            intervall = FakturaserieIntervall.MANEDLIG,
-            expectedBelopPerFaktura = listOf(
-                ExpectedBelop(
-                    LocalDate.of(2024, 2, 15),
-                    LocalDate.of(2024, 2, 29),
-                    BigDecimal("15080.00")  // 29000 * (15/29) ≈ 15080.00 der 15/29 ≈ 0.51
-                )
-            )
-        )
-    ).map { argumentSet(it.description, it) }
+        belopTestCase {
+            name = "Avrunding for delvis måned i skuddår (februar)"
+            periode(månedspris = 29000, fra = "2024-02-15", til = "2024-02-29")
+            forventBelop(fra = "2024-02-15", til = "2024-02-29", belop = "15080.00")
+        }
+    )
 }

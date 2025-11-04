@@ -56,4 +56,6 @@ data class FakturaserieRequestDto(
     override fun toString(): String {
         return "referanseNav: $referanseNAV referanseBruker: $referanseBruker intervall: $intervall, perioder: $perioder"
     }
+
+    companion object
 }

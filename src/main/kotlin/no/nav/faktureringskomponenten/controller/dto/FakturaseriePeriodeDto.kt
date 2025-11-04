@@ -38,4 +38,6 @@ data class FakturaseriePeriodeDto(
     constructor(enhetsprisPerManed: Int, startDato: String, sluttDato: String, beskrivelse: String) : this(
         BigDecimal(enhetsprisPerManed), LocalDate.parse(startDato), LocalDate.parse(sluttDato), beskrivelse
     )
+
+    companion object
 }

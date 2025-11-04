@@ -12,6 +12,7 @@ import no.nav.faktureringskomponenten.controller.AuditorAwareFilter.Companion.NA
 import no.nav.faktureringskomponenten.controller.FakturaserieControllerIT.Companion.lagFakturaserieDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.dto.forTest
 import no.nav.faktureringskomponenten.featuretoggle.FeatureToggleConfig
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import org.junit.jupiter.api.Test
@@ -73,12 +74,12 @@ class FakturaserieControllerTest(
         unleash.enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)
         val lagFakturaserieDto = lagFakturaserieDto(
             fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto(
-                    BigDecimal.valueOf(123),
-                    LocalDate.now().withDayOfYear(1),
-                    LocalDate.now().withDayOfYear(100),
-                    "Beskrivelse"
-                )
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 123
+                    startDato = LocalDate.now().withDayOfYear(1)
+                    sluttDato = LocalDate.now().withDayOfYear(100)
+                    beskrivelse = "Beskrivelse"
+                }
             )
         )
 

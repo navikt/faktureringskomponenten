@@ -4,14 +4,15 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
 import io.mockk.*
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
+import no.nav.faktureringskomponenten.domain.models.forTest
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.lagFaktura
-import no.nav.faktureringskomponenten.lagFakturalinje
-import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
@@ -32,12 +33,13 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Bestiller bestillingsklare faktura og lagrer i databasen`() {
-        val faktura = lagFaktura {
-            fakturaserie(
-                lagFakturaserie {
-                    id(10)
-                }
-            )
+        val faktura = Faktura.forTest {
+            fakturaserie = Fakturaserie.forTest {
+                id = 10
+            }
+            fakturaLinje {
+                // Default test fakturalinje
+            }
         }
 
         every {
@@ -69,30 +71,26 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Bestiller bestillingsklare faktura med riktig data`() {
-        val faktura = lagFaktura {
-            datoBestilt(LocalDate.of(2022, 5, 1))
-            fakturaLinje(
-                lagFakturalinje {
-                    antall(BigDecimal.ONE)
-                    enhetsprisPerManed(BigDecimal(18000))
-                    belop(BigDecimal(90000))
-                    periodeFra(LocalDate.of(2022, 1, 1))
-                    periodeTil(LocalDate.of(2022, 5, 1))
-                    beskrivelse("En beskrivelse")
-                }
-            )
-            fakturaserie(
-                lagFakturaserie {
-                    id(10)
-                    fullmektig(Fullmektig(fodselsnummer = "12129012345", organisasjonsnummer = ""))
-                    startdato(LocalDate.of(2022, 1, 1))
-                    sluttdato(LocalDate.of(2023, 5, 1))
-                    fodselsnummer("12345678911")
-                    referanse("MEL-1")
-                    referanseNAV("Referanse NAV")
-                    referanseBruker("Referanse bruker")
-                }
-            )
+        val faktura = Faktura.forTest {
+            datoBestilt = LocalDate.of(2022, 5, 1)
+            fakturaLinje {
+                antall = BigDecimal.ONE
+                månedspris = 18000
+                belop = BigDecimal(90000)
+                fra = "2022-01-01"
+                til = "2022-05-01"
+                beskrivelse = "En beskrivelse"
+            }
+            fakturaserie = Fakturaserie.forTest {
+                id = 10
+                fullmektig = Fullmektig(fodselsnummer = "12129012345", organisasjonsnummer = "")
+                fra = "2022-01-01"
+                til = "2023-05-01"
+                fodselsnummer = "12345678911"
+                referanse = "MEL-1"
+                referanseNAV = "Referanse NAV"
+                referanseBruker = "Referanse bruker"
+            }
         }
         val fakturaBestiltDtoCapturingSlot = slot<FakturaBestiltDto>()
         val startDatoFaktura = faktura.fakturaLinje.minByOrNull { it.periodeFra }!!.periodeFra
@@ -138,8 +136,8 @@ class FakturaBestillingServiceTest {
                         FakturaBestiltLinjeDto(
                             beskrivelse = "En beskrivelse",
                             antall = BigDecimal(1),
-                            enhetspris = BigDecimal(18000),
-                            belop = BigDecimal(90000)
+                            enhetspris = BigDecimal(18000).setScale(2),
+                            belop = BigDecimal(90000).setScale(2)
                         )
                     )
                 )
@@ -151,15 +149,19 @@ class FakturaBestillingServiceTest {
 
     @Test
     fun `Kreditnota sendes til OEBS - serie og faktura får oppdatert status`() {
-        val fakturaserie = lagFakturaserie {
-            faktura(
-                lagFaktura {
-                    krediteringFakturaRef(ULID.randomULID())
-                },
-                lagFaktura {
-                    krediteringFakturaRef(ULID.randomULID())
+        val fakturaserie = Fakturaserie.forTest {
+            faktura {
+                krediteringFakturaRef = ULID.randomULID()
+                fakturaLinje {
+                    // Default test fakturalinje
                 }
-            )
+            }
+            faktura {
+                krediteringFakturaRef = ULID.randomULID()
+                fakturaLinje {
+                    // Default test fakturalinje
+                }
+            }
         }
 
         every { fakturaserieRepository.findByReferanse(fakturaserie.referanse) } returns fakturaserie

@@ -99,4 +99,6 @@ class Faktura(
             ?: throw RuntimeException("Faktura med referanse: $referanseNr mangler referertFakturaVedAvregning")
     }
 
+    companion object
+
 }
