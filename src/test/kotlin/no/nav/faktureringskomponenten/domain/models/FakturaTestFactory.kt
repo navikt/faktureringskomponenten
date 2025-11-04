@@ -79,7 +79,15 @@ object FakturaTestFactory {
         }
 
         /**
-         * Legger til en ekstern faktura status.
+         * Legger til en ny ekstern faktura status ved hjelp av DSL.
+         */
+        fun eksternFakturaStatus(init: EksternFakturaStatusTestFactory.Builder.() -> Unit) {
+            val status = EksternFakturaStatus.forTest(init)
+            this.eksternFakturaStatus.add(status)
+        }
+
+        /**
+         * Legger til en eksisterende ekstern faktura status.
          */
         fun leggTilEksternFakturaStatus(status: EksternFakturaStatus) {
             this.eksternFakturaStatus.add(status)

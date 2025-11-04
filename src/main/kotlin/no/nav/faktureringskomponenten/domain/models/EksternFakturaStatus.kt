@@ -34,4 +34,6 @@ class EksternFakturaStatus(
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "faktura_id", nullable = false)
     var faktura: Faktura? = null
-) : BaseEntity()
+) : BaseEntity() {
+    companion object
+}

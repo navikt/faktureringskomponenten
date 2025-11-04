@@ -32,4 +32,6 @@ data class FakturaseriePeriode(
         example = "Inntekt: 50.000, Dekning: Pensjonsdel, Sats: 21.8 %",
     )
     val beskrivelse: String
-)
+) {
+    companion object
+}
