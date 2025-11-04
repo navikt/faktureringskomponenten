@@ -9,8 +9,6 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.lagFaktura
-import no.nav.faktureringskomponenten.lagFakturaserie
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import org.junit.jupiter.api.Test
@@ -135,14 +133,15 @@ class FakturaserieServiceTest {
 
     @Test
     fun `Kansellere fakturaserie - eksisterende får oppdatert fakturaseriestatus til kansellert og nye faktura bestilles`() {
-        val eksisterendeFakturaserie = lagFakturaserie {
-            faktura(
-                lagFaktura {
-                    status(FakturaStatus.BESTILT)
+        val eksisterendeFakturaserie = Fakturaserie.forTest {
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    månedspris = 10000
                 }
-            )
+            }
         }
-        val tidligereFakturaserie = lagFakturaserie { }
+        val tidligereFakturaserie = Fakturaserie.forTest { }
 
 
         every { fakturaserieRepository.findAllByReferanse(eksisterendeFakturaserie.referanse) } returns listOf(
