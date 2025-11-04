@@ -55,12 +55,12 @@ class FakturaserieGeneratorTest {
             LocalDate.of(2023, 1, 13),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2022, 11, 1),
-                    sluttDato = LocalDate.of(2022, 12, 1),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2022-11-01"
+                    til = "2022-12-01"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             ForventetFakturering(
                 1,
@@ -87,18 +87,18 @@ class FakturaserieGeneratorTest {
             LocalDate.of(2023, 1, 26),
             FakturaserieIntervall.KVARTAL,
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2022, 6, 1),
-                    sluttDato = LocalDate.of(2023, 1, 24),
+                FakturaseriePeriode.forTest {
+                    månedspris = 10000
+                    fra = "2022-06-01"
+                    til = "2023-01-24"
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2023, 1, 25),
-                    sluttDato = LocalDate.of(2023, 6, 1),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 10000
+                    fra = "2023-01-25"
+                    til = "2023-06-01"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             ForventetFakturering(
                 3,
@@ -151,12 +151,12 @@ class FakturaserieGeneratorTest {
             LocalDate.of(2023, 1, 1),
             FakturaserieIntervall.KVARTAL,
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(1000),
-                    startDato = LocalDate.of(2023, 1, 15),
-                    sluttDato = LocalDate.of(2023, 1, 30),
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2023-01-15"
+                    til = "2023-01-30"
                     beskrivelse = "periode - 1"
-                )
+                }
             ),
             ForventetFakturering(
                 1,
@@ -180,12 +180,12 @@ class FakturaserieGeneratorTest {
             LocalDate.of(2023, 4, 1),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2023, 1, 1),
-                    sluttDato = LocalDate.of(2023, 2, 1),
+                FakturaseriePeriode.forTest {
+                    månedspris = 10000
+                    fra = "2023-01-01"
+                    til = "2023-02-01"
                     beskrivelse = "periode - 1"
-                )
+                }
             ),
             ForventetFakturering(
                 1,
@@ -212,12 +212,12 @@ class FakturaserieGeneratorTest {
             LocalDate.of(2022, 12, 31),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2022, 11, 1),
-                    sluttDato = LocalDate.of(2022, 12, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2022-11-01"
+                    til = "2022-12-31"
                     beskrivelse = "periode 1"
-                )
+                }
             ),
             ForventetFakturering(
                 1,
@@ -244,12 +244,12 @@ class FakturaserieGeneratorTest {
             LocalDate.of(2022, 4, 13),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2022, 3, 1),
-                    sluttDato = LocalDate.of(2022, 5, 1),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2022-03-01"
+                    til = "2022-05-01"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             ForventetFakturering(
                 2,
@@ -285,18 +285,18 @@ class FakturaserieGeneratorTest {
             LocalDate.of(2023, 1, 23),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2022, 12, 1),
-                    sluttDato = LocalDate.of(2023, 1, 22),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2022-12-01"
+                    til = "2023-01-22"
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2023, 1, 23),
-                    sluttDato = LocalDate.of(2023, 2, 1),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2023-01-23"
+                    til = "2023-02-01"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             ForventetFakturering(
                 3,
@@ -341,18 +341,18 @@ class FakturaserieGeneratorTest {
             LocalDate.of(2023, 1, 26),
             FakturaserieIntervall.MANEDLIG,
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2022, 6, 1),
-                    sluttDato = LocalDate.of(2023, 1, 24),
+                FakturaseriePeriode.forTest {
+                    månedspris = 10000
+                    fra = "2022-06-01"
+                    til = "2023-01-24"
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2023, 1, 25),
-                    sluttDato = LocalDate.of(2023, 6, 1),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 10000
+                    fra = "2023-01-25"
+                    til = "2023-06-01"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             ForventetFakturering(
                 7,
@@ -457,18 +457,18 @@ class FakturaserieGeneratorTest {
             LocalDate.of(2023, 1, 26),
             FakturaserieIntervall.KVARTAL,
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2022, 6, 1),
-                    sluttDato = LocalDate.of(2023, 1, 24),
+                FakturaseriePeriode.forTest {
+                    månedspris = 10000
+                    fra = "2022-06-01"
+                    til = "2023-01-24"
                     beskrivelse = "Inntekt: 100000, Dekning: PENSJONSDEL, Sats: 21.5 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2023, 1, 25),
-                    sluttDato = LocalDate.of(2023, 6, 1),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 10000
+                    fra = "2023-01-25"
+                    til = "2023-06-01"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             ForventetFakturering(
                 3,
@@ -526,12 +526,12 @@ class FakturaserieGeneratorTest {
         val opprinneligFakturaSerie = lagFakturaserie(
             intervall = FakturaserieIntervall.KVARTAL,
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2025, 12, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 10000
+                    fra = "2024-01-01"
+                    til = "2025-12-31"
                     beskrivelse = "Inntekt: 10000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             )
         )
 
@@ -542,12 +542,12 @@ class FakturaserieGeneratorTest {
         val nyFakturaSerie = lagFakturaserieForEndring(
             intervall = FakturaserieIntervall.KVARTAL,
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(5000),
-                    startDato = LocalDate.of(2025, 1, 1),
-                    sluttDato = LocalDate.of(2025, 12, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 5000
+                    fra = "2025-01-01"
+                    til = "2025-12-31"
                     beskrivelse = "Inntekt: 5000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             opprinneligFakturaserie = opprinneligFakturaSerie
         )
@@ -606,12 +606,12 @@ class FakturaserieGeneratorTest {
         val opprinneligFakturaSerie = lagFakturaserie(
             intervall = FakturaserieIntervall.KVARTAL,
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(10000),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2025, 12, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 10000
+                    fra = "2024-01-01"
+                    til = "2025-12-31"
                     beskrivelse = "Inntekt: 10000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             )
         )
 
@@ -622,12 +622,12 @@ class FakturaserieGeneratorTest {
         val nyFakturaSerie = lagFakturaserieForEndring(
             intervall = FakturaserieIntervall.KVARTAL,
             perioder = listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(5000),
-                    startDato = LocalDate.of(2025, 1, 1),
-                    sluttDato = LocalDate.of(2025, 12, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 5000
+                    fra = "2025-01-01"
+                    til = "2025-12-31"
                     beskrivelse = "Inntekt: 5000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             opprinneligFakturaserie = opprinneligFakturaSerie
         )

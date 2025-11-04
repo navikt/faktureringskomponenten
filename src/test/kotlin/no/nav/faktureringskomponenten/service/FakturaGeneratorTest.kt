@@ -12,6 +12,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.forTest
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -36,18 +37,18 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.parse("2020-01-01"),
-                    LocalDate.parse("2020-12-31"),
-                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
-                ),
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.parse("2022-01-01"),
-                    LocalDate.parse("2022-12-31"),
-                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
-                )
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2020-01-01"
+                    til = "2020-12-31"
+                    beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2022-01-01"
+                    til = "2022-12-31"
+                    beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -78,12 +79,12 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.now().minusDays(1),
-                    sluttDato = LocalDate.now().plusMonths(3),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    startDato = LocalDate.now().minusDays(1)
+                    sluttDato = LocalDate.now().plusMonths(3)
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -103,18 +104,18 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2024-01-01"
+                    til = "2024-03-31"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(15000),
-                    startDato = LocalDate.of(2024, 4, 1),
-                    sluttDato = LocalDate.of(2024, 5, 20),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 15000
+                    fra = "2024-04-01"
+                    til = "2024-05-20"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -135,54 +136,54 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2024-01-01"
+                    til = "2024-03-31"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2024, 4, 1),
-                    sluttDato = LocalDate.of(2024, 6, 30),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2024-04-01"
+                    til = "2024-06-30"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2024, 7, 1),
-                    sluttDato = LocalDate.of(2024, 9, 30),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2024-07-01"
+                    til = "2024-09-30"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(15000),
-                    startDato = LocalDate.of(2024, 10, 1),
-                    sluttDato = LocalDate.of(2024, 12, 31),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 15000
+                    fra = "2024-10-01"
+                    til = "2024-12-31"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2025, 1, 1),
-                    sluttDato = LocalDate.of(2025, 3, 31),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2025-01-01"
+                    til = "2025-03-31"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2025, 4, 1),
-                    sluttDato = LocalDate.of(2025, 6, 30),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2025-04-01"
+                    til = "2025-06-30"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2025, 7, 1),
-                    sluttDato = LocalDate.of(2025, 9, 30),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2025-07-01"
+                    til = "2025-09-30"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(15000),
-                    startDato = LocalDate.of(2025, 10, 1),
-                    sluttDato = LocalDate.of(2025, 12, 31),
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 15000
+                    fra = "2025-10-01"
+                    til = "2025-12-31"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                )
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -213,12 +214,12 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = begynnelseAvDesember.plusDays(4),
-                    sluttDato = begynnelseAvDesember.plusDays(20),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    startDato = begynnelseAvDesember.plusDays(4)
+                    sluttDato = begynnelseAvDesember.plusDays(20)
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
+                },
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -239,12 +240,12 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = begynnelseAvDesember.plusYears(1),
-                    sluttDato = begynnelseAvDesember.plusYears(1).plusDays(1),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    startDato = begynnelseAvDesember.plusYears(1)
+                    sluttDato = begynnelseAvDesember.plusYears(1).plusDays(1)
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
+                },
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -265,12 +266,12 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2024, 2, 1),
-                    sluttDato = LocalDate.of(2024, 3, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2024-02-01"
+                    til = "2024-03-31"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
+                },
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -292,12 +293,12 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2020, 1, 1),
-                    LocalDate.of(2022, 12, 31),
-                    "Test periode"
-                )
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2020-01-01"
+                    til = "2022-12-31"
+                    beskrivelse = "Test periode"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -313,12 +314,12 @@ class FakturaGeneratorTest {
         val faktura = generator.lagFakturaerFor(
             periodisering = emptyList(),
             fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.parse("2020-01-01"),
-                    LocalDate.parse("2020-12-31"),
-                    "Test periode"
-                )
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2020-01-01"
+                    til = "2020-12-31"
+                    beskrivelse = "Test periode"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -354,18 +355,18 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2024, 1, 1),
-                    LocalDate.of(2024, 12, 31),
-                    "Første periode"
-                ),
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2026, 1, 1),
-                    LocalDate.of(2026, 12, 31),
-                    "Andre periode"
-                )
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-12-31"
+                    beskrivelse = "Første periode"
+                },
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2026-01-01"
+                    til = "2026-12-31"
+                    beskrivelse = "Andre periode"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -388,12 +389,12 @@ class FakturaGeneratorTest {
                     LocalDate.of(2024, 1, 1) to LocalDate.of(2024, 12, 31),
                 ),
                 fakturaseriePerioder = listOf(
-                    FakturaseriePeriode(
-                        BigDecimal(1000),
-                        LocalDate.of(2024, 1, 1),
-                        LocalDate.of(2024, 6, 30),
-                        "Test periode"
-                    )
+                    FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-06-30"
+                    beskrivelse = "Test periode"
+                }
                 ),
                 FakturaserieIntervall.KVARTAL
             )
@@ -415,12 +416,12 @@ class FakturaGeneratorTest {
         val faktura = generator.lagFakturaerFor(
             periodisering = periodisering,
             fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2024, 1, 1),
-                    LocalDate.of(2024, 12, 31),
-                    "Test periode"
-                )
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-12-31"
+                    beskrivelse = "Test periode"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -443,12 +444,12 @@ class FakturaGeneratorTest {
         val faktura = generator.lagFakturaerFor(
             periodisering = periodisering,
             fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2020, 1, 1),
-                    LocalDate.of(2022, 12, 31),
-                    "Test periode"
-                )
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2020-01-01"
+                    til = "2022-12-31"
+                    beskrivelse = "Test periode"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -478,18 +479,18 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    beløpFørstePeriode,
-                    startDato,
-                    sluttDatoFørstePeriode,
-                    "Første periode"
-                ),
-                FakturaseriePeriode(
-                    beløpAndrePeriode,
-                    overlappStartDato,
-                    sluttDato,
-                    "Andre periode"
-                )
+                FakturaseriePeriode.forTest {
+                    enhetsprisPerManed = beløpFørstePeriode
+                    this.startDato = startDato
+                    this.sluttDato = sluttDatoFørstePeriode
+                    beskrivelse = "Første periode"
+                },
+                FakturaseriePeriode.forTest {
+                    enhetsprisPerManed = beløpAndrePeriode
+                    this.startDato = overlappStartDato
+                    this.sluttDato = sluttDato
+                    beskrivelse = "Andre periode"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -502,7 +503,7 @@ class FakturaGeneratorTest {
             first().let { linje ->
                 linje.periodeFra.shouldBe(startDato)
                 linje.periodeTil.shouldBe(sluttDatoFørstePeriode)
-                linje.enhetsprisPerManed.shouldBe(beløpFørstePeriode)
+                linje.enhetsprisPerManed.shouldBe(beløpFørstePeriode.setScale(2))
                 // 3 måneder med 1000kr per måned
                 linje.belop.toString().shouldBe("3000.00")
             }
@@ -511,7 +512,7 @@ class FakturaGeneratorTest {
             get(1).let { linje ->
                 linje.periodeFra.shouldBe(overlappStartDato)
                 linje.periodeTil.shouldBe(sluttDatoFørstePeriode)
-                linje.enhetsprisPerManed.shouldBe(2000.toBigDecimal())
+                linje.enhetsprisPerManed.shouldBe(2000.toBigDecimal().setScale(2))
                 linje.belop.toString().shouldBe("1100.00") // (31/16) * 2000
             }
 
@@ -519,7 +520,7 @@ class FakturaGeneratorTest {
             last().let { linje ->
                 linje.periodeFra.shouldBe(sluttDatoFørstePeriode.plusDays(1))
                 linje.periodeTil.shouldBe(sluttDato)
-                linje.enhetsprisPerManed.shouldBe(beløpAndrePeriode)
+                linje.enhetsprisPerManed.shouldBe(beløpAndrePeriode.setScale(2))
                 // 3 måneder med 2000kr per måned
                 linje.belop.toString().shouldBe("6000.00")
             }
@@ -539,12 +540,12 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2024, 1, 1),
-                    LocalDate.of(2024, 6, 30),
-                    "Test periode"
-                )
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-06-30"
+                    beskrivelse = "Test periode"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -566,12 +567,12 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2023, 12, 15), // Starter før periodisering
-                    LocalDate.of(2024, 4, 15),  // Slutter etter periodisering
-                    "Test periode"
-                )
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2023-12-15" // Starter før periodisering
+                    til = "2024-04-15"  // Slutter etter periodisering
+                    beskrivelse = "Test periode"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -595,12 +596,12 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             fakturaseriePerioder = listOf(
-                FakturaseriePeriode(
-                    BigDecimal(1000),
-                    LocalDate.of(2024, 1, 1),
-                    LocalDate.of(2024, 6, 30),
-                    "Test periode"
-                )
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-06-30"
+                    beskrivelse = "Test periode"
+                }
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -624,12 +625,12 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode(
-                    enhetsprisPerManed = BigDecimal(25470),
-                    startDato = LocalDate.of(2024, 1, 1),
-                    sluttDato = LocalDate.of(2027, 3, 31),
+                FakturaseriePeriode.forTest {
+                    månedspris = 25470
+                    fra = "2024-01-01"
+                    til = "2027-03-31"
                     beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                ),
+                },
             ),
             FakturaserieIntervall.KVARTAL
         )
