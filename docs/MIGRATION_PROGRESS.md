@@ -13,8 +13,8 @@
 | **Test Factories** | 7/7 | 100% | ✅ Complete |
 | **High Priority** | 5/5 | 100% | ✅ Complete |
 | **Medium Priority** | 9/9 | 100% | ✅ Complete |
-| **Low Priority** | 2/5 | 40% | 🟡 In Progress |
-| **Total Tests** | 15/24 | 63% | 🟡 In Progress |
+| **Low Priority** | 5/5 | 100% | ✅ Complete |
+| **Total Tests** | 18/24 | 75% | 🟢 Near Complete |
 
 ---
 
@@ -257,7 +257,7 @@
 
 ---
 
-## 🔍 Phase 4: Low Priority Migrations (2/5)
+## 🔍 Phase 4: Low Priority Migrations (5/5) ✅
 
 ### ✅ Completed
 
@@ -278,27 +278,39 @@
 - **Test results:** All 4 tests passing
 - **Note:** Found to be already migrated when checked in Session 3
 
-### 🔴 Not Started
-
-#### FakturaBestiltDtoMapperTest.kt 🔴
-- **Status:** Not Started
+#### FakturaBestiltDtoMapperTest.kt ✅
+- **Status:** COMPLETED (2025-11-04)
 - **Priority:** ⭐
-- **Uses:** Old DSL
-- **Estimated savings:** 5+ lines
-- **Estimated time:** 30 min
+- **LOC:** 239 lines (after: 151 lines)
+- **Migration:** Converted from old lagFaktura/lagFakturalinje DSL to .forTest DSL
+- **Instances converted:** 10 old DSL calls
+- **Actual savings:** 32 lines
+- **Actual time:** 45 minutes
+- **Challenges:** Fixed referertFakturaVedAvregning placement (Faktura property, not FakturaLinje)
+- **Test results:** All 10 tests passing
+- **Commit:** `f051b46`
 
-#### FakturaBestillCronjobTest.kt 🔴
-- **Status:** Not Started
+#### FakturaBestillCronjobTest.kt ✅
+- **Status:** COMPLETED (2025-11-04)
 - **Priority:** ⭐
-- **Estimated savings:** 10+ lines
-- **Estimated time:** 45 min
+- **LOC:** 35 lines
+- **Migration:** Converted 2 direct Faktura constructors to .forTest DSL
+- **Instances converted:** 2 Faktura(...) calls
+- **Actual savings:** 2 lines
+- **Actual time:** 10 minutes
+- **Test results:** All tests passing
+- **Commit:** `b4d4573`
 
-#### FakturaserieControllerTest.kt 🔴
-- **Status:** Not Started
+#### FakturaserieControllerTest.kt ✅
+- **Status:** COMPLETED (2025-11-04)
 - **Priority:** ⭐
-- **Uses:** Old DSL
-- **Estimated savings:** 10+ lines
-- **Estimated time:** 45 min
+- **LOC:** 148 lines
+- **Migration:** Converted 1 FakturaseriePeriodeDto constructor to .forTest DSL
+- **Instances converted:** 1 DTO constructor
+- **Actual savings:** 2 lines
+- **Actual time:** 10 minutes
+- **Test results:** All 3 tests passing
+- **Commit:** `b4d4573`
 
 ---
 
@@ -469,6 +481,19 @@
 ---
 
 ## 📝 Migration Notes & Learnings
+
+### 2025-11-04 (Session 4 - Phase 4 COMPLETE! 🎉)
+- ✅ Migrated **3 test files** completing Phase 4!
+- ✅ **Mapper/Controller tests:**
+  - FakturaBestiltDtoMapperTest.kt - 10 old DSL calls converted, 32 lines saved
+  - FakturaBestillCronjobTest.kt - 2 direct Faktura constructors converted
+  - FakturaserieControllerTest.kt - 1 FakturaseriePeriodeDto constructor converted
+- 🔧 Fixed `referertFakturaVedAvregning` placement issue (Faktura property, not FakturaLinje)
+- 🔧 Fixed year assertion in test (hardcoded to 2024 instead of LocalDate.now().year)
+- 🔧 Added missing properties to avoid NPE in krediteringFakturaRef test
+- ⚡ **Phase 4**: 100% COMPLETE! (5/5 low priority files) ✅
+- ⚡ **Overall**: 75% complete (18/24 total test files)
+- 🎊 **Major milestone**: All high, medium, and low priority files now migrated!
 
 ### 2025-11-04 (Session 3 - Phase 3 COMPLETE!)
 - ✅ Migrated **7 test files + 1 base class** (8 migrations total)
