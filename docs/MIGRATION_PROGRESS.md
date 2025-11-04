@@ -1,8 +1,8 @@
 # Test DSL Migration Progress
 
-**Last Updated:** 2025-11-04 (Session 2)
+**Last Updated:** 2025-11-04 (Session 3)
 **Branch:** feature/legg-til-forTest-dsl
-**Status:** 🟢 Phase 2 Complete!
+**Status:** 🟡 Phase 3 In Progress
 
 ---
 
@@ -12,9 +12,9 @@
 |----------|----------|-------|--------|
 | **Test Factories** | 7/7 | 100% | ✅ Complete |
 | **High Priority** | 5/5 | 100% | ✅ Complete |
-| **Medium Priority** | 0/9 | 0% | 🔴 Not Started |
+| **Medium Priority** | 5/9 | 56% | 🟡 In Progress |
 | **Low Priority** | 1/5 | 20% | 🟡 In Progress |
-| **Total Tests** | 6/24 | 25% | 🟡 In Progress |
+| **Total Tests** | 11/24 | 46% | 🟡 In Progress |
 
 ---
 
@@ -150,9 +150,31 @@
 
 ---
 
-## 📈 Phase 3: Medium Priority Migrations (0/9)
+## 📈 Phase 3: Medium Priority Migrations (5/9)
 
-### Integration Tests (0/6)
+### Integration Tests (5/6)
+
+#### FakturaBestillingServiceIT.kt ✅
+- **Status:** COMPLETED (2025-11-04)
+- **Priority:** ⭐⭐
+- **LOC:** 125 lines
+- **Migration:** Converted direct constructor calls to .forTest DSL
+- **Actual savings:** 5 lines
+- **Actual time:** 15 minutes
+- **Test results:** All tests passing
+- **Commit:** `6103854`
+
+#### FakturaKanselleringIT.kt ✅
+- **Status:** COMPLETED (2025-11-04)
+- **Priority:** ⭐⭐
+- **LOC:** 375 lines
+- **Migration:** Converted lagFakturaserie/lagFaktura to .forTest DSL
+- **Instances converted:** 1 lagFakturaserie call
+- **Actual savings:** 3 lines
+- **Actual time:** 30 minutes
+- **Challenges:** Old DSL had different default values (enhetsprisPerManed: 10000 vs 1000)
+- **Test results:** All tests passing
+- **Commit:** `6103854`
 
 #### FakturaserieControllerIT.kt 🔴
 - **Status:** Not Started
@@ -161,33 +183,28 @@
 - **Estimated savings:** 15+ lines
 - **Estimated time:** 1 hour
 
-#### FakturaKanselleringIT.kt 🔴
-- **Status:** Not Started
-- **Priority:** ⭐⭐
-- **Uses:** Old DSL
-- **Estimated savings:** 10+ lines
-- **Estimated time:** 1 hour
+#### EmbeddedKafkaBase.kt ✅
+- **Status:** COMPLETED (2025-11-04)
+- **Priority:** ⭐⭐⭐ (Infrastructure)
+- **LOC:** 40 lines
+- **Migration:** Converted lagFakturaMedSerie to use .forTest DSL with leggTilFaktura
+- **Impact:** Benefits all tests extending this base class (EksternFakturaStatusConsumerIT, EksternFakturaStatusConsumeStopperVedFeilIT)
+- **Actual savings:** 4 lines
+- **Actual time:** 10 minutes
+- **Test results:** All dependent tests passing
+- **Commit:** `6103854`
 
-#### FakturaBestillingServiceIT.kt 🔴
-- **Status:** Not Started
+#### EksternFakturaStatusConsumerIT.kt ✅
+- **Status:** COMPLETED (via EmbeddedKafkaBase migration)
 - **Priority:** ⭐⭐
-- **Uses:** Old DSL
-- **Estimated savings:** 15+ lines
-- **Estimated time:** 1 hour
+- **Migration:** Indirectly migrated through EmbeddedKafkaBase.kt
+- **Test results:** All tests passing
 
-#### EksternFakturaStatusConsumerIT.kt 🔴
-- **Status:** Not Started
+#### EksternFakturaStatusConsumeStopperVedFeilIT.kt ✅
+- **Status:** COMPLETED (via EmbeddedKafkaBase migration)
 - **Priority:** ⭐⭐
-- **Uses:** Old DSL
-- **Estimated savings:** 10+ lines
-- **Estimated time:** 1 hour
-
-#### EksternFakturaStatusConsumeStopperVedFeilIT.kt 🔴
-- **Status:** Not Started
-- **Priority:** ⭐⭐
-- **Uses:** Old DSL
-- **Estimated savings:** 5+ lines
-- **Estimated time:** 30 min
+- **Migration:** Indirectly migrated through EmbeddedKafkaBase.kt
+- **Test results:** All tests passing
 
 #### FakturaserieRepositoryIT.kt 🔴
 - **Status:** Not Started
@@ -433,6 +450,15 @@
 
 ## 📝 Migration Notes & Learnings
 
+### 2025-11-04 (Session 3 - Phase 3)
+- ✅ Migrated 3 integration test files + 1 base class
+- ✅ FakturaBestillingServiceIT.kt - converted direct constructors
+- ✅ FakturaKanselleringIT.kt - converted old lagFakturaserie/lagFaktura DSL
+- ✅ EmbeddedKafkaBase.kt - infrastructure migration benefits 2+ test files
+- 🔧 Discovered old DSL vs new DSL default value differences (enhetsprisPerManed: 10000 vs 1000)
+- 🔧 Old DSL creates default FakturaLinje, new DSL doesn't - must be explicit
+- ⚡ Completed 5/9 medium priority files (56%)
+
 ### 2025-11-04 (Session 2 - Phase 2)
 - ✅ Migrated 4 high-priority test files (67 instances)
 - ✅ Created EksternFakturaStatusTestFactory
@@ -474,6 +500,10 @@
   - Solution: Use `this.startDato = startDato` for explicit property assignment
 - ⚠️ **Multiple BigDecimal formats** - `BigDecimal(1000)`, `BigDecimal("1000")` need different regex patterns
   - Solution: Create separate regex patterns for each format
+- ⚠️ **Old DSL vs New DSL default differences** - TestFacktoryDsl.kt vs new factories have different defaults
+  - Old DSL: enhetsprisPerManed = BigDecimal(10000), creates default FakturaLinje
+  - New DSL: enhetsprisPerManed = 1000, NO default FakturaLinje
+  - Solution: Explicitly set values when migrating from old DSL to match expected behavior
 
 ---
 
