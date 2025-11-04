@@ -28,6 +28,58 @@ class FakturaGeneratorTest {
         unmockkStatic(LocalDate::class)
     }
 
+    // Helper functions to reduce test boilerplate
+    private fun kvartalsPerioder(
+        startÅr: Int,
+        sluttÅr: Int,
+        månedspris: Int,
+        beskrivelse: String,
+        q4Månedspris: Int? = null // Q4 kan ha annen pris
+    ): List<FakturaseriePeriode> {
+        val perioder = mutableListOf<FakturaseriePeriode>()
+
+        for (år in startÅr..sluttÅr) {
+            // Q1: jan-mar
+            perioder.add(FakturaseriePeriode.forTest {
+                this.månedspris = månedspris
+                fra = "$år-01-01"
+                til = "$år-03-31"
+                this.beskrivelse = beskrivelse
+            })
+            // Q2: apr-jun
+            perioder.add(FakturaseriePeriode.forTest {
+                this.månedspris = månedspris
+                fra = "$år-04-01"
+                til = "$år-06-30"
+                this.beskrivelse = beskrivelse
+            })
+            // Q3: jul-sep
+            perioder.add(FakturaseriePeriode.forTest {
+                this.månedspris = månedspris
+                fra = "$år-07-01"
+                til = "$år-09-30"
+                this.beskrivelse = beskrivelse
+            })
+            // Q4: okt-des (kan ha annen pris)
+            perioder.add(FakturaseriePeriode.forTest {
+                this.månedspris = q4Månedspris ?: månedspris
+                fra = "$år-10-01"
+                til = "$år-12-31"
+                this.beskrivelse = beskrivelse
+            })
+        }
+
+        return perioder
+    }
+
+    private fun periode(månedspris: Int, fra: String, til: String, beskrivelse: String) =
+        FakturaseriePeriode.forTest {
+            this.månedspris = månedspris
+            this.fra = fra
+            this.til = til
+            this.beskrivelse = beskrivelse
+        }
+
     @Test
     fun `Periode har opphold - setter ikke faktura for oppholdet`() {
         val faktura = generator.lagFakturaerFor(
@@ -37,18 +89,8 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode.forTest {
-                    månedspris = 1000
-                    fra = "2020-01-01"
-                    til = "2020-12-31"
-                    beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 1000
-                    fra = "2022-01-01"
-                    til = "2022-12-31"
-                    beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
-                }
+                periode(1000, "2020-01-01", "2020-12-31", "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"),
+                periode(1000, "2022-01-01", "2022-12-31", "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%")
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -104,18 +146,8 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode.forTest {
-                    månedspris = 25470
-                    fra = "2024-01-01"
-                    til = "2024-03-31"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 15000
-                    fra = "2024-04-01"
-                    til = "2024-05-20"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                }
+                periode(25470, "2024-01-01", "2024-03-31", "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"),
+                periode(15000, "2024-04-01", "2024-05-20", "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %")
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -135,55 +167,12 @@ class FakturaGeneratorTest {
                 LocalDate.of(2025, 12, 31),
                 FakturaserieIntervall.KVARTAL
             ),
-            listOf(
-                FakturaseriePeriode.forTest {
-                    månedspris = 25470
-                    fra = "2024-01-01"
-                    til = "2024-03-31"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 25470
-                    fra = "2024-04-01"
-                    til = "2024-06-30"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 25470
-                    fra = "2024-07-01"
-                    til = "2024-09-30"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 15000
-                    fra = "2024-10-01"
-                    til = "2024-12-31"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 25470
-                    fra = "2025-01-01"
-                    til = "2025-03-31"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 25470
-                    fra = "2025-04-01"
-                    til = "2025-06-30"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 25470
-                    fra = "2025-07-01"
-                    til = "2025-09-30"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 15000
-                    fra = "2025-10-01"
-                    til = "2025-12-31"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                }
+            kvartalsPerioder(
+                startÅr = 2024,
+                sluttÅr = 2025,
+                månedspris = 25470,
+                q4Månedspris = 15000,
+                beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -355,18 +344,8 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode.forTest {
-                    månedspris = 1000
-                    fra = "2024-01-01"
-                    til = "2024-12-31"
-                    beskrivelse = "Første periode"
-                },
-                FakturaseriePeriode.forTest {
-                    månedspris = 1000
-                    fra = "2026-01-01"
-                    til = "2026-12-31"
-                    beskrivelse = "Andre periode"
-                }
+                periode(1000, "2024-01-01", "2024-12-31", "Første periode"),
+                periode(1000, "2026-01-01", "2026-12-31", "Andre periode")
             ),
             FakturaserieIntervall.KVARTAL
         )
@@ -625,12 +604,7 @@ class FakturaGeneratorTest {
                 FakturaserieIntervall.KVARTAL
             ),
             listOf(
-                FakturaseriePeriode.forTest {
-                    månedspris = 25470
-                    fra = "2024-01-01"
-                    til = "2027-03-31"
-                    beskrivelse = "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %"
-                },
+                periode(25470, "2024-01-01", "2027-03-31", "Inntekt: 90000, Dekning: HELSE_OG_PENSJONSDEL, Sats: 28.3 %")
             ),
             FakturaserieIntervall.KVARTAL
         )
