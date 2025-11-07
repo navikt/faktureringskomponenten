@@ -32,6 +32,9 @@ AZURE_APP_WELL_KNOWN_URL: http://host.docker.internal:8082/isso/.well-known/open
 AZURE_APP_CLIENT_ID: melosys-localhost
 
 unleash:
-  token: "fake"
+  url: http://localhost:4242/api
+  token: "*:development.unleash-insecure-client-api-token"
+  app-name: faktureringskomponenten-local
+  environment: development
 
 NAIS_CLUSTER_NAME: local
