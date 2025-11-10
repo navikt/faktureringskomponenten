@@ -35,8 +35,7 @@ class Faktura(
     @JoinColumn(name = "fakturaserie_id", nullable = false, insertable = false, updatable = false)
     var fakturaserie: Fakturaserie? = null,
 
-    @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
-    @JoinColumn(name = "faktura_id")
+    @OneToMany(mappedBy = "faktura", cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
     var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
 
     @Column(name = "eksternt_fakturanummer", nullable = false, unique = true)

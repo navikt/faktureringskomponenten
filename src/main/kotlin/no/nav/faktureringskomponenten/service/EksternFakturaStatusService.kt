@@ -30,11 +30,14 @@ class EksternFakturaStatusService(
     fun håndterEksternFakturaStatusMelding(eksternFakturaStatusDto: EksternFakturaStatusDto) {
         log.info("Mottatt $eksternFakturaStatusDto")
 
-        val faktura = fakturaRepository.findByReferanseNr(eksternFakturaStatusDto.fakturaReferanseNr)
+        var faktura = fakturaRepository.findByReferanseNrEager(eksternFakturaStatusDto.fakturaReferanseNr)
         faktura ?: throw RessursIkkeFunnetException(
             field = "faktura.referanseNr",
             message = "Finner ikke faktura med faktura referanse nr ${eksternFakturaStatusDto.fakturaReferanseNr}"
         )
+
+        // Ensure faktura is in a managed state by saving it
+        faktura = fakturaRepository.save(faktura)
 
         val eksternFakturaStatus = eksternFakturaStatusMapper.tilEksternFakturaStatus(eksternFakturaStatusDto, faktura)
 

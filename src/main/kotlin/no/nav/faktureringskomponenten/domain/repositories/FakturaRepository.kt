@@ -17,6 +17,10 @@ interface FakturaRepository : JpaRepository<Faktura, String> {
 
     fun findByReferanseNr(referanseNr: String): Faktura?
 
+    @EntityGraph(attributePaths = ["eksternFakturaStatus"])
+    @Query("SELECT f FROM Faktura f WHERE f.referanseNr = :referanseNr")
+    fun findByReferanseNrEager(referanseNr: String): Faktura?
+
     @EntityGraph(attributePaths = ["eksternFakturaStatus", "fakturaserie"])
     fun findByStatus(status: FakturaStatus): List<Faktura>
 

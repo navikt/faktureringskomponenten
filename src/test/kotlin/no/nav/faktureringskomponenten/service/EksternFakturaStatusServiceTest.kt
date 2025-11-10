@@ -28,7 +28,7 @@ class EksternFakturaStatusServiceTest {
 
     @Test
     fun `håndterEksternFakturaStatusMelding kaster ExternalErrorException når status er feil`() {
-        every { fakturaRepository.findByReferanseNr("123") } returns null
+        every { fakturaRepository.findByReferanseNrEager("123") } returns null
 
         val eksternFakturaStatusDto = EksternFakturaStatusDto(
             fakturaReferanseNr = "123",
@@ -71,7 +71,8 @@ class EksternFakturaStatusServiceTest {
             leggTilEksternFakturaStatus(eksternFakturaStatus)
         }
 
-        every { fakturaRepository.findByReferanseNr("123") } returns faktura
+        every { fakturaRepository.findByReferanseNrEager("123") } returns faktura
+        every { fakturaRepository.save(faktura) } returns faktura
         every {
             eksternFakturaStatusMapper.tilEksternFakturaStatus(
                 eksternFakturaStatusDto,
@@ -106,7 +107,7 @@ class EksternFakturaStatusServiceTest {
                 referanse = "321"
             }
         }
-        every { fakturaRepository.findByReferanseNr("123") } returns faktura
+        every { fakturaRepository.findByReferanseNrEager("123") } returns faktura
         every {
             eksternFakturaStatusMapper.tilEksternFakturaStatus(
                 eksternFakturaStatusDto,
@@ -155,7 +156,7 @@ class EksternFakturaStatusServiceTest {
                 referanse = "321"
             }
         }
-        every { fakturaRepository.findByReferanseNr("123") } returns faktura
+        every { fakturaRepository.findByReferanseNrEager("123") } returns faktura
         every {
             eksternFakturaStatusMapper.tilEksternFakturaStatus(
                 eksternFakturaStatusDto,
