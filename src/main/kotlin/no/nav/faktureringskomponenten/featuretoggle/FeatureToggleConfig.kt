@@ -44,7 +44,13 @@ class FeatureToggleConfig {
                     .unleashAPI(unleashUrl)
                     .build()
 
-                val defaultUnleash = DefaultUnleash(config)
+                val defaultUnleash = DefaultUnleash(config,
+                    GradualRolloutSessionIdStrategy(),
+                    GradualRolloutUserIdStrategy(),
+                    GradualRolloutRandomStrategy(),
+                    UserWithIdStrategy(),
+                    ByUserIdStrategy()
+                )
                 DefaultEnabledUnleash(defaultUnleash).also {
                     log.info { "FeatureToggleConfig: Using DefaultEnabledUnleash wrapping Unleash server at $unleashUrl" }
                 }
