@@ -74,6 +74,7 @@ class FeatureToggleConfig {
                 GradualRolloutUserIdStrategy(),
                 GradualRolloutRandomStrategy(),
                 UserWithIdStrategy(),
+                ByUserIdStrategy()
             )
         }
     }
