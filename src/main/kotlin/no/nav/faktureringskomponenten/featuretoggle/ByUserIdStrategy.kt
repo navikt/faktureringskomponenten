@@ -2,7 +2,7 @@ package no.nav.faktureringskomponenten.featuretoggle
 
 import io.getunleash.strategy.Strategy
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.config.SubjectHandler
+import no.nav.faktureringskomponenten.config.AuditorContextHolder
 import java.util.*
 
 internal class ByUserIdStrategy : Strategy {
@@ -42,7 +42,7 @@ internal class ByUserIdStrategy : Strategy {
         }
 
     private fun getLoggedInUserID(): String? =
-        SubjectHandler.getInstance().getTokenUsername()
+        AuditorContextHolder.getCurrentAuditor().orElse(null)
 
     companion object {
         const val STACK_TRACE_LINE_BEFORE_UNLEASH_IS_ENABLED =
