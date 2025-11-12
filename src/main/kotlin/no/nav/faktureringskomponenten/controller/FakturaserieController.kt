@@ -59,7 +59,6 @@ class FakturaserieController @Autowired constructor(
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ProblemDetailFactory.of(bindingResult))
         }
 
-        log.info("Faktureringskomponent ikke tidligere toggle er ${unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)}")
         if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)) {
             if (fakturaserieRequestDto.perioder.isEmpty() && fakturaserieRequestDto.fakturaserieReferanse.isNullOrEmpty()) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
