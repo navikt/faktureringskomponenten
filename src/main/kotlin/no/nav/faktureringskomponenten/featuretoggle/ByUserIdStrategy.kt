@@ -42,12 +42,8 @@ internal class ByUserIdStrategy : Strategy {
         }
 
     /**
-     * Henter innlogget bruker-ID, med prioritering:
-     * 1. Fra token (SubjectHandler) - mest sikker, basert på autentisert token
-     * 2. Fra AuditorContextHolder - fallback når token-context ikke er tilgjengelig
-     *
-     * SubjectHandler bruker token-basert autentisering, mens AuditorContextHolder
-     * kan settes via Nav-User-Id header (mindre sikkert) men er nyttig som fallback.
+     * Henter innlogget bruker-ID fra AuditorContextHolder. Det er ikke ideelt,
+     * akkurat nå har vi ikke noe annet.
      */
     private fun getLoggedInUserID(): String? =
         AuditorContextHolder.getCurrentAuditor().orElse(null)
