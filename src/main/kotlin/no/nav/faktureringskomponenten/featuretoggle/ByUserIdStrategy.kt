@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.featuretoggle
 import io.getunleash.strategy.Strategy
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.config.AuditorContextHolder
-import no.nav.faktureringskomponenten.config.SubjectHandler
 import java.util.*
 
 internal class ByUserIdStrategy : Strategy {
@@ -43,16 +42,11 @@ internal class ByUserIdStrategy : Strategy {
         }
 
     /**
-     * Henter innlogget bruker-ID, med prioritering:
-     * 1. Fra token (SubjectHandler) - mest sikker, basert på autentisert token
-     * 2. Fra AuditorContextHolder - fallback når token-context ikke er tilgjengelig
-     *
-     * SubjectHandler bruker token-basert autentisering, mens AuditorContextHolder
-     * kan settes via Nav-User-Id header (mindre sikkert) men er nyttig som fallback.
+     * Henter innlogget bruker-ID fra AuditorContextHolder. Det er ikke ideelt,
+     * akkurat nå har vi ikke noe annet.
      */
     private fun getLoggedInUserID(): String? =
-        SubjectHandler.getInstance().getTokenUsername()
-            ?: AuditorContextHolder.getCurrentAuditor().orElse(null)
+        AuditorContextHolder.getCurrentAuditor().orElse(null)
 
     companion object {
         const val STACK_TRACE_LINE_BEFORE_UNLEASH_IS_ENABLED =
