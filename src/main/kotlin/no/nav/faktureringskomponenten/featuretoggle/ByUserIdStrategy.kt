@@ -3,7 +3,6 @@ package no.nav.faktureringskomponenten.featuretoggle
 import io.getunleash.strategy.Strategy
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.config.AuditorContextHolder
-import no.nav.faktureringskomponenten.config.SubjectHandler
 import java.util.*
 
 internal class ByUserIdStrategy : Strategy {
@@ -51,8 +50,7 @@ internal class ByUserIdStrategy : Strategy {
      * kan settes via Nav-User-Id header (mindre sikkert) men er nyttig som fallback.
      */
     private fun getLoggedInUserID(): String? =
-        SubjectHandler.getInstance().getTokenUsername()
-            ?: AuditorContextHolder.getCurrentAuditor().orElse(null)
+        AuditorContextHolder.getCurrentAuditor().orElse(null)
 
     companion object {
         const val STACK_TRACE_LINE_BEFORE_UNLEASH_IS_ENABLED =
