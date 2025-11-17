@@ -36,7 +36,7 @@ class Faktura(
     var fakturaserie: Fakturaserie? = null,
 
     @OneToMany(cascade = [CascadeType.ALL], fetch = FetchType.LAZY, orphanRemoval = true)
-    @JoinColumn(name = "faktura_id")
+    @JoinColumn(name = "faktura_id", nullable = false)
     var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
 
     @Column(name = "eksternt_fakturanummer", nullable = false, unique = true)
@@ -45,7 +45,7 @@ class Faktura(
     @Column(name = "kreditering_faktura_ref", nullable = true, unique = true)
     var krediteringFakturaRef: String = "",
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.DETACH])
     @JoinColumn(name = "avregning_faktura_id")
     val referertFakturaVedAvregning: Faktura? = null,
 

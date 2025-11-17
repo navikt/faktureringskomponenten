@@ -23,16 +23,22 @@ open class EmbeddedKafkaBase(
 ) : PostgresTestContainerBase() {
 
     @Transactional
-    protected open fun lagFakturaMedSerie(faktura: Faktura, referanse: String = ULID.randomULID()): Faktura =
-        fakturaserieRepository.saveAndFlush(
+    protected open fun lagFakturaMedSerie(faktura: Faktura, referanse: String = ULID.randomULID()): Faktura {
+        val serie = fakturaserieRepository.saveAndFlush(
             Fakturaserie.forTest {
                 this.referanse = referanse
                 fodselsnummer = "01234567890"
                 leggTilFaktura(faktura)
             }
-        ).faktura.first().apply {
-            addCleanUpAction { fakturaserieRepository.delete(fakturaserie!!) }
+        )
+        val savedFaktura = serie.faktura.first()
+        addCleanUpAction {
+            fakturaserieRepository.findByReferanse(referanse)?.let {
+                fakturaserieRepository.delete(it)
+            }
         }
+        return savedFaktura
+    }
 
     companion object {
         const val kafkaTopic = "faktura-mottatt-topic-local"
