@@ -32,7 +32,7 @@ class EksternFakturaStatus(
     var sendt: Boolean? = false,
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "faktura_id", nullable = false)
+    @JoinColumn(name = "faktura_id", nullable = false, insertable = false, updatable = false)
     var faktura: Faktura? = null
 ) : BaseEntity() {
     companion object
