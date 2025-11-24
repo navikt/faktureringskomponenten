@@ -14,5 +14,8 @@
   "kafka_topic_name_manglende_fakturabetaling": "teammelosys.manglende-fakturabetaling.v1-q1",
   "unleash_environment": "development",
   "cron_job_bestill_faktura":  "0 */5 * * * *",
-  "group_melosys_innlogging": "52981246-8032-40f0-863a-2bd2844f2d57"
+  "group_melosys_innlogging": "52981246-8032-40f0-863a-2bd2844f2d57",
+  "pgaudit_enabled": "off",
+  "pgaudit_log": "",
+  "pgaudit_log_parameter": "off"
 }
