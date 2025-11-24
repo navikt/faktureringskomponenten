@@ -23,11 +23,11 @@ spec:
           - name: timezone
             value: "Europe/Oslo"
           - name: "cloudsql.enable_pgaudit"
-            value: "{{pgaudit_enabled}}"
+            value: {{pgaudit_enabled}}
           - name: "pgaudit.log"
-            value: "{{pgaudit_log}}"
+            value: {{pgaudit_log}}
           - name: "pgaudit.log_parameter"
-            value: "{{pgaudit_log_parameter}}"
+            value: {{pgaudit_log_parameter}}
   image: {{image}}
   port: 8080
   replicas:
