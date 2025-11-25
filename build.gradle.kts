@@ -36,10 +36,8 @@ tasks.test {
 object dependencyVersions {
     const val testContainerVersion = "1.20.3"
     const val kotestVersion = "5.5.4"
-    const val shedlockVersion = "4.4.0"
-    const val shedlockProvicerJdbcVersion = "4.43.0"
+    const val shedlockVersion = "4.43.0"
     const val mockkVersion = "1.13.3"
-    const val openapiVersion = "1.6.14"
     const val springdocOpenapiStarter = "2.8.8"
     const val logstashLogbackEncoder = "7.2"
     const val tokenSupportVersion = "3.2.0"
@@ -47,7 +45,6 @@ object dependencyVersions {
     const val kotlinLogging = "3.0.5"
     const val archUnitVersion = "1.0.1"
     const val micrometerJvmExtrasVersion = "0.2.2"
-    const val micrometerVersion = "1.10.5"
     const val threeTenExtraVersion = "1.7.2"
     const val unleashVersion = "8.3.0"
     const val ULIDVersion = "1.3.0"
@@ -56,7 +53,6 @@ object dependencyVersions {
 dependencies {
     runtimeOnly("org.postgresql:postgresql")
     runtimeOnly("org.flywaydb:flyway-database-postgresql")
-    implementation("org.springdoc:springdoc-openapi-kotlin:${dependencyVersions.openapiVersion}")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${dependencyVersions.springdocOpenapiStarter}")
     implementation("org.springdoc:springdoc-openapi-starter-common:${dependencyVersions.springdocOpenapiStarter}")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -66,11 +62,11 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("io.github.microutils:kotlin-logging-jvm:${dependencyVersions.kotlinLogging}")
-    implementation("io.micrometer:micrometer-registry-prometheus:${dependencyVersions.micrometerVersion}")
+    implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("io.github.mweirauch:micrometer-jvm-extras:${dependencyVersions.micrometerJvmExtrasVersion}")
     implementation("io.getunleash:unleash-client-java:${dependencyVersions.unleashVersion}")
     implementation("net.javacrumbs.shedlock:shedlock-spring:${dependencyVersions.shedlockVersion}")
-    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockProvicerJdbcVersion}")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockVersion}")
     implementation("net.logstash.logback:logstash-logback-encoder:${dependencyVersions.logstashLogbackEncoder}")
     implementation("no.nav.security:token-validation-spring:${dependencyVersions.tokenSupportVersion}")
     implementation("org.flywaydb:flyway-core")
