@@ -36,7 +36,8 @@ tasks.test {
 object dependencyVersions {
     const val testContainerVersion = "1.20.3"
     const val kotestVersion = "5.5.4"
-    const val shedlockVersion = "4.43.0"
+    const val shedlockVersion = "4.4.0"
+    const val shedlockProvicerJdbcVersion = "4.43.0"
     const val mockkVersion = "1.13.3"
     const val springdocOpenapiStarter = "2.8.14"
     const val logstashLogbackEncoder = "7.2"
@@ -66,7 +67,7 @@ dependencies {
     implementation("io.github.mweirauch:micrometer-jvm-extras:${dependencyVersions.micrometerJvmExtrasVersion}")
     implementation("io.getunleash:unleash-client-java:${dependencyVersions.unleashVersion}")
     implementation("net.javacrumbs.shedlock:shedlock-spring:${dependencyVersions.shedlockVersion}")
-    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockVersion}")
+    implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:${dependencyVersions.shedlockProvicerJdbcVersion}")
     implementation("net.logstash.logback:logstash-logback-encoder:${dependencyVersions.logstashLogbackEncoder}")
     implementation("no.nav.security:token-validation-spring:${dependencyVersions.tokenSupportVersion}")
     implementation("org.flywaydb:flyway-core")
