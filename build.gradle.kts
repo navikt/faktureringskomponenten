@@ -40,7 +40,7 @@ object dependencyVersions {
     const val shedlockProvicerJdbcVersion = "4.43.0"
     const val mockkVersion = "1.13.3"
     const val openapiVersion = "1.6.14"
-    const val springdocOpenapiStarter = "2.0.2"
+    const val springdocOpenapiStarter = "2.8.8"
     const val logstashLogbackEncoder = "7.2"
     const val tokenSupportVersion = "3.2.0"
     const val awaitabilityVersion = "4.2.0"
