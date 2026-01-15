@@ -1,15 +1,20 @@
 package no.nav.faktureringskomponenten.controller
 
+import com.fasterxml.jackson.dataformat.csv.CsvMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.controller.dto.FakturaAdminDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.toFakturaAdminDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
+import no.nav.faktureringskomponenten.domain.models.AvstemmingCsvRad
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
+import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.service.*
 import no.nav.faktureringskomponenten.service.integration.kafka.EksternFakturaStatusConsumer
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
@@ -35,7 +40,8 @@ class AdminController(
     val fakturaService: FakturaService,
     val fakturaBestillingService: FakturaBestillingService,
     val adminService: AdminService,
-    val faktureringService: FakturaserieService
+    val faktureringService: FakturaserieService,
+    val fakturaRepository: FakturaRepository
 ) {
 
     @Value("\${NAIS_CLUSTER_NAME}")
@@ -251,6 +257,36 @@ class AdminController(
 
         val fakturaer = fakturaService.hentFakturaerMedStatus(status)
         return ResponseEntity.ok(fakturaer.map { it.toFakturaAdminDto() })
+    }
+
+    @Operation(
+        summary = "Henter avstemmingsdata som CSV for fakturaer med status BESTILT eller MANGLENDE_INNBETALING i en gitt periode",
+        description = "Returnerer en CSV-fil med avstemmingsdata filtrert på bestillingsdato. Bruk for eksempel Q1 2024: periodeFra=2024-01-01, periodeTil=2024-03-31"
+    )
+    @GetMapping("/avstemming/csv", produces = ["text/csv"])
+    fun hentAvstemmingCsv(
+        @Parameter(description = "Fra-dato for perioden (inklusiv)", example = "2024-01-01")
+        @RequestParam periodeFra: LocalDate,
+        @Parameter(description = "Til-dato for perioden (inklusiv)", example = "2024-03-31")
+        @RequestParam periodeTil: LocalDate
+    ): ResponseEntity<String> {
+        log.info("Henter avstemmingsdata som CSV for periode $periodeFra - $periodeTil")
+        val data = fakturaRepository.hentAvstemmingData(periodeFra, periodeTil)
+            .map { AvstemmingCsvRad.fra(it) }
+
+        val csvMapper = CsvMapper().apply {
+            registerModule(JavaTimeModule())
+        }
+        val schema = csvMapper
+            .schemaFor(AvstemmingCsvRad::class.java)
+            .withHeader()
+            .withColumnSeparator(';')
+
+        val csv = csvMapper.writer(schema).writeValueAsString(data)
+
+        return ResponseEntity.ok()
+            .header("Content-Disposition", "attachment; filename=avstemming_${periodeFra}_${periodeTil}.csv")
+            .body(csv)
     }
 
     companion object {
