@@ -10,6 +10,7 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.toFakturaAdminDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.validators.OrganisasjonsnummerValidator
 import no.nav.faktureringskomponenten.domain.models.AvstemmingCsvRad
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
@@ -93,6 +94,12 @@ class AdminController(
             log.info("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
             return ResponseEntity.status(400)
                 .body("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
+        }
+
+        if (fakturaMottaker != null && !OrganisasjonsnummerValidator.erGyldig(fakturaMottaker)) {
+            log.info("Ugyldig organisasjonsnummer: $fakturaMottaker")
+            return ResponseEntity.status(400)
+                .body("Ugyldig organisasjonsnummer: $fakturaMottaker")
         }
 
         fakturaService.oppdaterFakturaStatus(fakturaReferanse, FakturaStatus.OPPRETTET)
