@@ -16,6 +16,7 @@ group = "no.nav"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_17
 extra["junit-jupiter.version"] = "5.11.3"
+extra["testcontainers.version"] = "2.0.3"
 
 repositories {
     mavenCentral()
@@ -34,7 +35,7 @@ tasks.test {
 }
 
 object dependencyVersions {
-    const val testContainerVersion = "1.20.3"
+    const val testContainerVersion = "2.0.3"
     const val kotestVersion = "5.5.4"
     const val shedlockVersion = "4.4.0"
     const val shedlockProvicerJdbcVersion = "4.43.0"
@@ -85,8 +86,8 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
     testImplementation("org.springframework.kafka:spring-kafka-test")
     testImplementation("io.mockk:mockk:${dependencyVersions.mockkVersion}")
-    testImplementation("org.testcontainers:postgresql:${dependencyVersions.testContainerVersion}")
-    testImplementation("org.testcontainers:junit-jupiter:${dependencyVersions.testContainerVersion}")
+    testImplementation("org.testcontainers:testcontainers-postgresql:${dependencyVersions.testContainerVersion}")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:${dependencyVersions.testContainerVersion}")
     testImplementation("org.awaitility:awaitility:${dependencyVersions.awaitabilityVersion}")
     testImplementation("org.awaitility:awaitility-kotlin:${dependencyVersions.awaitabilityVersion}")
     testImplementation("com.tngtech.archunit:archunit:${dependencyVersions.archUnitVersion}")
