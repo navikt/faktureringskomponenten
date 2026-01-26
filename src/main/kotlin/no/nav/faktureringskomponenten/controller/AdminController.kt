@@ -41,7 +41,8 @@ class AdminController(
     val fakturaBestillingService: FakturaBestillingService,
     val adminService: AdminService,
     val faktureringService: FakturaserieService,
-    val fakturaRepository: FakturaRepository
+    val fakturaRepository: FakturaRepository,
+    val kanselleringService: KanselleringService
 ) {
 
     @Value("\${NAIS_CLUSTER_NAME}")
@@ -233,7 +234,7 @@ class AdminController(
                 .body(NyFakturaserieResponseDto("Endepunkt er kun tilgjengelig 8. august"))
         }
 
-        val nyFakturaserieRefereanse = faktureringService.kansellerFakturaserie(referanse)
+        val nyFakturaserieRefereanse = kanselleringService.kansellerFakturaserie(referanse)
 
         log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: $nyFakturaserieRefereanse")
         return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))

@@ -18,6 +18,7 @@ import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.FakturaBestillingService
 import no.nav.faktureringskomponenten.service.FakturaserieService
+import no.nav.faktureringskomponenten.service.KanselleringService
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaRepositoryForTesting
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
@@ -47,13 +48,14 @@ import java.time.LocalDate
 @AutoConfigureWebTestClient
 @EnableMockOAuth2Server
 class FakturaKanselleringIT(
-    @Autowired private val fakturaserieRepository: FakturaserieRepository,
-    @Autowired private val fakturaserieService: FakturaserieService,
-    @Autowired private val fakturaserieRepositoryForTesting: FakturaserieRepositoryForTesting,
-    @Autowired private val fakturaRepositoryForTesting: FakturaRepositoryForTesting,
-    @Autowired private val server: MockOAuth2Server,
-    @Autowired private val webClient: WebTestClient,
-    @Autowired private val fakturaRepository: FakturaRepository,
+    val fakturaserieRepository: FakturaserieRepository,
+    val fakturaserieService: FakturaserieService,
+    val fakturaserieRepositoryForTesting: FakturaserieRepositoryForTesting,
+    val fakturaRepositoryForTesting: FakturaRepositoryForTesting,
+    val server: MockOAuth2Server,
+    val webClient: WebTestClient,
+    val fakturaRepository: FakturaRepository,
+    val kanselleringService: KanselleringService
 ) : PostgresTestContainerBase() {
 
     private object TestQueue {
@@ -102,7 +104,7 @@ class FakturaKanselleringIT(
         fakturaserieRepository.save(opprinneligFakturaserie)
 
 
-        val krediteringsReferanse = fakturaserieService.kansellerFakturaserie(opprinneligFakturaserie.referanse)
+        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(opprinneligFakturaserie.referanse)
 
 
         val krediteringsFakturaserie: Fakturaserie =
@@ -300,7 +302,7 @@ class FakturaKanselleringIT(
 
         totalBelop.shouldBe(opprinneligTotal.add(avregning1Total))
 
-        val krediteringsReferanse = fakturaserieService.kansellerFakturaserie(fakturaserieReferanse2)
+        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(fakturaserieReferanse2)
 
 
         val kanselleringTotalBelop =
