@@ -22,11 +22,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v6
 
-    - name: Initialize CodeQL
-      uses: github/codeql-action/init@v4
-      with:
-        languages: ${{ matrix.language }}
-
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
@@ -34,8 +29,14 @@ jobs:
         java-version: 17
         cache: gradle
 
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v4
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: manual
+
+    - name: Build with Gradle
+      run: ./gradlew build -x test --no-daemon
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
