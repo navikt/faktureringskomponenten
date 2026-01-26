@@ -13,6 +13,7 @@ import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseD
 import no.nav.faktureringskomponenten.domain.models.AvstemmingCsvRad
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.Fullmektig
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.service.*
@@ -76,7 +77,10 @@ class AdminController(
     }
 
     @PostMapping("/faktura/{fakturaReferanse}/ombestill")
-    fun ombestillFaktura(@PathVariable fakturaReferanse: String): ResponseEntity<String> {
+    fun ombestillFaktura(
+        @PathVariable fakturaReferanse: String,
+        @RequestParam(required = false) fakturaMottaker: String?
+    ): ResponseEntity<String> {
         log.info("Sender ny melding til OEBS om bestilling av faktura med referanse nr $fakturaReferanse")
         val faktura = fakturaService.hentFaktura(fakturaReferanse)
         if (faktura == null) {
@@ -89,6 +93,16 @@ class AdminController(
             return ResponseEntity.status(400)
                 .body("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
         }
+
+        if (fakturaMottaker != null) {
+            val fakturaserie = faktura.fakturaserie
+            if (fakturaserie != null) {
+                log.info("Oppdaterer fakturaMottaker til $fakturaMottaker for fakturaserie ${fakturaserie.referanse}")
+                fakturaserie.fullmektig = Fullmektig(organisasjonsnummer = fakturaMottaker)
+                faktureringService.lagreFakturaserie(fakturaserie)
+            }
+        }
+
         fakturaService.oppdaterFakturaStatus(fakturaReferanse, FakturaStatus.OPPRETTET)
 
         fakturaBestillingService.bestillFaktura(fakturaReferanse)
