@@ -14,6 +14,7 @@ import no.nav.faktureringskomponenten.domain.models.AvstemmingCsvRad
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fullmektig
+import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.domain.repositories.FakturaMottakFeilRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.service.*
@@ -94,16 +95,18 @@ class AdminController(
                 .body("Faktura med referanse nr $fakturaReferanse er ikke i feil status")
         }
 
+        fakturaService.oppdaterFakturaStatus(fakturaReferanse, FakturaStatus.OPPRETTET)
+
         if (fakturaMottaker != null) {
             val fakturaserie = faktura.fakturaserie
             if (fakturaserie != null) {
                 log.info("Oppdaterer fakturaMottaker til $fakturaMottaker for fakturaserie ${fakturaserie.referanse}")
-                fakturaserie.fullmektig = Fullmektig(organisasjonsnummer = fakturaMottaker)
-                faktureringService.lagreFakturaserie(fakturaserie)
+                faktureringService.endreFakturaMottaker(
+                    fakturaserie.referanse,
+                    FakturamottakerDto(Fullmektig(organisasjonsnummer = fakturaMottaker))
+                )
             }
         }
-
-        fakturaService.oppdaterFakturaStatus(fakturaReferanse, FakturaStatus.OPPRETTET)
 
         fakturaBestillingService.bestillFaktura(fakturaReferanse)
         return ResponseEntity.ok("Feilet faktura med referanse nr $fakturaReferanse bestilles på nytt")

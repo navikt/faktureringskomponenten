@@ -28,10 +28,6 @@ class FakturaserieService(
             message = "Fant ikke fakturaserie på: $referanse"
         )
 
-    fun lagreFakturaserie(fakturaserie: Fakturaserie) {
-        fakturaserieRepository.save(fakturaserie)
-    }
-
     fun hentFakturaserier(referanse: String): List<Fakturaserie> {
         return fakturaserieRepository.findAllByReferanse(referanse)
     }
