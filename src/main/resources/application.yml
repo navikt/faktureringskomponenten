@@ -65,3 +65,4 @@ management:
 
 unleash:
   token: ${UNLEASH_SERVER_API_TOKEN}
+  url: ${UNLEASH_SERVER_API_URL}/api
