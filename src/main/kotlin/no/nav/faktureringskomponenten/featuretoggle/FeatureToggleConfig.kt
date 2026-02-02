@@ -21,7 +21,6 @@ private val log = KotlinLogging.logger {}
 
 @Configuration
 class FeatureToggleConfig {
-    private val UNLEASH_URL = "https://melosys-unleash-api.nav.cloud.nais.io/api"
     private val APP_NAME = "faktureringskomponenten"
 
     @Bean
@@ -72,7 +71,7 @@ class FeatureToggleConfig {
             val unleashConfig: UnleashConfig = UnleashConfig.builder()
                 .apiKey(token)
                 .appName(APP_NAME)
-                .unleashAPI(UNLEASH_URL)
+                .unleashAPI(unleashUrl)
                 .build()
             DefaultUnleash(
                 unleashConfig,
