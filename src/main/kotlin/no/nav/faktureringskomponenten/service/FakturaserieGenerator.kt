@@ -3,12 +3,13 @@ package no.nav.faktureringskomponenten.service
 import io.getunleash.Unleash
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.config.ToggleName
-import no.nav.faktureringskomponenten.domain.models.Faktura
-import no.nav.faktureringskomponenten.domain.models.Fakturaserie
-import no.nav.faktureringskomponenten.domain.models.Fullmektig
+import no.nav.faktureringskomponenten.domain.models.*
+import no.nav.faktureringskomponenten.service.FakturaLinjeGenerator.Companion.DATE_FORMATTER
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import org.springframework.stereotype.Component
 import org.threeten.extra.LocalDateRange
+import ulid.ULID
+import java.math.BigDecimal
 import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
@@ -131,9 +132,16 @@ class FakturaserieGenerator(
         fakturaserieDto: FakturaserieDto,
         startDato: LocalDate,
         sluttDato: LocalDate,
-        bestilteFakturaer: List<Faktura>
+        alleFakturalinjer: Map<Int, List<FakturaLinje>>
     ): Fakturaserie {
-        return Fakturaserie(
+        val fakturaer = alleFakturalinjer.map { (year, fakturalinjer) ->
+            Faktura(
+                referanseNr = ULID.randomULID(),
+                fakturaLinje = listOf(lagKanselleringFakturalinje(fakturalinjer)),
+            )
+        }
+
+        val nyFakturaserie = Fakturaserie(
             referanse = fakturaserieDto.fakturaserieReferanse,
             fakturaGjelderInnbetalingstype = fakturaserieDto.fakturaGjelderInnbetalingstype,
             fodselsnummer = fakturaserieDto.fodselsnummer,
@@ -142,11 +150,25 @@ class FakturaserieGenerator(
             referanseNAV = fakturaserieDto.referanseNAV,
             startdato = startDato,
             sluttdato = sluttDato,
-            intervall = fakturaserieDto.intervall,
-            faktura = avregningBehandler.lagAvregningsfakturaer(
-                fakturaserieDto.perioder,
-                bestilteFakturaer
-            )
+            intervall = FakturaserieIntervall.SINGEL,
+            faktura = fakturaer
+        )
+
+        return nyFakturaserie
+    }
+
+    fun lagKanselleringFakturalinje(fakturalinjer: List<FakturaLinje>): FakturaLinje {
+        val totalBelop = fakturalinjer.sumOf { it.belop }
+        val periodeFra = fakturalinjer.minOf { it.periodeFra }
+        val periodeTil = fakturalinjer.maxOf { it.periodeTil }
+        return FakturaLinje(
+            id = null,
+            periodeFra = periodeFra,
+            periodeTil = periodeTil,
+            belop = totalBelop.negate(),
+            antall = BigDecimal.ONE,
+            beskrivelse = "Tilbakebetaling for periode: ${periodeFra.format(DATE_FORMATTER)} - ${periodeTil.format(DATE_FORMATTER)}",
+            enhetsprisPerManed = totalBelop.negate()
         )
     }
 

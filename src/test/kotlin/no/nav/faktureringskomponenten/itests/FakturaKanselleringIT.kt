@@ -48,14 +48,14 @@ import java.time.LocalDate
 @AutoConfigureWebTestClient
 @EnableMockOAuth2Server
 class FakturaKanselleringIT(
-    val fakturaserieRepository: FakturaserieRepository,
-    val fakturaserieService: FakturaserieService,
-    val fakturaserieRepositoryForTesting: FakturaserieRepositoryForTesting,
-    val fakturaRepositoryForTesting: FakturaRepositoryForTesting,
-    val server: MockOAuth2Server,
-    val webClient: WebTestClient,
-    val fakturaRepository: FakturaRepository,
-    val kanselleringService: KanselleringService
+    @Autowired val fakturaserieRepository: FakturaserieRepository,
+    @Autowired val fakturaserieService: FakturaserieService,
+    @Autowired val fakturaserieRepositoryForTesting: FakturaserieRepositoryForTesting,
+    @Autowired val fakturaRepositoryForTesting: FakturaRepositoryForTesting,
+    @Autowired val server: MockOAuth2Server,
+    @Autowired val webClient: WebTestClient,
+    @Autowired val fakturaRepository: FakturaRepository,
+    @Autowired val kanselleringService: KanselleringService
 ) : PostgresTestContainerBase() {
 
     private object TestQueue {

@@ -40,6 +40,6 @@ class FakturaLinjeGenerator {
     }
 
     companion object {
-        private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+        val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy")
     }
 }

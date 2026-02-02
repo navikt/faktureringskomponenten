@@ -15,6 +15,7 @@ import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.forTest
 import no.nav.faktureringskomponenten.featuretoggle.FeatureToggleConfig
 import no.nav.faktureringskomponenten.service.FakturaserieService
+import no.nav.faktureringskomponenten.service.KanselleringService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
@@ -29,7 +30,6 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.web.filter.CharacterEncodingFilter
-import java.math.BigDecimal
 import java.time.LocalDate
 
 @ActiveProfiles("itest")
@@ -42,7 +42,7 @@ class FakturaserieControllerTest(
 ) {
 
     @Autowired
-    private lateinit var faktureringServiceMock: FakturaserieService
+    private lateinit var fakturaserieService: FakturaserieService
 
 
     @Test
@@ -83,7 +83,7 @@ class FakturaserieControllerTest(
             )
         )
 
-        every { faktureringServiceMock.lagNyFakturaserie(any(), any()) } returns "123456"
+        every { fakturaserieService.lagNyFakturaserie(any(), any()) } returns "123456"
 
         mockMvc.perform(
             post("/fakturaserier")
@@ -105,7 +105,7 @@ class FakturaserieControllerTest(
         unleash.disable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)
         val lagFakturaserieDto = lagFakturaserieDto()
 
-        every { faktureringServiceMock.lagNyFakturaserie(any(), any()) } returns "123456"
+        every { fakturaserieService.lagNyFakturaserie(any(), any()) } returns "123456"
 
         mockMvc.perform(
             post("/fakturaserier")
@@ -136,6 +136,12 @@ class FakturaserieControllerTest(
         @Bean
         @Primary
         fun fakturaserieService(): FakturaserieService {
+            return mockk()
+        }
+
+        @Bean
+        @Primary
+        fun kanselleringService(): KanselleringService {
             return mockk()
         }
     }
