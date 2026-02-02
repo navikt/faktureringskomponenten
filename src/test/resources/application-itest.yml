@@ -22,7 +22,7 @@ AZURE_APP_CLIENT_ID: faktureringskomponenten-localhost
 
 unleash:
   token: "fake"
-  urL: "enda mer fake"
+  url: "enda mer fake"
 
 cron:
   job:
