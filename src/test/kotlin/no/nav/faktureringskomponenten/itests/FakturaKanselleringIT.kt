@@ -104,7 +104,7 @@ class FakturaKanselleringIT(
         fakturaserieRepository.save(opprinneligFakturaserie)
 
 
-        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(opprinneligFakturaserie.referanse)
+        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(opprinneligFakturaserie.referanse, emptyList())
 
 
         val krediteringsFakturaserie: Fakturaserie =
@@ -302,7 +302,7 @@ class FakturaKanselleringIT(
 
         totalBelop.shouldBe(opprinneligTotal.add(avregning1Total))
 
-        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(fakturaserieReferanse2)
+        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(fakturaserieReferanse2, emptyList())
 
 
         val kanselleringTotalBelop =

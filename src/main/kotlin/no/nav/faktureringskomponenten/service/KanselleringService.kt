@@ -20,15 +20,18 @@ class KanselleringService(
 ) {
 
     @Transactional
-    fun kansellerFakturaserie(referanse: String): String {
+    fun kansellerFakturaserie(referanse: String, årsavregningRef: List<String>): String {
         val aktivFakturaserie = fakturaserieRepository.findByReferanse(referanse)
             ?: throw RessursIkkeFunnetException(
                 field = "fakturaserieId",
                 message = "Finner ikke fakturaserie med referanse $referanse"
             )
 
+        val alleÅrsavregningFakturaserier = årsavregningRef.mapNotNull { referanse ->
+            fakturaserieRepository.findByReferanse(referanse)
+        }
         val alleFakturaserier = hentFakturaserier(aktivFakturaserie.referanse)
-        val alleBestilteFakturalinjer = alleFakturaserier
+        val alleBestilteFakturalinjer = (alleFakturaserier + alleÅrsavregningFakturaserier)
             .flatMap { it.faktura }
             .filter { it.status == FakturaStatus.BESTILT }
             .flatMap { it.fakturaLinje }
@@ -59,7 +62,12 @@ class KanselleringService(
         fakturaserieRepository.save(krediteringFakturaserie)
 
         aktivFakturaserie.kansellerMed(krediteringFakturaserie)
-        fakturaserieRepository.save(aktivFakturaserie)
+            .also { fakturaserieRepository.save(aktivFakturaserie) }
+
+        alleÅrsavregningFakturaserier.forEach {
+            it.kansellerMed(krediteringFakturaserie)
+            fakturaserieRepository.save(it)
+        }
 
         fakturaBestillingService.bestillKreditnota(krediteringFakturaserie)
         return krediteringFakturaserie.referanse

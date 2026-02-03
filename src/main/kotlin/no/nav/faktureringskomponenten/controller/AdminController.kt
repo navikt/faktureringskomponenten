@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.controller.FakturaserieController.KanselleringRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaAdminDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
@@ -215,11 +216,15 @@ class AdminController(
         return ResponseEntity.ok("Status på faktura $fakturaReferanse har blitt oppdatert fra fra $originalStatus til $status")
     }
 
-    @DeleteMapping("/fakturaserie/{fakturaserieReferanse}")
+    @PostMapping("/fakturaserie/{fakturaserieReferanse}/kanseller")
     fun kansellerFakturaserie(
         @PathVariable("fakturaserieReferanse", required = true) referanse: String,
+        @RequestBody kanselleringRequest: KanselleringRequestDto
     ): ResponseEntity<NyFakturaserieResponseDto> {
         log.info("Mottatt ADMIN forespørsel om kansellering av fakturaserie: $referanse")
+        if (kanselleringRequest.årsavregningRef.isNotEmpty()) {
+            log.info("Kansellering av årsavregninger: ${kanselleringRequest.årsavregningRef}")
+        }
         //Sjekk at dato er 8. august
         /*if (naisClusterName != NAIS_CLUSTER_NAME_DEV) {
             log.warn("Endepunktet er kun tilgjengelig i testmiljø")
@@ -234,7 +239,7 @@ class AdminController(
                 .body(NyFakturaserieResponseDto("Endepunkt er kun tilgjengelig 8. august"))
         }
 
-        val nyFakturaserieRefereanse = kanselleringService.kansellerFakturaserie(referanse)
+        val nyFakturaserieRefereanse = kanselleringService.kansellerFakturaserie(referanse, kanselleringRequest.årsavregningRef)
 
         log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: $nyFakturaserieRefereanse")
         return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))

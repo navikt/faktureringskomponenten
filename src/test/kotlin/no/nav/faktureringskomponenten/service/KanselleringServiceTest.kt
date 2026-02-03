@@ -3,16 +3,14 @@ package no.nav.faktureringskomponenten.service
 import io.getunleash.FakeUnleash
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.justRun
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
 import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import org.junit.jupiter.api.Test
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -105,7 +103,7 @@ class KanselleringServiceTest {
         justRun { fakturaBestillingService.bestillKreditnota(any()) }
 
 
-        kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse)
+        kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, emptyList())
 
 
         verify { fakturaserieRepository.save(aktivFakturaserie) }
@@ -130,35 +128,21 @@ class KanselleringServiceTest {
         }
     }
 
+    @Test
     fun `kansellere faktura som går over flere år tilbake og har årsavregning`() {
-        val fom = LocalDate.now().withMonth(1).withDayOfMonth(1)
+        val fom = LocalDate.now().withMonth(7).withDayOfMonth(1)
         val tom = LocalDate.now().withMonth(12).withDayOfMonth(31)
 
         val aktivFakturaserie = Fakturaserie.forTest {
-            startdato = fom.minusYears(1)
+            referanse = ULID.randomULID()
+            startdato = fom
             sluttdato = tom
-            faktura {
-                status = FakturaStatus.BESTILT
-                fakturaLinje {
-                    periodeFra = fom.minusYears(1)
-                    periodeTil = tom.withMonth(3).minusYears(1)
-                    månedspris = 10000
-                }
-            }
-            faktura {
-                status = FakturaStatus.BESTILT
-                fakturaLinje {
-                    periodeFra = fom.withMonth(4).minusYears(1)
-                    periodeTil = tom.withMonth(6).minusYears(1)
-                    månedspris = 10000
-                }
-            }
             faktura {
                 status = FakturaStatus.BESTILT
                 fakturaLinje {
                     periodeFra = fom.withMonth(7).minusYears(1)
                     periodeTil = tom.withMonth(9).minusYears(1)
-                    månedspris = 10000
+                    månedspris = 5000
                 }
             }
             faktura {
@@ -166,7 +150,7 @@ class KanselleringServiceTest {
                 fakturaLinje {
                     periodeFra = fom.withMonth(10).minusYears(1)
                     periodeTil = tom.minusYears(1)
-                    månedspris = 10000
+                    månedspris = 6000
                 }
             }
             faktura {
@@ -202,7 +186,9 @@ class KanselleringServiceTest {
                 }
             }
         }
+
         val årsavregningForrigeÅr = Fakturaserie.forTest {
+            referanse = ULID.randomULID()
             startdato = fom.minusYears(1)
             sluttdato = tom.minusYears(1)
             fakturaGjelderInnbetalingstype = Innbetalingstype.AARSAVREGNING
@@ -216,6 +202,7 @@ class KanselleringServiceTest {
             }
         }
         val årsavregningForrigeÅrNyBehandling = Fakturaserie.forTest {
+            referanse = ULID.randomULID()
             startdato = fom.minusYears(1)
             sluttdato = tom.minusYears(1)
             fakturaGjelderInnbetalingstype = Innbetalingstype.AARSAVREGNING
@@ -231,38 +218,52 @@ class KanselleringServiceTest {
 
 
         every { fakturaserieRepository.findByReferanse(aktivFakturaserie.referanse) } returns aktivFakturaserie
+        every { fakturaserieRepository.findByReferanse(årsavregningForrigeÅr.referanse) } returns årsavregningForrigeÅr
+        every { fakturaserieRepository.findByReferanse(årsavregningForrigeÅrNyBehandling.referanse) } returns årsavregningForrigeÅrNyBehandling
         every { fakturaserieRepository.findAllByReferanse(aktivFakturaserie.referanse) } returns listOf(
             aktivFakturaserie
         )
 
-        val krediteringFakturaserie = mutableListOf<Fakturaserie>()
-        every { fakturaserieRepository.save(aktivFakturaserie) } returns aktivFakturaserie
-        every { fakturaserieRepository.save(not(aktivFakturaserie)) } answers {
-            val fakturaserie = firstArg<Fakturaserie>()
-            krediteringFakturaserie.add(fakturaserie)
-            fakturaserie
-        }
-        justRun { fakturaBestillingService.bestillKreditnota(any()) }
+        every { fakturaserieRepository.save(any()) } answers { firstArg() }
 
-        kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse)
+        val krediteringFakturaserie = mutableListOf<Fakturaserie>()
+        every { fakturaBestillingService.bestillKreditnota(capture(krediteringFakturaserie)) } just Runs
+
+
+        kanselleringService.kansellerFakturaserie(
+            aktivFakturaserie.referanse,
+            listOf(årsavregningForrigeÅr.referanse, årsavregningForrigeÅrNyBehandling.referanse)
+        )
+
 
         verify { fakturaserieRepository.save(aktivFakturaserie) }
+        verify { fakturaserieRepository.save(årsavregningForrigeÅr) }
+        verify { fakturaserieRepository.save(årsavregningForrigeÅrNyBehandling) }
+        verify { fakturaserieRepository.save(krediteringFakturaserie.single()) }
         verify { fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.single()) }
 
         krediteringFakturaserie.single()
-            .also { it.startdato shouldBe fom }
-            .also { it.sluttdato shouldBe tom }
-            .faktura.single()
-            .also { it.krediteringFakturaRef shouldBe aktivFakturaserie.faktura.single().referanseNr }
-            .fakturaLinje.single()
-            .also { it.belop shouldBe BigDecimal(-10000).setScale(2) }
+            .also { it.startdato shouldBe LocalDate.now().withDayOfMonth(1).withMonth(7).minusYears(1) }
+            .also { it.sluttdato shouldBe LocalDate.now().withMonth(9).withDayOfMonth(30) }
+
+        val faktura = krediteringFakturaserie.single().faktura
+        faktura.shouldHaveSize(2)
+        faktura.sortedBy { it.getPeriodeFra() }
+            .run {
+                get(0).fakturaLinje.single().belop shouldBe BigDecimal(-10800).setScale(2)
+//                get(0).krediteringFakturaRef shouldBe aktivFakturaserie.faktura.first().referanseNr
+                get(1).fakturaLinje.single().belop shouldBe BigDecimal(-30000).setScale(2)
+            }
 
 
         aktivFakturaserie.run {
             status.shouldBe(FakturaserieStatus.KANSELLERT)
-            faktura.shouldHaveSize(1)
-                .first()
-                .status.shouldBe(FakturaStatus.BESTILT)
+        }
+        årsavregningForrigeÅr.run {
+            status.shouldBe(FakturaserieStatus.KANSELLERT)
+        }
+        årsavregningForrigeÅrNyBehandling.run {
+            status.shouldBe(FakturaserieStatus.KANSELLERT)
         }
     }
 }
