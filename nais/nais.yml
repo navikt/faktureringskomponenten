@@ -65,7 +65,7 @@ spec:
 
     outbound:
       external:
-        - host: "melosys-unleash-api.nav.cloud.nais.io"
+        - host: "teammelosys-unleash-api.nav.cloud.nais.io"
   observability:
     logging:
       destinations:

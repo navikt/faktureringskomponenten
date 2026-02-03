@@ -5,7 +5,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
+import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.integration.kafka.EmbeddedKafkaBase
@@ -35,6 +37,7 @@ class AdminControllerIT(
     @param:Autowired private val server: MockOAuth2Server,
     @param:Autowired private val fakturaserieRepositoryForTesting: FakturaserieRepositoryForTesting,
     @param:Autowired private val fakturaserieRepository: FakturaserieRepository,
+    @param:Autowired private val fakturaRepository: FakturaRepository,
     @param:Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
 
@@ -110,6 +113,60 @@ class AdminControllerIT(
         linjer[0] shouldContain "Fullmektig Organisasjonsnummer"
     }
 
+    @Test
+    fun `ombestillFaktura med fakturaMottaker oppdaterer fullmektig i databasen`() {
+        val fakturaserieDto = lagFakturaserieDto()
+
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaserieDto)
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        val fakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(fakturaserieReferanse)!!
+        val fakturaReferanse = fakturaserie.faktura.first().referanseNr
+
+        val faktura = fakturaRepository.findByReferanseNr(fakturaReferanse)!!
+        faktura.status = FakturaStatus.FEIL
+        fakturaRepository.saveAndFlush(faktura)
+
+        val nyMottaker = "987654321"
+        postOmbestillFakturaRequest(fakturaReferanse, nyMottaker)
+            .expectStatus().isOk
+
+        val oppdatertFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(fakturaserieReferanse)!!
+        oppdatertFakturaserie.fullmektig?.organisasjonsnummer shouldBe nyMottaker
+    }
+
+    @Test
+    fun `ombestillFaktura uten fakturaMottaker endrer ikke fullmektig`() {
+        val opprinneligMottaker = "123456789"
+        val fakturaserieDto = lagFakturaserieDto(
+            fullmektig = FullmektigDto(null, opprinneligMottaker)
+        )
+
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaserieDto)
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        val fakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(fakturaserieReferanse)!!
+        val fakturaReferanse = fakturaserie.faktura.first().referanseNr
+
+        val faktura = fakturaRepository.findByReferanseNr(fakturaReferanse)!!
+        faktura.status = FakturaStatus.FEIL
+        fakturaRepository.saveAndFlush(faktura)
+
+        postOmbestillFakturaRequest(fakturaReferanse, null)
+            .expectStatus().isOk
+
+        val oppdatertFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(fakturaserieReferanse)!!
+        oppdatertFakturaserie.fullmektig?.organisasjonsnummer shouldBe opprinneligMottaker
+    }
+
     private fun hentAvstemmingCsvRequest(
         periodeFra: LocalDate = LocalDate.of(2020, 1, 1),
         periodeTil: LocalDate = LocalDate.of(2030, 12, 31)
@@ -120,6 +177,24 @@ class AdminControllerIT(
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
             }
             .exchange()
+
+    private fun postOmbestillFakturaRequest(
+        fakturaReferanse: String,
+        fakturaMottaker: String?
+    ): WebTestClient.ResponseSpec {
+        val uri = if (fakturaMottaker != null) {
+            "/admin/faktura/$fakturaReferanse/ombestill?fakturaMottaker=$fakturaMottaker"
+        } else {
+            "/admin/faktura/$fakturaReferanse/ombestill"
+        }
+        return webClient.post()
+            .uri(uri)
+            .header("Nav-User-Id", NAV_IDENT)
+            .headers {
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+    }
 
     private fun postLagNyFakturaserieRequest(fakturaserieRequestDto: FakturaserieRequestDto): WebTestClient.ResponseSpec =
         webClient.post()
