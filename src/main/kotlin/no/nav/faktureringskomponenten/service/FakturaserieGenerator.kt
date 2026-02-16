@@ -111,13 +111,15 @@ class FakturaserieGenerator(
             fakturaserieDto.perioder.minBy { it.startDato }.startDato,
             fakturaserieDto.perioder.maxBy { it.sluttDato }.sluttDato,
             fakturaserieDto.intervall
-        ).map { LocalDateRange.of(it.first, it.second) }
+        ).map { LocalDateRange.ofClosed(it.first, it.second) }
+
+        val avregningsperioder = avregningsfakturaer.map { LocalDateRange.ofClosed(it.getPeriodeFra(), it.getPeriodeTil()) }
 
         val periodiseringUtenAvregning = fellesPeriodisering.flatMap { periode ->
-            val avregningsperioder = avregningsfakturaer.map { LocalDateRange.ofClosed(it.getPeriodeFra(), it.getPeriodeTil()) }
-            if (avregningsperioder.none { it.overlaps(periode) }) listOf(periode)
-            else avregningsperioder.filter { it.overlaps(periode) && !it.encloses(periode) }.flatMap { periode.substract(it) }
-        }.map { Pair(it.start, it.end) }
+            avregningsperioder.fold(listOf(periode)) { remaining, avr ->
+                remaining.flatMap { it.substract(avr) }
+            }
+        }.map { Pair(it.start, it.end.minusDays(1)) }
 
         val nyeFakturaerForNyePerioder: List<Faktura> = fakturaGenerator.lagFakturaerFor(
             periodiseringUtenAvregning,
@@ -171,10 +173,10 @@ class FakturaserieGenerator(
             if (!isConnected(other)) return listOf(this)
             return buildList {
                 if (start < other.start) {
-                    add(LocalDateRange.of(start, other.start.minusDays(1)))
+                    add(LocalDateRange.of(start, other.start))
                 }
                 if (end > other.end) {
-                    add(LocalDateRange.of(other.end.plusDays(1), end))
+                    add(LocalDateRange.of(other.end, end))
                 }
             }
         }

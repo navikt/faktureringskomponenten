@@ -2,7 +2,9 @@ package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -33,7 +35,7 @@ class FakturaserieGeneratorTest {
 
     @AfterEach
     fun tearDown() {
-        unleash.apply { disable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) }
+        unleash.disable((ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER))
         unmockkStatic(LocalDate::class)
     }
 
@@ -397,6 +399,98 @@ class FakturaserieGeneratorTest {
     }
 
     @Test
+    fun `Utvidet periode over maanedsgrense gir nye fakturaer fra foerste dag etter avregning`() {
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns LocalDate.of(2025, 1, 15)
+
+        val opprinneligFakturaSerie = lagFakturaserie(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-02-29"
+                    beskrivelse = "Inntekt"
+                }
+            )
+        )
+
+        opprinneligFakturaSerie.faktura.forEach {
+            it.status = FakturaStatus.BESTILT
+        }
+
+        val nyFakturaSerie = lagFakturaserieForEndring(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode.forTest {
+                    månedspris = 2000
+                    fra = "2024-01-01"
+                    til = "2024-03-15"
+                    beskrivelse = "Inntekt"
+                }
+            ),
+            opprinneligFakturaserie = opprinneligFakturaSerie
+        )
+
+        val fakturaer = nyFakturaSerie.faktura
+        fakturaer shouldHaveSize 2
+
+        val sorterteFakturaer = fakturaer.sortedBy { it.getPeriodeFra() }
+
+        // Avregningsfaktura for januar-februar
+        sorterteFakturaer[0].run {
+            getPeriodeFra() shouldBe LocalDate.of(2024, 1, 1)
+            getPeriodeTil() shouldBe LocalDate.of(2024, 2, 29)
+        }
+
+        // Ny faktura for mars 1-15
+        sorterteFakturaer[1].run {
+            getPeriodeFra() shouldBe LocalDate.of(2024, 3, 1)
+            getPeriodeTil() shouldBe LocalDate.of(2024, 3, 15)
+        }
+    }
+
+    @Test
+    fun `Endring med flere avregningsperioder gir ikke dobbeltfakturering`() {
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns LocalDate.of(2024, 1, 15)
+
+        val opprinneligFakturaSerie = lagFakturaserie(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-06-30"
+                    beskrivelse = "Inntekt"
+                }
+            )
+        )
+
+        // Skal ha 2 bestilte fakturaer: Q1 + Q2
+        opprinneligFakturaSerie.faktura shouldHaveSize 2
+        opprinneligFakturaSerie.faktura.forEach {
+            it.status = FakturaStatus.BESTILT
+        }
+
+        val nyFakturaSerie = lagFakturaserieForEndring(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode.forTest {
+                    månedspris = 2000
+                    fra = "2024-01-01"
+                    til = "2024-06-30"
+                    beskrivelse = "Inntekt"
+                }
+            ),
+            opprinneligFakturaserie = opprinneligFakturaSerie
+        )
+
+        // Kun avregningsfakturaer - ingen nye fakturaer
+        nyFakturaSerie.faktura shouldHaveSize 2
+    }
+
+    @Test
     fun `Skal kaste feil hvis ingen avregningsfaktura eller periode`() {
         unleash.apply { enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) }
         mockkStatic(LocalDate::class)
@@ -425,7 +519,6 @@ class FakturaserieGeneratorTest {
         exception.message shouldContain "Kan ikke opprette fakturaserie med tomme perioder og ingen avregningsfakturaer"
 
     }
-
 
 
     @Test
@@ -640,7 +733,7 @@ class FakturaserieGeneratorTest {
             substracted shouldBe listOf(
                 LocalDateRange.of(
                     LocalDate.of(2024, 1, 1),
-                    LocalDate.of(2024, 1, 2)
+                    LocalDate.of(2024, 1, 3)
                 )
             )
         }
@@ -658,8 +751,80 @@ class FakturaserieGeneratorTest {
             )
 
             substracted.shouldContainExactlyInAnyOrder(
-                LocalDateRange.of(LocalDate.of(2023, 12, 16), LocalDate.of(2023, 12, 30)),
-                LocalDateRange.of(LocalDate.of(2024, 1, 14), LocalDate.of(2024, 1, 15))
+                LocalDateRange.of(LocalDate.of(2023, 12, 16), LocalDate.of(2023, 12, 31)),
+                LocalDateRange.of(LocalDate.of(2024, 1, 13), LocalDate.of(2024, 1, 15))
+            )
+        }
+
+        @Test
+        fun `substract identical period returns empty`() {
+            val substracted = LocalDateRange.ofClosed(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 3, 31)
+            ).substract(
+                LocalDateRange.ofClosed(
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 3, 31)
+                )
+            )
+
+            substracted.shouldBeEmpty()
+        }
+
+        @Test
+        fun `substract non-overlapping period returns original`() {
+            val original = LocalDateRange.ofClosed(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 1, 31)
+            )
+            val substracted = original.substract(
+                LocalDateRange.ofClosed(
+                    LocalDate.of(2024, 3, 1),
+                    LocalDate.of(2024, 3, 31)
+                )
+            )
+
+            substracted shouldBe listOf(original)
+        }
+
+        @Test
+        fun `substract start of closed range leaves end - MEL-15767 off-by-one`() {
+            // Reproduserer MEL-15767: ofClosed(01.01, 03.15) minus ofClosed(01.01, 02.29)
+            // Skal gi mars 1-15 (ikke mars 2-15)
+            val substracted = LocalDateRange.ofClosed(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 3, 15)
+            ).substract(
+                LocalDateRange.ofClosed(
+                    LocalDate.of(2024, 1, 1),
+                    LocalDate.of(2024, 2, 29)
+                )
+            )
+
+            substracted shouldBe listOf(
+                // ofClosed(01.01, 02.29) stored as [01.01, 03.01), so remainder starts at 03.01
+                LocalDateRange.of(
+                    LocalDate.of(2024, 3, 1),
+                    LocalDate.of(2024, 3, 16)
+                )
+            )
+        }
+
+        @Test
+        fun `substract middle of closed range leaves both ends`() {
+            val substracted = LocalDateRange.ofClosed(
+                LocalDate.of(2024, 1, 1),
+                LocalDate.of(2024, 6, 30)
+            ).substract(
+                LocalDateRange.ofClosed(
+                    LocalDate.of(2024, 2, 1),
+                    LocalDate.of(2024, 3, 31)
+                )
+            )
+
+            substracted.shouldContainExactlyInAnyOrder(
+                LocalDateRange.of(LocalDate.of(2024, 1, 1), LocalDate.of(2024, 2, 1)),
+                LocalDateRange.of(LocalDate.of(2024, 4, 1), LocalDate.of(2024, 7, 1))
             )
         }
     }

@@ -14,7 +14,6 @@ import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.controller.dto.*
-import no.nav.faktureringskomponenten.controller.dto.forTest
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
@@ -578,6 +577,93 @@ class FakturaserieControllerIT(
                 it.krediteringFakturaRef.shouldNotBeNull()
                 it.erAvregningsfaktura().shouldBeTrue()
             }
+    }
+
+    /**
+     *
+     * | Fakturaserie | Q1 jan-feb     | Q1 mar 1-15    | Medlemskapsperiode   |
+     * |--------------|----------------|----------------|----------------------|
+     * | s1           | 2000 (bestilt) |                | 01.01.24 - 29.02.24  |
+     * | s2           | 0 (avregning)  | ~484 (ny)      | 01.01.24 - 15.03.24  |
+     * | s3           | +4000 (avreg)  | +484 (avreg)   | 01.01.24 - 15.03.24  |
+     *
+     */
+    @Test
+    fun `erstatter fakturaserie to ganger med utvidet periode - ingen hoppet over dag eller dobbeltfakturering`() {
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns LocalDate.of(2025, 1, 15)
+
+        // S1: Opprinnelig fakturaserie jan-feb
+        val s1Ref = postLagNyFakturaserieRequest(
+            lagFakturaserieDto(
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = LocalDate.of(2024, 1, 1)
+                    sluttDato = LocalDate.of(2024, 2, 29)
+                    beskrivelse = "Inntekt"
+                }
+            )
+        )).expectStatus().isOk
+            .expectBody(NyFakturaserieResponseDto::class.java)
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        // S2: Utvider perioden til mar 15
+        val s2Ref = postLagNyFakturaserieRequest(
+            lagFakturaserieDto(
+            referanseId = s1Ref,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = LocalDate.of(2024, 1, 1)
+                    sluttDato = LocalDate.of(2024, 3, 15)
+                    beskrivelse = "Inntekt"
+                }
+            )
+        )).expectStatus().isOk
+            .expectBody(NyFakturaserieResponseDto::class.java)
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        // Verifiser S2: ny faktura skal starte 1. mars
+        fakturaserieRepositoryForTesting.findByReferanseEagerly(s2Ref).shouldNotBeNull()
+            .faktura
+            .shouldHaveSize(2)
+            .map { it.id.shouldNotBeNull() }
+            .map { fakturaRepositoryForTesting.findByIdEagerly(it).shouldNotBeNull() }
+            .single { !it.erAvregningsfaktura() }
+            .run {
+                fakturaLinje.single().run {
+                    periodeFra shouldBe LocalDate.of(2024, 3, 1)
+                    periodeTil shouldBe LocalDate.of(2024, 3, 15)
+                }
+            }
+
+        // S3: Endrer månedspris til 2000/mnd (samme periode)
+        val s3Ref = postLagNyFakturaserieRequest(
+            lagFakturaserieDto(
+                referanseId = s2Ref,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 2000
+                    startDato = LocalDate.of(2024, 1, 1)
+                    sluttDato = LocalDate.of(2024, 3, 15)
+                    beskrivelse = "Inntekt"
+                }
+            )
+        )).expectStatus().isOk
+            .expectBody(NyFakturaserieResponseDto::class.java)
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        // Verifiser S3: kun avregningsfakturaer, ingen nye (hele perioden dekkes av avregning)
+        fakturaRepository.findByFakturaserieReferanse(s3Ref)
+            .shouldHaveSize(2)
+            .forAll { it.erAvregningsfaktura().shouldBeTrue() }
     }
 
     @Test
