@@ -222,6 +222,7 @@ class AvregningIT(
         fakturaRepository.findByFakturaserieReferanse(serieRef3)
             .shouldHaveSize(4)
             .filter { it.erAvregningsfaktura() }
+            .sortedBy { it.getPeriodeFra() }
             .run {
                 get(0).run {
                     status.shouldBe(FakturaStatus.OPPRETTET)
