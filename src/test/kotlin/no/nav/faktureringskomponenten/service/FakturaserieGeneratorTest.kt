@@ -402,6 +402,7 @@ class FakturaserieGeneratorTest {
     fun `Utvidet periode over maanedsgrense gir nye fakturaer fra foerste dag etter avregning`() {
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns LocalDate.of(2025, 1, 15)
+        unleash.enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_NY_PERIODISERING)
 
         val opprinneligFakturaSerie = lagFakturaserie(
             intervall = FakturaserieIntervall.KVARTAL,

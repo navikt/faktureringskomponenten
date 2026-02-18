@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.getunleash.FakeUnleash
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldContainExactly
@@ -56,7 +57,9 @@ class FakturaserieControllerIT(
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
+    @Autowired private val unleash: FakeUnleash
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
+
 
     @AfterEach
     fun cleanUp() {
@@ -64,6 +67,7 @@ class FakturaserieControllerIT(
         addCleanUpAction {
             fakturaserieRepositoryForTesting.deleteAll()
         }
+        unleash.disableAll()
     }
 
     @Test
@@ -591,20 +595,21 @@ class FakturaserieControllerIT(
     @Test
     fun `erstatter fakturaserie to ganger med utvidet periode - ingen hoppet over dag eller dobbeltfakturering`() {
         mockkStatic(LocalDate::class)
-        every { LocalDate.now() } returns LocalDate.of(2025, 1, 15)
+        every { LocalDate.now() } returns LocalDate.of(2024, 1, 15)
+        unleash.enableAll()
 
         // S1: Opprinnelig fakturaserie jan-feb
         val s1Ref = postLagNyFakturaserieRequest(
             lagFakturaserieDto(
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto.forTest {
-                    månedspris = 1000
-                    startDato = LocalDate.of(2024, 1, 1)
-                    sluttDato = LocalDate.of(2024, 2, 29)
-                    beskrivelse = "Inntekt"
-                }
-            )
-        )).expectStatus().isOk
+                fakturaseriePeriode = listOf(
+                    FakturaseriePeriodeDto.forTest {
+                        månedspris = 1000
+                        startDato = LocalDate.of(2024, 1, 1)
+                        sluttDato = LocalDate.of(2024, 2, 29)
+                        beskrivelse = "Inntekt"
+                    }
+                )
+            )).expectStatus().isOk
             .expectBody(NyFakturaserieResponseDto::class.java)
             .returnResult().responseBody!!.fakturaserieReferanse
 
@@ -613,16 +618,16 @@ class FakturaserieControllerIT(
         // S2: Utvider perioden til mar 15
         val s2Ref = postLagNyFakturaserieRequest(
             lagFakturaserieDto(
-            referanseId = s1Ref,
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto.forTest {
-                    månedspris = 1000
-                    startDato = LocalDate.of(2024, 1, 1)
-                    sluttDato = LocalDate.of(2024, 3, 15)
-                    beskrivelse = "Inntekt"
-                }
-            )
-        )).expectStatus().isOk
+                referanseId = s1Ref,
+                fakturaseriePeriode = listOf(
+                    FakturaseriePeriodeDto.forTest {
+                        månedspris = 1000
+                        startDato = LocalDate.of(2024, 1, 1)
+                        sluttDato = LocalDate.of(2024, 3, 15)
+                        beskrivelse = "Inntekt"
+                    }
+                )
+            )).expectStatus().isOk
             .expectBody(NyFakturaserieResponseDto::class.java)
             .returnResult().responseBody!!.fakturaserieReferanse
 
@@ -646,15 +651,15 @@ class FakturaserieControllerIT(
         val s3Ref = postLagNyFakturaserieRequest(
             lagFakturaserieDto(
                 referanseId = s2Ref,
-            fakturaseriePeriode = listOf(
-                FakturaseriePeriodeDto.forTest {
-                    månedspris = 2000
-                    startDato = LocalDate.of(2024, 1, 1)
-                    sluttDato = LocalDate.of(2024, 3, 15)
-                    beskrivelse = "Inntekt"
-                }
-            )
-        )).expectStatus().isOk
+                fakturaseriePeriode = listOf(
+                    FakturaseriePeriodeDto.forTest {
+                        månedspris = 2000
+                        startDato = LocalDate.of(2024, 1, 1)
+                        sluttDato = LocalDate.of(2024, 3, 15)
+                        beskrivelse = "Inntekt"
+                    }
+                )
+            )).expectStatus().isOk
             .expectBody(NyFakturaserieResponseDto::class.java)
             .returnResult().responseBody!!.fakturaserieReferanse
 

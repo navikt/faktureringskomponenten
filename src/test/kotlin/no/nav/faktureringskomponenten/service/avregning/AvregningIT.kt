@@ -428,7 +428,7 @@ class AvregningIT(
 
     @Test
     fun `avregning 2 ganger kun frem i tid - verifisering av prodfeilfix`() {
-        unleash.disableAll()
+        unleash.enableAll()
         val januar2026 = LocalDate.of(2026, 1, 1)
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns januar2026
@@ -777,8 +777,401 @@ class AvregningIT(
     }
 
     @Test
-    fun `avregning 2 ganger - verifisering av prodfeilfix`() {
+    fun `avregning 2 ganger kun frem i tid med feil - ny vurdering med riktig periodisering`() {
         unleash.disableAll()
+        val januar2026 = LocalDate.of(2026, 1, 1)
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns januar2026
+
+        // Opprinnelig serie
+        val opprinneligFakturaserieDto = FakturaserieRequestDto.forTest {
+            periode {
+                månedspris = 1000
+                fra = "2026-01-01"
+                til = "2026-12-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 1000
+                fra = "2027-01-01"
+                til = "2027-01-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+        }
+
+        val opprinneligFakturaserieReferanse =
+            postLagNyFakturaserieRequest(opprinneligFakturaserieDto).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val opprinneligeFakturaer = fakturaRepository.findByFakturaserieReferanse(opprinneligFakturaserieReferanse)
+            .sortedBy(Faktura::getPeriodeFra)
+        opprinneligeFakturaer.shouldHaveSize(5).sortedBy { it.getPeriodeFra() }
+            .run {
+                get(0).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-01-01"
+                                til = "2026-03-31"
+                                beskrivelse = "Periode: 01.01.2026 - 31.03.2026\n" +
+                                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                                antall = BigDecimal("3.00")
+                                månedspris = 1000
+                                belop = BigDecimal("3000.00")
+                            }
+                        )
+                }
+                get(1).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-04-01"
+                                til = "2026-06-30"
+                                beskrivelse = "Periode: 01.04.2026 - 30.06.2026\n" +
+                                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                                antall = BigDecimal("3.00")
+                                månedspris = 1000
+                                belop = BigDecimal("3000.00")
+                            }
+                        )
+                }
+                get(2).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-07-01"
+                                til = "2026-09-30"
+                                beskrivelse = "Periode: 01.07.2026 - 30.09.2026\n" +
+                                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                                antall = BigDecimal("3.00")
+                                månedspris = 1000
+                                belop = BigDecimal("3000.00")
+                            }
+                        )
+                }
+                get(3).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-10-01"
+                                til = "2026-12-31"
+                                beskrivelse = "Periode: 01.10.2026 - 31.12.2026\n" +
+                                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                                antall = BigDecimal("3.00")
+                                månedspris = 1000
+                                belop = BigDecimal("3000.00")
+                            }
+                        )
+                }
+                get(4).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2027-01-01"
+                                til = "2027-01-31"
+                                beskrivelse = "Periode: 01.01.2027 - 31.01.2027\n" +
+                                    "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+                                antall = BigDecimal("1.00")
+                                månedspris = 1000
+                                belop = BigDecimal("1000.00")
+                            }
+                        )
+                }
+            }
+
+        opprinneligeFakturaer.forEach {
+            it.status = FakturaStatus.BESTILT
+            fakturaRepository.save(it)
+
+        }
+
+        fakturaserieRepository.findByReferanse(opprinneligFakturaserieReferanse).shouldNotBeNull().run {
+            status = FakturaserieStatus.UNDER_BESTILLING
+            fakturaserieRepository.save(this)
+        }
+
+        // Serie 2 med avregning
+        val fakturaserieDto2 = FakturaserieRequestDto.forTest {
+            fakturaserieReferanse = opprinneligFakturaserieReferanse
+            periode {
+                månedspris = 1000
+                fra = "2026-01-01"
+                til = "2026-12-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 1000
+                fra = "2027-01-01"
+                til = "2027-02-15"
+                beskrivelse = "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+        }
+
+        val serieRef2 =
+            postLagNyFakturaserieRequest(fakturaserieDto2).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val fakturaer2 = fakturaRepository.findByFakturaserieReferanse(serieRef2)
+        fakturaer2.shouldHaveSize(6).sortedBy { it.getPeriodeFra() }
+            .run {
+                get(0).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-01-01"
+                                til = "2026-03-31"
+                                beskrivelse = "Periode: 01.01.2026 - 31.03.2026\nNytt beløp: 3000,00 - tidligere beløp: 3000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 0
+                                avregningNyttBeloep = BigDecimal("3000.00")
+                                avregningForrigeBeloep = BigDecimal("3000.00")
+                                belop = BigDecimal.ZERO
+                            }
+                        )
+                }
+                get(1).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-04-01"
+                                til = "2026-06-30"
+                                beskrivelse = "Periode: 01.04.2026 - 30.06.2026\nNytt beløp: 3000,00 - tidligere beløp: 3000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 0
+                                avregningNyttBeloep = BigDecimal("3000.00")
+                                avregningForrigeBeloep = BigDecimal("3000.00")
+                                belop = BigDecimal.ZERO
+                            }
+                        )
+                }
+                get(2).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-07-01"
+                                til = "2026-09-30"
+                                beskrivelse = "Periode: 01.07.2026 - 30.09.2026\nNytt beløp: 3000,00 - tidligere beløp: 3000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 0
+                                avregningNyttBeloep = BigDecimal("3000.00")
+                                avregningForrigeBeloep = BigDecimal("3000.00")
+                                belop = BigDecimal.ZERO
+                            }
+                        )
+                }
+                get(3).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-10-01"
+                                til = "2026-12-31"
+                                beskrivelse = "Periode: 01.10.2026 - 31.12.2026\nNytt beløp: 3000,00 - tidligere beløp: 3000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 0
+                                avregningNyttBeloep = BigDecimal("3000.00")
+                                avregningForrigeBeloep = BigDecimal("3000.00")
+                                belop = BigDecimal.ZERO
+                            }
+                        )
+                }
+                get(4).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2027-01-01"
+                                til = "2027-01-31"
+                                beskrivelse = "Periode: 01.01.2027 - 31.01.2027\nNytt beløp: 1000,00 - tidligere beløp: 1000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 0
+                                avregningNyttBeloep = BigDecimal("1000.00")
+                                avregningForrigeBeloep = BigDecimal("1000.00")
+                                belop = BigDecimal.ZERO
+                            }
+                        )
+                }
+                get(5).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2027-02-02"
+                                til = "2027-02-15"
+                                beskrivelse = "Periode: 02.02.2027 - 15.02.2027\n" +
+                                    "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+                                antall = BigDecimal("0.50")
+                                månedspris = 1000
+                                belop = BigDecimal("500.00")
+                            }
+                        )
+                }
+            }
+
+        fakturaer2.forEach {
+            it.status = FakturaStatus.BESTILT
+            fakturaRepository.save(it)
+        }
+
+        val fakturaserieDto3 = FakturaserieRequestDto.forTest {
+            fakturaserieReferanse = serieRef2
+            periode {
+                månedspris = 1500
+                fra = "2026-01-01"
+                til = "2026-12-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 1500
+                fra = "2027-01-01"
+                til = "2027-02-15"
+                beskrivelse = "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+        }
+
+        val serieRef3 =
+            postLagNyFakturaserieRequest(fakturaserieDto3).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val fakturaer3 = fakturaRepository.findByFakturaserieReferanse(serieRef3)
+        fakturaer3.shouldHaveSize(8).sortedBy { it.getPeriodeFra() }
+            .run {
+                get(0).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-01-01"
+                                til = "2026-03-31"
+                                beskrivelse = "Periode: 01.01.2026 - 31.03.2026\nNytt beløp: 4500,00 - tidligere beløp: 3000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 1500
+                                avregningNyttBeloep = BigDecimal("4500.00")
+                                avregningForrigeBeloep = BigDecimal("3000.00")
+                                belop = BigDecimal("1500.00")
+                            }
+                        )
+                }
+                get(1).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-04-01"
+                                til = "2026-06-30"
+                                beskrivelse = "Periode: 01.04.2026 - 30.06.2026\nNytt beløp: 4500,00 - tidligere beløp: 3000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 1500
+                                avregningNyttBeloep = BigDecimal("4500.00")
+                                avregningForrigeBeloep = BigDecimal("3000.00")
+                                belop = BigDecimal("1500.00")
+                            }
+                        )
+                }
+                get(2).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-07-01"
+                                til = "2026-09-30"
+                                beskrivelse = "Periode: 01.07.2026 - 30.09.2026\nNytt beløp: 4500,00 - tidligere beløp: 3000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 1500
+                                avregningNyttBeloep = BigDecimal("4500.00")
+                                avregningForrigeBeloep = BigDecimal("3000.00")
+                                belop = BigDecimal("1500.00")
+                            }
+                        )
+                }
+                get(3).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2026-10-01"
+                                til = "2026-12-31"
+                                beskrivelse = "Periode: 01.10.2026 - 31.12.2026\nNytt beløp: 4500,00 - tidligere beløp: 3000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 1500
+                                avregningNyttBeloep = BigDecimal("4500.00")
+                                avregningForrigeBeloep = BigDecimal("3000.00")
+                                belop = BigDecimal("1500.00")
+                            }
+                        )
+                }
+                get(4).run {
+                    fakturaLinje.single()
+                        .shouldBe(
+                            FakturaLinje.forTest {
+                                fra = "2027-01-01"
+                                til = "2027-01-31"
+                                beskrivelse = "Periode: 01.01.2027 - 31.01.2027\nNytt beløp: 1500,00 - tidligere beløp: 1000,00"
+                                antall = BigDecimal("1.00")
+                                månedspris = 500
+                                avregningNyttBeloep = BigDecimal("1500.00")
+                                avregningForrigeBeloep = BigDecimal("1000.00")
+                                belop = BigDecimal("500.00")
+                            }
+                        )
+                }
+//                get(5).run {
+//                    fakturaLinje.single()
+//                        .shouldBe(
+//                            FakturaLinje.forTest {
+//                                fra = "2027-02-01"
+//                                til = "2027-02-15"
+//                                beskrivelse = "Periode: 01.02.2027 - 15.02.2027\nNytt beløp: 810,00 - tidligere beløp: 540,00"
+//                                antall = BigDecimal("1.00")
+//                                månedspris = 270
+//                                avregningNyttBeloep = BigDecimal("810.00")
+//                                avregningForrigeBeloep = BigDecimal("540.00")
+//                                belop = BigDecimal("270.00")
+//                            }
+//                        )
+//                }
+            }
+
+        fakturaer3.forEach {
+            it.status = FakturaStatus.BESTILT
+            fakturaRepository.save(it)
+        }
+
+        unleash.enableAll()
+
+        val fakturaserieDto4 = FakturaserieRequestDto.forTest {
+            fakturaserieReferanse = serieRef3
+            periode {
+                månedspris = 1500
+                fra = "2026-01-01"
+                til = "2026-12-31"
+                beskrivelse = "Inntekt: 10000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+            periode {
+                månedspris = 1500
+                fra = "2027-01-01"
+                til = "2027-02-15"
+                beskrivelse = "Inntekt: 20000, Dekning: Pensjon og helsedel, Sats 10%"
+            }
+        }
+
+        val serieRef4 =
+            postLagNyFakturaserieRequest(fakturaserieDto4).expectStatus().isOk.expectBody<NyFakturaserieResponseDto>()
+                .returnResult().responseBody!!.fakturaserieReferanse
+
+        val fakturaer4 = fakturaRepository.findByFakturaserieReferanse(serieRef4)
+
+        fakturaer3.forEach {
+            it.fakturaLinje.forEach {
+                println(it)
+            }
+        }
+
+        println("-----------------")
+
+        fakturaer4.forEach {
+            it.fakturaLinje.forEach {
+                println(it)
+            }
+        }
+    }
+
+    @Test
+    fun `avregning 2 ganger - verifisering av prodfeilfix`() {
+        unleash.enableAll()
         val mars2024 = LocalDate.of(2024, 3, 7)
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns mars2024
@@ -889,10 +1282,6 @@ class AvregningIT(
             status = FakturaserieStatus.UNDER_BESTILLING
             fakturaserieRepository.save(this)
         }
-
-        val april2025 = LocalDate.of(2025, 4, 7)
-        mockkStatic(LocalDate::class)
-        every { LocalDate.now() } returns april2025
 
         // Serie 2 med avregning
         val fakturaserieDto2 = FakturaserieRequestDto.forTest {
