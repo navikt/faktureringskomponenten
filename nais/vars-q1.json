@@ -15,6 +15,7 @@
   "unleash_environment": "development",
   "cron_job_bestill_faktura":  "0 */5 * * * *",
   "group_melosys_innlogging": "52981246-8032-40f0-863a-2bd2844f2d57",
+  "group_melosys_innlogging_vakt": "fb706914-eede-490a-b9cd-2458983e24c1",
   "pgaudit_enabled": "off",
   "pgaudit_log": "write",
   "pgaudit_log_parameter": "off"
