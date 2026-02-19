@@ -121,6 +121,7 @@ class FakturaserieGenerator(
                 avregningsperioder.fold(listOf(periode)) { remaining, avr ->
                     remaining.flatMap { it.substract(avr) }
                 }
+            // LocalDateRange.end er eksklusiv (half-open), men lagFakturaerFor forventer inklusiv sluttdato
             }.map { Pair(it.start, it.end.minusDays(1)) }
         } else {
             // Gammel oppførsel (med kjent feil): overlap/enclose-filtrering med half-open intervaller
