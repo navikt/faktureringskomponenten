@@ -60,7 +60,6 @@ class FakturaserieControllerIT(
     @Autowired private val unleash: FakeUnleash
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
 
-
     @AfterEach
     fun cleanUp() {
         unmockkStatic(LocalDate::class)

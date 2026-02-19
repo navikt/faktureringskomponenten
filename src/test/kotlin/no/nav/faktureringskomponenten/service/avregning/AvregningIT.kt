@@ -2,6 +2,8 @@ package no.nav.faktureringskomponenten.service.avregning
 
 import com.nimbusds.jose.JOSEObjectType
 import io.getunleash.FakeUnleash
+import io.kotest.inspectors.forAll
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
@@ -1108,28 +1110,31 @@ class AvregningIT(
                             }
                         )
                 }
-//                get(5).run {
-//                    fakturaLinje.single()
-//                        .shouldBe(
-//                            FakturaLinje.forTest {
-//                                fra = "2027-02-01"
-//                                til = "2027-02-15"
-//                                beskrivelse = "Periode: 01.02.2027 - 15.02.2027\nNytt beløp: 810,00 - tidligere beløp: 540,00"
-//                                antall = BigDecimal("1.00")
-//                                månedspris = 270
-//                                avregningNyttBeloep = BigDecimal("810.00")
-//                                avregningForrigeBeloep = BigDecimal("540.00")
-//                                belop = BigDecimal("270.00")
-//                            }
-//                        )
-//                }
             }
+
+        // Verifiser feilaktige fakturaer generert av gammel kode (uten ny periodisering-toggle):
+        // Bug 1: Gammel kode genererer feil periode jan 1 - feb 1 i stedet for feb 1 - feb 15
+        // Bug 2: Dobbeltfakturering av feb 2-15
+        val nyeFakturaer3 = fakturaer3.filter { !it.erAvregningsfaktura() }
+        nyeFakturaer3.shouldHaveSize(2).sortedBy { it.getPeriodeFra() }.run {
+            get(0).fakturaLinje.single().run {
+                periodeFra shouldBe LocalDate.of(2027, 1, 1)
+                periodeTil shouldBe LocalDate.of(2027, 2, 1)
+                belop shouldBe BigDecimal("1560.00")
+            }
+            get(1).fakturaLinje.single().run {
+                periodeFra shouldBe LocalDate.of(2027, 2, 2)
+                periodeTil shouldBe LocalDate.of(2027, 2, 15)
+                belop shouldBe BigDecimal("750.00")
+            }
+        }
 
         fakturaer3.forEach {
             it.status = FakturaStatus.BESTILT
             fakturaRepository.save(it)
         }
 
+        // Serie 4: Ny vurdering med riktig periodisering (toggle aktivert)
         unleash.enableAll()
 
         val fakturaserieDto4 = FakturaserieRequestDto.forTest {
@@ -1154,18 +1159,11 @@ class AvregningIT(
 
         val fakturaer4 = fakturaRepository.findByFakturaserieReferanse(serieRef4)
 
-        fakturaer3.forEach {
-            it.fakturaLinje.forEach {
-                println(it)
-            }
-        }
-
-        println("-----------------")
-
-        fakturaer4.forEach {
-            it.fakturaLinje.forEach {
-                println(it)
-            }
+        // Ny periodisering med toggle korrigerer feilaktige data: kun avregningsfakturaer med 0 differanse
+        fakturaer4.shouldHaveSize(8)
+        fakturaer4.forAll {
+            it.erAvregningsfaktura().shouldBeTrue()
+            it.fakturaLinje.single().belop.compareTo(BigDecimal.ZERO) shouldBe 0
         }
     }
 

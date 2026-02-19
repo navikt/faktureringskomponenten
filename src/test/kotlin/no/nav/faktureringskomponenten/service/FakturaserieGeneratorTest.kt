@@ -35,7 +35,8 @@ class FakturaserieGeneratorTest {
 
     @AfterEach
     fun tearDown() {
-        unleash.disable((ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER))
+        unleash.disable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)
+        unleash.disable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_NY_PERIODISERING)
         unmockkStatic(LocalDate::class)
     }
 
@@ -455,6 +456,7 @@ class FakturaserieGeneratorTest {
     fun `Endring med flere avregningsperioder gir ikke dobbeltfakturering`() {
         mockkStatic(LocalDate::class)
         every { LocalDate.now() } returns LocalDate.of(2024, 1, 15)
+        unleash.enable(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_NY_PERIODISERING)
 
         val opprinneligFakturaSerie = lagFakturaserie(
             intervall = FakturaserieIntervall.KVARTAL,
