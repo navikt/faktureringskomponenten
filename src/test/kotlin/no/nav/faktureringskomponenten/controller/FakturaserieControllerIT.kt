@@ -14,6 +14,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import no.nav.faktureringskomponenten.controller.FakturaserieController.KanselleringRequestDto
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
@@ -901,7 +902,7 @@ class FakturaserieControllerIT(
                 .expectBody(NyFakturaserieResponseDto::class.java)
                 .returnResult().responseBody!!.fakturaserieReferanse
 
-        val nyFakturaserieReferanse = deleteKansellerFakturaserieRequest(opprinneligFakturaserieReferanse)
+        val nyFakturaserieReferanse = postKansellerFakturaserieRequest(opprinneligFakturaserieReferanse, emptyList())
             .expectStatus().isOk
             .expectBody(NyFakturaserieResponseDto::class.java)
             .returnResult().responseBody!!.fakturaserieReferanse
@@ -1100,9 +1101,10 @@ class FakturaserieControllerIT(
             }
             .exchange()
 
-    private fun deleteKansellerFakturaserieRequest(referanse: String): WebTestClient.ResponseSpec =
-        webClient.delete()
-            .uri("/fakturaserier/$referanse")
+    private fun postKansellerFakturaserieRequest(referanse: String, årsavregningRefs: List<String>): WebTestClient.ResponseSpec =
+        webClient.post()
+            .uri("/fakturaserier/$referanse/kanseller")
+            .bodyValue(KanselleringRequestDto(årsavregningRefs))
             .accept(MediaType.APPLICATION_JSON)
             .header("Nav-User-Id", NAV_IDENT)
             .headers {

@@ -18,6 +18,7 @@ import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory
 import no.nav.faktureringskomponenten.exceptions.ProblemDetailFactory.Companion.mapTilProblemDetail
 import no.nav.faktureringskomponenten.metrics.MetrikkNavn
 import no.nav.faktureringskomponenten.service.FakturaserieService
+import no.nav.faktureringskomponenten.service.KanselleringService
 import no.nav.security.token.support.core.api.Protected
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,6 +37,7 @@ private val log = KotlinLogging.logger { }
 @RequestMapping("/fakturaserier")
 class FakturaserieController @Autowired constructor(
     val faktureringService: FakturaserieService,
+    val kanselleringService: KanselleringService,
     val unleash: Unleash
 ) {
 
@@ -120,15 +122,23 @@ class FakturaserieController @Autowired constructor(
     }
 
     @ProtectedWithClaims(issuer = "aad", claimMap = ["roles=faktureringskomponenten-skriv"])
-    @DeleteMapping("/{referanse}")
+    @PostMapping("/{referanse}/kanseller")
     fun kansellerFakturaserie(
         @PathVariable("referanse", required = true) referanse: String,
+        @RequestBody kanselleringRequest: KanselleringRequestDto
     ): ResponseEntity<NyFakturaserieResponseDto> {
         log.info("Mottatt forespørsel om kansellering av fakturaserie: ${referanse}")
+        if (kanselleringRequest.årsavregningRef.isNotEmpty()) {
+            log.info("Kansellering av årsavregninger: ${kanselleringRequest.årsavregningRef}")
+        }
 
-        val nyFakturaserieRefereanse = faktureringService.kansellerFakturaserie(referanse)
+        val nyFakturaserieRefereanse = kanselleringService.kansellerFakturaserie(referanse, kanselleringRequest.årsavregningRef)
 
         log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: ${nyFakturaserieRefereanse}")
         return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))
     }
+
+    data class KanselleringRequestDto(
+        val årsavregningRef: List<String> = emptyList()
+    )
 }
