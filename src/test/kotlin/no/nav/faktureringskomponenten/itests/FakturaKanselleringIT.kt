@@ -39,6 +39,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -327,6 +328,93 @@ class FakturaKanselleringIT(
 
 
         førstegangsbehandlingTotal.add(avregning1TotalBestilt).add(kanselleringTotalBelop)
+            .shouldBe(BigDecimal.ZERO.setScale(2))
+    }
+
+    @Test
+    fun `Kansellering med årsavregning - total av hovedserie og årsavregning skal kanselleres`() {
+        val opprinneligFakturaserie = Fakturaserie.forTest {
+            referanse = "KANS-HOVED-${ULID.randomULID()}"
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    periodeFra = LocalDate.of(2024, 1, 1)
+                    periodeTil = LocalDate.of(2024, 3, 31)
+                    månedspris = 9000
+                }
+            }
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    periodeFra = LocalDate.of(2024, 4, 1)
+                    periodeTil = LocalDate.of(2024, 6, 30)
+                    månedspris = 9000
+                }
+            }
+        }
+        fakturaserieRepository.save(opprinneligFakturaserie)
+
+        val årsavregningReferanse = Fakturaserie.forTest {
+            referanse = "KANS-AARSAVR-${ULID.randomULID()}"
+            fakturaGjelderInnbetalingstype = Innbetalingstype.AARSAVREGNING
+            startdato = LocalDate.of(2024, 1, 1)
+            sluttdato = LocalDate.of(2024, 6, 30)
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    periodeFra = LocalDate.of(2024, 1, 1)
+                    periodeTil = LocalDate.of(2024, 6, 30)
+                    månedspris = -500
+                }
+            }
+        }.let {
+            fakturaserieRepository.save(it)
+            it.referanse
+        }
+
+
+        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(
+            opprinneligFakturaserie.referanse,
+            listOf(årsavregningReferanse)
+        )
+
+
+        // Verifiser at begge serier er kansellert
+        fakturaserieRepositoryForTesting.findByReferanseEagerly(opprinneligFakturaserie.referanse).apply {
+            shouldNotBeNull()
+            status.shouldBe(FakturaserieStatus.KANSELLERT)
+        }
+        fakturaserieRepositoryForTesting.findByReferanseEagerly(årsavregningReferanse).apply {
+            shouldNotBeNull()
+            status.shouldBe(FakturaserieStatus.KANSELLERT)
+        }
+
+        // Verifiser at kreditering er FERDIG
+        val krediteringsFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(krediteringsReferanse)
+        krediteringsFakturaserie.shouldNotBeNull()
+        krediteringsFakturaserie.status.shouldBe(FakturaserieStatus.FERDIG)
+
+        // Verifiser at Kafka-meldinger ble sendt
+        TestQueue.fakturaBestiltMeldinger.shouldHaveSize(1)
+
+        // Verifiser at sum av alt bestilt (original + årsavregning + kreditering) = 0
+        val opprinneligTotal = opprinneligFakturaserie.bestilteFakturaer()
+            .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
+            .map { it?.totalbeløp() }
+            .fold(BigDecimal.ZERO, BigDecimal::add)
+
+        val årsavregningTotal = fakturaserieRepositoryForTesting.findByReferanseEagerly(årsavregningReferanse)!!
+            .bestilteFakturaer()
+            .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
+            .map { it?.totalbeløp() }
+            .fold(BigDecimal.ZERO, BigDecimal::add)
+
+        val krediteringTotal = krediteringsFakturaserie.bestilteFakturaer()
+            .map { fakturaRepositoryForTesting.findByfakturaAndLinjeEagerly(it.id) }
+            .map { it?.totalbeløp() }
+            .fold(BigDecimal.ZERO, BigDecimal::add)
+
+        opprinneligTotal.add(årsavregningTotal).add(krediteringTotal)
             .shouldBe(BigDecimal.ZERO.setScale(2))
     }
 

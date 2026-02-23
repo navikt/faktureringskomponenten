@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.service
 
-import io.getunleash.Unleash
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
@@ -16,7 +15,6 @@ class KanselleringService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaserieGenerator: FakturaserieGenerator,
     private val fakturaBestillingService: FakturaBestillingService,
-    private val unleash: Unleash
 ) {
 
     @Transactional
@@ -27,8 +25,16 @@ class KanselleringService(
                 message = "Finner ikke fakturaserie med referanse $referanse"
             )
 
-        val alleÅrsavregningFakturaserier = årsavregningRef.mapNotNull { referanse ->
-            fakturaserieRepository.findByReferanse(referanse)
+        check(aktivFakturaserie.erAktiv()) {
+            "Kan ikke kansellere fakturaserie med status ${aktivFakturaserie.status}"
+        }
+
+        val alleÅrsavregningFakturaserier = årsavregningRef.map { ref ->
+            fakturaserieRepository.findByReferanse(ref)
+                ?: throw RessursIkkeFunnetException(
+                    field = "årsavregningRef",
+                    message = "Finner ikke årsavregning-fakturaserie med referanse $ref"
+                )
         }
         val alleFakturaserier = hentFakturaserier(aktivFakturaserie.referanse)
         val alleBestilteFakturalinjer = (alleFakturaserier + alleÅrsavregningFakturaserier)

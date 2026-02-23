@@ -1,12 +1,15 @@
 package no.nav.faktureringskomponenten.service
 
 import io.getunleash.FakeUnleash
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.*
 import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningBehandler
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import org.junit.jupiter.api.Test
@@ -26,7 +29,6 @@ class KanselleringServiceTest {
         fakturaserieRepository,
         fakturaserieGenerator,
         fakturaBestillingService,
-        unleash
     )
 
     @Test
@@ -265,5 +267,27 @@ class KanselleringServiceTest {
         årsavregningForrigeÅrNyBehandling.run {
             status.shouldBe(FakturaserieStatus.KANSELLERT)
         }
+    }
+
+    @Test
+    fun `kansellering feiler hvis årsavregningsreferanse ikke finnes`() {
+        val aktivFakturaserie = Fakturaserie.forTest {
+            referanse = ULID.randomULID()
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    månedspris = 10000
+                }
+            }
+        }
+
+        every { fakturaserieRepository.findByReferanse(aktivFakturaserie.referanse) } returns aktivFakturaserie
+        every { fakturaserieRepository.findByReferanse("finnes-ikke") } returns null
+
+        val exception = shouldThrow<RessursIkkeFunnetException> {
+            kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, listOf("finnes-ikke"))
+        }
+
+        exception.message shouldContain "finnes-ikke"
     }
 }
