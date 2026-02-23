@@ -5,6 +5,8 @@ import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
+import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
+import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
 import org.springframework.stereotype.Service
 import ulid.ULID
 import java.time.LocalDate
@@ -13,6 +15,7 @@ import java.time.LocalDate
 class AdminService(
     val fakturaService: FakturaService,
     private val fakturaserieRepository: FakturaserieRepository,
+    private val fakturaBestiltProducer: FakturaBestiltProducer,
 ) {
     @Transactional
     fun krediterFaktura(fakturaReferanse: String): Fakturaserie {
@@ -26,10 +29,6 @@ class AdminService(
             message = "Fant ikke fakturaserie for faktura med referanse: $fakturaReferanse"
         )
 
-        if (fakturaserie.status != FakturaserieStatus.UNDER_BESTILLING) {
-            throw IllegalStateException("Fakturaserie er ikke aktiv")
-        }
-
         if (faktura.status != FakturaStatus.BESTILT) {
             throw IllegalStateException("Faktura er ikke i BESTILT status")
         }
@@ -39,7 +38,7 @@ class AdminService(
         val nyFaktura = Faktura(
             referanseNr = ULID.randomULID(),
             fakturaserie = fakturaserie,
-            status = FakturaStatus.OPPRETTET,
+            status = FakturaStatus.BESTILT,
             datoBestilt = LocalDate.now(),
             fakturaLinje = faktura.fakturaLinje.map {
                 FakturaLinje(
@@ -60,7 +59,11 @@ class AdminService(
         )
 
         (fakturaserie.faktura as MutableList<Faktura>).add(nyFaktura)
+        fakturaserieRepository.save(fakturaserie)
 
-        return fakturaserieRepository.save(fakturaserie)
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(nyFaktura, fakturaserie)
+        fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
+
+        return fakturaserie
     }
 }
