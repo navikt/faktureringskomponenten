@@ -91,8 +91,8 @@ class FakturaserieService(
      * slik at avregning gjøres mot det som faktisk er bestilt.
      */
     private fun finnBestilteFakturaerIKjeden(opprinneligFakturaserie: Fakturaserie): List<Faktura> {
-        val opprinneligBestilteFaktura = opprinneligFakturaserie.bestilteFakturaer()
-        if (opprinneligBestilteFaktura.isNotEmpty()) return opprinneligBestilteFaktura
+        val opprinneligBestilteFakturaer = opprinneligFakturaserie.bestilteFakturaer()
+        if (opprinneligBestilteFakturaer.isNotEmpty()) return opprinneligBestilteFakturaer
 
         val alleFakturaserier = fakturaserieRepository.findAllByReferanse(opprinneligFakturaserie.referanse)
         var gjeldendeFakturaserie = opprinneligFakturaserie
