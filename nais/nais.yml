@@ -49,6 +49,7 @@ spec:
       claims:
         groups:
           - id: {{group_melosys_innlogging}}
+          - id: {{group_melosys_innlogging_vakt}}
   accessPolicy:
     inbound:
       rules:
