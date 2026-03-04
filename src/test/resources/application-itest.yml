@@ -1,6 +1,9 @@
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BROKERS} # for kjøring mot lokal kafka
+  test:
+    webclient:
+      default-timeout: 30s
 
 DB_USERNAME: postgres
 DB_PASSWORD: mysecretpassword
