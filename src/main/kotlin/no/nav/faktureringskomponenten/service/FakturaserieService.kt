@@ -59,9 +59,11 @@ class FakturaserieService(
             )
         check(opprinneligFakturaserie.erAktiv()) { "Bare aktiv fakturaserie kan erstattes" }
 
+        val bestilteFakturaerForAvregning = finnBestilteFakturaerIKjeden(opprinneligFakturaserie)
+
         if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER) && harIngenAvregning(
                 fakturaserieDto,
-                opprinneligFakturaserie
+                bestilteFakturaerForAvregning
             )
         ) {
             log.info("Ingen avregning nødvendig ved erstatning av fakturaserie ${opprinneligFakturaserie.referanse}, returnerer opprinnelig referanse")
@@ -71,7 +73,8 @@ class FakturaserieService(
         }
         val nyFakturaserie = fakturaserieGenerator.lagFakturaserieForEndring(
             fakturaserieDto,
-            opprinneligFakturaserie
+            opprinneligFakturaserie,
+            bestilteFakturaerForAvregning
         )
         fakturaserieRepository.save(nyFakturaserie)
 
@@ -82,11 +85,30 @@ class FakturaserieService(
         return nyFakturaserie.referanse
     }
 
+    /**
+     * Traverserer fakturaserie-kjeden bakover for å finne nærmeste serie med bestilte fakturaer.
+     * Løser tilfellet der forrige fakturaserie ble erstattet før fakturaene ble sendt til OEBS,
+     * slik at avregning gjøres mot det som faktisk er bestilt.
+     */
+    private fun finnBestilteFakturaerIKjeden(opprinneligFakturaserie: Fakturaserie): List<Faktura> {
+        val opprinneligBestilteFakturaer = opprinneligFakturaserie.bestilteFakturaer()
+        if (opprinneligBestilteFakturaer.isNotEmpty()) return opprinneligBestilteFakturaer
+
+        val alleFakturaserier = fakturaserieRepository.findAllByReferanse(opprinneligFakturaserie.referanse)
+        var gjeldendeFakturaserie = opprinneligFakturaserie
+        while (true) {
+            val forrige = alleFakturaserier.find { it.erstattetMed?.id == gjeldendeFakturaserie.id } ?: return emptyList()
+            val forrigesBestilte = forrige.bestilteFakturaer()
+            if (forrigesBestilte.isNotEmpty()) return forrigesBestilte
+            gjeldendeFakturaserie = forrige
+        }
+    }
+
     private fun harIngenAvregning(
         fakturaserieDto: FakturaserieDto,
-        opprinneligFakturaserie: Fakturaserie
+        bestilteFakturaer: List<Faktura>
     ): Boolean {
-        val bestilteFakturaFraIÅrOgFremover = opprinneligFakturaserie.bestilteFakturaer().filter { it.alleFakturaLinjerErFraIÅrEllerFremover() }
+        val bestilteFakturaFraIÅrOgFremover = bestilteFakturaer.filter { it.alleFakturaLinjerErFraIÅrEllerFremover() }
         return fakturaserieDto.perioder.isEmpty() && bestilteFakturaFraIÅrOgFremover.isEmpty()
     }
 
