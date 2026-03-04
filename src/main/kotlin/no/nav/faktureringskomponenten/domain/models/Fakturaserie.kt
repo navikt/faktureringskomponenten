@@ -99,7 +99,7 @@ class Fakturaserie(
     }
 
     fun bestilteFakturaer(): List<Faktura> {
-        return faktura.filter(Faktura::erBestilt)
+        return faktura.filter { it.erBestilt() && !it.erKreditnota }
     }
 
     fun planlagteFakturaer(): List<Faktura> {

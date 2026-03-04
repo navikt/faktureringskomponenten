@@ -33,7 +33,7 @@ class AdminService(
             throw IllegalStateException("Faktura er ikke i BESTILT status")
         }
 
-        faktura.status = FakturaStatus.AVBRUTT
+        faktura.erKreditnota = true
 
         val nyFaktura = Faktura(
             referanseNr = ULID.randomULID(),
@@ -56,6 +56,7 @@ class AdminService(
             },
             krediteringFakturaRef = faktura.referanseNr,
             referertFakturaVedAvregning = faktura,
+            erKreditnota = true,
         )
 
         (fakturaserie.faktura as MutableList<Faktura>).add(nyFaktura)
