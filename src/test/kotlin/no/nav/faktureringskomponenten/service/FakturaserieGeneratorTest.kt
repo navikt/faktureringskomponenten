@@ -613,7 +613,6 @@ class FakturaserieGeneratorTest {
         opprinneligFakturaserie.faktura.forEach { it.status = FakturaStatus.BESTILT }
 
         // 2. Simuler at appen feilaktig opprettet en ekstra faktura for q1
-        val q1Original = opprinneligFakturaserie.faktura.sortedBy { it.getPeriodeFra() }[0]
         val feilfaktura = Faktura.forTest {
             status = FakturaStatus.BESTILT
             fakturaLinje {
