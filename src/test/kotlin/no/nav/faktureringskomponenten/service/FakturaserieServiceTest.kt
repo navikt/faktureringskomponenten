@@ -105,7 +105,7 @@ class FakturaserieServiceTest {
         fakturaserieService.endreFakturaMottaker(OPPRINNELIG_REF, FakturamottakerDto(Fullmektig()))
 
 
-        verify { fakturaserieRepository.save(any()) wasNot Called }
+        verify(exactly = 0) { fakturaserieRepository.save(any()) }
     }
 
     @Test
@@ -119,7 +119,7 @@ class FakturaserieServiceTest {
         fakturaserieService.endreFakturaMottaker(OPPRINNELIG_REF, FakturamottakerDto(Fullmektig("123", null)))
 
 
-        verify { fakturaserieRepository.save(any()) wasNot Called }
+        verify(exactly = 0) { fakturaserieRepository.save(any()) }
     }
 
     @Test

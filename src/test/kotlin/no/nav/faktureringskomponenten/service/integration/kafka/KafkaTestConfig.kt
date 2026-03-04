@@ -1,10 +1,12 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
+import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
@@ -17,10 +19,14 @@ class KafkaTestConfig {
     @Bean
     @Qualifier("fakturaMottatt")
     fun fakturaMottattKafkaTemplate(
-        kafkaProperties: KafkaProperties,
-        objectMapper: ObjectMapper?
+        @Value("\${spring.embedded.kafka.brokers}") brokerAddresses: String,
     ): KafkaTemplate<String, EksternFakturaStatusDto> {
-        val props = kafkaProperties.buildProducerProperties()
+        val objectMapper = ObjectMapper().registerModule(JavaTimeModule())
+        val props = mapOf<String, Any>(
+            ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to brokerAddresses,
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to JsonSerializer::class.java,
+        )
         val producerFactory: ProducerFactory<String, EksternFakturaStatusDto> =
             DefaultKafkaProducerFactory(props, StringSerializer(), JsonSerializer(objectMapper))
         return KafkaTemplate(producerFactory)

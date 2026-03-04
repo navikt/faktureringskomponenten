@@ -60,9 +60,11 @@ class EksternFakturaStatusConsumer(
 
     fun settSpesifiktOffsetPåConsumer(offset: Long) {
         log.info("settSpesifiktOffsetPåConsumer til $offset")
-        seekCallbacks.forEach { (tp: TopicPartition, callback: ConsumerSeekAware.ConsumerSeekCallback) ->
-            log.info("tp:${tp.topic()} seek to:$offset")
-            callback.seek(tp.topic(), tp.partition(), offset)
+        getCallbacksAndTopics().forEach { (callback: ConsumerSeekAware.ConsumerSeekCallback, partitions: MutableList<TopicPartition>) ->
+            partitions.forEach { tp: TopicPartition ->
+                log.info("tp:${tp.topic()} seek to:$offset")
+                callback.seek(tp.topic(), tp.partition(), offset)
+            }
         }
     }
 

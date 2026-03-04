@@ -1,6 +1,9 @@
 package no.nav.faktureringskomponenten.controller
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.KotlinModule
 import io.getunleash.FakeUnleash
 import io.kotest.matchers.collections.shouldContainOnly
 import io.kotest.matchers.collections.shouldHaveSize
@@ -17,7 +20,7 @@ import no.nav.faktureringskomponenten.featuretoggle.FeatureToggleConfig
 import no.nav.faktureringskomponenten.service.FakturaserieService
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
@@ -61,9 +64,9 @@ class FakturaserieControllerTest(
             .andExpect(status().is4xxClientError())
             .andExpect { result ->
                 val response = result.response.contentAsString
-                val problemDetail = objectMapper.readValue(response, ProblemDetail::class.java)
-                problemDetail.getViolationMessages() shouldHaveSize 1
-                problemDetail.getViolationMessages() shouldContainOnly listOf("Startdato kan ikke være fra tidligere år")
+                val messages = parseViolationMessages(response)
+                messages shouldHaveSize 1
+                messages shouldContainOnly listOf("Startdato kan ikke være fra tidligere år")
             }
 
     }
@@ -138,6 +141,12 @@ class FakturaserieControllerTest(
         fun fakturaserieService(): FakturaserieService {
             return mockk()
         }
+
+        @Bean
+        fun objectMapper(): ObjectMapper = ObjectMapper()
+            .registerModule(JavaTimeModule())
+            .registerModule(KotlinModule.Builder().build())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
 
     fun ProblemDetail.getViolations(): List<Map<String, Any>> {
@@ -146,5 +155,12 @@ class FakturaserieControllerTest(
 
     fun ProblemDetail.getViolationMessages(): List<String> {
         return getViolations().mapNotNull { it["message"] as? String }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun parseViolationMessages(response: String): List<String> {
+        val map = objectMapper.readValue(response, Map::class.java)
+        val violations = map["violations"] as? List<Map<String, Any>> ?: emptyList()
+        return violations.mapNotNull { it["message"] as? String }
     }
 }

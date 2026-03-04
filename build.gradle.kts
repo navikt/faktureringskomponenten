@@ -15,7 +15,7 @@ plugins {
 group = "no.nav"
 version = "0.0.1-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_17
-extra["junit-jupiter.version"] = "5.11.3"
+extra["junit-jupiter.version"] = "6.0.2"
 extra["testcontainers.version"] = "2.0.3"
 
 repositories {
@@ -39,7 +39,7 @@ object dependencyVersions {
     const val kotestVersion = "5.5.4"
     const val shedlockVersion = "4.4.0"
     const val shedlockProvicerJdbcVersion = "4.43.0"
-    const val mockkVersion = "1.13.3"
+    const val mockkVersion = "1.14.3"
     const val springdocOpenapiStarter = "2.8.14"
     const val logstashLogbackEncoder = "7.2"
     const val tokenSupportVersion = "3.2.0"
@@ -63,6 +63,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.kafka:spring-kafka")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    implementation("tools.jackson.module:jackson-module-kotlin")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-csv")
     implementation("io.github.microutils:kotlin-logging-jvm:${dependencyVersions.kotlinLogging}")
     implementation("io.micrometer:micrometer-registry-prometheus")
@@ -73,6 +74,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:${dependencyVersions.logstashLogbackEncoder}")
     implementation("no.nav.security:token-validation-spring:${dependencyVersions.tokenSupportVersion}")
     implementation("org.flywaydb:flyway-core")
+    implementation("org.springframework.boot:spring-boot-flyway")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.threeten:threeten-extra:${dependencyVersions.threeTenExtraVersion}")
@@ -81,6 +83,9 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.mockito", module = "mockito-core")
     }
+    testImplementation("org.springframework.boot:spring-boot-webtestclient")
+    testImplementation("org.springframework.boot:spring-boot-data-jpa-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("no.nav.security:token-validation-spring-test:${dependencyVersions.tokenSupportVersion}")
     testImplementation("io.kotest:kotest-assertions-core-jvm:${dependencyVersions.kotestVersion}")
     testImplementation("org.springframework.boot:spring-boot-starter-webflux")
