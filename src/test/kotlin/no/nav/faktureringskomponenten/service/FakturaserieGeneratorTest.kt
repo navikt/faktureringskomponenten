@@ -628,7 +628,8 @@ class FakturaserieGeneratorTest {
                 intervall = intervall,
                 perioder = perioder
             ),
-            opprinneligFakturaserie
+            opprinneligFakturaserie,
+            opprinneligFakturaserie.bestilteFakturaer()
         )
     }
 

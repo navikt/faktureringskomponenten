@@ -213,6 +213,7 @@ class FakturaserieServiceTest {
         every {
             fakturaserieRepository.findByReferanse(OPPRINNELIG_REF)
         } returns opprinneligFakturaserie
+        every { fakturaserieRepository.findAllByReferanse(OPPRINNELIG_REF) } returns listOf(opprinneligFakturaserie)
 
         val fakturaserier = mutableListOf<Fakturaserie>()
         every { fakturaserieRepository.save(capture(fakturaserier)) } returns mockk()
@@ -229,6 +230,167 @@ class FakturaserieServiceTest {
         opprinneligFakturaserieOppdatert.erstattetMed shouldBe null
         opprinneligFakturaserieOppdatert.faktura.forAll {
             it.status shouldBe FakturaStatus.AVBRUTT
+        }
+    }
+
+    @Test
+    fun `erstatter fakturaserie - finner bestilte fakturaer fra forrige serie når gjeldende serie ikke har bestilte`() {
+        val serieA = Fakturaserie.forTest {
+            id = 1
+            referanse = "SERIE-A"
+            status = FakturaserieStatus.ERSTATTET
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    fra = LocalDate.of(kalenderÅrNå, 1, 1).toString()
+                    til = LocalDate.of(kalenderÅrNå, 3, 31).toString()
+                    månedspris = 1000
+                    belop = BigDecimal("3000")
+                    antall = BigDecimal("3")
+                }
+            }
+        }
+        val serieB = Fakturaserie.forTest {
+            id = 2
+            referanse = OPPRINNELIG_REF
+            status = FakturaserieStatus.OPPRETTET
+            faktura {
+                status = FakturaStatus.OPPRETTET
+                fakturaLinje {
+                    fra = LocalDate.of(kalenderÅrNå, 1, 1).toString()
+                    til = LocalDate.of(kalenderÅrNå, 3, 31).toString()
+                    månedspris = 2000
+                    belop = BigDecimal("6000")
+                    antall = BigDecimal("3")
+                }
+            }
+        }
+        serieA.erstattetMed = serieB
+
+        every { fakturaserieRepository.findByReferanse(OPPRINNELIG_REF) } returns serieB
+        every { fakturaserieRepository.findAllByReferanse(OPPRINNELIG_REF) } returns listOf(serieA, serieB)
+
+        val fakturaserier = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.save(capture(fakturaserier)) } returns mockk()
+
+        val nyFakturaserieDto = lagFakturaserieDto(
+            NY_REF,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriode(
+                    BigDecimal.valueOf(1500),
+                    LocalDate.of(kalenderÅrNå, 1, 1),
+                    LocalDate.of(kalenderÅrNå, 3, 31),
+                    "Ny periode"
+                )
+            )
+        )
+
+        fakturaserieService.lagNyFakturaserie(nyFakturaserieDto, OPPRINNELIG_REF)
+
+        val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
+        val avregningsfakturaer = nyFakturaserie.faktura.filter { it.erAvregningsfaktura() }
+        avregningsfakturaer.shouldHaveSize(1)
+        avregningsfakturaer.single().fakturaLinje.single().run {
+            avregningForrigeBeloep shouldBe BigDecimal("3000.00")
+            avregningNyttBeloep shouldBe BigDecimal("4500.00")
+        }
+    }
+
+    @Test
+    fun `erstatter fakturaserie - bruker bestilte fra gjeldende serie når de finnes`() {
+        val opprinneligFakturaserie = lagOpprinneligFakturaserie()
+        every { fakturaserieRepository.findByReferanse(OPPRINNELIG_REF) } returns opprinneligFakturaserie
+
+        val fakturaserier = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.save(capture(fakturaserier)) } returns mockk()
+
+        val nyFakturaserieDto = lagFakturaserieDto(NY_REF)
+
+        fakturaserieService.lagNyFakturaserie(nyFakturaserieDto, OPPRINNELIG_REF)
+
+        val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
+        val avregningsfakturaer = nyFakturaserie.faktura.filter { it.erAvregningsfaktura() }
+        avregningsfakturaer.shouldHaveSize(2)
+
+        verify(exactly = 0) { fakturaserieRepository.findAllByReferanse(any()) }
+    }
+
+    @Test
+    fun `erstatter fakturaserie - traverserer flere ledd i kjeden for å finne bestilte`() {
+        val serieA = Fakturaserie.forTest {
+            id = 1
+            referanse = "SERIE-A"
+            status = FakturaserieStatus.ERSTATTET
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    fra = LocalDate.of(kalenderÅrNå, 1, 1).toString()
+                    til = LocalDate.of(kalenderÅrNå, 3, 31).toString()
+                    månedspris = 1000
+                    belop = BigDecimal("3000")
+                    antall = BigDecimal("3")
+                }
+            }
+        }
+        val serieB = Fakturaserie.forTest {
+            id = 2
+            referanse = "SERIE-B"
+            status = FakturaserieStatus.ERSTATTET
+            faktura {
+                status = FakturaStatus.OPPRETTET
+                fakturaLinje {
+                    fra = LocalDate.of(kalenderÅrNå, 1, 1).toString()
+                    til = LocalDate.of(kalenderÅrNå, 3, 31).toString()
+                    månedspris = 1500
+                    belop = BigDecimal("4500")
+                    antall = BigDecimal("3")
+                }
+            }
+        }
+        val serieC = Fakturaserie.forTest {
+            id = 3
+            referanse = OPPRINNELIG_REF
+            status = FakturaserieStatus.OPPRETTET
+            faktura {
+                status = FakturaStatus.OPPRETTET
+                fakturaLinje {
+                    fra = LocalDate.of(kalenderÅrNå, 1, 1).toString()
+                    til = LocalDate.of(kalenderÅrNå, 3, 31).toString()
+                    månedspris = 2000
+                    belop = BigDecimal("6000")
+                    antall = BigDecimal("3")
+                }
+            }
+        }
+        serieA.erstattetMed = serieB
+        serieB.erstattetMed = serieC
+
+        every { fakturaserieRepository.findByReferanse(OPPRINNELIG_REF) } returns serieC
+        every { fakturaserieRepository.findAllByReferanse(OPPRINNELIG_REF) } returns listOf(serieA, serieB, serieC)
+
+        val fakturaserier = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.save(capture(fakturaserier)) } returns mockk()
+
+        val nyFakturaserieDto = lagFakturaserieDto(
+            NY_REF,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriode(
+                    BigDecimal.valueOf(2500),
+                    LocalDate.of(kalenderÅrNå, 1, 1),
+                    LocalDate.of(kalenderÅrNå, 3, 31),
+                    "Ny periode"
+                )
+            )
+        )
+
+        fakturaserieService.lagNyFakturaserie(nyFakturaserieDto, OPPRINNELIG_REF)
+
+        val nyFakturaserie = fakturaserier.single { it.referanse == NY_REF }
+        val avregningsfakturaer = nyFakturaserie.faktura.filter { it.erAvregningsfaktura() }
+        avregningsfakturaer.shouldHaveSize(1)
+        avregningsfakturaer.single().fakturaLinje.single().run {
+            avregningForrigeBeloep shouldBe BigDecimal("3000.00")
+            avregningNyttBeloep shouldBe BigDecimal("7500.00")
         }
     }
 

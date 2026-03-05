@@ -59,13 +59,14 @@ class FakturaserieGenerator(
 
     fun lagFakturaserieForEndring(
         fakturaserieDto: FakturaserieDto,
-        opprinneligFakturaserie: Fakturaserie
+        opprinneligFakturaserie: Fakturaserie,
+        bestilteFakturaerForAvregning: List<Faktura>
     ): Fakturaserie {
         val startDato = finnStartDatoForFørstePlanlagtFaktura(opprinneligFakturaserie)
         val fakturaSomSkalBrukesIAvregning = if (unleash.isEnabled(ToggleName.MELOSYS_FAKTURERINGSKOMPONENTEN_IKKE_TIDLIGERE_PERIODER)) {
-            opprinneligFakturaserie.bestilteFakturaer().filter { it.alleFakturaLinjerErFraIÅrEllerFremover() }
+            bestilteFakturaerForAvregning.filter { it.alleFakturaLinjerErFraIÅrEllerFremover() }
         } else {
-            opprinneligFakturaserie.bestilteFakturaer()
+            bestilteFakturaerForAvregning
         }
         val avregningsfakturaer = avregningBehandler.lagAvregningsfakturaer(
             fakturaserieDto.perioder,
