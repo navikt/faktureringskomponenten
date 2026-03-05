@@ -580,6 +580,99 @@ class FakturaserieGeneratorTest {
         )
     }
 
+    /**
+     * Scenario: Appen har laget en ekstra feilfaktura for q1 (dobbeltfakturering).
+     * Admin krediterer feilfakturaen. Både feilfakturaen og kreditnotaen markeres
+     * med erKreditnota=true og ekskluderes fra avregning.
+     *
+     * | Steg          | q1 (jan-mar)      | q2 (apr-jun)      | Kommentar                     |
+     * |---------------|-------------------|-------------------|-------------------------------|
+     * | s1 (original) | 3000              | 3000              | Korrekt fakturering           |
+     * | feilfaktura   | 3000 (erKreditnota) |                 | Dobbeltfakturering, kreditert |
+     * | kreditnota    | -3000 (erKreditnota) |                | Nuller ut feilfakturaen       |
+     * | s2 (ny)       | +3000 (avr)       | +3000 (avr)       | Avregner kun de korrekte      |
+     */
+    @Test
+    fun `kreditert faktura via admin ekskluderes fra avregning ved lagFakturaserieForEndring`() {
+        mockkStatic(LocalDate::class)
+        every { LocalDate.now() } returns LocalDate.of(2024, 1, 15)
+
+        // 1. Lag opprinnelig fakturaserie med to kvartaler
+        val opprinneligFakturaserie = lagFakturaserie(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode.forTest {
+                    månedspris = 1000
+                    fra = "2024-01-01"
+                    til = "2024-06-30"
+                    beskrivelse = "Trygdeavgift"
+                }
+            )
+        )
+        opprinneligFakturaserie.faktura shouldHaveSize 2
+        opprinneligFakturaserie.faktura.forEach { it.status = FakturaStatus.BESTILT }
+
+        // 2. Simuler at appen feilaktig opprettet en ekstra faktura for q1
+        val feilfaktura = Faktura.forTest {
+            status = FakturaStatus.BESTILT
+            fakturaLinje {
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
+        (opprinneligFakturaserie.faktura as MutableList<Faktura>).add(feilfaktura)
+
+        // 3. Admin krediterer feilfakturaen - markerer begge med erKreditnota=true
+        feilfaktura.erKreditnota = true
+        val kreditnota = Faktura.forTest {
+            status = FakturaStatus.BESTILT
+            erKreditnota = true
+            referertFakturaVedAvregning = feilfaktura
+            krediteringFakturaRef = feilfaktura.referanseNr
+            fakturaLinje {
+                fra = "2024-01-01"
+                til = "2024-03-31"
+                antall = BigDecimal(-3)
+                månedspris = 1000
+                belop = BigDecimal("-3000")
+            }
+        }
+        (opprinneligFakturaserie.faktura as MutableList<Faktura>).add(kreditnota)
+
+        // 4. Lag ny fakturaserie med endring (ny pris for hele perioden)
+        val nyFakturaserie = lagFakturaserieForEndring(
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = listOf(
+                FakturaseriePeriode.forTest {
+                    månedspris = 2000
+                    fra = "2024-01-01"
+                    til = "2024-06-30"
+                    beskrivelse = "Ny trygdeavgift"
+                }
+            ),
+            opprinneligFakturaserie = opprinneligFakturaserie
+        )
+
+        // 5. Verifiser: Avregning for q1 og q2 basert på de korrekte originalfakturaene
+        val avregningsfakturaer = nyFakturaserie.faktura.filter { it.erAvregningsfaktura() }
+            .sortedBy { it.getPeriodeFra() }
+
+        // Feilfakturaen og kreditnotaen er usynlige - avregning baseres kun på original q1 (3000) og q2 (3000)
+        avregningsfakturaer shouldHaveSize 2
+        avregningsfakturaer[0].run {
+            getPeriodeFra() shouldBe LocalDate.of(2024, 1, 1)
+            getPeriodeTil() shouldBe LocalDate.of(2024, 3, 31)
+            totalbeløp() shouldBe BigDecimal("3000.00") // nytt 6000 - tidligere 3000
+        }
+        avregningsfakturaer[1].run {
+            getPeriodeFra() shouldBe LocalDate.of(2024, 4, 1)
+            getPeriodeTil() shouldBe LocalDate.of(2024, 6, 30)
+            totalbeløp() shouldBe BigDecimal("3000.00") // nytt 6000 - tidligere 3000
+        }
+    }
+
     private fun lagFakturaserie(
         dagensDato: LocalDate = LocalDate.now(),
         intervall: FakturaserieIntervall = FakturaserieIntervall.MANEDLIG,
