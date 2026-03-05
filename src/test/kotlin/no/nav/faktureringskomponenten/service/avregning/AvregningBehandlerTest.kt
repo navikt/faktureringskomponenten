@@ -1364,6 +1364,55 @@ class AvregningBehandlerTest {
             }
     }
 
+    /**
+     * Når en faktura krediteres via AdminService (f.eks. pga feilaktig dobbeltfakturering),
+     * filtreres kreditnotaen ut av bestilteFakturaer() via erKreditnota-flagget.
+     * Originalen er allerede AVBRUTT og filtreres ut av erBestilt().
+     *
+     * Denne testen verifiserer at AvregningBehandler fungerer korrekt når den kun mottar
+     * de fakturaene som bestilteFakturaer() returnerer (uten kreditnoter).
+     */
+    @Test
+    fun `kreditnota fra admin-kreditering ekskluderes fra avregning`() {
+        // q2 er den eneste vanlige bestilte fakturaen (q1 er AVBRUTT, kreditnota er filtrert ut)
+        val faktura2024AndreKvartal = Faktura.forTest {
+            id = 2
+            bestilt = "2024-01-01"
+            status = BESTILT
+            eksternFakturaNummer = "456"
+            fakturaLinje {
+                id = 5
+                fra = "2024-04-01"
+                til = "2024-06-30"
+                antall = BigDecimal(3)
+                månedspris = 1000
+            }
+        }
+
+        // Nye perioder med oppdaterte priser
+        val nyePerioder = listOf(
+            FakturaseriePeriode(
+                startDato = LocalDate.of(2024, 4, 1),
+                sluttDato = LocalDate.of(2024, 6, 30),
+                enhetsprisPerManed = BigDecimal.valueOf(2000),
+                beskrivelse = "Ny pris"
+            ),
+        )
+
+        // Kun q2 sendes inn - kreditnota og AVBRUTT original er allerede filtrert bort av bestilteFakturaer()
+        val avregningsfakturaer = avregningBehandler.lagAvregningsfakturaer(nyePerioder, listOf(faktura2024AndreKvartal))
+
+        // Avregning kun for q2: nytt beløp 6000 - tidligere 3000 = +3000
+        avregningsfakturaer.shouldHaveSize(1)
+        avregningsfakturaer[0].run {
+            fakturaLinje[0].run {
+                avregningForrigeBeloep shouldBe BigDecimal("3000.00")
+                avregningNyttBeloep shouldBe BigDecimal("6000.00")
+                belop shouldBe BigDecimal("3000.00")
+            }
+        }
+    }
+
     private val faktura2023ForsteKvartal = Faktura.forTest {
         id = 1
         bestilt = "2023-03-19"

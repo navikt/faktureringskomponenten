@@ -49,6 +49,9 @@ class Faktura(
     @JoinColumn(name = "avregning_faktura_id")
     val referertFakturaVedAvregning: Faktura? = null,
 
+    @Column(name = "er_kreditnota", nullable = false)
+    var erKreditnota: Boolean = false,
+
     ) : ModifiableEntity() {
 
     override fun toString(): String {

@@ -46,7 +46,8 @@ object FakturaTestFactory {
         var eksternFakturaStatus: MutableList<EksternFakturaStatus> = mutableListOf(),
         var eksternFakturaNummer: String = EKSTERN_FAKTURA_NUMMER,
         var krediteringFakturaRef: String = "",
-        var referertFakturaVedAvregning: Faktura? = null
+        var referertFakturaVedAvregning: Faktura? = null,
+        var erKreditnota: Boolean = false,
     ) {
         /**
          * Setter datoBestilt fra en string på formatet "yyyy-MM-dd".
@@ -104,7 +105,8 @@ object FakturaTestFactory {
                 eksternFakturaStatus = eksternFakturaStatus,
                 eksternFakturaNummer = eksternFakturaNummer,
                 krediteringFakturaRef = krediteringFakturaRef,
-                referertFakturaVedAvregning = referertFakturaVedAvregning
+                referertFakturaVedAvregning = referertFakturaVedAvregning,
+                erKreditnota = erKreditnota,
             )
             // Wire relationships: fakturaLinje får ikke automatisk faktura-referanse i constructor
             // Dette må gjøres manuelt
