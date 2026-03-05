@@ -98,6 +98,11 @@ class Fakturaserie(
         status = FakturaserieStatus.KANSELLERT
     }
 
+    fun kanseller() {
+        avbrytPlanlagteFakturaer()
+        status = FakturaserieStatus.KANSELLERT
+    }
+
     fun bestilteFakturaer(): List<Faktura> {
         return faktura.filter { it.erBestilt() && !it.erKreditnota }
     }

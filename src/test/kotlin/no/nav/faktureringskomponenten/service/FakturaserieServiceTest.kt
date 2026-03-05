@@ -34,7 +34,6 @@ class FakturaserieServiceTest {
         FakturaserieService(
             fakturaserieRepository,
             fakturaserieGenerator,
-            fakturaBestillingService,
             unleash
         )
 
@@ -140,52 +139,7 @@ class FakturaserieServiceTest {
         fakturaserie.fullmektig.shouldBeNull()
     }
 
-    @Test
-    fun `Kansellere fakturaserie - eksisterende får oppdatert fakturaseriestatus til kansellert og nye faktura bestilles`() {
-        val eksisterendeFakturaserie = Fakturaserie.forTest {
-            faktura {
-                status = FakturaStatus.BESTILT
-                fakturaLinje {
-                    månedspris = 10000
-                }
-            }
-        }
-        val tidligereFakturaserie = Fakturaserie.forTest { }
 
-
-        every { fakturaserieRepository.findAllByReferanse(eksisterendeFakturaserie.referanse) } returns listOf(
-            tidligereFakturaserie
-        )
-        every { fakturaserieRepository.findByReferanse(eksisterendeFakturaserie.referanse) } returns eksisterendeFakturaserie
-
-        val fakturaserieCapture = mutableListOf<Fakturaserie>()
-        every { fakturaserieRepository.save(capture(fakturaserieCapture)) } returns mockk()
-        every { fakturaserieRepository.save(eksisterendeFakturaserie) } returns eksisterendeFakturaserie
-        justRun { fakturaBestillingService.bestillKreditnota(any()) }
-
-
-        fakturaserieService.kansellerFakturaserie(eksisterendeFakturaserie.referanse)
-
-
-        verify { fakturaserieRepository.save(eksisterendeFakturaserie) }
-        verify { fakturaBestillingService.bestillKreditnota(fakturaserieCapture.single()) }
-
-        fakturaserieCapture.single()
-            .faktura.single()
-            .run {
-                krediteringFakturaRef.isNotEmpty()
-                fakturaLinje.single()
-                    .belop.shouldBe(BigDecimal(-10000).setScale(2))
-            }
-
-
-        eksisterendeFakturaserie.run {
-            status.shouldBe(FakturaserieStatus.KANSELLERT)
-            faktura.shouldHaveSize(1)
-                .first()
-                .status.shouldBe(FakturaStatus.BESTILT)
-        }
-    }
 
     @Test
     fun `lag ny faktura uten fakturaserieRef`() {
