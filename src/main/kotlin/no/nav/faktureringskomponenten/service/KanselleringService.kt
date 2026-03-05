@@ -43,6 +43,16 @@ class KanselleringService(
             .flatMap { it.fakturaLinje }
             .groupBy { it.periodeFra.year }
 
+        if (alleBestilteFakturalinjer.isEmpty()) {
+            aktivFakturaserie.kanseller()
+            fakturaserieRepository.save(aktivFakturaserie)
+            alleÅrsavregningFakturaserier.forEach {
+                it.kanseller()
+                fakturaserieRepository.save(it)
+            }
+            return "Kansellert"
+        }
+
         val fakturalinjer = alleBestilteFakturalinjer.values.flatten()
         val startDato = fakturalinjer.minOfOrNull { it.periodeFra } ?: alleFakturaserier.minOf { it.startdato }
         val sluttDato = fakturalinjer.maxOfOrNull { it.periodeTil } ?: alleFakturaserier.maxOf { it.sluttdato }

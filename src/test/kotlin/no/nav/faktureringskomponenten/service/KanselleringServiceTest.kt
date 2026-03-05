@@ -115,12 +115,11 @@ class KanselleringServiceTest {
             .also { it.startdato shouldBe LocalDate.now().withDayOfMonth(1).withMonth(7).minusYears(1) }
             .also { it.sluttdato shouldBe LocalDate.now().withMonth(9).withDayOfMonth(30) }
 
-        val faktura = krediteringFakturaserie.single().faktura
-        faktura.shouldHaveSize(2)
-        faktura.sortedBy { it.getPeriodeFra() }
+        val krediteringFakturaer = krediteringFakturaserie.single().faktura
+        krediteringFakturaer.shouldHaveSize(2)
+        krediteringFakturaer.sortedBy { it.getPeriodeFra() }
             .run {
                 get(0).fakturaLinje.single().belop shouldBe BigDecimal(-11000).setScale(2)
-//                get(0).krediteringFakturaRef shouldBe aktivFakturaserie.faktura.first().referanseNr
                 get(1).fakturaLinje.single().belop shouldBe BigDecimal(-30000).setScale(2)
             }
 
@@ -289,5 +288,61 @@ class KanselleringServiceTest {
         }
 
         exception.message shouldContain "finnes-ikke"
+    }
+
+    @Test
+    fun `Kansellere fakturaserie med ingen bestilte faktura - avbryter faktura og serie, men oppretter ingen ny fakturaserie`() {
+        val fom = LocalDate.now().withMonth(7).withDayOfMonth(1)
+        val tom = LocalDate.now().withMonth(12).withDayOfMonth(31)
+
+        val aktivFakturaserie = Fakturaserie.forTest {
+            startdato = fom
+            sluttdato = tom
+            faktura {
+                status = FakturaStatus.OPPRETTET
+                fakturaLinje {
+                    periodeFra = fom.withMonth(7).minusYears(1)
+                    periodeTil = tom.withMonth(9).minusYears(1)
+                    månedspris = 5000
+                }
+            }
+            faktura {
+                status = FakturaStatus.OPPRETTET
+                fakturaLinje {
+                    periodeFra = fom.withMonth(10).minusYears(1)
+                    periodeTil = tom.minusYears(1)
+                    månedspris = 6000
+                }
+            }
+            faktura {
+                status = FakturaStatus.OPPRETTET
+                fakturaLinje {
+                    periodeFra = fom
+                    periodeTil = tom.withMonth(3)
+                    månedspris = 10000
+                }
+            }
+        }
+
+
+        every { fakturaserieRepository.findByReferanse(aktivFakturaserie.referanse) } returns aktivFakturaserie
+        every { fakturaserieRepository.findAllByReferanse(aktivFakturaserie.referanse) } returns listOf(
+            aktivFakturaserie
+        )
+        every { fakturaserieRepository.save(aktivFakturaserie) } returns aktivFakturaserie
+
+
+        val kansellerFakturaserieRef = kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, emptyList())
+
+
+        verify { fakturaserieRepository.save(aktivFakturaserie) }
+        verify(exactly = 0) { fakturaBestillingService.bestillKreditnota(any()) }
+
+
+        aktivFakturaserie.run {
+            status.shouldBe(FakturaserieStatus.KANSELLERT)
+            faktura.forEach { it.status shouldBe FakturaStatus.AVBRUTT }
+        }
+        kansellerFakturaserieRef shouldBe "Kansellert"
     }
 }
