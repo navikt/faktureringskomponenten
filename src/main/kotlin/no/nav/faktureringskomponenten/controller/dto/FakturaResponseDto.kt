@@ -31,4 +31,7 @@ data class FakturaResponseDto(
     val eksternFakturaStatus: List<FakturaTilbakemeldingResponseDto>,
 
     val eksternFakturaNummer: String? = "",
+
+    @Schema(description = "Om fakturaen er en kreditnota")
+    val erKreditnota: Boolean = false,
 )
