@@ -252,7 +252,6 @@ class KanselleringServiceTest {
         faktura.sortedBy { it.getPeriodeFra() }
             .run {
                 get(0).fakturaLinje.single().belop shouldBe BigDecimal(-10800).setScale(2)
-//                get(0).krediteringFakturaRef shouldBe aktivFakturaserie.faktura.first().referanseNr
                 get(1).fakturaLinje.single().belop shouldBe BigDecimal(-30000).setScale(2)
             }
 
