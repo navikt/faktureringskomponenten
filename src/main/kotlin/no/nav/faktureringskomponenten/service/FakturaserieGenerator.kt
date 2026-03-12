@@ -146,12 +146,14 @@ class FakturaserieGenerator(
         sluttDato: LocalDate,
         alleFakturalinjer: Map<Int, List<FakturaLinje>>
     ): Fakturaserie {
-        val fakturaer = alleFakturalinjer.map { (year, fakturalinjer) ->
-            Faktura(
-                referanseNr = ULID.randomULID(),
-                fakturaLinje = listOf(lagKanselleringFakturalinje(fakturalinjer)),
-            )
-        }
+        val fakturaer = alleFakturalinjer
+            .toSortedMap()
+            .map { (_, fakturalinjer) ->
+                Faktura(
+                    referanseNr = ULID.randomULID(),
+                    fakturaLinje = listOf(lagKanselleringFakturalinje(fakturalinjer)),
+                )
+            }
 
         val nyFakturaserie = Fakturaserie(
             referanse = fakturaserieDto.fakturaserieReferanse,
