@@ -3,6 +3,7 @@ package no.nav.faktureringskomponenten.service
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
+import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.springframework.stereotype.Service
@@ -30,11 +31,15 @@ class KanselleringService(
         }
 
         val alleÅrsavregningFakturaserier = årsavregningRef.map { ref ->
-            fakturaserieRepository.findByReferanse(ref)
+            val fakturaserie = fakturaserieRepository.findByReferanse(ref)
                 ?: throw RessursIkkeFunnetException(
                     field = "årsavregningRef",
                     message = "Finner ikke årsavregning-fakturaserie med referanse $ref"
                 )
+            require(fakturaserie.fakturaGjelderInnbetalingstype == Innbetalingstype.AARSAVREGNING) {
+                "Fakturaserie med referanse $ref er ikke en årsavregning, men ${fakturaserie.fakturaGjelderInnbetalingstype}"
+            }
+            fakturaserie
         }
         val alleFakturaserier = hentFakturaserier(aktivFakturaserie.referanse)
         val alleBestilteFakturalinjer = (alleFakturaserier + alleÅrsavregningFakturaserier)

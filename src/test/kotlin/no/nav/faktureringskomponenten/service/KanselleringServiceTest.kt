@@ -290,6 +290,34 @@ class KanselleringServiceTest {
     }
 
     @Test
+    fun `kansellering feiler hvis årsavregningsreferanse ikke er en årsavregning`() {
+        val aktivFakturaserie = Fakturaserie.forTest {
+            referanse = ULID.randomULID()
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    månedspris = 10000
+                }
+            }
+        }
+        val ikkjeÅrsavregning = Fakturaserie.forTest {
+            referanse = ULID.randomULID()
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+        }
+
+        every { fakturaserieRepository.findByReferanse(aktivFakturaserie.referanse) } returns aktivFakturaserie
+        every { fakturaserieRepository.findByReferanse(ikkjeÅrsavregning.referanse) } returns ikkjeÅrsavregning
+
+        val exception = shouldThrow<IllegalArgumentException> {
+            kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, listOf(ikkjeÅrsavregning.referanse))
+        }
+
+        exception.message shouldContain ikkjeÅrsavregning.referanse
+        exception.message shouldContain "TRYGDEAVGIFT"
+    }
+
+
+    @Test
     fun `Kansellere fakturaserie med ingen bestilte faktura - avbryter faktura og serie, men oppretter ingen ny fakturaserie`() {
         val fom = LocalDate.now().withMonth(7).withDayOfMonth(1)
         val tom = LocalDate.now().withMonth(12).withDayOfMonth(31)
