@@ -1,6 +1,5 @@
 package no.nav.faktureringskomponenten.service
 
-import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaseriePeriode
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
@@ -44,7 +43,7 @@ class KanselleringService(
         val alleFakturaserier = hentFakturaserier(aktivFakturaserie.referanse)
         val alleBestilteFakturalinjer = (alleFakturaserier + alleÅrsavregningFakturaserier)
             .flatMap { it.faktura }
-            .filter { it.status == FakturaStatus.BESTILT }
+            .filter { it.erBestilt() }
             .flatMap { it.fakturaLinje }
             .groupBy { it.periodeFra.year }
 
