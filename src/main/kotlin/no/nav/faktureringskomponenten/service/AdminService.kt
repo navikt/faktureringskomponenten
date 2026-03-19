@@ -9,6 +9,7 @@ import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltPr
 import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
 import org.springframework.stereotype.Service
 import ulid.ULID
+import java.math.BigDecimal
 import java.time.LocalDate
 
 @Service
@@ -42,9 +43,10 @@ class AdminService(
             datoBestilt = LocalDate.now(),
             fakturaLinje = faktura.fakturaLinje.map {
                 FakturaLinje(
-                    enhetsprisPerManed = it.enhetsprisPerManed.negate(),
+                    enhetsprisPerManed = it.enhetsprisPerManed,
                     periodeFra = it.periodeFra,
                     periodeTil = it.periodeTil,
+                    antall = BigDecimal(-1),
                     belop = it.belop.negate(),
                     beskrivelse = AvregningsfakturaGenerator.genererBeskrivelse(
                         it.periodeFra,
