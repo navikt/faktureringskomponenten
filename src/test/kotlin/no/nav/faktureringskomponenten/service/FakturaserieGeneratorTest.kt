@@ -813,6 +813,60 @@ class FakturaserieGeneratorTest {
             "            ),"
     }
 
+    @Test
+    fun `lagFakturaserieForKansellering - lager kreditfaktura per år med negert totalbeløp`() {
+        val generator = FakturaserieGenerator(
+            fakturaGenerator = FakturaGeneratorForTest(LocalDate.now(), unleash),
+            avregningBehandler = AvregningBehandler(AvregningsfakturaGenerator()),
+            unleash = unleash
+        )
+        val dto = FakturaserieDto(
+            fakturaserieReferanse = ULID.randomULID(),
+            fodselsnummer = "12345678901",
+            fullmektig = null,
+            referanseBruker = "ref-bruker",
+            referanseNAV = "ref-nav",
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
+            intervall = FakturaserieIntervall.KVARTAL,
+            perioder = emptyList()
+        )
+        val fakturalinjer = mapOf(
+            2023 to listOf(
+                FakturaLinje.forTest { fra = "2023-07-01"; til = "2023-09-30"; belop = BigDecimal("1500.00") },
+                FakturaLinje.forTest { fra = "2023-10-01"; til = "2023-12-31"; belop = BigDecimal("1500.00") },
+            ),
+            2024 to listOf(
+                FakturaLinje.forTest { fra = "2024-01-01"; til = "2024-03-31"; belop = BigDecimal("2000.00") },
+            )
+        )
+
+        val resultat = generator.lagFakturaserieForKansellering(
+            dto,
+            LocalDate.of(2023, 7, 1),
+            LocalDate.of(2024, 3, 31),
+            fakturalinjer
+        )
+
+        resultat.intervall shouldBe FakturaserieIntervall.SINGEL
+        resultat.faktura shouldHaveSize 2
+
+        val fakturaSortert = resultat.faktura.sortedBy { it.getPeriodeFra() }
+
+        val linje2023 = fakturaSortert[0].fakturaLinje.first()
+        linje2023.belop shouldBe BigDecimal("-3000.00")
+        linje2023.enhetsprisPerManed shouldBe BigDecimal("3000.00")
+        linje2023.periodeFra shouldBe LocalDate.of(2023, 7, 1)
+        linje2023.periodeTil shouldBe LocalDate.of(2023, 12, 31)
+        linje2023.beskrivelse shouldBe "Tilbakebetaling for periode: 01.07.2023 - 31.12.2023"
+        linje2023.antall shouldBe BigDecimal.ONE.negate()
+
+        val linje2024 = fakturaSortert[1].fakturaLinje.first()
+        linje2024.belop shouldBe BigDecimal("-2000.00")
+        linje2024.periodeFra shouldBe LocalDate.of(2024, 1, 1)
+        linje2024.periodeTil shouldBe LocalDate.of(2024, 3, 31)
+        linje2024.antall shouldBe BigDecimal.ONE.negate()
+    }
+
     @Nested
     inner class LocalDateRangeSubstraction {
         @Test
