@@ -43,7 +43,7 @@ class AdminService(
             datoBestilt = LocalDate.now(),
             fakturaLinje = faktura.fakturaLinje.map {
                 FakturaLinje(
-                    enhetsprisPerManed = it.enhetsprisPerManed,
+                    enhetsprisPerManed = it.belop,
                     periodeFra = it.periodeFra,
                     periodeTil = it.periodeTil,
                     antall = BigDecimal(-1),
