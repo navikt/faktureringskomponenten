@@ -142,13 +142,13 @@ class BeløpBeregnerTest {
     }
 
     @Test
-    fun `Avrunding etter 2 desimaler trengs ikke, siden antall bruker 2 desimaler og enhetspris heltall`() {
+    fun `Beløp med desimaler i enhetspris rundes av til 2 desimaler`() {
         val fom = LocalDate.of(2023, 12, 14)
         val tom = LocalDate.of(2024, 2, 15)
 
 
-        shouldThrow<ArithmeticException> {
-            BeløpBeregner.beløpForPeriode(BigDecimal("1002.25"), fom, tom)
-        }
+        val result = BeløpBeregner.beløpForPeriode(BigDecimal("1002.25"), fom, tom)
+
+        result.scale().shouldBe(2)
     }
 }

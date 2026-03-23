@@ -11,7 +11,7 @@ class BeløpBeregner {
     companion object {
         fun beløpForPeriode(enhetspris: BigDecimal, fom: LocalDate, tom: LocalDate): BigDecimal {
             val antallMåneder = AntallMdBeregner(fom, tom).beregn()
-            val beløp = enhetspris.multiply(antallMåneder).setScale(2, RoundingMode.UNNECESSARY)
+            val beløp = enhetspris.multiply(antallMåneder).setScale(2, RoundingMode.HALF_UP)
             log.debug { "Beløp for periode fom: $fom, tom: $tom regnes med enhetspris $enhetspris og antall: $antallMåneder ==> beløp: $beløp" }
             return beløp
         }
