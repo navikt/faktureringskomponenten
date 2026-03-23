@@ -372,4 +372,64 @@ class KanselleringServiceTest {
         }
         kansellerFakturaserieRef shouldBe "Kansellert"
     }
+
+    @Test
+    fun `Kansellere fakturaserie der bestilte fakturalinjer for et år nulles ut av krediteringer - skal ikke opprette faktura med 0 beløp`() {
+        val fom = LocalDate.now().withMonth(1).withDayOfMonth(1)
+        val tom = LocalDate.now().withMonth(12).withDayOfMonth(31)
+
+        // Original fakturaserie: pliktig medlemskap med trygdeavgift (skatteplikt nei) - positivt beløp bestilt
+        val originalFakturaserie = Fakturaserie.forTest {
+            referanse = ULID.randomULID()
+            startdato = fom
+            sluttdato = tom
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    periodeFra = fom
+                    periodeTil = tom
+                    månedspris = 5000
+                }
+            }
+        }
+
+        // Avsluttet ny vurdering: kreditering for samme periode (skatteplikt ja) - negativt beløp bestilt
+        val krediteringFraForrigeVurdering = Fakturaserie.forTest {
+            referanse = originalFakturaserie.referanse
+            startdato = fom
+            sluttdato = tom
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    periodeFra = fom
+                    periodeTil = tom
+                    månedspris = -5000
+                }
+            }
+        }
+
+        val krediteringFakturaserier = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.findByReferanse(originalFakturaserie.referanse) } returns originalFakturaserie
+        every { fakturaserieRepository.findAllByReferanse(originalFakturaserie.referanse) } returns listOf(
+            originalFakturaserie, krediteringFraForrigeVurdering
+        )
+        every { fakturaserieRepository.save(originalFakturaserie) } returns originalFakturaserie
+        every { fakturaserieRepository.save(not(originalFakturaserie)) } answers {
+            val fakturaserie = firstArg<Fakturaserie>()
+            krediteringFakturaserier.add(fakturaserie)
+            fakturaserie
+        }
+        justRun { fakturaBestillingService.bestillKreditnota(any()) }
+
+
+        kanselleringService.kansellerFakturaserie(originalFakturaserie.referanse, emptyList())
+
+
+        val krediteringFakturaserie = krediteringFakturaserier.single()
+        verify { fakturaBestillingService.bestillKreditnota(krediteringFakturaserie) }
+        krediteringFakturaserie.faktura shouldHaveSize 0
+        originalFakturaserie.status shouldBe FakturaserieStatus.KANSELLERT
+    }
 }
