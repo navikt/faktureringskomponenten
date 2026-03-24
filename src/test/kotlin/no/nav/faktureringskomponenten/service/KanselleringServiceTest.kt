@@ -380,6 +380,7 @@ class KanselleringServiceTest {
 
         // Original fakturaserie: pliktig medlemskap med trygdeavgift (skatteplikt nei) - positivt beløp bestilt
         val originalFakturaserie = Fakturaserie.forTest {
+            id = 1L
             referanse = ULID.randomULID()
             startdato = fom
             sluttdato = tom
@@ -396,6 +397,7 @@ class KanselleringServiceTest {
 
         // Avsluttet ny vurdering: kreditering for samme periode (skatteplikt ja) - negativt beløp bestilt
         val krediteringFraForrigeVurdering = Fakturaserie.forTest {
+            id = 2L
             referanse = originalFakturaserie.referanse
             startdato = fom
             sluttdato = tom
@@ -410,26 +412,18 @@ class KanselleringServiceTest {
             }
         }
 
-        val krediteringFakturaserier = mutableListOf<Fakturaserie>()
         every { fakturaserieRepository.findByReferanse(originalFakturaserie.referanse) } returns originalFakturaserie
         every { fakturaserieRepository.findAllByReferanse(originalFakturaserie.referanse) } returns listOf(
             originalFakturaserie, krediteringFraForrigeVurdering
         )
         every { fakturaserieRepository.save(originalFakturaserie) } returns originalFakturaserie
-        every { fakturaserieRepository.save(not(originalFakturaserie)) } answers {
-            val fakturaserie = firstArg<Fakturaserie>()
-            krediteringFakturaserier.add(fakturaserie)
-            fakturaserie
-        }
-        justRun { fakturaBestillingService.bestillKreditnota(any()) }
 
 
-        kanselleringService.kansellerFakturaserie(originalFakturaserie.referanse, emptyList())
+        val resultat = kanselleringService.kansellerFakturaserie(originalFakturaserie.referanse, emptyList())
 
 
-        val krediteringFakturaserie = krediteringFakturaserier.single()
-        verify { fakturaBestillingService.bestillKreditnota(krediteringFakturaserie) }
-        krediteringFakturaserie.faktura shouldHaveSize 0
+        verify(exactly = 0) { fakturaBestillingService.bestillKreditnota(any()) }
         originalFakturaserie.status shouldBe FakturaserieStatus.KANSELLERT
+        resultat shouldBe "Kansellert"
     }
 }
