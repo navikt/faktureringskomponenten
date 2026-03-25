@@ -372,4 +372,58 @@ class KanselleringServiceTest {
         }
         kansellerFakturaserieRef shouldBe "Kansellert"
     }
+
+    @Test
+    fun `Kansellere fakturaserie der bestilte fakturalinjer for et år nulles ut av krediteringer - skal ikke opprette faktura med 0 beløp`() {
+        val fom = LocalDate.now().withMonth(1).withDayOfMonth(1)
+        val tom = LocalDate.now().withMonth(12).withDayOfMonth(31)
+
+        // Original fakturaserie: pliktig medlemskap med trygdeavgift (skatteplikt nei) - positivt beløp bestilt
+        val originalFakturaserie = Fakturaserie.forTest {
+            id = 1L
+            referanse = ULID.randomULID()
+            startdato = fom
+            sluttdato = tom
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    periodeFra = fom
+                    periodeTil = tom
+                    månedspris = 5000
+                }
+            }
+        }
+
+        // Avsluttet ny vurdering: kreditering for samme periode (skatteplikt ja) - negativt beløp bestilt
+        val krediteringFraForrigeVurdering = Fakturaserie.forTest {
+            id = 2L
+            referanse = originalFakturaserie.referanse
+            startdato = fom
+            sluttdato = tom
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    periodeFra = fom
+                    periodeTil = tom
+                    månedspris = -5000
+                }
+            }
+        }
+
+        every { fakturaserieRepository.findByReferanse(originalFakturaserie.referanse) } returns originalFakturaserie
+        every { fakturaserieRepository.findAllByReferanse(originalFakturaserie.referanse) } returns listOf(
+            originalFakturaserie, krediteringFraForrigeVurdering
+        )
+        every { fakturaserieRepository.save(originalFakturaserie) } returns originalFakturaserie
+
+
+        val resultat = kanselleringService.kansellerFakturaserie(originalFakturaserie.referanse, emptyList())
+
+
+        verify(exactly = 0) { fakturaBestillingService.bestillKreditnota(any()) }
+        originalFakturaserie.status shouldBe FakturaserieStatus.KANSELLERT
+        resultat shouldBe "Kansellert"
+    }
 }

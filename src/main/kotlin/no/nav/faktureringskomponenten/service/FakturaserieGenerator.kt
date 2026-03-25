@@ -148,10 +148,12 @@ class FakturaserieGenerator(
     ): Fakturaserie {
         val fakturaer = alleFakturalinjer
             .toSortedMap()
-            .map { (_, fakturalinjer) ->
-                Faktura(
+            .mapNotNull { (_, fakturalinjer) ->
+                val kanselleringFakturalinje = lagKanselleringFakturalinje(fakturalinjer)
+                if (kanselleringFakturalinje.belop.compareTo(BigDecimal.ZERO) == 0) null
+                else Faktura(
                     referanseNr = ULID.randomULID(),
-                    fakturaLinje = listOf(lagKanselleringFakturalinje(fakturalinjer)),
+                    fakturaLinje = listOf(kanselleringFakturalinje),
                 )
             }
 

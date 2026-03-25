@@ -48,13 +48,7 @@ class KanselleringService(
             .groupBy { it.periodeFra.year }
 
         if (alleBestilteFakturalinjer.isEmpty()) {
-            aktivFakturaserie.kanseller()
-            fakturaserieRepository.save(aktivFakturaserie)
-            alleÅrsavregningFakturaserier.forEach {
-                it.kanseller()
-                fakturaserieRepository.save(it)
-            }
-            return "Kansellert"
+            return kansellerFakuraserieUtenKreditering(aktivFakturaserie, alleÅrsavregningFakturaserier)
         }
 
         val fakturalinjer = alleBestilteFakturalinjer.values.flatten()
@@ -79,6 +73,10 @@ class KanselleringService(
             alleBestilteFakturalinjer
         )
 
+        if (krediteringFakturaserie.faktura.isEmpty()) {
+            return kansellerFakuraserieUtenKreditering(aktivFakturaserie, alleÅrsavregningFakturaserier)
+        }
+
         fakturaserieRepository.save(krediteringFakturaserie)
 
         aktivFakturaserie.kansellerMed(krediteringFakturaserie)
@@ -91,6 +89,19 @@ class KanselleringService(
 
         fakturaBestillingService.bestillKreditnota(krediteringFakturaserie)
         return krediteringFakturaserie.referanse
+    }
+
+    private fun kansellerFakuraserieUtenKreditering(
+        aktivFakturaserie: Fakturaserie,
+        alleÅrsavregningFakturaserier: List<Fakturaserie>
+    ): String {
+        aktivFakturaserie.kanseller()
+        fakturaserieRepository.save(aktivFakturaserie)
+        `alleÅrsavregningFakturaserier`.forEach {
+            it.kanseller()
+            fakturaserieRepository.save(it)
+        }
+        return "Kansellert"
     }
 
     fun hentFakturaserier(referanse: String): List<Fakturaserie> {
