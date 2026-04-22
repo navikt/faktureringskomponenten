@@ -4,6 +4,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import jakarta.validation.Valid
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.controller.FakturaserieController.KanselleringRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaAdminDto
@@ -11,6 +12,7 @@ import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
 import no.nav.faktureringskomponenten.controller.dto.toFakturaAdminDto
 import no.nav.faktureringskomponenten.controller.mapper.tilFakturaserieResponseDto
+import no.nav.faktureringskomponenten.controller.validators.ErFodselsnummer
 import no.nav.faktureringskomponenten.controller.validators.OrganisasjonsnummerValidator
 import no.nav.faktureringskomponenten.domain.models.AvstemmingCsvRad
 import no.nav.faktureringskomponenten.domain.models.FakturaMottakFeil
@@ -275,6 +277,17 @@ class AdminController(
         return faktureringService.hentFakturaserie(referanse).tilFakturaserieResponseDto(inkluderFodselsnummer = false)
     }
 
+    @Operation(summary = "Endrer fødselsnummer på en fakturaserie")
+    @PutMapping("/fakturaserie/{referanse}/fnr")
+    fun endreFødselsnummer(
+        @PathVariable referanse: String,
+        @Valid @RequestBody request: EndreFødselsnummerRequest
+    ): ResponseEntity<String> {
+        log.info("Mottatt forespørsel om endring av fødselsnummer på fakturaserie: $referanse")
+        adminService.endreFødselsnummer(referanse, request.nyttFnr)
+        return ResponseEntity.ok("Fødselsnummer endret på fakturaserie $referanse")
+    }
+
     @Operation(summary = "Henter faktura med ekstern faktura status og fakturaserie referanse")
     @GetMapping("/faktura/status")
     fun hentFakturaMedStatus(
@@ -327,6 +340,11 @@ class AdminController(
 data class ManglendeInnbetalingSimuleringDto(
     val betaltBelop: BigDecimal,
     val fakturaNummer: String
+)
+
+data class EndreFødselsnummerRequest(
+    @field:ErFodselsnummer
+    val nyttFnr: String
 )
 
 

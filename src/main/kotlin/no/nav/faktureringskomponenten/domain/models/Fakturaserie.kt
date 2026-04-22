@@ -19,7 +19,7 @@ class Fakturaserie(
     val fakturaGjelderInnbetalingstype: Innbetalingstype = Innbetalingstype.TRYGDEAVGIFT,
 
     @Column(name = "fodselsnummer", nullable = false)
-    val fodselsnummer: String = "",
+    var fodselsnummer: String = "",
 
     @Embedded
     var fullmektig: Fullmektig? = null,
