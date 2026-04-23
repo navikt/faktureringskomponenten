@@ -1,6 +1,6 @@
 package no.nav.faktureringskomponenten.service
 
-import jakarta.transaction.Transactional
+import org.springframework.transaction.annotation.Transactional
 import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
