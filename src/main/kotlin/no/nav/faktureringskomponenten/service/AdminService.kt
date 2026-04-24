@@ -1,14 +1,17 @@
 package no.nav.faktureringskomponenten.service
 
-import org.springframework.transaction.annotation.Transactional
-import no.nav.faktureringskomponenten.domain.models.*
+import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
-import mu.KotlinLogging
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -40,6 +43,7 @@ class AdminService(
 
         log.info("Endret fødselsnummer på fakturaserie $fakturaserieReferanse")
     }
+
     @Transactional
     fun krediterFaktura(fakturaReferanse: String): Fakturaserie {
         val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: throw RessursIkkeFunnetException(
