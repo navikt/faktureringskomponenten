@@ -25,6 +25,12 @@ class ExceptionHandler: ResponseEntityExceptionHandler() {
     @ExceptionHandler(ConstraintViolationException::class)
     fun handleConstraintViolationException(ex: ConstraintViolationException): ProblemDetail {
         val melding = ex.constraintViolations.joinToString(", ") { it.message }
-        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, melding)
+        val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, melding)
+        problemDetail.apply {
+            title = "ConstraintViolationException"
+            detail = melding
+        }
+        problemDetail.setProperty("message", melding)
+        return problemDetail
     }
 }
