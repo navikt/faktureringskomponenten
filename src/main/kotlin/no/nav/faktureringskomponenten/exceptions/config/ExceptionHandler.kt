@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.exceptions.config
 
+import jakarta.validation.ConstraintViolationException
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
@@ -18,6 +19,18 @@ class ExceptionHandler: ResponseEntityExceptionHandler() {
             detail = ressursIkkeFunnetException.field
         }
         problemDetail.setProperty("message", ressursIkkeFunnetException.message)
+        return problemDetail
+    }
+
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun handleConstraintViolationException(ex: ConstraintViolationException): ProblemDetail {
+        val melding = ex.constraintViolations.joinToString(", ") { it.message }
+        val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, melding)
+        problemDetail.apply {
+            title = "ConstraintViolationException"
+            detail = melding
+        }
+        problemDetail.setProperty("message", melding)
         return problemDetail
     }
 }

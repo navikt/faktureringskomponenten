@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.faktureringskomponenten.controller.dto.*
@@ -167,12 +168,64 @@ class AdminControllerIT(
         oppdatertFakturaserie.fullmektig?.organisasjonsnummer shouldBe opprinneligMottaker
     }
 
+    @Test
+    fun `endreFødselsnummer oppdaterer fødselsnummer på fakturaserie`() {
+        val fakturaserieDto = lagFakturaserieDto(fodselsnummer = "12345678911")
+
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaserieDto)
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        val nyttFødselsnummer = "99887766554"
+        putEndreFødselsnummerRequest(fakturaserieReferanse, nyttFødselsnummer)
+            .expectStatus().isOk
+
+        val oppdatertFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(fakturaserieReferanse)!!
+        oppdatertFakturaserie.fodselsnummer shouldBe nyttFødselsnummer
+        oppdatertFakturaserie.endretAv shouldBe NAV_IDENT
+        oppdatertFakturaserie.endretTidspunkt.shouldNotBeNull()
+    }
+
+    @Test
+    fun `endreFødselsnummer feiler med ugyldig fødselsnummer`() {
+        val fakturaserieDto = lagFakturaserieDto()
+
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaserieDto)
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        putEndreFødselsnummerRequest(fakturaserieReferanse, "123")
+            .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `endreFødselsnummer feiler når fakturaserie ikke finnes`() {
+        putEndreFødselsnummerRequest("finnes-ikke", "99887766554")
+            .expectStatus().isNotFound
+    }
+
     private fun hentAvstemmingCsvRequest(
         periodeFra: LocalDate = LocalDate.of(2020, 1, 1),
         periodeTil: LocalDate = LocalDate.of(2030, 12, 31)
     ): WebTestClient.ResponseSpec =
         webClient.get()
             .uri("/admin/avstemming/csv?periodeFra=$periodeFra&periodeTil=$periodeTil")
+            .headers {
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
+    private fun putEndreFødselsnummerRequest(
+        fakturaserieReferanse: String,
+        nyttFødselsnummer: String
+    ): WebTestClient.ResponseSpec =
+        webClient.put()
+            .uri("/admin/fakturaserie/$fakturaserieReferanse/fnr")
+            .header("Nav-User-Id", NAV_IDENT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(mapOf("nyttFnr" to nyttFødselsnummer))
             .headers {
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
             }

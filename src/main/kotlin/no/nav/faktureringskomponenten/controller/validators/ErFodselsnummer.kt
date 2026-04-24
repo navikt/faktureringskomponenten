@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 
 @MustBeDocumented
 @Constraint(validatedBy = [FodselsnummerValidator::class])
-@Target(AnnotationTarget.FIELD)
+@Target(AnnotationTarget.FIELD, AnnotationTarget.VALUE_PARAMETER)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class ErFodselsnummer(
     val message: String = "Fødselsnummeret er ikke gyldig",

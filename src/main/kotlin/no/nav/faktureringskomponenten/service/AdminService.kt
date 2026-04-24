@@ -1,16 +1,22 @@
 package no.nav.faktureringskomponenten.service
 
-import jakarta.transaction.Transactional
-import no.nav.faktureringskomponenten.domain.models.*
+import mu.KotlinLogging
+import no.nav.faktureringskomponenten.domain.models.Faktura
+import no.nav.faktureringskomponenten.domain.models.FakturaLinje
+import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
 import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import ulid.ULID
 import java.math.BigDecimal
 import java.time.LocalDate
+
+private val log = KotlinLogging.logger { }
 
 @Service
 class AdminService(
@@ -18,6 +24,26 @@ class AdminService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaBestiltProducer: FakturaBestiltProducer,
 ) {
+
+    @Transactional
+    fun endreFødselsnummer(fakturaserieReferanse: String, nyttFødselsnummer: String) {
+        val fakturaserie = fakturaserieRepository.findByReferanse(fakturaserieReferanse)
+            ?: throw RessursIkkeFunnetException(
+                field = "referanse",
+                message = "Fant ikke fakturaserie med referanse: $fakturaserieReferanse"
+            )
+
+        if (fakturaserie.fodselsnummer == nyttFødselsnummer) {
+            log.info("Fødselsnummer er allerede satt til ønsket verdi på fakturaserie $fakturaserieReferanse")
+            return
+        }
+
+        fakturaserie.fodselsnummer = nyttFødselsnummer
+        fakturaserieRepository.save(fakturaserie)
+
+        log.info("Endret fødselsnummer på fakturaserie $fakturaserieReferanse")
+    }
+
     @Transactional
     fun krediterFaktura(fakturaReferanse: String): Fakturaserie {
         val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: throw RessursIkkeFunnetException(
