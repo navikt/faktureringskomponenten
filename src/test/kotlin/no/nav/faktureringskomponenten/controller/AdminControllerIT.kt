@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.faktureringskomponenten.controller.dto.*
@@ -182,6 +183,8 @@ class AdminControllerIT(
 
         val oppdatertFakturaserie = fakturaserieRepositoryForTesting.findByReferanseEagerly(fakturaserieReferanse)!!
         oppdatertFakturaserie.fodselsnummer shouldBe nyttFødselsnummer
+        oppdatertFakturaserie.endretAv shouldBe NAV_IDENT
+        oppdatertFakturaserie.endretTidspunkt.shouldNotBeNull()
     }
 
     @Test
