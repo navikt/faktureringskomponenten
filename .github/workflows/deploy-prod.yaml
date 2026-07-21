@@ -13,7 +13,7 @@ jobs:
       IMAGE: europe-north1-docker.pkg.dev/nais-management-233d/teammelosys/faktureringskomponenten:${{ github.sha }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.0.2
         with:
           fetch-depth: 0
       - name: deploy new Unleash Apikey to prod
@@ -46,7 +46,7 @@ jobs:
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
       - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2
+        uses: rtCamp/action-slack-notify@v2.3.3
         env:
           SLACK_COLOR: "${{ job.status == 'success' && 'good' || 'danger' }}"
           SLACK_USERNAME: Github Actions
