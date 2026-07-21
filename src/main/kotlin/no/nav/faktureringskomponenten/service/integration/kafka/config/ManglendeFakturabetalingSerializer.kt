@@ -14,7 +14,7 @@ class ManglendeFakturabetalingSerializer : Serializer<ManglendeFakturabetalingDt
 
     override fun serialize(topic: String?, data: ManglendeFakturabetalingDto?): ByteArray? {
         return objectMapper.writeValueAsBytes(
-            data ?: throw SerializationException("Error ved serializing av FakturaBestiltDto til ByteArray[]")
+            data ?: throw SerializationException("Error ved serializing av ManglendeFakturabetalingDto til ByteArray[]")
         )
     }
 
