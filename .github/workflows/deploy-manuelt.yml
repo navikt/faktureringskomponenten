@@ -46,7 +46,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6.0.2
       - name: Set up JDK 21
-        uses: actions/setup-java@v5.2.0
+        uses: actions/setup-java@v5.6.0
         with:
           java-version: '21'
           distribution: 'temurin'
@@ -102,7 +102,7 @@ jobs:
       - name: Get commit message
         run: echo "COMMIT_MSG=$(git log --format=%s -n 1)" >> $GITHUB_ENV
       - name: Slack Notification
-        uses: rtCamp/action-slack-notify@v2.3.3
+        uses: rtCamp/action-slack-notify@v2.4.0
         env:
           SLACK_COLOR: "${{ job.status == 'success' && 'good' || 'danger' }}"
           SLACK_USERNAME: Github Actions
