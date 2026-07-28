@@ -1,7 +1,6 @@
 package no.nav.faktureringskomponenten.controller
 
-import com.fasterxml.jackson.dataformat.csv.CsvMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import tools.jackson.dataformat.csv.CsvMapper
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
@@ -317,9 +316,7 @@ class AdminController(
         val data = fakturaRepository.hentAvstemmingData(periodeFra, periodeTil)
             .map { AvstemmingCsvRad.fra(it) }
 
-        val csvMapper = CsvMapper().apply {
-            registerModule(JavaTimeModule())
-        }
+        val csvMapper = CsvMapper()
         val schema = csvMapper
             .schemaFor(AvstemmingCsvRad::class.java)
             .withHeader()

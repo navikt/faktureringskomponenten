@@ -11,7 +11,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
@@ -22,7 +22,6 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 import org.springframework.kafka.listener.ContainerProperties
-import org.springframework.kafka.support.serializer.JsonDeserializer
 
 
 @Configuration
@@ -80,10 +79,12 @@ class KafkaConfig(
         ConcurrentKafkaListenerContainerFactory<String, EksternFakturaStatusDto>().apply {
             setCommonErrorHandler(containerStoppingErrorSavingHandler)
 
-            consumerFactory = DefaultKafkaConsumerFactory(
-                kafkaProperties.buildConsumerProperties() + consumerConfig(),
-                StringDeserializer(),
-                valueDeserializer
+            setConsumerFactory(
+                DefaultKafkaConsumerFactory(
+                    kafkaProperties.buildConsumerProperties() + consumerConfig(),
+                    StringDeserializer(),
+                    valueDeserializer
+                )
             )
             containerProperties.ackMode = ContainerProperties.AckMode.RECORD
         }
@@ -94,7 +95,6 @@ class KafkaConfig(
         ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
         ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG to 15000,
         ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-        ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to JsonDeserializer::class.java,
         ConsumerConfig.MAX_POLL_RECORDS_CONFIG to 1
     ) + securityConfig()
 
