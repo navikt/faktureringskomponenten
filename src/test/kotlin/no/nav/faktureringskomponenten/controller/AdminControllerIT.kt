@@ -10,6 +10,7 @@ import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.service.FakturaService
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.integration.kafka.EmbeddedKafkaBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -40,6 +41,7 @@ class AdminControllerIT(
     @param:Autowired private val fakturaserieRepository: FakturaserieRepository,
     @param:Autowired private val fakturaRepository: FakturaRepository,
     @param:Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
+    @param:Autowired private val fakturaService: FakturaService,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
 
     @AfterEach
@@ -205,6 +207,73 @@ class AdminControllerIT(
         putEndreFødselsnummerRequest("finnes-ikke", "99887766554")
             .expectStatus().isNotFound
     }
+
+    @Test
+    fun `endreStatusPaAlleFakturaerIFakturaserie er ikke tilgjengelig utenfor testmiljø`() {
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(lagFakturaserieDto())
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        postEndreStatusPaAlleFakturaerRequest(fakturaserieReferanse, FakturaStatus.BESTILT)
+            .expectStatus().isForbidden
+            .expectBody<String>()
+            .returnResult().responseBody!! shouldContain "kun tilgjengelig i testmiljø"
+
+        val fakturaer = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
+        fakturaer.forEach { it.status shouldBe FakturaStatus.OPPRETTET }
+    }
+
+    @Test
+    fun `oppdaterStatusForAlleFakturaerIFakturaserie endrer status på samtlige fakturaer`() {
+        val fakturaserieDto = lagFakturaserieDto(
+            intervall = FakturaserieIntervall.MANEDLIG,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = LocalDate.now().plusMonths(1).withDayOfMonth(1)
+                    sluttDato = LocalDate.now().plusMonths(3).withDayOfMonth(28)
+                    beskrivelse = "Test beskrivelse"
+                }
+            )
+        )
+
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaserieDto)
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        val fakturaerFør = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
+        fakturaerFør.size shouldBe 3
+        fakturaerFør.forEach { it.status shouldBe FakturaStatus.OPPRETTET }
+
+        val endrede = fakturaService.oppdaterStatusForAlleFakturaerIFakturaserie(
+            fakturaserieReferanse,
+            FakturaStatus.BESTILT
+        )
+        endrede.size shouldBe 3
+
+        fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
+            .forEach { it.status shouldBe FakturaStatus.BESTILT }
+
+        // Kjøres på nytt: ingen fakturaer skal endres når de allerede har ønsket status
+        fakturaService.oppdaterStatusForAlleFakturaerIFakturaserie(
+            fakturaserieReferanse,
+            FakturaStatus.BESTILT
+        ).size shouldBe 0
+    }
+
+    private fun postEndreStatusPaAlleFakturaerRequest(
+        fakturaserieReferanse: String,
+        status: FakturaStatus
+    ): WebTestClient.ResponseSpec =
+        webClient.post()
+            .uri("/admin/fakturaserie/$fakturaserieReferanse/faktura/status?status=$status")
+            .header("Nav-User-Id", NAV_IDENT)
+            .headers {
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
 
     private fun hentAvstemmingCsvRequest(
         periodeFra: LocalDate = LocalDate.of(2020, 1, 1),

@@ -241,6 +241,45 @@ class AdminController(
         return ResponseEntity.ok("Status på faktura $fakturaReferanse har blitt oppdatert fra fra $originalStatus til $status")
     }
 
+    /**
+     * Endrer status på samtlige fakturaer i en fakturaserie. Endepunktet er KUN tilgjengelig i testmiljø.
+     */
+    @Operation(
+        summary = "Endrer status på samtlige fakturaer for en fakturaserie",
+        description = "Kun tilgjengelig i testmiljø (dev-gcp). Fakturaer som allerede har ønsket status endres ikke."
+    )
+    @PostMapping("/fakturaserie/{fakturaserieReferanse}/faktura/status")
+    fun endreStatusPaAlleFakturaerIFakturaserie(
+        @PathVariable("fakturaserieReferanse") referanse: String,
+        @Parameter(description = "Statusen samtlige fakturaer skal settes til")
+        @RequestParam(required = false, defaultValue = "BESTILT") status: FakturaStatus
+    ): ResponseEntity<Any> {
+        if (naisClusterName != NAIS_CLUSTER_NAME_DEV) {
+            log.warn("Endepunktet er kun tilgjengelig i testmiljø")
+            return ResponseEntity.status(403).body("Endepunktet er kun tilgjengelig i testmiljø")
+        }
+
+        val fakturaer = fakturaService.hentFakturaerForFakturaserie(referanse)
+        if (fakturaer.isEmpty()) {
+            log.info("Finner ingen fakturaer for fakturaserie med referanse $referanse")
+            return ResponseEntity.status(404)
+                .body("Finner ingen fakturaer for fakturaserie med referanse $referanse")
+        }
+
+        val endrede = fakturaService.oppdaterStatusForAlleFakturaerIFakturaserie(referanse, status)
+
+        log.info("Endret status til $status på ${endrede.size} av ${fakturaer.size} fakturaer for fakturaserie $referanse")
+        return ResponseEntity.ok(
+            EndreFakturastatuserResponse(
+                fakturaserieReferanse = referanse,
+                nyStatus = status,
+                antallFakturaerIFakturaserie = fakturaer.size,
+                antallEndret = endrede.size,
+                endredeFakturaReferanser = endrede.map { it.referanseNr }
+            )
+        )
+    }
+
     @PostMapping("/fakturaserie/{fakturaserieReferanse}/kanseller")
     fun kansellerFakturaserie(
         @PathVariable("fakturaserieReferanse", required = true) referanse: String,
@@ -337,6 +376,14 @@ class AdminController(
 data class ManglendeInnbetalingSimuleringDto(
     val betaltBelop: BigDecimal,
     val fakturaNummer: String
+)
+
+data class EndreFakturastatuserResponse(
+    val fakturaserieReferanse: String,
+    val nyStatus: FakturaStatus,
+    val antallFakturaerIFakturaserie: Int,
+    val antallEndret: Int,
+    val endredeFakturaReferanser: List<String>
 )
 
 data class EndreFødselsnummerRequest(

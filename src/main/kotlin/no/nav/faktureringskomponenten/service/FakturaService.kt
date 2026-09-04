@@ -36,4 +36,28 @@ class FakturaService(
     fun hentFakturaerMedStatus(status: FakturaStatus): List<Faktura> {
         return fakturaRepository.findByStatus(status)
     }
+
+    fun hentFakturaerForFakturaserie(fakturaserieReferanse: String): List<Faktura> =
+        fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
+
+    /**
+     * Setter status på samtlige fakturaer i en fakturaserie. Returnerer fakturaene som faktisk ble endret,
+     * altså de som ikke allerede hadde [nyStatus].
+     */
+    @Transactional
+    fun oppdaterStatusForAlleFakturaerIFakturaserie(
+        fakturaserieReferanse: String,
+        nyStatus: FakturaStatus
+    ): List<Faktura> {
+        val fakturaerSomSkalEndres = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
+            .filter { it.status != nyStatus }
+
+        log.info {
+            "Oppdaterer status til $nyStatus på ${fakturaerSomSkalEndres.size} fakturaer " +
+                "for fakturaserie $fakturaserieReferanse"
+        }
+
+        fakturaerSomSkalEndres.forEach { it.status = nyStatus }
+        return fakturaRepository.saveAll(fakturaerSomSkalEndres)
+    }
 }
