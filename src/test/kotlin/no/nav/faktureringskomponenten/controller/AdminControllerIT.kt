@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -10,6 +11,8 @@ import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.service.AdminService
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.integration.kafka.EmbeddedKafkaBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -40,6 +43,7 @@ class AdminControllerIT(
     @param:Autowired private val fakturaserieRepository: FakturaserieRepository,
     @param:Autowired private val fakturaRepository: FakturaRepository,
     @param:Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
+    @param:Autowired private val adminService: AdminService,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
 
     @AfterEach
@@ -205,6 +209,80 @@ class AdminControllerIT(
         putEndreFødselsnummerRequest("finnes-ikke", "99887766554")
             .expectStatus().isNotFound
     }
+
+    @Test
+    fun `endreStatusPaAlleFakturaerIFakturaserie er ikke tilgjengelig utenfor testmiljø`() {
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(lagFakturaserieDto())
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        postEndreStatusPaAlleFakturaerRequest(fakturaserieReferanse, FakturaStatus.BESTILT)
+            .expectStatus().isForbidden
+            .expectBody<String>()
+            .returnResult().responseBody!! shouldContain "kun tilgjengelig i testmiljø"
+
+        val fakturaer = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
+        fakturaer.forEach { it.status shouldBe FakturaStatus.OPPRETTET }
+    }
+
+    @Test
+    fun `endreStatusPaAlleFakturaer endrer status på samtlige fakturaer i fakturaserien`() {
+        val fakturaserieDto = lagFakturaserieDto(
+            intervall = FakturaserieIntervall.MANEDLIG,
+            fakturaseriePeriode = listOf(
+                FakturaseriePeriodeDto.forTest {
+                    månedspris = 1000
+                    startDato = LocalDate.now().plusMonths(1).withDayOfMonth(1)
+                    sluttDato = LocalDate.now().plusMonths(3).withDayOfMonth(28)
+                    beskrivelse = "Test beskrivelse"
+                }
+            )
+        )
+
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(fakturaserieDto)
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        val fakturaerFør = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
+        fakturaerFør.size shouldBe 3
+        fakturaerFør.forEach { it.status shouldBe FakturaStatus.OPPRETTET }
+
+        val endrede = adminService.endreStatusPaAlleFakturaer(
+            fakturaserieReferanse,
+            FakturaStatus.BESTILT
+        )
+        endrede.size shouldBe 3
+
+        fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
+            .forEach { it.status shouldBe FakturaStatus.BESTILT }
+
+        // Kjøres på nytt: ingen fakturaer skal endres når de allerede har ønsket status
+        adminService.endreStatusPaAlleFakturaer(
+            fakturaserieReferanse,
+            FakturaStatus.BESTILT
+        ).size shouldBe 0
+    }
+
+    @Test
+    fun `endreStatusPaAlleFakturaer feiler når fakturaserie ikke finnes`() {
+        shouldThrow<RessursIkkeFunnetException> {
+            adminService.endreStatusPaAlleFakturaer("finnes-ikke", FakturaStatus.BESTILT)
+        }
+    }
+
+    private fun postEndreStatusPaAlleFakturaerRequest(
+        fakturaserieReferanse: String,
+        status: FakturaStatus
+    ): WebTestClient.ResponseSpec =
+        webClient.post()
+            .uri("/admin/fakturaserie/$fakturaserieReferanse/faktura/status?status=$status")
+            .header("Nav-User-Id", NAV_IDENT)
+            .headers {
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
 
     private fun hentAvstemmingCsvRequest(
         periodeFra: LocalDate = LocalDate.of(2020, 1, 1),
