@@ -259,21 +259,14 @@ class AdminController(
             return ResponseEntity.status(403).body("Endepunktet er kun tilgjengelig i testmiljø")
         }
 
-        val fakturaer = fakturaService.hentFakturaerForFakturaserie(referanse)
-        if (fakturaer.isEmpty()) {
-            log.info("Finner ingen fakturaer for fakturaserie med referanse $referanse")
-            return ResponseEntity.status(404)
-                .body("Finner ingen fakturaer for fakturaserie med referanse $referanse")
-        }
+        val fakturaserie = faktureringService.hentFakturaserie(referanse)
+        val endrede = adminService.endreStatusPaAlleFakturaer(referanse, status)
 
-        val endrede = fakturaService.oppdaterStatusForAlleFakturaerIFakturaserie(referanse, status)
-
-        log.info("Endret status til $status på ${endrede.size} av ${fakturaer.size} fakturaer for fakturaserie $referanse")
         return ResponseEntity.ok(
             EndreFakturastatuserResponse(
                 fakturaserieReferanse = referanse,
                 nyStatus = status,
-                antallFakturaerIFakturaserie = fakturaer.size,
+                antallFakturaerIFakturaserie = fakturaserie.faktura.size,
                 antallEndret = endrede.size,
                 endredeFakturaReferanser = endrede.map { it.referanseNr }
             )

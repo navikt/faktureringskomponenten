@@ -1,6 +1,7 @@
 package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -10,7 +11,8 @@ import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
-import no.nav.faktureringskomponenten.service.FakturaService
+import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
+import no.nav.faktureringskomponenten.service.AdminService
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.integration.kafka.EmbeddedKafkaBase
 import no.nav.security.mock.oauth2.MockOAuth2Server
@@ -41,7 +43,7 @@ class AdminControllerIT(
     @param:Autowired private val fakturaserieRepository: FakturaserieRepository,
     @param:Autowired private val fakturaRepository: FakturaRepository,
     @param:Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
-    @param:Autowired private val fakturaService: FakturaService,
+    @param:Autowired private val adminService: AdminService,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
 
     @AfterEach
@@ -225,7 +227,7 @@ class AdminControllerIT(
     }
 
     @Test
-    fun `oppdaterStatusForAlleFakturaerIFakturaserie endrer status på samtlige fakturaer`() {
+    fun `endreStatusPaAlleFakturaer endrer status på samtlige fakturaer i fakturaserien`() {
         val fakturaserieDto = lagFakturaserieDto(
             intervall = FakturaserieIntervall.MANEDLIG,
             fakturaseriePeriode = listOf(
@@ -247,7 +249,7 @@ class AdminControllerIT(
         fakturaerFør.size shouldBe 3
         fakturaerFør.forEach { it.status shouldBe FakturaStatus.OPPRETTET }
 
-        val endrede = fakturaService.oppdaterStatusForAlleFakturaerIFakturaserie(
+        val endrede = adminService.endreStatusPaAlleFakturaer(
             fakturaserieReferanse,
             FakturaStatus.BESTILT
         )
@@ -257,10 +259,17 @@ class AdminControllerIT(
             .forEach { it.status shouldBe FakturaStatus.BESTILT }
 
         // Kjøres på nytt: ingen fakturaer skal endres når de allerede har ønsket status
-        fakturaService.oppdaterStatusForAlleFakturaerIFakturaserie(
+        adminService.endreStatusPaAlleFakturaer(
             fakturaserieReferanse,
             FakturaStatus.BESTILT
         ).size shouldBe 0
+    }
+
+    @Test
+    fun `endreStatusPaAlleFakturaer feiler når fakturaserie ikke finnes`() {
+        shouldThrow<RessursIkkeFunnetException> {
+            adminService.endreStatusPaAlleFakturaer("finnes-ikke", FakturaStatus.BESTILT)
+        }
     }
 
     private fun postEndreStatusPaAlleFakturaerRequest(
