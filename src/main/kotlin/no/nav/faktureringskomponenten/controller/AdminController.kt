@@ -246,7 +246,10 @@ class AdminController(
      */
     @Operation(
         summary = "Endrer status på samtlige fakturaer for en fakturaserie",
-        description = "Kun tilgjengelig i testmiljø (dev-gcp). Fakturaer som allerede har ønsket status endres ikke."
+        description = "Kun tilgjengelig i testmiljø (dev-gcp), ellers 403. " +
+            "Fakturaer som allerede har ønsket status endres ikke, og telles ikke i antallEndret. " +
+            "En fakturaserie som finnes, men ikke har fakturaer, gir 200 med antallEndret=0. " +
+            "404 gis kun når fakturaserien ikke finnes."
     )
     @PostMapping("/fakturaserie/{fakturaserieReferanse}/faktura/status")
     fun endreStatusPaAlleFakturaerIFakturaserie(

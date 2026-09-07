@@ -2,10 +2,12 @@ package no.nav.faktureringskomponenten.controller
 
 import com.nimbusds.jose.JOSEObjectType
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.faktureringskomponenten.controller.dto.*
+import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
@@ -263,6 +265,23 @@ class AdminControllerIT(
             fakturaserieReferanse,
             FakturaStatus.BESTILT
         ).size shouldBe 0
+    }
+
+    @Test
+    fun `endreStatusPaAlleFakturaer returnerer tom liste for fakturaserie uten fakturaer`() {
+        val fakturaserieReferanse = "tom-fakturaserie-${System.nanoTime()}"
+        fakturaserieRepository.save(
+            Fakturaserie(
+                referanse = fakturaserieReferanse,
+                fodselsnummer = "12345678911",
+                referanseBruker = "Nasse Nøff",
+                referanseNAV = "NAV referanse",
+                faktura = mutableListOf()
+            )
+        )
+
+        adminService.endreStatusPaAlleFakturaer(fakturaserieReferanse, FakturaStatus.BESTILT)
+            .shouldBeEmpty()
     }
 
     @Test
