@@ -183,7 +183,7 @@ class FakturaserieGenerator(
             periodeTil = periodeTil,
             belop = totalBelop.negate(),
             antall = BigDecimal.ONE.negate(),
-            beskrivelse = "Tilbakebetaling for periode: ${periodeFra.format(DATE_FORMATTER)} - ${periodeTil.format(DATE_FORMATTER)}",
+            beskrivelse = "Kreditering for periode: ${periodeFra.format(DATE_FORMATTER)} - ${periodeTil.format(DATE_FORMATTER)}",
             enhetsprisPerManed = totalBelop
         )
     }

@@ -426,4 +426,90 @@ class KanselleringServiceTest {
         originalFakturaserie.status shouldBe FakturaserieStatus.KANSELLERT
         resultat shouldBe "Kansellert"
     }
+
+    @Test
+    fun `Beskrivelse fra bestiller videresendes til bestilling av kreditnota`() {
+        val fom = LocalDate.now().withMonth(1).withDayOfMonth(1)
+        val tom = LocalDate.now().withMonth(12).withDayOfMonth(31)
+
+        val aktivFakturaserie = Fakturaserie.forTest {
+            startdato = fom
+            sluttdato = tom
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    periodeFra = fom
+                    periodeTil = tom
+                    månedspris = 10000
+                }
+            }
+        }
+
+        every { fakturaserieRepository.findByReferanse(aktivFakturaserie.referanse) } returns aktivFakturaserie
+        every { fakturaserieRepository.findAllByReferanse(aktivFakturaserie.referanse) } returns listOf(aktivFakturaserie)
+
+        val krediteringFakturaserie = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.save(aktivFakturaserie) } returns aktivFakturaserie
+        every { fakturaserieRepository.save(not(aktivFakturaserie)) } answers {
+            val fakturaserie = firstArg<Fakturaserie>()
+            krediteringFakturaserie.add(fakturaserie)
+            fakturaserie
+        }
+        justRun { fakturaBestillingService.bestillKreditnota(any(), any()) }
+
+
+        kanselleringService.kansellerFakturaserie(
+            aktivFakturaserie.referanse,
+            emptyList(),
+            "Annullering av fakturert trygdeavgift"
+        )
+
+
+        verify {
+            fakturaBestillingService.bestillKreditnota(
+                krediteringFakturaserie.single(),
+                "Annullering av fakturert trygdeavgift"
+            )
+        }
+        krediteringFakturaserie.single().faktura.flatMap { it.fakturaLinje }.forEach {
+            it.beskrivelse shouldContain "Kreditering for periode:"
+        }
+    }
+
+    @Test
+    fun `Uten beskrivelse fra bestiller videresendes null`() {
+        val fom = LocalDate.now().withMonth(1).withDayOfMonth(1)
+        val tom = LocalDate.now().withMonth(12).withDayOfMonth(31)
+
+        val aktivFakturaserie = Fakturaserie.forTest {
+            startdato = fom
+            sluttdato = tom
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje {
+                    periodeFra = fom
+                    periodeTil = tom
+                    månedspris = 10000
+                }
+            }
+        }
+
+        every { fakturaserieRepository.findByReferanse(aktivFakturaserie.referanse) } returns aktivFakturaserie
+        every { fakturaserieRepository.findAllByReferanse(aktivFakturaserie.referanse) } returns listOf(aktivFakturaserie)
+
+        val krediteringFakturaserie = mutableListOf<Fakturaserie>()
+        every { fakturaserieRepository.save(aktivFakturaserie) } returns aktivFakturaserie
+        every { fakturaserieRepository.save(not(aktivFakturaserie)) } answers {
+            val fakturaserie = firstArg<Fakturaserie>()
+            krediteringFakturaserie.add(fakturaserie)
+            fakturaserie
+        }
+        justRun { fakturaBestillingService.bestillKreditnota(any(), any()) }
+
+
+        kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, emptyList())
+
+
+        verify { fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.single(), null) }
+    }
 }

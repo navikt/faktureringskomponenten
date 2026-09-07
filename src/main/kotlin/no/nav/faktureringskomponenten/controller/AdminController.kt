@@ -264,7 +264,8 @@ class AdminController(
                 .body(NyFakturaserieResponseDto("Endepunkt er kun tilgjengelig 8. august"))
         }
 
-        val nyFakturaserieRefereanse = kanselleringService.kansellerFakturaserie(referanse, kanselleringRequest.årsavregningRef)
+        val nyFakturaserieRefereanse =
+            kanselleringService.kansellerFakturaserie(referanse, kanselleringRequest.årsavregningRef, kanselleringRequest.beskrivelse)
 
         log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: $nyFakturaserieRefereanse")
         return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))

@@ -204,4 +204,84 @@ class FakturaBestiltDtoMapperTest {
 
         fakturaBestiltDto.faktureringsDato shouldBe LocalDate.now()
     }
+
+    @Test
+    fun `oppgitt kanselleringBeskrivelse brukes som beskrivelse`() {
+        val fakturaserie = Fakturaserie.forTest {
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            intervall = FakturaserieIntervall.SINGEL
+            faktura {
+                fakturaLinje {
+                    beskrivelse = "Kreditering for periode: 01.01.2024 - 31.12.2024"
+                }
+            }
+        }
+
+        val fakturaBestiltDto =
+            FakturaBestiltDtoMapper().tilFakturaBestiltDto(
+                fakturaserie.faktura.single(),
+                fakturaserie,
+                "Opphør av medlemskap"
+            )
+
+        fakturaBestiltDto.beskrivelse shouldBe "Opphør av medlemskap"
+    }
+
+    @Test
+    fun `kansellering for EØS-pensjonist bruker egen anledningstekst`() {
+        val fakturaserie = Fakturaserie.forTest {
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            intervall = FakturaserieIntervall.SINGEL
+            faktura {
+                fakturaLinje {
+                    beskrivelse = "Kreditering for periode: 01.01.2024 - 31.12.2024"
+                }
+            }
+        }
+
+        val fakturaBestiltDto =
+            FakturaBestiltDtoMapper().tilFakturaBestiltDto(
+                fakturaserie.faktura.single(),
+                fakturaserie,
+                "Annullering av fakturert trygdeavgift"
+            )
+
+        fakturaBestiltDto.beskrivelse shouldBe "Annullering av fakturert trygdeavgift"
+    }
+
+    @Test
+    fun `kansellering uten oppgitt beskrivelse faller tilbake på utledet beskrivelse`() {
+        val fakturaserie = Fakturaserie.forTest {
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            intervall = FakturaserieIntervall.KVARTAL
+            faktura {
+                fakturaLinje {
+                    beskrivelse = "Kreditering for periode: 01.01.2024 - 31.12.2024"
+                }
+            }
+        }
+
+        val fakturaBestiltDto =
+            FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
+
+        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
+    }
+
+    @Test
+    fun `ordinaer faktura utleder beskrivelse som foer`() {
+        val fakturaserie = Fakturaserie.forTest {
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            intervall = FakturaserieIntervall.KVARTAL
+            faktura {
+                fakturaLinje {
+                    beskrivelse = "Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%"
+                }
+            }
+        }
+
+        val fakturaBestiltDto =
+            FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
+
+        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
+    }
 }
