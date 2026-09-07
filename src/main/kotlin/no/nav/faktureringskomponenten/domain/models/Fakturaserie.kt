@@ -52,6 +52,9 @@ class Fakturaserie(
     @JoinColumn(name = "erstattet_med", referencedColumnName = "id")
     var erstattetMed: Fakturaserie? = null,
 
+    @Column(name = "kansellering_beskrivelse", columnDefinition = "TEXT")
+    var kanselleringBeskrivelse: String? = null,
+
     ) : ModifiableEntity() {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

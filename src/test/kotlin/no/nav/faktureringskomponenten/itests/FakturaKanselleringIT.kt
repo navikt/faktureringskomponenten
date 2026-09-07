@@ -9,6 +9,7 @@ import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
 import no.nav.faktureringskomponenten.PostgresTestContainerBase
 import no.nav.faktureringskomponenten.controller.FakturaserieRepositoryForTesting
+import no.nav.faktureringskomponenten.controller.FakturaserieController.KanselleringRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieRequestDto
 import no.nav.faktureringskomponenten.controller.dto.NyFakturaserieResponseDto
@@ -27,6 +28,9 @@ import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
@@ -416,6 +420,50 @@ class FakturaKanselleringIT(
 
         opprinneligTotal.add(årsavregningTotal).add(krediteringTotal)
             .shouldBe(BigDecimal.ZERO.setScale(2))
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = ["Opphør av medlemskap", "Annullering av fakturert trygdeavgift"])
+    fun `kanselleringsbeskrivelse kan hentes ved gjentatte oppslag`(beskrivelse: String?) {
+        val opprinneligFakturaserie = fakturaserieRepository.save(Fakturaserie.forTest {
+            faktura {
+                status = FakturaStatus.BESTILT
+                fakturaLinje { månedspris = 10000 }
+            }
+        })
+
+        val krediteringsReferanse = webClient.post()
+            .uri("/fakturaserier/${opprinneligFakturaserie.referanse}/kanseller")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            .header("Nav-User-Id", "Z123456")
+            .bodyValue(KanselleringRequestDto(beskrivelse = beskrivelse))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        fakturaserieRepository.findByReferanse(krediteringsReferanse)
+            .shouldNotBeNull().kanselleringBeskrivelse shouldBe beskrivelse
+
+        repeat(2) {
+            webClient.get()
+                .uri("/fakturaserier/$krediteringsReferanse")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+                .exchange()
+                .expectStatus().isOk
+                .expectBody()
+                .jsonPath("$.kanselleringBeskrivelse").isEqualTo(beskrivelse)
+
+            webClient.get()
+                .uri("/fakturaserier?referanse=$krediteringsReferanse")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+                .exchange()
+                .expectStatus().isOk
+                .expectBody()
+                .jsonPath("$[?(@.fakturaserieReferanse == '$krediteringsReferanse')].kanselleringBeskrivelse")
+                .isEqualTo(listOf(beskrivelse))
+        }
     }
 
     private fun postLagNyFakturaserieRequest(fakturaserieRequestDto: FakturaserieRequestDto): WebTestClient.ResponseSpec =

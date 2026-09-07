@@ -40,4 +40,6 @@ data class FakturaserieResponseDto(
 
     @Schema(description = "Liste over planlagte fakturaer")
     val faktura: List<FakturaResponseDto>,
+
+    val kanselleringBeskrivelse: String? = null,
 )
