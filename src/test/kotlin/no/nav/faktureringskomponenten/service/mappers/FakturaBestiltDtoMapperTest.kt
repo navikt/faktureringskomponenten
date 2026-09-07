@@ -29,7 +29,7 @@ class FakturaBestiltDtoMapperTest {
         val fakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
 
-        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
+        fakturaBestiltDto.beskrivelse.shouldContain("Trygdeavgift")
             .shouldContain("kvartal")
     }
 
@@ -48,7 +48,7 @@ class FakturaBestiltDtoMapperTest {
         val fakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
 
-        fakturaBestiltDto.beskrivelse.shouldContain("Faktura for oppgjør av trygdeavgift for 2024")
+        fakturaBestiltDto.beskrivelse.shouldContain("Oppgjør av trygdeavgift for 2024")
     }
 
     @Test
@@ -66,7 +66,7 @@ class FakturaBestiltDtoMapperTest {
         val fakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
 
-        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
+        fakturaBestiltDto.beskrivelse.shouldContain("Trygdeavgift")
             .shouldNotContain("kvartal")
     }
 
@@ -104,7 +104,7 @@ class FakturaBestiltDtoMapperTest {
         val fakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
 
-        fakturaBestiltDto.beskrivelse shouldBe "Faktura for avregning mot tidligere fakturert trygdeavgift"
+        fakturaBestiltDto.beskrivelse shouldBe "Avregning mot tidligere fakturert trygdeavgift"
     }
 
     @Test
@@ -142,7 +142,7 @@ class FakturaBestiltDtoMapperTest {
         val fakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
 
-        fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1. kvartal 2024"
+        fakturaBestiltDto.beskrivelse shouldBe "Trygdeavgift 1. kvartal 2024"
     }
 
     @Test
@@ -165,7 +165,7 @@ class FakturaBestiltDtoMapperTest {
         val fakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
 
-        fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1.kvartal 2024 - 2.kvartal 2024"
+        fakturaBestiltDto.beskrivelse shouldBe "Trygdeavgift 1.kvartal 2024 - 2.kvartal 2024"
     }
 
     @Test
