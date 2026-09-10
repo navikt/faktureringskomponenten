@@ -44,6 +44,46 @@ class AdminService(
         log.info("Endret fødselsnummer på fakturaserie $fakturaserieReferanse")
     }
 
+    /**
+     * Setter status på samtlige fakturaer i en fakturaserie.
+     * Returnerer fakturaene som faktisk ble endret, altså de som ikke allerede hadde [nyStatus].
+     * En fakturaserie uten fakturaer er ikke en feil; da returneres tom liste.
+     *
+     * @throws RessursIkkeFunnetException hvis fakturaserien ikke finnes.
+     */
+    @Transactional
+    fun endreStatusPaAlleFakturaer(fakturaserieReferanse: String, nyStatus: FakturaStatus): List<Faktura> {
+        val fakturaserie = fakturaserieRepository.findByReferanse(fakturaserieReferanse)
+            ?: throw RessursIkkeFunnetException(
+                field = "fakturaserieReferanse",
+                message = "Fant ikke fakturaserie med referanse: $fakturaserieReferanse"
+            )
+
+        if (fakturaserie.faktura.isEmpty()) {
+            log.info("Fakturaserie $fakturaserieReferanse har ingen fakturaer, ingen status å endre")
+            return emptyList()
+        }
+
+        val fakturaerSomSkalEndres = fakturaserie.faktura.filter { it.status != nyStatus }
+
+        if (fakturaerSomSkalEndres.isEmpty()) {
+            log.info(
+                "Alle ${fakturaserie.faktura.size} fakturaer i fakturaserie $fakturaserieReferanse " +
+                    "har allerede status $nyStatus"
+            )
+            return emptyList()
+        }
+
+        fakturaerSomSkalEndres.forEach { it.status = nyStatus }
+        fakturaserieRepository.save(fakturaserie)
+
+        log.info(
+            "Endret status til $nyStatus på ${fakturaerSomSkalEndres.size} av " +
+                "${fakturaserie.faktura.size} fakturaer i fakturaserie $fakturaserieReferanse"
+        )
+        return fakturaerSomSkalEndres
+    }
+
     @Transactional
     fun krediterFaktura(fakturaReferanse: String): Fakturaserie {
         val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: throw RessursIkkeFunnetException(
