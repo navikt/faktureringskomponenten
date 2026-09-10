@@ -23,7 +23,6 @@ fun Fakturaserie.tilFakturaserieResponseDto(inkluderFodselsnummer: Boolean = tru
         intervall = this.intervall,
         opprettetTidspunkt = LocalDateTime.ofInstant(this.opprettetTidspunkt, ZoneId.systemDefault()),
         faktura = this.faktura.map { it.tilResponseDto },
-        kanselleringBeskrivelse = this.kanselleringBeskrivelse,
     )
 }
 

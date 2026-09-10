@@ -77,7 +77,6 @@ class KanselleringService(
             return kansellerFakuraserieUtenKreditering(aktivFakturaserie, alleÅrsavregningFakturaserier)
         }
 
-        krediteringFakturaserie.kanselleringBeskrivelse = beskrivelse
         fakturaserieRepository.save(krediteringFakturaserie)
 
         aktivFakturaserie.kansellerMed(krediteringFakturaserie)
