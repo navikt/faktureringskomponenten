@@ -244,22 +244,4 @@ class FakturaBestiltDtoMapperTest {
 
         fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
     }
-
-    @Test
-    fun `ordinaer faktura utleder beskrivelse som foer`() {
-        val fakturaserie = Fakturaserie.forTest {
-            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
-            intervall = FakturaserieIntervall.KVARTAL
-            faktura {
-                fakturaLinje {
-                    beskrivelse = "Inntekt: 30000, Dekning: Helse- og pensjonsdel, Sats:20%"
-                }
-            }
-        }
-
-        val fakturaBestiltDto =
-            FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
-
-        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
-    }
 }
