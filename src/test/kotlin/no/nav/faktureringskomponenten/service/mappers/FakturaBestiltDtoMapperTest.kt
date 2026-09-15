@@ -233,15 +233,13 @@ class FakturaBestiltDtoMapperTest {
             fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
             intervall = FakturaserieIntervall.KVARTAL
             faktura {
-                fakturaLinje {
-                    beskrivelse = "Kreditering for periode: 01.01.2024 - 31.12.2024"
-                }
+                fakturaLinje {}
             }
         }
 
         val fakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
 
-        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
+        fakturaBestiltDto.beskrivelse shouldBe "Faktura Trygdeavgift 1. kvartal 2024"
     }
 }
