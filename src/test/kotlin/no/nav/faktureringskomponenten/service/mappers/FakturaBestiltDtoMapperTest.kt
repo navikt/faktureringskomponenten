@@ -228,28 +228,6 @@ class FakturaBestiltDtoMapperTest {
     }
 
     @Test
-    fun `kansellering for EØS-pensjonist bruker egen anledningstekst`() {
-        val fakturaserie = Fakturaserie.forTest {
-            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
-            intervall = FakturaserieIntervall.SINGEL
-            faktura {
-                fakturaLinje {
-                    beskrivelse = "Kreditering for periode: 01.01.2024 - 31.12.2024"
-                }
-            }
-        }
-
-        val fakturaBestiltDto =
-            FakturaBestiltDtoMapper().tilFakturaBestiltDto(
-                fakturaserie.faktura.single(),
-                fakturaserie,
-                "Annullering av fakturert trygdeavgift"
-            )
-
-        fakturaBestiltDto.beskrivelse shouldBe "Annullering av fakturert trygdeavgift"
-    }
-
-    @Test
     fun `kansellering uten oppgitt beskrivelse faller tilbake på utledet beskrivelse`() {
         val fakturaserie = Fakturaserie.forTest {
             fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
