@@ -56,11 +56,11 @@ class FakturaBestiltDtoMapper {
 
         return when (fakturaGjelder) {
             Innbetalingstype.AARSAVREGNING -> {
-                return "Faktura for oppgjør av trygdeavgift for ${fakturalinjer.first().periodeFra.year}"
+                return "Oppgjør av trygdeavgift for ${fakturalinjer.first().periodeFra.year}"
             }
             Innbetalingstype.TRYGDEAVGIFT -> {
                 if (erAvregning) {
-                    return "Faktura for avregning mot tidligere fakturert trygdeavgift"
+                    return "Avregning mot tidligere fakturert trygdeavgift"
                 }
 
                 val startDatoForPerioder = fakturalinjer.minByOrNull { it.periodeFra }!!.periodeFra
@@ -68,11 +68,11 @@ class FakturaBestiltDtoMapper {
                 if (intervall == FakturaserieIntervall.KVARTAL) {
                     val nåværendeKvartal = startDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
                     val sluttKvartal = sluttDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
-                    if (nåværendeKvartal < sluttKvartal) "Faktura Trygdeavgift $nåværendeKvartal.kvartal ${startDatoForPerioder.year} - $sluttKvartal.kvartal ${sluttDatoForPerioder.year}"
-                    else "Faktura Trygdeavgift $nåværendeKvartal. kvartal ${startDatoForPerioder.year}"
+                    if (nåværendeKvartal < sluttKvartal) "Trygdeavgift $nåværendeKvartal.kvartal ${startDatoForPerioder.year} - $sluttKvartal.kvartal ${sluttDatoForPerioder.year}"
+                    else "Trygdeavgift $nåværendeKvartal. kvartal ${startDatoForPerioder.year}"
                 } else {
                     val nåværendeMåned = startDatoForPerioder.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                    "Faktura Trygdeavgift $nåværendeMåned ${startDatoForPerioder.year}"
+                    "Trygdeavgift $nåværendeMåned ${startDatoForPerioder.year}"
                 }
             }
         }
