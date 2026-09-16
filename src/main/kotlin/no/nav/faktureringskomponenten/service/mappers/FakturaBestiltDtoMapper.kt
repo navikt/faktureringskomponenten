@@ -13,7 +13,7 @@ class FakturaBestiltDtoMapper {
     val AVGIFT_TIL_FOLKETRYGDEN: String = "F00008"
     val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
-    fun tilFakturaBestiltDto(faktura: Faktura, fakturaserie: Fakturaserie): FakturaBestiltDto {
+    fun tilFakturaBestiltDto(faktura: Faktura, fakturaserie: Fakturaserie, kanselleringBeskrivelse: String? = null): FakturaBestiltDto {
         return FakturaBestiltDto(
             fodselsnummer = fakturaserie.fodselsnummer,
             fullmektigOrgnr = fakturaserie.fullmektig?.organisasjonsnummer,
@@ -27,7 +27,8 @@ class FakturaBestiltDtoMapper {
                 fakturaserie.fakturaGjelderInnbetalingstype,
                 faktura.fakturaLinje,
                 fakturaserie.intervall,
-                faktura.erAvregningsfaktura()
+                faktura.erAvregningsfaktura(),
+                kanselleringBeskrivelse
             ),
             artikkel = mapArtikkel(fakturaserie.fakturaGjelderInnbetalingstype),
             faktureringsDato = LocalDate.now(),
@@ -46,8 +47,13 @@ class FakturaBestiltDtoMapper {
         fakturaGjelder: Innbetalingstype,
         fakturalinjer: List<FakturaLinje>,
         intervall: FakturaserieIntervall,
-        erAvregning: Boolean
+        erAvregning: Boolean,
+        kanselleringBeskrivelse: String? = null
     ): String {
+        if (kanselleringBeskrivelse != null) {
+            return kanselleringBeskrivelse
+        }
+
         return when (fakturaGjelder) {
             Innbetalingstype.AARSAVREGNING -> {
                 return "Oppgjør av trygdeavgift for ${fakturalinjer.first().periodeFra.year}"

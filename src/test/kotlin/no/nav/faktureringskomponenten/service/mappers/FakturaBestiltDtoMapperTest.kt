@@ -204,4 +204,29 @@ class FakturaBestiltDtoMapperTest {
 
         fakturaBestiltDto.faktureringsDato shouldBe LocalDate.now()
     }
+
+    @Test
+    fun `oppgitt kanselleringBeskrivelse brukes som faktura-beskrivelse, linje-beskrivelse er urørt`() {
+        val fakturaserie = Fakturaserie.forTest {
+            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
+            intervall = FakturaserieIntervall.SINGEL
+            faktura {
+                fakturaLinje {
+                    beskrivelse = "Kreditering for periode: 01.01.2024 - 31.12.2024"
+                }
+            }
+        }
+
+        val fakturaBestiltDto =
+            FakturaBestiltDtoMapper().tilFakturaBestiltDto(
+                fakturaserie.faktura.single(),
+                fakturaserie,
+                "Opphør av medlemskap"
+            )
+
+        // Faktura-nivå: overstyres av kanselleringBeskrivelse
+        fakturaBestiltDto.beskrivelse shouldBe "Opphør av medlemskap"
+        // Linje-nivå: kopieres uendret fra fakturalinjen, ikke påvirket av kanselleringBeskrivelse
+        fakturaBestiltDto.fakturaLinjer.single().beskrivelse shouldBe "Kreditering for periode: 01.01.2024 - 31.12.2024"
+    }
 }

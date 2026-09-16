@@ -168,7 +168,7 @@ class FakturaBestillingServiceTest {
         every { fakturaserieRepository.save(any()) } returns mockk()
 
 
-        fakturaBestillingService.bestillKreditnota(fakturaserie)
+        fakturaBestillingService.bestillKreditnota(fakturaserie, "Opphør av medlemskap")
 
 
         fakturaserie.run {

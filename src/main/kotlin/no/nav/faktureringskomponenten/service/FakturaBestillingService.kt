@@ -62,7 +62,7 @@ class FakturaBestillingService(
     }
 
     @Transactional
-    fun bestillKreditnota(fakturaserie: Fakturaserie) {
+    fun bestillKreditnota(fakturaserie: Fakturaserie, beskrivelse: String) {
         fakturaserie.apply {
             status = FakturaserieStatus.FERDIG
             faktura.forEach {
@@ -74,7 +74,8 @@ class FakturaBestillingService(
             fakturaBestiltProducer.produserBestillingsmelding(
                 FakturaBestiltDtoMapper().tilFakturaBestiltDto(
                     it,
-                    fakturaserie
+                    fakturaserie,
+                    beskrivelse
                 )
             )
             Metrics.counter(MetrikkNavn.FAKTURA_BESTILT).increment()

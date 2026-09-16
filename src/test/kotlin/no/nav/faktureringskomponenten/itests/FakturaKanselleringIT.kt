@@ -4,6 +4,7 @@ import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -105,7 +106,8 @@ class FakturaKanselleringIT(
         fakturaserieRepository.save(opprinneligFakturaserie)
 
 
-        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(opprinneligFakturaserie.referanse, emptyList())
+        val krediteringsReferanse =
+            kanselleringService.kansellerFakturaserie(opprinneligFakturaserie.referanse, emptyList(), "Opphør av medlemskap")
 
 
         val krediteringsFakturaserie: Fakturaserie =
@@ -134,8 +136,11 @@ class FakturaKanselleringIT(
             .run {
                 krediteringsReferanse.shouldBe(krediteringsReferanse)
                 faktureringsDato.shouldBe(LocalDate.now())
-                fakturaLinjer.single()
-                    .belop.shouldBe(BigDecimal.valueOf(-10000).setScale(2))
+                beskrivelse.shouldBe("Opphør av medlemskap")
+                fakturaLinjer.single().run {
+                    belop.shouldBe(BigDecimal.valueOf(-10000).setScale(2))
+                    beskrivelse.shouldStartWith("Kreditering for periode:")
+                }
             }
 
         val opprinneligFakturaserieTotalBelop = opprinneligFakturaserie.bestilteFakturaer()
@@ -303,7 +308,7 @@ class FakturaKanselleringIT(
 
         totalBelop.shouldBe(opprinneligTotal.add(avregning1Total))
 
-        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(fakturaserieReferanse2, emptyList())
+        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(fakturaserieReferanse2, emptyList(), "Opphør av medlemskap")
 
 
         val kanselleringTotalBelop =
@@ -375,7 +380,8 @@ class FakturaKanselleringIT(
 
         val krediteringsReferanse = kanselleringService.kansellerFakturaserie(
             opprinneligFakturaserie.referanse,
-            listOf(årsavregningReferanse)
+            listOf(årsavregningReferanse),
+            "Opphør av medlemskap"
         )
 
 

@@ -1104,7 +1104,7 @@ class FakturaserieControllerIT(
     private fun postKansellerFakturaserieRequest(referanse: String, årsavregningRefs: List<String>): WebTestClient.ResponseSpec =
         webClient.post()
             .uri("/fakturaserier/$referanse/kanseller")
-            .bodyValue(KanselleringRequestDto(årsavregningRefs))
+            .bodyValue(KanselleringRequestDto(årsavregningRefs, "Opphør av medlemskap"))
             .accept(MediaType.APPLICATION_JSON)
             .header("Nav-User-Id", NAV_IDENT)
             .headers {

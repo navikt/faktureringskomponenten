@@ -857,7 +857,7 @@ class FakturaserieGeneratorTest {
         linje2023.enhetsprisPerManed shouldBe BigDecimal("3000.00")
         linje2023.periodeFra shouldBe LocalDate.of(2023, 7, 1)
         linje2023.periodeTil shouldBe LocalDate.of(2023, 12, 31)
-        linje2023.beskrivelse shouldBe "Tilbakebetaling for periode: 01.07.2023 - 31.12.2023"
+        linje2023.beskrivelse shouldBe "Kreditering for periode: 01.07.2023 - 31.12.2023"
         linje2023.antall shouldBe BigDecimal.ONE.negate()
 
         val linje2024 = fakturaSortert[1].fakturaLinje.first()

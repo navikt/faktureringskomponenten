@@ -132,13 +132,15 @@ class FakturaserieController @Autowired constructor(
             log.info("Kansellering av årsavregninger: ${kanselleringRequest.årsavregningRef}")
         }
 
-        val nyFakturaserieRefereanse = kanselleringService.kansellerFakturaserie(referanse, kanselleringRequest.årsavregningRef)
+        val nyFakturaserieRefereanse =
+            kanselleringService.kansellerFakturaserie(referanse, kanselleringRequest.årsavregningRef, kanselleringRequest.beskrivelse)
 
         log.info("Kansellert fakturaserie med referanse ${referanse}, Ny fakturaseriereferanse: ${nyFakturaserieRefereanse}")
         return ResponseEntity.ok(NyFakturaserieResponseDto(nyFakturaserieRefereanse))
     }
 
     data class KanselleringRequestDto(
-        val årsavregningRef: List<String> = emptyList()
+        val årsavregningRef: List<String> = emptyList(),
+        val beskrivelse: String
     )
 }
