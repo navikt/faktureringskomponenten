@@ -50,7 +50,7 @@ class FakturaBestiltDtoMapper {
         erAvregning: Boolean,
         kanselleringBeskrivelse: String? = null
     ): String {
-        if (!kanselleringBeskrivelse.isNullOrBlank()) {
+        if (kanselleringBeskrivelse != null) {
             return kanselleringBeskrivelse
         }
 

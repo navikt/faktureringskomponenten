@@ -18,7 +18,7 @@ class KanselleringService(
 ) {
 
     @Transactional
-    fun kansellerFakturaserie(referanse: String, årsavregningRef: List<String>, beskrivelse: String? = null): String {
+    fun kansellerFakturaserie(referanse: String, årsavregningRef: List<String>, beskrivelse: String): String {
         val aktivFakturaserie = fakturaserieRepository.findByReferanse(referanse)
             ?: throw RessursIkkeFunnetException(
                 field = "fakturaserieId",

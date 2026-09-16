@@ -102,14 +102,14 @@ class KanselleringServiceTest {
             krediteringFakturaserie.add(fakturaserie)
             fakturaserie
         }
-        justRun { fakturaBestillingService.bestillKreditnota(any()) }
+        justRun { fakturaBestillingService.bestillKreditnota(any(), any()) }
 
 
-        kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, emptyList())
+        kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, emptyList(), "Opphør av medlemskap")
 
 
         verify { fakturaserieRepository.save(aktivFakturaserie) }
-        verify { fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.single()) }
+        verify { fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.single(), "Opphør av medlemskap") }
 
         krediteringFakturaserie.single()
             .also { it.startdato shouldBe LocalDate.now().withDayOfMonth(1).withMonth(7).minusYears(1) }
@@ -228,12 +228,13 @@ class KanselleringServiceTest {
         every { fakturaserieRepository.save(any()) } answers { firstArg() }
 
         val krediteringFakturaserie = mutableListOf<Fakturaserie>()
-        every { fakturaBestillingService.bestillKreditnota(capture(krediteringFakturaserie)) } just Runs
+        every { fakturaBestillingService.bestillKreditnota(capture(krediteringFakturaserie), any()) } just Runs
 
 
         kanselleringService.kansellerFakturaserie(
             aktivFakturaserie.referanse,
-            listOf(årsavregningForrigeÅr.referanse, årsavregningForrigeÅrNyBehandling.referanse)
+            listOf(årsavregningForrigeÅr.referanse, årsavregningForrigeÅrNyBehandling.referanse),
+            "Opphør av medlemskap"
         )
 
 
@@ -241,7 +242,7 @@ class KanselleringServiceTest {
         verify { fakturaserieRepository.save(årsavregningForrigeÅr) }
         verify { fakturaserieRepository.save(årsavregningForrigeÅrNyBehandling) }
         verify { fakturaserieRepository.save(krediteringFakturaserie.single()) }
-        verify { fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.single()) }
+        verify { fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.single(), "Opphør av medlemskap") }
 
         krediteringFakturaserie.single()
             .also { it.startdato shouldBe LocalDate.now().withDayOfMonth(1).withMonth(7).minusYears(1) }
@@ -283,7 +284,7 @@ class KanselleringServiceTest {
         every { fakturaserieRepository.findByReferanse("finnes-ikke") } returns null
 
         val exception = shouldThrow<RessursIkkeFunnetException> {
-            kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, listOf("finnes-ikke"))
+            kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, listOf("finnes-ikke"), "Opphør av medlemskap")
         }
 
         exception.message shouldContain "finnes-ikke"
@@ -309,7 +310,7 @@ class KanselleringServiceTest {
         every { fakturaserieRepository.findByReferanse(ikkjeÅrsavregning.referanse) } returns ikkjeÅrsavregning
 
         val exception = shouldThrow<IllegalArgumentException> {
-            kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, listOf(ikkjeÅrsavregning.referanse))
+            kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, listOf(ikkjeÅrsavregning.referanse), "Opphør av medlemskap")
         }
 
         exception.message shouldContain ikkjeÅrsavregning.referanse
@@ -359,11 +360,11 @@ class KanselleringServiceTest {
         every { fakturaserieRepository.save(aktivFakturaserie) } returns aktivFakturaserie
 
 
-        val kansellerFakturaserieRef = kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, emptyList())
+        val kansellerFakturaserieRef = kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, emptyList(), "Opphør av medlemskap")
 
 
         verify { fakturaserieRepository.save(aktivFakturaserie) }
-        verify(exactly = 0) { fakturaBestillingService.bestillKreditnota(any()) }
+        verify(exactly = 0) { fakturaBestillingService.bestillKreditnota(any(), any()) }
 
 
         aktivFakturaserie.run {
@@ -419,10 +420,10 @@ class KanselleringServiceTest {
         every { fakturaserieRepository.save(originalFakturaserie) } returns originalFakturaserie
 
 
-        val resultat = kanselleringService.kansellerFakturaserie(originalFakturaserie.referanse, emptyList())
+        val resultat = kanselleringService.kansellerFakturaserie(originalFakturaserie.referanse, emptyList(), "Opphør av medlemskap")
 
 
-        verify(exactly = 0) { fakturaBestillingService.bestillKreditnota(any()) }
+        verify(exactly = 0) { fakturaBestillingService.bestillKreditnota(any(), any()) }
         originalFakturaserie.status shouldBe FakturaserieStatus.KANSELLERT
         resultat shouldBe "Kansellert"
     }
@@ -476,40 +477,4 @@ class KanselleringServiceTest {
         }
     }
 
-    @Test
-    fun `Uten beskrivelse fra bestiller videresendes null`() {
-        val fom = LocalDate.now().withMonth(1).withDayOfMonth(1)
-        val tom = LocalDate.now().withMonth(12).withDayOfMonth(31)
-
-        val aktivFakturaserie = Fakturaserie.forTest {
-            startdato = fom
-            sluttdato = tom
-            faktura {
-                status = FakturaStatus.BESTILT
-                fakturaLinje {
-                    periodeFra = fom
-                    periodeTil = tom
-                    månedspris = 10000
-                }
-            }
-        }
-
-        every { fakturaserieRepository.findByReferanse(aktivFakturaserie.referanse) } returns aktivFakturaserie
-        every { fakturaserieRepository.findAllByReferanse(aktivFakturaserie.referanse) } returns listOf(aktivFakturaserie)
-
-        val krediteringFakturaserie = mutableListOf<Fakturaserie>()
-        every { fakturaserieRepository.save(aktivFakturaserie) } returns aktivFakturaserie
-        every { fakturaserieRepository.save(not(aktivFakturaserie)) } answers {
-            val fakturaserie = firstArg<Fakturaserie>()
-            krediteringFakturaserie.add(fakturaserie)
-            fakturaserie
-        }
-        justRun { fakturaBestillingService.bestillKreditnota(any(), any()) }
-
-
-        kanselleringService.kansellerFakturaserie(aktivFakturaserie.referanse, emptyList())
-
-
-        verify { fakturaBestillingService.bestillKreditnota(krediteringFakturaserie.single(), null) }
-    }
 }

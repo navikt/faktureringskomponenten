@@ -105,7 +105,16 @@ class FakturaKanselleringIT(
         fakturaserieRepository.save(opprinneligFakturaserie)
 
 
-        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(opprinneligFakturaserie.referanse, emptyList())
+        val krediteringsReferanse = webClient.post()
+            .uri("/fakturaserier/${opprinneligFakturaserie.referanse}/kanseller")
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("Nav-User-Id", "Z123456")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            .bodyValue("""{"årsavregningRef": [], "beskrivelse": "Annullering av fakturert trygdeavgift"}""")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
 
 
         val krediteringsFakturaserie: Fakturaserie =
@@ -134,6 +143,7 @@ class FakturaKanselleringIT(
             .run {
                 krediteringsReferanse.shouldBe(krediteringsReferanse)
                 faktureringsDato.shouldBe(LocalDate.now())
+                beskrivelse shouldBe "Annullering av fakturert trygdeavgift"
                 fakturaLinjer.single()
                     .belop.shouldBe(BigDecimal.valueOf(-10000).setScale(2))
             }
@@ -303,7 +313,7 @@ class FakturaKanselleringIT(
 
         totalBelop.shouldBe(opprinneligTotal.add(avregning1Total))
 
-        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(fakturaserieReferanse2, emptyList())
+        val krediteringsReferanse = kanselleringService.kansellerFakturaserie(fakturaserieReferanse2, emptyList(), "Opphør av medlemskap")
 
 
         val kanselleringTotalBelop =
@@ -375,7 +385,8 @@ class FakturaKanselleringIT(
 
         val krediteringsReferanse = kanselleringService.kansellerFakturaserie(
             opprinneligFakturaserie.referanse,
-            listOf(årsavregningReferanse)
+            listOf(årsavregningReferanse),
+            "Opphør av medlemskap"
         )
 
 

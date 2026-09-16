@@ -62,7 +62,7 @@ class FakturaBestillingService(
     }
 
     @Transactional
-    fun bestillKreditnota(fakturaserie: Fakturaserie, beskrivelse: String? = null) {
+    fun bestillKreditnota(fakturaserie: Fakturaserie, beskrivelse: String) {
         fakturaserie.apply {
             status = FakturaserieStatus.FERDIG
             faktura.forEach {

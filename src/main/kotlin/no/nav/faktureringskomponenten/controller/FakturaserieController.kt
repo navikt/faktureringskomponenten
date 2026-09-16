@@ -141,6 +141,6 @@ class FakturaserieController @Autowired constructor(
 
     data class KanselleringRequestDto(
         val årsavregningRef: List<String> = emptyList(),
-        val beskrivelse: String? = null
+        val beskrivelse: String
     )
 }

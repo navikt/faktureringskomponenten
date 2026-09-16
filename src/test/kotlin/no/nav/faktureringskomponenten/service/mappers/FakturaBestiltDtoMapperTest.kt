@@ -250,24 +250,6 @@ class FakturaBestiltDtoMapperTest {
     }
 
     @Test
-    fun `kansellering uten oppgitt beskrivelse faller tilbake på utledet beskrivelse`() {
-        val fakturaserie = Fakturaserie.forTest {
-            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
-            intervall = FakturaserieIntervall.KVARTAL
-            faktura {
-                fakturaLinje {
-                    beskrivelse = "Kreditering for periode: 01.01.2024 - 31.12.2024"
-                }
-            }
-        }
-
-        val fakturaBestiltDto =
-            FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
-
-        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
-    }
-
-    @Test
     fun `ordinaer faktura utleder beskrivelse som foer`() {
         val fakturaserie = Fakturaserie.forTest {
             fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
@@ -282,6 +264,6 @@ class FakturaBestiltDtoMapperTest {
         val fakturaBestiltDto =
             FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
 
-        fakturaBestiltDto.beskrivelse.shouldContain("Faktura Trygdeavgift")
+        fakturaBestiltDto.beskrivelse shouldBe "Trygdeavgift 1. kvartal 2024"
     }
 }
