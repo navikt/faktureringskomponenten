@@ -125,7 +125,7 @@ class FakturaBestillingServiceTest {
                     krediteringFakturaRef = "",
                     referanseBruker = "Referanse bruker",
                     referanseNAV = "Referanse NAV",
-                    beskrivelse = "Faktura Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}.kvartal ${startDatoFaktura.year} - ${
+                    beskrivelse = "Trygdeavgift ${startDatoFaktura.get(IsoFields.QUARTER_OF_YEAR)}.kvartal ${startDatoFaktura.year} - ${
                         sluttDatoFaktura.get(
                             IsoFields.QUARTER_OF_YEAR
                         )
