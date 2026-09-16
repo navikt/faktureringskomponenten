@@ -4,6 +4,7 @@ import com.nimbusds.jose.JOSEObjectType
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldStartWith
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
@@ -105,16 +106,8 @@ class FakturaKanselleringIT(
         fakturaserieRepository.save(opprinneligFakturaserie)
 
 
-        val krediteringsReferanse = webClient.post()
-            .uri("/fakturaserier/${opprinneligFakturaserie.referanse}/kanseller")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("Nav-User-Id", "Z123456")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token())
-            .bodyValue("""{"årsavregningRef": [], "beskrivelse": "Annullering av fakturert trygdeavgift"}""")
-            .exchange()
-            .expectStatus().isOk
-            .expectBody<NyFakturaserieResponseDto>()
-            .returnResult().responseBody!!.fakturaserieReferanse
+        val krediteringsReferanse =
+            kanselleringService.kansellerFakturaserie(opprinneligFakturaserie.referanse, emptyList(), "Opphør av medlemskap")
 
 
         val krediteringsFakturaserie: Fakturaserie =
@@ -143,9 +136,11 @@ class FakturaKanselleringIT(
             .run {
                 krediteringsReferanse.shouldBe(krediteringsReferanse)
                 faktureringsDato.shouldBe(LocalDate.now())
-                beskrivelse shouldBe "Annullering av fakturert trygdeavgift"
-                fakturaLinjer.single()
-                    .belop.shouldBe(BigDecimal.valueOf(-10000).setScale(2))
+                beskrivelse.shouldBe("Opphør av medlemskap")
+                fakturaLinjer.single().run {
+                    belop.shouldBe(BigDecimal.valueOf(-10000).setScale(2))
+                    beskrivelse.shouldStartWith("Kreditering for periode:")
+                }
             }
 
         val opprinneligFakturaserieTotalBelop = opprinneligFakturaserie.bestilteFakturaer()

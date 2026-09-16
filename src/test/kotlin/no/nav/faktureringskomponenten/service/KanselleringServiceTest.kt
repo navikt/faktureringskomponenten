@@ -472,9 +472,6 @@ class KanselleringServiceTest {
                 "Annullering av fakturert trygdeavgift"
             )
         }
-        krediteringFakturaserie.single().faktura.flatMap { it.fakturaLinje }.forEach {
-            it.beskrivelse shouldContain "Kreditering for periode:"
-        }
     }
 
 }
