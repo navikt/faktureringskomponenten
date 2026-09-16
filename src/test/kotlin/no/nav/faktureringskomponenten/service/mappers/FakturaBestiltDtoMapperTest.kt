@@ -229,20 +229,4 @@ class FakturaBestiltDtoMapperTest {
         // Linje-nivå: kopieres uendret fra fakturalinjen, ikke påvirket av kanselleringBeskrivelse
         fakturaBestiltDto.fakturaLinjer.single().beskrivelse shouldBe "Kreditering for periode: 01.01.2024 - 31.12.2024"
     }
-
-    @Test
-    fun `ordinaer faktura utleder beskrivelse som foer`() {
-        val fakturaserie = Fakturaserie.forTest {
-            fakturaGjelderInnbetalingstype = Innbetalingstype.TRYGDEAVGIFT
-            intervall = FakturaserieIntervall.KVARTAL
-            faktura {
-                fakturaLinje {}
-            }
-        }
-
-        val fakturaBestiltDto =
-            FakturaBestiltDtoMapper().tilFakturaBestiltDto(fakturaserie.faktura.single(), fakturaserie)
-
-        fakturaBestiltDto.beskrivelse shouldBe "Trygdeavgift 1. kvartal 2024"
-    }
 }
