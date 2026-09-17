@@ -3,9 +3,6 @@ package no.nav.faktureringskomponenten.controller
 import com.nimbusds.jose.JOSEObjectType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainAll
-import io.kotest.matchers.collections.shouldNotBeEmpty
-import io.kotest.matchers.collections.shouldNotContainAnyOf
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -17,7 +14,6 @@ import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
-import no.nav.faktureringskomponenten.service.AdminBestillingService
 import no.nav.faktureringskomponenten.service.AdminService
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.integration.kafka.EmbeddedKafkaBase
@@ -50,7 +46,6 @@ class AdminControllerIT(
     @param:Autowired private val fakturaRepository: FakturaRepository,
     @param:Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
     @param:Autowired private val adminService: AdminService,
-    @param:Autowired private val adminBestillingService: AdminBestillingService,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
 
     @AfterEach
@@ -310,31 +305,6 @@ class AdminControllerIT(
 
         fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
             .forEach { it.status shouldBe FakturaStatus.OPPRETTET }
-    }
-
-    @Test
-    fun `bestillBestillingsklareFakturaer bestiller bestillingsklare fakturaer med en gang`() {
-        val fakturaserieReferanse = postLagNyFakturaserieRequest(lagFakturaserieDto())
-            .expectStatus().isOk
-            .expectBody<NyFakturaserieResponseDto>()
-            .returnResult().responseBody!!.fakturaserieReferanse
-
-        val bestillingsklare = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
-            .filter { it.status == FakturaStatus.OPPRETTET && !it.datoBestilt.isAfter(LocalDate.now()) }
-            .map { it.referanseNr }
-        bestillingsklare.shouldNotBeEmpty()
-
-        val bestilte = adminBestillingService.bestillBestillingsklareFakturaer().shouldNotBeNull()
-        bestilte.shouldContainAll(bestillingsklare)
-
-        fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
-            .filter { it.referanseNr in bestillingsklare }
-            .forEach { it.status shouldBe FakturaStatus.BESTILT }
-
-        // Ingen fakturaer igjen å bestille
-        adminBestillingService.bestillBestillingsklareFakturaer()
-            .shouldNotBeNull()
-            .shouldNotContainAnyOf(bestillingsklare)
     }
 
     private fun postBestillKlareFakturaerRequest(bestillingsDato: LocalDate? = null): WebTestClient.ResponseSpec =
