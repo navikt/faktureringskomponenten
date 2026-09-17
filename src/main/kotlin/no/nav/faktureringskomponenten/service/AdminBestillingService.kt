@@ -47,9 +47,9 @@ class AdminBestillingService(
     }
 
     private fun bestill(bestillingsDato: LocalDate): List<String> {
-        val bestillingsklareFaktura = fakturaBestillingService.hentBestillingsklareFaktura(bestillingsDato)
-        log.info("Admin bestiller ${bestillingsklareFaktura.size} fakturaer med bestillingsdato til og med $bestillingsDato")
-        return bestillingsklareFaktura.map { faktura ->
+        val bestillingsklareFakturaer = fakturaBestillingService.hentBestillingsklareFaktura(bestillingsDato)
+        log.info("Admin bestiller ${bestillingsklareFakturaer.size} fakturaer med bestillingsdato til og med $bestillingsDato")
+        return bestillingsklareFakturaer.map { faktura ->
             fakturaBestillingService.bestillFaktura(faktura.referanseNr)
             faktura.referanseNr
         }
