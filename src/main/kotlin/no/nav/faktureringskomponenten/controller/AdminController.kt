@@ -92,7 +92,8 @@ class AdminController(
             "Gjør det samme som den planlagte jobben (cron), men on demand, slik at man slipper å vente " +
             "på neste kjøring. Bestiller alle fakturaer med status OPPRETTET og datoBestilt til og med " +
             "bestillingsdato. Kjøringen tar samme lås som cronjobben, så den kjører aldri samtidig som jobben; " +
-            "får den ikke låsen, svares det 409."
+            "får den ikke låsen, svares det 409. Feiler bestillingen av én faktura, fortsetter de øvrige, " +
+            "og fakturaen listes under feilede."
     )
     @PostMapping("/faktura/bestill")
     fun bestillKlareFakturaer(
@@ -109,22 +110,23 @@ class AdminController(
         val dato = bestillingsDato ?: LocalDate.now()
         log.info("Admin trigger bestilling av bestillingsklare fakturaer med bestillingsdato til og med $dato")
 
-        val referanser = adminBestillingService.bestillBestillingsklareFakturaer(dato)
+        val resultat = adminBestillingService.bestillBestillingsklareFakturaer(dato)
             ?: return ResponseEntity.status(409)
                 .body("Bestilling av fakturaer kjører allerede, prøv igjen om litt")
 
-        log.info("Admin-trigget bestilling bestilte ${referanser.size} fakturaer")
+        log.info("Admin-trigget bestilling bestilte ${resultat.bestilte.size} fakturaer, ${resultat.feilede.size} feilet")
         return ResponseEntity.ok(
             BestillKlareFakturaerResponse(
                 bestillingsDato = dato,
-                antallBestilt = referanser.size,
-                fakturaReferanser = referanser
+                antallBestilt = resultat.bestilte.size,
+                fakturaReferanser = resultat.bestilte,
+                antallFeilet = resultat.feilede.size,
+                feilede = resultat.feilede
             )
         )
     }
 
     @PostMapping("/faktura/{fakturaReferanse}/ombestill")
-
     fun ombestillFaktura(
         @PathVariable fakturaReferanse: String,
         @RequestParam(required = false) fakturaMottaker: String?
@@ -434,7 +436,9 @@ data class EndreFødselsnummerRequest(
 data class BestillKlareFakturaerResponse(
     val bestillingsDato: LocalDate,
     val antallBestilt: Int,
-    val fakturaReferanser: List<String>
+    val fakturaReferanser: List<String>,
+    val antallFeilet: Int,
+    val feilede: List<FeiletBestilling>
 )
 
 

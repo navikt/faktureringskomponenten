@@ -307,9 +307,9 @@ class AdminControllerIT(
             .forEach { it.status shouldBe FakturaStatus.OPPRETTET }
     }
 
-    private fun postBestillKlareFakturaerRequest(bestillingsDato: LocalDate? = null): WebTestClient.ResponseSpec =
+    private fun postBestillKlareFakturaerRequest(): WebTestClient.ResponseSpec =
         webClient.post()
-            .uri("/admin/faktura/bestill" + (bestillingsDato?.let { "?bestillingsDato=$it" } ?: ""))
+            .uri("/admin/faktura/bestill")
             .header("Nav-User-Id", NAV_IDENT)
             .headers {
                 it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
@@ -317,7 +317,6 @@ class AdminControllerIT(
             .exchange()
 
     private fun postEndreStatusPaAlleFakturaerRequest(
-
         fakturaserieReferanse: String,
         status: FakturaStatus
     ): WebTestClient.ResponseSpec =
