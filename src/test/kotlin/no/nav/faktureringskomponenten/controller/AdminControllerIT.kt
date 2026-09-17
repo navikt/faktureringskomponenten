@@ -291,6 +291,31 @@ class AdminControllerIT(
         }
     }
 
+    @Test
+    fun `bestillKlareFakturaer er ikke tilgjengelig utenfor testmiljø`() {
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(lagFakturaserieDto())
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        postBestillKlareFakturaerRequest()
+            .expectStatus().isForbidden
+            .expectBody<String>()
+            .returnResult().responseBody!! shouldContain "kun tilgjengelig i testmiljø"
+
+        fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse)
+            .forEach { it.status shouldBe FakturaStatus.OPPRETTET }
+    }
+
+    private fun postBestillKlareFakturaerRequest(): WebTestClient.ResponseSpec =
+        webClient.post()
+            .uri("/admin/faktura/bestill")
+            .header("Nav-User-Id", NAV_IDENT)
+            .headers {
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
     private fun postEndreStatusPaAlleFakturaerRequest(
         fakturaserieReferanse: String,
         status: FakturaStatus

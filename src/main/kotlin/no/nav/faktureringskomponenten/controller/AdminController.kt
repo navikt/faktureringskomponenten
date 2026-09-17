@@ -25,6 +25,7 @@ import no.nav.faktureringskomponenten.service.integration.kafka.EksternFakturaSt
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.EksternFakturaStatusDto
 import no.nav.security.token.support.core.api.Protected
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
@@ -45,6 +46,7 @@ class AdminController(
     val fakturaService: FakturaService,
     val fakturaBestillingService: FakturaBestillingService,
     val adminService: AdminService,
+    val adminBestillingService: AdminBestillingService,
     val faktureringService: FakturaserieService,
     val fakturaRepository: FakturaRepository,
     val kanselleringService: KanselleringService
@@ -79,6 +81,49 @@ class AdminController(
         log.info("setter offset for faktura mottak consumer til: $offset")
         eksternFakturaStatusConsumer.settSpesifiktOffsetPåConsumer(offset)
         return ResponseEntity.ok("satt offset for faktura mottak consumer")
+    }
+
+    /**
+     * Trigger bestilling av fakturaer on demand. Endepunktet er KUN tilgjengelig i testmiljø.
+     */
+    @Operation(
+        summary = "Trigger bestilling av alle bestillingsklare fakturaer nå",
+        description = "Kun tilgjengelig i testmiljø (dev-gcp), ellers 403. " +
+            "Gjør det samme som den planlagte jobben (cron), men on demand, slik at man slipper å vente " +
+            "på neste kjøring. Bestiller alle fakturaer med status OPPRETTET og datoBestilt til og med " +
+            "bestillingsdato. Kjøringen tar samme lås som cronjobben, så den kjører aldri samtidig som jobben; " +
+            "får den ikke låsen, svares det 409. Feiler bestillingen av én faktura, fortsetter de øvrige, " +
+            "og fakturaen listes under feilede."
+    )
+    @PostMapping("/faktura/bestill")
+    fun bestillKlareFakturaer(
+        @Parameter(description = "Bestillingsdato det bestilles til og med. Standard er dagens dato.")
+        @RequestParam(required = false)
+        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+        bestillingsDato: LocalDate?
+    ): ResponseEntity<Any> {
+        if (naisClusterName != NAIS_CLUSTER_NAME_DEV) {
+            log.warn("Endepunktet er kun tilgjengelig i testmiljø")
+            return ResponseEntity.status(403).body("Endepunktet er kun tilgjengelig i testmiljø")
+        }
+
+        val dato = bestillingsDato ?: LocalDate.now()
+        log.info("Admin trigger bestilling av bestillingsklare fakturaer med bestillingsdato til og med $dato")
+
+        val resultat = adminBestillingService.bestillBestillingsklareFakturaer(dato)
+            ?: return ResponseEntity.status(409)
+                .body("Bestilling av fakturaer kjører allerede, prøv igjen om litt")
+
+        log.info("Admin-trigget bestilling bestilte ${resultat.bestilte.size} fakturaer, ${resultat.feilede.size} feilet")
+        return ResponseEntity.ok(
+            BestillKlareFakturaerResponse(
+                bestillingsDato = dato,
+                antallBestilt = resultat.bestilte.size,
+                fakturaReferanser = resultat.bestilte,
+                antallFeilet = resultat.feilede.size,
+                feilede = resultat.feilede
+            )
+        )
     }
 
     @PostMapping("/faktura/{fakturaReferanse}/ombestill")
@@ -386,6 +431,14 @@ data class EndreFakturastatuserResponse(
 data class EndreFødselsnummerRequest(
     @field:ErFodselsnummer
     val nyttFnr: String
+)
+
+data class BestillKlareFakturaerResponse(
+    val bestillingsDato: LocalDate,
+    val antallBestilt: Int,
+    val fakturaReferanser: List<String>,
+    val antallFeilet: Int,
+    val feilede: List<FeiletBestilling>
 )
 
 
