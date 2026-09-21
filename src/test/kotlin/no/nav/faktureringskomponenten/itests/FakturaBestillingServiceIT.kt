@@ -106,6 +106,17 @@ class FakturaBestillingServiceIT(
     }
 
     @Test
+    fun `beskrivelse og artikkel lagres på faktura ved bestilling`() {
+        fakturaBestillCronjob.bestillFaktura()
+
+        val sendtMelding = TestQueue.fakturaBestiltMeldinger.single()
+        val faktura = fakturaRepository.findByReferanseNr(fakturaReferanseNr)!!
+
+        faktura.beskrivelse.shouldBe(sendtMelding.beskrivelse)
+        faktura.artikkel.shouldBe(sendtMelding.artikkel)
+    }
+
+    @Test
     fun `database oppdatering må rulles tilbake om det feiler når man sender melding på kø`() {
         TestQueue.kastException = true
 

@@ -127,10 +127,13 @@ class AdminService(
             erKreditnota = true,
         )
 
+        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(nyFaktura, fakturaserie)
+        nyFaktura.beskrivelse = fakturaBestiltDto.beskrivelse
+        nyFaktura.artikkel = fakturaBestiltDto.artikkel
+
         (fakturaserie.faktura as MutableList<Faktura>).add(nyFaktura)
         fakturaserieRepository.save(fakturaserie)
 
-        val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(nyFaktura, fakturaserie)
         fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
 
         return fakturaserie

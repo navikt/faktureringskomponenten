@@ -23,5 +23,11 @@ data class FakturaLinjeResponseDto(
     val antall: BigDecimal,
 
     @Schema(description = "Enhetspris")
-    val enhetsprisPerManed: BigDecimal
+    val enhetsprisPerManed: BigDecimal,
+
+    @Schema(description = "Beløpet som tidligere er fakturert for perioden. Kun satt på avregningslinjer")
+    val avregningForrigeBeloep: BigDecimal? = null,
+
+    @Schema(description = "Det nye beløpet for perioden. Kun satt på avregningslinjer")
+    val avregningNyttBeloep: BigDecimal? = null
 )
