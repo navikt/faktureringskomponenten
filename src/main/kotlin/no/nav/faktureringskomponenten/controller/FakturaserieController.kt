@@ -5,6 +5,8 @@ import io.micrometer.core.instrument.Metrics
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import jakarta.validation.Valid
+import jakarta.validation.constraints.Size
 import mu.KotlinLogging
 import no.nav.faktureringskomponenten.config.ToggleName
 import no.nav.faktureringskomponenten.controller.dto.FakturamottakerRequestDto
@@ -125,7 +127,7 @@ class FakturaserieController @Autowired constructor(
     @PostMapping("/{referanse}/kanseller")
     fun kansellerFakturaserie(
         @PathVariable("referanse", required = true) referanse: String,
-        @RequestBody kanselleringRequest: KanselleringRequestDto
+        @RequestBody @Valid kanselleringRequest: KanselleringRequestDto
     ): ResponseEntity<NyFakturaserieResponseDto> {
         log.info("Mottatt forespørsel om kansellering av fakturaserie: ${referanse}")
         if (kanselleringRequest.årsavregningRef.isNotEmpty()) {
@@ -141,6 +143,7 @@ class FakturaserieController @Autowired constructor(
 
     data class KanselleringRequestDto(
         val årsavregningRef: List<String> = emptyList(),
+        @field:Size(max = 240, message = "Beskrivelsen kan ikke være lengre enn 240 tegn")
         val beskrivelse: String
     )
 }

@@ -52,6 +52,13 @@ class Faktura(
     @Column(name = "er_kreditnota", nullable = false)
     var erKreditnota: Boolean = false,
 
+    // Settes ved bestilling. Null for fakturaer som ikke er bestilt, og for fakturaer bestilt før feltet ble innført.
+    @Column(name = "beskrivelse", length = 240)
+    var beskrivelse: String? = null,
+
+    @Column(name = "artikkel", length = 20)
+    var artikkel: String? = null,
+
     ) : ModifiableEntity() {
 
     override fun toString(): String {

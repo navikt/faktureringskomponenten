@@ -126,8 +126,11 @@ class FakturaKanselleringIT(
             shouldNotBeNull()
             status.shouldBe(FakturaserieStatus.FERDIG)
             faktura.run {
-                single()
-                    .status.shouldBe(FakturaStatus.BESTILT)
+                single().apply {
+                    status.shouldBe(FakturaStatus.BESTILT)
+                    beskrivelse.shouldBe("Opphør av medlemskap")
+                    artikkel.shouldBe("F00008")
+                }
             }
         }
 
