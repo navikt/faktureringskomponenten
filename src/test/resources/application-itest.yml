@@ -20,6 +20,10 @@ KAFKA_TOPIC_NAME_MANGLENDE_FAKTURABETALING: "manglende-fakturabetaling.v1"
 AZURE_APP_WELL_KNOWN_URL: http://localhost:${mock-oauth2-server.port}/aad/.well-known/openid-configuration
 AZURE_APP_CLIENT_ID: faktureringskomponenten-localhost
 
+admin:
+  driftsgruppe: driftsgruppe-test
+  console-klient-id: melosys-console-test
+
 unleash:
   token: "fake"
   url: "enda mer fake"
