@@ -5,6 +5,7 @@ import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaDto
 import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.service.FakturaserieDto
+import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
 import ulid.ULID
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -22,7 +23,7 @@ fun Fakturaserie.tilFakturaserieResponseDto(inkluderFodselsnummer: Boolean = tru
         status = this.status,
         intervall = this.intervall,
         opprettetTidspunkt = LocalDateTime.ofInstant(this.opprettetTidspunkt, ZoneId.systemDefault()),
-        faktura = this.faktura.map { it.tilResponseDto },
+        faktura = this.faktura.map { it.tilResponseDto(this) },
     )
 }
 
@@ -75,8 +76,8 @@ private val FullmektigDto.tilFullmektig: Fullmektig
         organisasjonsnummer = this.organisasjonsnummer,
     )
 
-private val Faktura.tilResponseDto: FakturaResponseDto
-    get() = FakturaResponseDto(
+private fun Faktura.tilResponseDto(fakturaserie: Fakturaserie): FakturaResponseDto =
+    FakturaResponseDto(
         fakturaReferanse = this.referanseNr,
         datoBestilt = this.datoBestilt,
         sistOppdatert = LocalDateTime.ofInstant(this.endretTidspunkt, ZoneId.systemDefault()),
@@ -86,7 +87,17 @@ private val Faktura.tilResponseDto: FakturaResponseDto
         periodeTil = this.getPeriodeTil(),
         eksternFakturaStatus = this.eksternFakturaStatus.map { it.tilResponseDto },
         eksternFakturaNummer = this.eksternFakturaNummer,
-        erKreditnota = this.erKreditnota
+        erKreditnota = this.erKreditnota,
+        // Kreditnotaer får beskrivelsen sin fra kalleren ved kansellering, og den kan ikke utledes
+        // på nytt. Da er null et ærligere svar enn en gjettet tekst OEBS aldri fikk.
+        beskrivelse = this.beskrivelse
+            ?: if (this.erKreditnota) null else FakturaBestiltDtoMapper.utledBeskrivelse(this, fakturaserie),
+        artikkel = this.artikkel ?: FakturaBestiltDtoMapper.utledArtikkel(fakturaserie),
+        beskrivelseErUtledet = this.beskrivelse == null,
+        // Teknisk gjeld: kolonnen er nullbar i databasen for fakturaer opprettet før V25,
+        // men feltet på entiteten er typet ikke-nullbart
+        krediteringFakturaRef = (this.krediteringFakturaRef as String?)?.ifEmpty { null },
+        totalbelop = this.totalbeløp()
     )
 
 private val EksternFakturaStatus.tilResponseDto: FakturaTilbakemeldingResponseDto
@@ -106,7 +117,9 @@ private val FakturaLinje.tilResponseDto: FakturaLinjeResponseDto
         beskrivelse = this.beskrivelse,
         belop = this.belop,
         antall = this.antall,
-        enhetsprisPerManed = this.enhetsprisPerManed
+        enhetsprisPerManed = this.enhetsprisPerManed,
+        avregningForrigeBeloep = this.avregningForrigeBeloep,
+        avregningNyttBeloep = this.avregningNyttBeloep
     )
 
 val FakturamottakerRequestDto.tilFakturamottakerDto: FakturamottakerDto
