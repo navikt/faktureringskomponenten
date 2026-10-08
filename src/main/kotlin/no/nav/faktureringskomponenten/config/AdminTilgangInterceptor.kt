@@ -10,11 +10,6 @@ import org.springframework.web.servlet.HandlerInterceptor
 
 private val log = KotlinLogging.logger { }
 
-/**
- * Tilgangskontroll på adminrutene: kallet må komme fra Console (azp), og personkall må ha driftsgruppen.
- *
- * Tom konfigurasjon stopper ikke oppstart, men avviser alle adminkall.
- */
 class AdminTilgangInterceptor(
     private val tokenValidationContextHolder: TokenValidationContextHolder,
     private val driftsgruppeId: String,

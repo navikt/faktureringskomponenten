@@ -10,10 +10,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.mock.web.MockHttpServletResponse
 
-/**
- * Tom konfigurasjon skal ikke stoppe oppstart, men gi 403 på adminrutene.
- * Dekkes her fordi integrasjonstestene kjører med utfylt konfigurasjon.
- */
+// Integrasjonstestene kjører med utfylt konfigurasjon, så tom konfigurasjon testes her
 class AdminTilgangInterceptorTest {
 
     @Test

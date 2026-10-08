@@ -119,6 +119,7 @@ class AdminTilgangsstyringIT(
         assertSoftly {
             endepunkter.forEach { endepunkt ->
                 withClue(endepunkt) {
+                    // Bare status: både AdminTilgangInterceptor og @Protected kan svare 401, og begge er riktige
                     kall(endepunkt, token = null).returnResult(String::class.java).status.value() shouldBe 401
                 }
             }
