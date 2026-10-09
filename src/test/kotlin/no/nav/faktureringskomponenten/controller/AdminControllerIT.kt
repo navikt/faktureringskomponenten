@@ -23,6 +23,7 @@ import no.nav.security.token.support.spring.test.EnableMockOAuth2Server
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.webtestclient.autoconfigure.AutoConfigureWebTestClient
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.HttpHeaders
@@ -46,6 +47,8 @@ class AdminControllerIT(
     @param:Autowired private val fakturaRepository: FakturaRepository,
     @param:Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
     @param:Autowired private val adminService: AdminService,
+    @param:Value("\${admin.driftsgruppe}") private val driftsgruppeId: String,
+    @param:Value("\${admin.console-klient-id}") private val consoleKlientId: String,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
 
     @AfterEach
@@ -384,16 +387,17 @@ class AdminControllerIT(
             }
             .exchange()
 
+    // Adminrutene krever kall fra Console (azp) med driftsgruppe. mock-oauth2-server setter azp til klient-ID-en.
     private fun token(subject: String = "faktureringskomponenten-test"): String? =
         server.issueToken(
             "aad",
-            "faktureringskomponenten-test",
+            consoleKlientId,
             DefaultOAuth2TokenCallback(
                 "aad",
                 subject,
                 JOSEObjectType.JWT.type,
                 listOf("faktureringskomponenten-localhost"),
-                mapOf("roles" to "faktureringskomponenten-skriv"),
+                mapOf("roles" to "faktureringskomponenten-skriv", "groups" to listOf(driftsgruppeId)),
                 3600
             )
         ).serialize()

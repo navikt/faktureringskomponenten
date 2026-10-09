@@ -10,6 +10,7 @@
   "app_name_melosys_api": "melosys",
   "app_name_melosys_web": "melosys-web",
   "app_name_melosys_console": "melosys-console",
+  "melosys_console_client_id": "7fe72335-687b-438c-be47-3bc81590a05d",
   "kafka_topic_name_faktura_bestilt": "teammelosys.faktura-bestilt.v1",
   "kafka_topic_name_manglende_fakturabetaling": "teammelosys.manglende-fakturabetaling.v1",
   "unleash_environment": "production",
