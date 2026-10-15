@@ -1,0 +1,1 @@
+ALTER TABLE faktura ADD COLUMN beskrivelse VARCHAR(240);
