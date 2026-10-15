@@ -68,6 +68,9 @@ spec:
       external:
         - host: "teammelosys-unleash-api.nav.cloud.nais.io"
   observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
     logging:
       destinations:
         - id: elastic
