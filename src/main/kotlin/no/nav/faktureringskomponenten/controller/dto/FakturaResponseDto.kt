@@ -35,6 +35,6 @@ data class FakturaResponseDto(
     @Schema(description = "Om fakturaen er en kreditnota")
     val erKreditnota: Boolean = false,
 
-    @Schema(description = "Fakturaens hodebeskrivelse slik den sendes til OEBS. Null for fakturaer som ble bestilt før beskrivelsen ble lagret")
+    @Schema(description = "Fakturateksten som sendes til OEBS. Null hvis fakturaen ble bestilt før vi begynte å lagre teksten")
     val beskrivelse: String?,
 )
