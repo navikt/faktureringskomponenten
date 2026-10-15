@@ -56,9 +56,6 @@ class Faktura(
     @Column(name = "beskrivelse", length = 240)
     var beskrivelse: String? = null,
 
-    @Column(name = "artikkel", length = 20)
-    var artikkel: String? = null,
-
     ) : ModifiableEntity() {
 
     override fun toString(): String {

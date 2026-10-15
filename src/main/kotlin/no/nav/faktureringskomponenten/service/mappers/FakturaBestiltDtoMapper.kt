@@ -4,11 +4,14 @@ import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltLinjeDto
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.IsoFields
 import java.util.*
 
 class FakturaBestiltDtoMapper {
+    val AVGIFT_TIL_FOLKETRYGDEN: String = "F00008"
+    val FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
     fun tilFakturaBestiltDto(faktura: Faktura, fakturaserie: Fakturaserie, kanselleringBeskrivelse: String? = null): FakturaBestiltDto {
         return FakturaBestiltDto(
@@ -21,7 +24,7 @@ class FakturaBestiltDtoMapper {
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
             beskrivelse = utledBeskrivelse(faktura, fakturaserie, kanselleringBeskrivelse),
-            artikkel = utledArtikkel(fakturaserie),
+            artikkel = mapArtikkel(fakturaserie.fakturaGjelderInnbetalingstype),
             faktureringsDato = LocalDate.now(),
             fakturaLinjer = faktura.fakturaLinje.map {
                 FakturaBestiltLinjeDto(
@@ -34,63 +37,54 @@ class FakturaBestiltDtoMapper {
         )
     }
 
-    companion object {
-        const val AVGIFT_TIL_FOLKETRYGDEN: String = "F00008"
+    fun utledBeskrivelse(faktura: Faktura, fakturaserie: Fakturaserie, kanselleringBeskrivelse: String? = null): String =
+        mapFakturaBeskrivelse(
+            fakturaserie.fakturaGjelderInnbetalingstype,
+            faktura.fakturaLinje,
+            fakturaserie.intervall,
+            faktura.erAvregningsfaktura(),
+            kanselleringBeskrivelse
+        )
 
-        fun utledBeskrivelse(
-            faktura: Faktura,
-            fakturaserie: Fakturaserie,
-            kanselleringBeskrivelse: String? = null
-        ): String =
-            utledBeskrivelse(
-                fakturaserie.fakturaGjelderInnbetalingstype,
-                faktura.fakturaLinje,
-                fakturaserie.intervall,
-                faktura.erAvregningsfaktura(),
-                kanselleringBeskrivelse
-            )
+    private fun mapFakturaBeskrivelse(
+        fakturaGjelder: Innbetalingstype,
+        fakturalinjer: List<FakturaLinje>,
+        intervall: FakturaserieIntervall,
+        erAvregning: Boolean,
+        kanselleringBeskrivelse: String? = null
+    ): String {
+        if (kanselleringBeskrivelse != null) {
+            return kanselleringBeskrivelse
+        }
 
-        fun utledArtikkel(fakturaserie: Fakturaserie): String =
-            when (fakturaserie.fakturaGjelderInnbetalingstype) {
-                Innbetalingstype.TRYGDEAVGIFT -> AVGIFT_TIL_FOLKETRYGDEN
-                Innbetalingstype.AARSAVREGNING -> AVGIFT_TIL_FOLKETRYGDEN
+        return when (fakturaGjelder) {
+            Innbetalingstype.AARSAVREGNING -> {
+                return "Oppgjør av trygdeavgift for ${fakturalinjer.first().periodeFra.year}"
             }
-
-        private fun utledBeskrivelse(
-            fakturaGjelder: Innbetalingstype,
-            fakturalinjer: List<FakturaLinje>,
-            intervall: FakturaserieIntervall,
-            erAvregning: Boolean,
-            kanselleringBeskrivelse: String? = null
-        ): String {
-            if (kanselleringBeskrivelse != null) {
-                return kanselleringBeskrivelse
-            }
-
-            return when (fakturaGjelder) {
-                Innbetalingstype.AARSAVREGNING -> {
-                    return "Oppgjør av trygdeavgift for ${fakturalinjer.first().periodeFra.year}"
+            Innbetalingstype.TRYGDEAVGIFT -> {
+                if (erAvregning) {
+                    return "Avregning mot tidligere fakturert trygdeavgift"
                 }
 
-                Innbetalingstype.TRYGDEAVGIFT -> {
-                    if (erAvregning) {
-                        return "Avregning mot tidligere fakturert trygdeavgift"
-                    }
-
-                    val startDatoForPerioder = fakturalinjer.minByOrNull { it.periodeFra }!!.periodeFra
-                    val sluttDatoForPerioder = fakturalinjer.maxByOrNull { it.periodeTil }!!.periodeTil
-                    if (intervall == FakturaserieIntervall.KVARTAL) {
-                        val nåværendeKvartal = startDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
-                        val sluttKvartal = sluttDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
-                        if (nåværendeKvartal < sluttKvartal) "Trygdeavgift $nåværendeKvartal.kvartal ${startDatoForPerioder.year} - $sluttKvartal.kvartal ${sluttDatoForPerioder.year}"
-                        else "Trygdeavgift $nåværendeKvartal. kvartal ${startDatoForPerioder.year}"
-                    } else {
-                        val nåværendeMåned =
-                            startDatoForPerioder.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
-                        "Trygdeavgift $nåværendeMåned ${startDatoForPerioder.year}"
-                    }
+                val startDatoForPerioder = fakturalinjer.minByOrNull { it.periodeFra }!!.periodeFra
+                val sluttDatoForPerioder = fakturalinjer.maxByOrNull { it.periodeTil }!!.periodeTil
+                if (intervall == FakturaserieIntervall.KVARTAL) {
+                    val nåværendeKvartal = startDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
+                    val sluttKvartal = sluttDatoForPerioder[IsoFields.QUARTER_OF_YEAR]
+                    if (nåværendeKvartal < sluttKvartal) "Trygdeavgift $nåværendeKvartal.kvartal ${startDatoForPerioder.year} - $sluttKvartal.kvartal ${sluttDatoForPerioder.year}"
+                    else "Trygdeavgift $nåværendeKvartal. kvartal ${startDatoForPerioder.year}"
+                } else {
+                    val nåværendeMåned = startDatoForPerioder.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
+                    "Trygdeavgift $nåværendeMåned ${startDatoForPerioder.year}"
                 }
             }
+        }
+    }
+
+    private fun mapArtikkel(fakturaGjelder: Innbetalingstype): String {
+        return when (fakturaGjelder) {
+            Innbetalingstype.TRYGDEAVGIFT -> AVGIFT_TIL_FOLKETRYGDEN
+            Innbetalingstype.AARSAVREGNING -> AVGIFT_TIL_FOLKETRYGDEN
         }
     }
 }

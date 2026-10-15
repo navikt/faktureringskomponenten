@@ -129,7 +129,6 @@ class AdminService(
 
         val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(nyFaktura, fakturaserie)
         nyFaktura.beskrivelse = fakturaBestiltDto.beskrivelse
-        nyFaktura.artikkel = fakturaBestiltDto.artikkel
 
         (fakturaserie.faktura as MutableList<Faktura>).add(nyFaktura)
         fakturaserieRepository.save(fakturaserie)

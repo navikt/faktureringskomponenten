@@ -106,14 +106,13 @@ class FakturaBestillingServiceIT(
     }
 
     @Test
-    fun `beskrivelse og artikkel lagres på faktura ved bestilling`() {
+    fun `beskrivelse lagres på faktura ved bestilling`() {
         fakturaBestillCronjob.bestillFaktura()
 
         val sendtMelding = TestQueue.fakturaBestiltMeldinger.single()
         val faktura = fakturaRepository.findByReferanseNr(fakturaReferanseNr)!!
 
         faktura.beskrivelse.shouldBe(sendtMelding.beskrivelse)
-        faktura.artikkel.shouldBe(sendtMelding.artikkel)
     }
 
     @Test

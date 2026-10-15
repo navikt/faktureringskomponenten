@@ -2,7 +2,6 @@ package no.nav.faktureringskomponenten.controller.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
-import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -36,18 +35,6 @@ data class FakturaResponseDto(
     @Schema(description = "Om fakturaen er en kreditnota")
     val erKreditnota: Boolean = false,
 
-    @Schema(description = "Fakturaens hodebeskrivelse slik den sendes til OEBS. Null for kreditnotaer som ble bestilt før beskrivelsen ble lagret, siden den ikke kan utledes på nytt")
+    @Schema(description = "Fakturaens hodebeskrivelse slik den sendes til OEBS. Null for fakturaer som ble bestilt før beskrivelsen ble lagret")
     val beskrivelse: String?,
-
-    @Schema(description = "Artikkelen fakturaen føres på i OEBS")
-    val artikkel: String,
-
-    @Schema(description = "True når beskrivelsen er utledet på nytt fordi fakturaen ikke er bestilt, eller ble bestilt før feltet ble lagret. Utledet beskrivelse er ikke garantert lik den OEBS fikk")
-    val beskrivelseErUtledet: Boolean,
-
-    @Schema(description = "Referansenummer til fakturaen denne krediterer")
-    val krediteringFakturaRef: String? = null,
-
-    @Schema(description = "Sum av alle fakturalinjer")
-    val totalbelop: BigDecimal,
 )

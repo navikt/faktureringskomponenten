@@ -1,2 +1,1 @@
 ALTER TABLE faktura ADD COLUMN beskrivelse VARCHAR(240);
-ALTER TABLE faktura ADD COLUMN artikkel VARCHAR(20);

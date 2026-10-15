@@ -54,7 +54,6 @@ class FakturaBestillingService(
 
         val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(faktura, fakturaserie)
         faktura.beskrivelse = fakturaBestiltDto.beskrivelse
-        faktura.artikkel = fakturaBestiltDto.artikkel
 
         fakturaserieRepository.save(fakturaserie)
         fakturaRepository.save(faktura)
@@ -75,7 +74,6 @@ class FakturaBestillingService(
         fakturaserie.faktura.forEach {
             val fakturaBestiltDto = FakturaBestiltDtoMapper().tilFakturaBestiltDto(it, fakturaserie, beskrivelse)
             it.beskrivelse = fakturaBestiltDto.beskrivelse
-            it.artikkel = fakturaBestiltDto.artikkel
 
             fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
             Metrics.counter(MetrikkNavn.FAKTURA_BESTILT).increment()

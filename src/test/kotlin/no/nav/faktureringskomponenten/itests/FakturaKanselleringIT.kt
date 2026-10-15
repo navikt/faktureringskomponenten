@@ -129,7 +129,6 @@ class FakturaKanselleringIT(
                 single().apply {
                     status.shouldBe(FakturaStatus.BESTILT)
                     beskrivelse.shouldBe("Opphør av medlemskap")
-                    artikkel.shouldBe("F00008")
                 }
             }
         }

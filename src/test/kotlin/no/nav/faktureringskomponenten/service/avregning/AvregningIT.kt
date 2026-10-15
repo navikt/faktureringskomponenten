@@ -1033,7 +1033,9 @@ class AvregningIT(
                 .returnResult().responseBody!!.fakturaserieReferanse
 
         val fakturaer3 = fakturaRepository.findByFakturaserieReferanse(serieRef3)
-        fakturaer3.shouldHaveSize(8).sortedBy { it.getPeriodeFra() }
+        fakturaer3.shouldHaveSize(8)
+            // To fakturaer starter 2027-01-01; avregningen skal komme først uavhengig av rekkefølgen fra databasen
+            .sortedWith(compareBy<Faktura>({ it.getPeriodeFra() }, { !it.erAvregningsfaktura() }))
             .run {
                 get(0).run {
                     fakturaLinje.single()
