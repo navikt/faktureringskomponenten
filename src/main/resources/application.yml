@@ -53,6 +53,13 @@ no.nav.security.jwt.issuer:
     discovery-url: ${AZURE_APP_WELL_KNOWN_URL}
     accepted-audience: ${AZURE_APP_CLIENT_ID}
 
+# Tilgang til /admin/**. Tom standardverdi: mangler verdien, starter appen, men adminkall får 403.
+admin:
+  # Personkall krever denne gruppen i tokenet. I Nais: melosys-innlogging-vakt.
+  driftsgruppe: ${GROUP_MELOSYS_INNLOGGING_VAKT:}
+  # Alle kall må komme fra denne klienten (azp). I Nais: melosys-console.
+  console-klient-id: ${MELOSYS_CONSOLE_CLIENT_ID:}
+
 management:
   endpoints:
     web:

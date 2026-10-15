@@ -31,6 +31,11 @@ KAFKA_TOPIC_NAME_MANGLENDE_FAKTURABETALING: "manglende-fakturabetaling.v1"
 AZURE_APP_WELL_KNOWN_URL: http://host.docker.internal:8082/isso/.well-known/openid-configuration
 AZURE_APP_CLIENT_ID: melosys-localhost
 
+# Token fra mock-oauth2-server (Console lokalt og e2e): azp = melosys-api, groups = 0000-GA-MELOSYS
+admin:
+  driftsgruppe: 0000-GA-MELOSYS
+  console-klient-id: melosys-api
+
 unleash:
   url: http://localhost:4242/api
   token: "*:development.unleash-insecure-client-api-token"

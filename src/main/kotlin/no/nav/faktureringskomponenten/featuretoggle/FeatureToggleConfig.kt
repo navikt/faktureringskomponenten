@@ -41,6 +41,8 @@ class FeatureToggleConfig {
                     .apiKey(token)
                     .appName("$APP_NAME-local")
                     .unleashAPI(unleashUrl)
+                    // I sekunder (standard 10). E2e-testene bytter toggles og kaller tjenesten rett etterpå.
+                    .fetchTogglesInterval(1)
                     .build()
 
                 val defaultUnleash = DefaultUnleash(config,
