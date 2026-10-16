@@ -14,8 +14,6 @@ class ApiConfig(
 ) : WebMvcConfigurer {
 
     override fun addInterceptors(registry: InterceptorRegistry) {
-        registry.addInterceptor(CorrelationIdInterceptor())
-        // Etter CorrelationIdInterceptor, så avvisninger logges med korrelasjons-ID.
         // Lages her og ikke som @Component, så @WebMvcTest uten token-support fortsatt starter.
         registry.addInterceptor(
             AdminTilgangInterceptor(SpringTokenValidationContextHolder(), driftsgruppeId, consoleKlientId)
