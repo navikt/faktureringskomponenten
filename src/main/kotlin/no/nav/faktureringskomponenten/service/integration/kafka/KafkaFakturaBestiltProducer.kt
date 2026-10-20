@@ -1,7 +1,6 @@
 package no.nav.faktureringskomponenten.service.integration.kafka
 
 import mu.KotlinLogging
-import no.nav.faktureringskomponenten.config.MDCOperations
 import no.nav.faktureringskomponenten.service.integration.kafka.dto.FakturaBestiltDto
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,7 +21,6 @@ class KafkaFakturaBestiltProducer(
 
     override fun produserBestillingsmelding(fakturaBestiltDto: FakturaBestiltDto) {
         val fakturaBestiltRecord = ProducerRecord<String, FakturaBestiltDto>(topicName, fakturaBestiltDto)
-        fakturaBestiltRecord.headers().add(MDCOperations.CORRELATION_ID, MDCOperations.correlationId.encodeToByteArray())
         val future = kafkaTemplate.send(fakturaBestiltRecord)
 
         try {

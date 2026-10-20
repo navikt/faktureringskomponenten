@@ -5,6 +5,7 @@ import no.nav.faktureringskomponenten.domain.models.*
 import no.nav.faktureringskomponenten.service.FakturaDto
 import no.nav.faktureringskomponenten.service.FakturamottakerDto
 import no.nav.faktureringskomponenten.service.FakturaserieDto
+import no.nav.faktureringskomponenten.service.mappers.FakturaBestiltDtoMapper
 import ulid.ULID
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -22,7 +23,7 @@ fun Fakturaserie.tilFakturaserieResponseDto(inkluderFodselsnummer: Boolean = tru
         status = this.status,
         intervall = this.intervall,
         opprettetTidspunkt = LocalDateTime.ofInstant(this.opprettetTidspunkt, ZoneId.systemDefault()),
-        faktura = this.faktura.map { it.tilResponseDto },
+        faktura = this.faktura.map { it.tilResponseDto(this) },
     )
 }
 
@@ -75,8 +76,8 @@ private val FullmektigDto.tilFullmektig: Fullmektig
         organisasjonsnummer = this.organisasjonsnummer,
     )
 
-private val Faktura.tilResponseDto: FakturaResponseDto
-    get() = FakturaResponseDto(
+private fun Faktura.tilResponseDto(fakturaserie: Fakturaserie): FakturaResponseDto =
+    FakturaResponseDto(
         fakturaReferanse = this.referanseNr,
         datoBestilt = this.datoBestilt,
         sistOppdatert = LocalDateTime.ofInstant(this.endretTidspunkt, ZoneId.systemDefault()),
@@ -86,7 +87,11 @@ private val Faktura.tilResponseDto: FakturaResponseDto
         periodeTil = this.getPeriodeTil(),
         eksternFakturaStatus = this.eksternFakturaStatus.map { it.tilResponseDto },
         eksternFakturaNummer = this.eksternFakturaNummer,
-        erKreditnota = this.erKreditnota
+        erKreditnota = this.erKreditnota,
+        // Ikke-bestilte fakturaer får teksten de vil bli sendt med. Bestilte fakturaer uten lagret
+        // beskrivelse ble bestilt før feltet fantes, og da vet vi ikke sikkert hva OEBS fikk.
+        beskrivelse = this.beskrivelse
+            ?: if (this.status == FakturaStatus.OPPRETTET) FakturaBestiltDtoMapper().utledBeskrivelse(this, fakturaserie) else null
     )
 
 private val EksternFakturaStatus.tilResponseDto: FakturaTilbakemeldingResponseDto

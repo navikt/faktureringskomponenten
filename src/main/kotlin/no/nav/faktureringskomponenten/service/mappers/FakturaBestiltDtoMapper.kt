@@ -23,13 +23,7 @@ class FakturaBestiltDtoMapper {
             krediteringFakturaRef = faktura.krediteringFakturaRef,
             referanseBruker = fakturaserie.referanseBruker,
             referanseNAV = fakturaserie.referanseNAV,
-            beskrivelse = mapFakturaBeskrivelse(
-                fakturaserie.fakturaGjelderInnbetalingstype,
-                faktura.fakturaLinje,
-                fakturaserie.intervall,
-                faktura.erAvregningsfaktura(),
-                kanselleringBeskrivelse
-            ),
+            beskrivelse = utledBeskrivelse(faktura, fakturaserie, kanselleringBeskrivelse),
             artikkel = mapArtikkel(fakturaserie.fakturaGjelderInnbetalingstype),
             faktureringsDato = LocalDate.now(),
             fakturaLinjer = faktura.fakturaLinje.map {
@@ -42,6 +36,15 @@ class FakturaBestiltDtoMapper {
             }
         )
     }
+
+    fun utledBeskrivelse(faktura: Faktura, fakturaserie: Fakturaserie, kanselleringBeskrivelse: String? = null): String =
+        mapFakturaBeskrivelse(
+            fakturaserie.fakturaGjelderInnbetalingstype,
+            faktura.fakturaLinje,
+            fakturaserie.intervall,
+            faktura.erAvregningsfaktura(),
+            kanselleringBeskrivelse
+        )
 
     private fun mapFakturaBeskrivelse(
         fakturaGjelder: Innbetalingstype,
