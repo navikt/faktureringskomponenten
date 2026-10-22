@@ -154,7 +154,10 @@ class FakturastatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) 
         ::tilFakturaOppfoelging
     )
 
-    /** Fakturaer i FEIL gruppert på siste feilmelding fra OEBS, flest først. */
+    /**
+     * Fakturaer i FEIL gruppert på siste feilmelding fra OEBS, flest først. Feilmeldingen er fritekst og kan
+     * inneholde fødselsnummer, organisasjonsnummer eller fakturanummer, så tallrekker maskeres før grupperingen.
+     */
     fun feilPerMelding(maks: Int): List<FeilmeldingGruppe> = jdbc.query(
         """
         WITH siste_feil AS (
@@ -163,7 +166,10 @@ class FakturastatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) 
             WHERE e.status = 'FEIL'
             ORDER BY e.faktura_id, e.id DESC
         )
-        SELECT LEFT(COALESCE(NULLIF(TRIM(sf.feilmelding), ''), :ingenMelding), :maksLengde) AS melding,
+        SELECT LEFT(
+                   regexp_replace(COALESCE(NULLIF(TRIM(sf.feilmelding), ''), :ingenMelding), :tallMoenster, :maske, 'g'),
+                   :maksLengde
+               ) AS melding,
                COUNT(*) AS antall,
                MIN(sf.dato) AS eldste
         FROM faktura f
@@ -173,7 +179,13 @@ class FakturastatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) 
         ORDER BY 2 DESC, 1
         LIMIT :maks
         """,
-        mapOf("ingenMelding" to INGEN_FEILMELDING, "maksLengde" to MAKS_LENGDE_FEILMELDING, "maks" to maks)
+        mapOf(
+            "ingenMelding" to INGEN_FEILMELDING,
+            "tallMoenster" to TALL_MOENSTER,
+            "maske" to MASKE,
+            "maksLengde" to MAKS_LENGDE_FEILMELDING,
+            "maks" to maks
+        )
     ) { rs, _ ->
         FeilmeldingGruppe(
             melding = rs.getString("melding"),
@@ -317,6 +329,10 @@ class FakturastatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) 
     companion object {
         const val INGEN_FEILMELDING = "(ingen feilmelding)"
         const val MAKS_LENGDE_FEILMELDING = 300
+
+        /** Fem eller flere sifre, eventuelt skilt med mellomrom eller punktum (fnr, orgnr, fakturanummer, datoer). */
+        const val TALL_MOENSTER = """\d(?:[ .]?\d){4,}"""
+        const val MASKE = "***"
 
         /**
          * Fakturaer med totalbeløp (sum av linjene) og utledet type:

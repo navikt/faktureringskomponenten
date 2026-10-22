@@ -196,6 +196,31 @@ class FakturastatistikkIT(
     }
 
     @Test
+    fun `tallrekker i feilmeldinger fra OEBS maskeres og grupperes sammen`() {
+        fakturaserieRepository.saveAndFlush(
+            Fakturaserie.forTest {
+                referanse = ULID.randomULID()
+                listOf("123456 78901", "98765432109").forEachIndexed { i, fnr ->
+                    leggTilFaktura(
+                        lagFaktura("FEIL-$i", FakturaStatus.FEIL, idag.minusDays(3), 1000) {
+                            leggTilEksternFakturaStatus(EksternFakturaStatus.forTest {
+                                status = FakturaStatus.FEIL
+                                dato = idag.minusDays(2)
+                                feilMelding = "Fant ikke kunde $fnr i kundedata, faktura 99991234"
+                            })
+                        }
+                    )
+                }
+            }
+        )
+
+        val feilmelding = fakturastatistikkService.hentStatistikk(null, null).drift.feil.perFeilmelding.single()
+
+        feilmelding.melding shouldBe "Fant ikke kunde *** i kundedata, faktura ***"
+        feilmelding.antall shouldBe 2
+    }
+
+    @Test
     fun `endepunktet avviser fraOgMed etter tilOgMed`() {
         webClient.get()
             .uri("/admin/statistikk?fraOgMed=$idag&tilOgMed=${idag.minusDays(1)}")
