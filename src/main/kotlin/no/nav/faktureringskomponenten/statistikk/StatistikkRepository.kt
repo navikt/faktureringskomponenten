@@ -211,8 +211,11 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
     companion object {
         const val SIMULERT_MANGLENDE_INNBETALING = "Simulert manglende innbetaling"
 
-        /** Fem eller flere sifre, eventuelt skilt med mellomrom eller punktum. Sendes som parameter (`?:`). */
-        const val TALLMOENSTER = """\d(?:[ .]?\d){4,}"""
+        /**
+         * Fem eller flere sifre, eventuelt skilt med ett tegn som ikke er bokstav eller siffer
+         * (mellomrom, NBSP, punktum, bindestrek, skråstrek, understrek osv.). Sendes som parameter (`?:`).
+         */
+        const val TALLMOENSTER = """\d(?:[^[:alnum:]]?\d){4,}"""
 
         /**
          * Alle fakturaer med beløp (sum av linjene) og tre utledninger:
