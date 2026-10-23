@@ -75,13 +75,6 @@ data class FakturaEksempelDto(
 data class FeilDto(
     val uloest: Long,
     val eldsteFeilDato: LocalDate?,
-    val perFeilmelding: List<FeilmeldingDto>,
-)
-
-data class FeilmeldingDto(
-    val melding: String,
-    val antall: Long,
-    val eldsteFeilDato: LocalDate?,
 )
 
 data class MottakDto(

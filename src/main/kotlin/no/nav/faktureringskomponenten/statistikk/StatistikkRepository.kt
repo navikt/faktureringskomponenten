@@ -126,30 +126,18 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
     }
 
     /**
-     * Fakturaer i FEIL gruppert på siste feilmelding fra OEBS. Meldingen er fritekst og kan inneholde
-     * fødselsnummer eller organisasjonsnummer, så tallrekker maskeres før grupperingen.
+     * Fakturaer som står i FEIL nå, og den tidligste FEIL-meldingen fra OEBS på dem. Feilmeldingen er fritekst
+     * og kan inneholde personopplysninger, så den tas ikke med.
      */
-    fun feilPerMelding(): List<FeilmeldingDto> = jdbc.query(
+    fun feil(): FeilDto = jdbc.queryForObject(
         """
-        WITH siste_feil AS (
-            SELECT DISTINCT ON (faktura_id) faktura_id, feilmelding, dato
-            FROM ekstern_faktura_status
-            WHERE status = 'FEIL'
-            ORDER BY faktura_id, dato DESC, id DESC
-        )
-        SELECT LEFT(regexp_replace(COALESCE(sf.feilmelding, '(ingen feilmelding)'), :tallmoenster, '***', 'g'), 300) AS melding,
-               COUNT(*) AS antall,
-               MIN(sf.dato) AS eldste
-        FROM faktura f
-        LEFT JOIN siste_feil sf ON sf.faktura_id = f.id
-        WHERE f.status = 'FEIL'
-        GROUP BY 1
-        ORDER BY 2 DESC, 1
+        SELECT (SELECT COUNT(*) FROM faktura WHERE status = 'FEIL') AS uloest,
+               (SELECT MIN(e.dato) FROM ekstern_faktura_status e
+                  JOIN faktura f ON f.id = e.faktura_id
+                 WHERE f.status = 'FEIL' AND e.status = 'FEIL') AS eldste
         """,
-        mapOf("tallmoenster" to TALLMOENSTER)
-    ) { rs, _ ->
-        FeilmeldingDto(rs.getString("melding"), rs.getLong("antall"), rs.getObject("eldste", LocalDate::class.java))
-    }
+        emptyMap<String, Any>()
+    ) { rs, _ -> FeilDto(rs.getLong("uloest"), rs.getObject("eldste", LocalDate::class.java)) }
 
     fun mottak(lytterKjoerer: Boolean?): MottakDto = jdbc.queryForObject(
         """
@@ -210,12 +198,6 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
 
     companion object {
         const val SIMULERT_MANGLENDE_INNBETALING = "Simulert manglende innbetaling"
-
-        /**
-         * Fem eller flere sifre, eventuelt skilt med ett tegn som ikke er bokstav eller siffer
-         * (mellomrom, NBSP, punktum, bindestrek, skråstrek, understrek osv.). Sendes som parameter (`?:`).
-         */
-        const val TALLMOENSTER = """\d(?:[^[:alnum:]]?\d){4,}"""
 
         /**
          * Alle fakturaer med beløp (sum av linjene) og tre utledninger:

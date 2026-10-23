@@ -28,14 +28,9 @@ class StatistikkService(
         val nesteKjoering = if (erKjoeringsdato(idag) && planlagtIdag.antall > 0) planlagtIdag
         else statistikkRepository.planlagt(nesteKjoeringsdatoEtter(idag))
 
-        val feil = statistikkRepository.feilPerMelding()
         val naatilstand = NaatilstandDto(
             forfaltIkkeBestilt = statistikkRepository.forfaltIkkeBestilt(idag),
-            feil = FeilDto(
-                uloest = feil.sumOf { it.antall },
-                eldsteFeilDato = feil.mapNotNull { it.eldsteFeilDato }.minOrNull(),
-                perFeilmelding = feil,
-            ),
+            feil = statistikkRepository.feil(),
             mottak = statistikkRepository.mottak(lytterKjoerer()),
             sendtFoerBestillingsdato = statistikkRepository.sendtFoerBestillingsdato(idag),
             muligDobbeltfakturering = statistikkRepository.muligDobbeltfakturering(),

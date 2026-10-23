@@ -112,12 +112,8 @@ class StatistikkIT(
                 FakturaEksempelDto("SENDT-FOER", serieA, LocalDate.of(2027, 3, 19))
             koblingsfakturaer shouldBe 2
             muligDobbeltfakturering.single().fakturaserieReferanser shouldContainExactlyInAnyOrder listOf(serieA, serieB)
-            // To meldinger som bare skiller seg i tallrekken, grupperes til én
-            feil.uloest shouldBe 2
-            feil.eldsteFeilDato shouldBe LocalDate.of(2026, 6, 25)
-            feil.perFeilmelding shouldContainExactly listOf(
-                FeilmeldingDto("Fant ikke kunde *** i kundedata", 2, LocalDate.of(2026, 6, 25))
-            )
+            // Tidligste FEIL-melding på K3, ikke den siste. K1 er ikke i FEIL nå og teller ikke
+            feil shouldBe FeilDto(uloest = 2, eldsteFeilDato = LocalDate.of(2026, 6, 25))
             mottak.lytterKjoerer shouldBe true
             mottak.manglendeInnbetalingIkkeVideresendt shouldBe 1
         }
@@ -127,10 +123,6 @@ class StatistikkIT(
     fun `endepunktet svarer Console med UTC-tidspunkter og uten personopplysninger`() {
         lagTestdata()
         jdbc.update("UPDATE ekstern_faktura_status SET opprettet_tidspunkt = ?", LocalDateTime.of(2026, 10, 14, 6, 30, 3))
-        jdbc.update(
-            "UPDATE ekstern_faktura_status SET feilmelding = ? WHERE feilmelding LIKE 'Fant ikke kunde 123.%'",
-            "Ukjent 123456-78901, 1111/1111/111, 1111_1111_111 og 1111\u00A01111\u00A0111"
-        )
         // Andre tester rydder ikke faktura_mottak_feil, så tidspunktet må være det siste
         jdbc.update(
             "INSERT INTO faktura_mottak_feil (error, opprettet_tidspunkt) VALUES (?, ?)",
@@ -151,8 +143,9 @@ class StatistikkIT(
         svar shouldNotContain FNR_2
         svar shouldNotContain ORGNR
         svar shouldNotContain "123.456.789"
-        svar shouldContain "Ukjent ***, ***, *** og ***"
-        listOf("123456", "78901", "1111").forEach { svar shouldNotContain it }
+        svar shouldNotContain "Ola Nordmann"
+        svar shouldNotContain "78901"
+        svar shouldContain "\"feil\":{\"uloest\":2,\"eldsteFeilDato\":\"2026-06-25\"}"
     }
 
     @Test
@@ -209,6 +202,7 @@ class StatistikkIT(
                 })
                 leggTilFaktura(lagFaktura("K3", FakturaStatus.FEIL, juni, juli, 1000) {
                     leggTilEksternFakturaStatus(feil("Fant ikke kunde $FNR_1 i kundedata", LocalDate.of(2026, 6, 25)))
+                    leggTilEksternFakturaStatus(feil("Ola Nordmann 123456-78901", LocalDate.of(2026, 7, 2)))
                 })
                 leggTilFaktura(lagFaktura("K4", FakturaStatus.MANGLENDE_INNBETALING, juni, juli, 1000) {
                     leggTilEksternFakturaStatus(manglende(LocalDate.of(2026, 6, 25), ubetalt = 1000, sendt = false, simulert = true))
