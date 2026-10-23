@@ -7,7 +7,7 @@ metadata:
     team: teammelosys
 spec:
   startup:
-    failureThreshold: 10
+    failureThreshold: 30
     initialDelay: 35
     path: /internal/health
     timeout: 5
