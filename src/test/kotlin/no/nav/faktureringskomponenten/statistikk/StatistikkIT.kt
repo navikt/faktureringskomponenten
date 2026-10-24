@@ -16,8 +16,11 @@ import no.nav.faktureringskomponenten.domain.models.EksternFakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
+import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
+import no.nav.faktureringskomponenten.domain.models.FakturaserieStatus
 import no.nav.faktureringskomponenten.domain.models.FakturaTestFactory
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
 import no.nav.faktureringskomponenten.domain.models.forTest
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.service.integration.kafka.EmbeddedKafkaBase
@@ -219,6 +222,217 @@ class StatistikkIT(
         etterpaa.kjoeringer.forAll { it.ikkeBestilt shouldBe 1 }
     }
 
+    @Test
+    fun `regner ut perioder, planlagt og fakturaserier`() {
+        lagTestdataForPerioder()
+
+        val bilde = statistikkService.hentOyeblikksbilde(NAA)
+
+        bilde.perioder.map { "${it.type} ${it.noekkel}" } shouldContainExactly listOf(
+            "KVARTAL 2026-K3", "KVARTAL 2026-K2", "KVARTAL 2025-K4",
+            "AAR 2026", "AAR 2025",
+            "GJELDER_AAR 2026", "GJELDER_AAR 2025", "GJELDER_AAR 2024",
+            "ALT alt",
+        )
+        val periode = bilde.perioder.associateBy { "${it.type} ${it.noekkel}" }
+        assertSoftly(periode.getValue("ALT alt")) {
+            // Koblingen, AVBRUTT og de planlagte er ikke sendt
+            sendt shouldBe 8
+            fakturert shouldBeEqualComparingTo BigDecimal("5600")
+            kreditert shouldBeEqualComparingTo BigDecimal("-700")
+            netto shouldBeEqualComparingTo BigDecimal("4900")
+            personer shouldBe 2
+            perType.mapValues { (_, v) -> v.antall to v.beloep.toInt() } shouldBe mapOf(
+                "VANLIG" to (4L to 4500), "AVREGNING_TILLEGG" to (1L to 300), "AVREGNING_FRADRAG" to (1L to -200),
+                "AARSAVREGNING" to (1L to 800), "KREDITERING" to (1L to -500),
+            )
+            perBestillingsmaate.mapValues { (_, v) -> v.antall to v.beloep.toInt() } shouldBe mapOf(
+                "KVARTALSKJOERING" to (2L to 3000), "UTENOM" to (6L to 1900),
+            )
+            // V1 står i MANGLENDE_INNBETALING bare etter en simulert melding og telles som BESTILT
+            perStatus shouldBe mapOf("BESTILT" to 5L, "MANGLENDE_INNBETALING" to 1L, "FEIL" to 1L, "INNE_I_OEBS" to 1L)
+            feil shouldBe PeriodeFeilDto(noenGang = 2, loest = 1, uloest = 1)
+            // Den simulerte meldingen på V1 er holdt utenfor. Ikke betalt: V2 (ubetalt lik fakturabeløpet),
+            // delvis betalt: TILLEGG, SATS (ubetalt 0) og AAR (ubetalt over fakturabeløpet), uten detaljer: FRADRAG
+            manglendeInnbetaling.copy(ubetalt = BigDecimal.ZERO) shouldBe PeriodeManglendeInnbetalingDto(
+                antall = 5, ikkeBetalt = 1, delvisBetalt = 3, utenDetaljer = 1, ubetalt = BigDecimal.ZERO
+            )
+            manglendeInnbetaling.ubetalt shouldBeEqualComparingTo BigDecimal("3000")
+        }
+        assertSoftly(periode.getValue("KVARTAL 2026-K2")) {
+            sendt shouldBe 2
+            netto shouldBeEqualComparingTo BigDecimal("3000")
+            // To fakturaer på samme fødselsnummer
+            personer shouldBe 1
+        }
+        assertSoftly(periode.getValue("KVARTAL 2026-K3")) {
+            sendt shouldBe 5
+            netto shouldBeEqualComparingTo BigDecimal("1100")
+            personer shouldBe 2
+        }
+        periode.getValue("AAR 2026").sendt shouldBe 7
+        periode.getValue("AAR 2025").netto shouldBeEqualComparingTo BigDecimal("800")
+        // U1 har linjer i både 2025 og 2026 og telles i begge med linjesummen for året
+        assertSoftly(periode.getValue("GJELDER_AAR 2026")) {
+            sendt shouldBe 7
+            fakturert shouldBeEqualComparingTo BigDecimal("4400")
+            kreditert shouldBeEqualComparingTo BigDecimal("-700")
+            netto shouldBeEqualComparingTo BigDecimal("3700")
+            perType.getValue("VANLIG").beloep shouldBeEqualComparingTo BigDecimal("4100")
+        }
+        assertSoftly(periode.getValue("GJELDER_AAR 2025")) {
+            sendt shouldBe 1
+            netto shouldBeEqualComparingTo BigDecimal("400")
+            feil.uloest shouldBe 1
+        }
+        periode.getValue("GJELDER_AAR 2024").perType.getValue("AARSAVREGNING").antall shouldBe 1
+        bilde.perioder.forAll {
+            with(it.manglendeInnbetaling) { ikkeBetalt + delvisBetalt + utenDetaljer shouldBe antall }
+        }
+
+        bilde.utenomPerKvartal.map { it.kvartal } shouldContainExactly listOf("2025-K4", "2026-K3")
+        assertSoftly(bilde.utenomPerKvartal[1]) {
+            sendt shouldBe 5
+            beloep shouldBeEqualComparingTo BigDecimal("1100")
+            perType.mapValues { (_, v) -> v.antall } shouldBe mapOf(
+                "VANLIG" to 2L, "AVREGNING_TILLEGG" to 1L, "AVREGNING_FRADRAG" to 1L, "AARSAVREGNING" to 0L, "KREDITERING" to 1L
+            )
+            perKilde shouldBe mapOf("VEDTAK" to 4L, "EOS_PENSJONIST" to 0L, "SATSENDRING" to 1L, "AARSAVREGNING" to 0L, "ANNET" to 0L)
+            feiletNoenGang shouldBe 2
+            manglendeInnbetaling shouldBe 3
+        }
+        bilde.utenomPerKvartal[0].perKilde.getValue("AARSAVREGNING") shouldBe 1
+
+        bilde.nesteKjoering.dato shouldBe LocalDate.of(2026, 12, 19)
+        assertSoftly(bilde.planlagt) {
+            listOf(forfalt, foerNesteKjoering, iNesteKjoering, senere, totalt).map { it.antall to it.beloep.toInt() } shouldBe
+                listOf(1L to 100, 1L to 200, 1L to 300, 1L to 400, 4L to 1000)
+            sisteBestillingsdato shouldBe LocalDate.of(2027, 3, 19)
+            serier shouldBe 2
+            personer shouldBe 2
+        }
+        // Den forfalte fra 2026-K3 er før inneværende kvartal
+        bilde.planlagtPerKvartal.map { Triple(it.kvartal, it.antall, it.beloep.toInt()) } shouldContainExactly listOf(
+            Triple("2026-K4", 2L, 500), Triple("2027-K1", 1L, 400)
+        )
+
+        bilde.fakturaserier shouldBe FakturaserierDto(
+            antall = 5,
+            personer = 3,
+            perKilde = mapOf("VEDTAK" to 1L, "EOS_PENSJONIST" to 1L, "SATSENDRING" to 1L, "AARSAVREGNING" to 1L, "ANNET" to 1L),
+            perStatus = mapOf("OPPRETTET" to 1L, "UNDER_BESTILLING" to 1L, "ERSTATTET" to 1L, "KANSELLERT" to 1L, "FERDIG" to 1L),
+            perIntervall = mapOf("KVARTAL" to 3L, "SINGEL" to 1L, "MANEDLIG" to 1L),
+        )
+
+        val svar = webClient.get()
+            .uri("/admin/statistikk/oyeblikksbilde")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token(mapOf("idtyp" to "app")))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<String>()
+            .returnResult().responseBody!!
+        svar shouldContain "\"perioder\":[{\"type\":\"KVARTAL\",\"noekkel\":\"2026-K3\""
+        listOf(FNR_1, FNR_2, FNR_3).forAll { svar shouldNotContain it }
+    }
+
+    /**
+     * Sendt: V1 og V2 i kvartalskjøringen 19.06.2026, U1 (linjer i 2025 og 2026), KRED, TILLEGG, FRADRAG og SATS
+     * utenom i 2026-K3, og AAR (årsavregning) i 2025-K4. Planlagt: én i hver bøtte rundt neste kjøring 19.12.2026.
+     */
+    private fun lagTestdataForPerioder() {
+        val juni = LocalDate.of(2026, 6, 19)
+        val juli = LocalDate.of(2026, 7, 1)
+        val august = LocalDate.of(2026, 8, 5)
+        fakturaserieRepository.saveAndFlush(
+            Fakturaserie.forTest {
+                referanse = ULID.randomULID()
+                fodselsnummer = FNR_1
+                referanseBruker = "Vedtak om medlemskap datert 01.06.2026"
+                status = FakturaserieStatus.UNDER_BESTILLING
+                // Simulert i prod: fakturaen settes i MANGLENDE_INNBETALING, men meldingen er simulert
+                leggTilFaktura(lagFaktura("V1", FakturaStatus.MANGLENDE_INNBETALING, juni, juli, 1000) {
+                    leggTilEksternFakturaStatus(manglende(LocalDate.of(2026, 7, 1), ubetalt = 1000, sendt = true, simulert = true))
+                })
+                leggTilFaktura(lagFaktura("V2", FakturaStatus.MANGLENDE_INNBETALING, juni, juli, 2000) {
+                    leggTilEksternFakturaStatus(manglende(LocalDate.of(2026, 8, 1), ubetalt = 2000, sendt = true, fakturabeloep = 2000))
+                })
+                leggTilFaktura(lagFaktura("U1", FakturaStatus.FEIL, august, LocalDate.of(2025, 10, 1), 400) {
+                    leggTilFakturaLinje(FakturaLinje.forTest {
+                        periodeFra = LocalDate.of(2026, 1, 1)
+                        periodeTil = LocalDate.of(2026, 3, 31)
+                        belop = BigDecimal(600)
+                    })
+                    leggTilEksternFakturaStatus(feil("Feil", august))
+                })
+                leggTilFaktura(lagFaktura("KRED", FakturaStatus.INNE_I_OEBS, august, juli, -500) {
+                    leggTilEksternFakturaStatus(feil("Feil", august))
+                })
+                leggTilFaktura(lagFaktura("TILLEGG", FakturaStatus.BESTILT, august, juli, 300) {
+                    leggTilEksternFakturaStatus(manglende(LocalDate.of(2026, 9, 1), ubetalt = 100, sendt = true, fakturabeloep = 300))
+                })
+                leggTilFaktura(lagFaktura("FRADRAG", FakturaStatus.BESTILT, august, juli, -200) {
+                    leggTilEksternFakturaStatus(EksternFakturaStatus.forTest {
+                        status = FakturaStatus.MANGLENDE_INNBETALING
+                        dato = LocalDate.of(2026, 9, 1)
+                        fakturaBelop = null
+                        ubetaltBelop = null
+                    })
+                })
+                leggTilFaktura(lagFaktura("KOBLING", FakturaStatus.BESTILT, august, juli, 0))
+                leggTilFaktura(lagFaktura("AVBRUTT", FakturaStatus.AVBRUTT, juni, juli, 1000))
+                leggTilFaktura(lagFaktura("P-FORFALT", FakturaStatus.OPPRETTET, LocalDate.of(2026, 9, 19), LocalDate.of(2026, 10, 1), 100))
+                leggTilFaktura(lagFaktura("P-FOER", FakturaStatus.OPPRETTET, LocalDate.of(2026, 11, 1), LocalDate.of(2026, 10, 1), 200))
+                leggTilFaktura(lagFaktura("P-NESTE", FakturaStatus.OPPRETTET, LocalDate.of(2026, 12, 19), LocalDate.of(2027, 1, 1), 300))
+            }
+        )
+        fakturaserieRepository.saveAndFlush(
+            Fakturaserie.forTest {
+                referanse = ULID.randomULID()
+                fodselsnummer = FNR_1
+                referanseBruker = "Årsavregning for 2024"
+                fakturaGjelderInnbetalingstype = Innbetalingstype.AARSAVREGNING
+                intervall = FakturaserieIntervall.SINGEL
+                status = FakturaserieStatus.FERDIG
+                leggTilFaktura(lagFaktura("AAR", FakturaStatus.BESTILT, LocalDate.of(2025, 11, 10), LocalDate.of(2024, 1, 1), 800) {
+                    leggTilEksternFakturaStatus(manglende(LocalDate.of(2026, 1, 5), ubetalt = 900, sendt = true, fakturabeloep = 800))
+                })
+            }
+        )
+        fakturaserieRepository.saveAndFlush(
+            Fakturaserie.forTest {
+                referanse = ULID.randomULID()
+                fodselsnummer = FNR_2
+                referanseBruker = "Faktura for årlig satsoppdatering 2026"
+                status = FakturaserieStatus.ERSTATTET
+                leggTilFaktura(lagFaktura("SATS", FakturaStatus.BESTILT, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 10, 1), 500) {
+                    leggTilEksternFakturaStatus(manglende(LocalDate.of(2026, 10, 1), ubetalt = 0, sendt = true, fakturabeloep = 500))
+                })
+                leggTilFaktura(lagFaktura("P-SENERE", FakturaStatus.OPPRETTET, LocalDate.of(2027, 3, 19), LocalDate.of(2027, 4, 1), 400))
+            }
+        )
+        fakturaserieRepository.saveAndFlush(
+            Fakturaserie.forTest {
+                referanse = ULID.randomULID()
+                fodselsnummer = FNR_2
+                referanseBruker = "Informasjon om trygdeavgift"
+                status = FakturaserieStatus.KANSELLERT
+            }
+        )
+        fakturaserieRepository.saveAndFlush(
+            Fakturaserie.forTest {
+                referanse = ULID.randomULID()
+                fodselsnummer = FNR_3
+                referanseBruker = "Noe helt annet"
+                intervall = FakturaserieIntervall.MANEDLIG
+                status = FakturaserieStatus.OPPRETTET
+            }
+        )
+        jdbc.update(
+            "UPDATE faktura SET avregning_faktura_id = (SELECT id FROM faktura WHERE referanse_nr = 'V1') " +
+                "WHERE referanse_nr IN ('TILLEGG', 'FRADRAG', 'KOBLING')"
+        )
+    }
+
     /** Returnerer referansene til to overlappende serier for samme person. */
     private fun lagTestdata(): Pair<String, String> {
         val juni = LocalDate.of(2026, 6, 19)
@@ -312,11 +526,12 @@ class StatistikkIT(
         feilMelding = melding
     }
 
-    private fun manglende(dato: LocalDate, ubetalt: Int, sendt: Boolean, simulert: Boolean = false) =
+    private fun manglende(dato: LocalDate, ubetalt: Int, sendt: Boolean, simulert: Boolean = false, fakturabeloep: Int = 1000) =
         EksternFakturaStatus.forTest {
             status = FakturaStatus.MANGLENDE_INNBETALING
             this.dato = dato
             this.ubetalt = ubetalt
+            beløp = fakturabeloep
             this.sendt = sendt
             if (simulert) feilMelding = "Simulert manglende innbetaling"
         }
@@ -339,6 +554,7 @@ class StatistikkIT(
         private val NAA = Instant.parse("2026-10-23T08:00:00Z")
         private const val FNR_1 = "11111111111"
         private const val FNR_2 = "22222222222"
+        private const val FNR_3 = "33333333333"
         private const val ORGNR = "987654321"
     }
 }

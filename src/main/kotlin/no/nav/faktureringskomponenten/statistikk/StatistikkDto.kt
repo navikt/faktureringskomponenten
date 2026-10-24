@@ -13,6 +13,85 @@ data class StatistikkOyeblikksbildeDto(
     val nesteKjoering: NesteKjoeringDto,
     val naa: NaatilstandDto,
     val meldingerOmManglendeInnbetaling: List<MeldingOmManglendeInnbetalingDto>,
+    val planlagt: PlanlagtDto,
+    val planlagtPerKvartal: List<PlanlagtKvartalDto>,
+    val utenomPerKvartal: List<UtenomKvartalDto>,
+    val perioder: List<PeriodeDto>,
+    val fakturaserier: FakturaserierDto,
+)
+
+data class AntallBeloepDto(
+    val antall: Long,
+    val beloep: BigDecimal,
+)
+
+data class PlanlagtDto(
+    val forfalt: AntallBeloepDto,
+    val foerNesteKjoering: AntallBeloepDto,
+    val iNesteKjoering: AntallBeloepDto,
+    val senere: AntallBeloepDto,
+    val totalt: AntallBeloepDto,
+    val sisteBestillingsdato: LocalDate?,
+    val serier: Long,
+    val personer: Long,
+)
+
+data class PlanlagtKvartalDto(
+    val kvartal: String,
+    val antall: Long,
+    val beloep: BigDecimal,
+)
+
+data class UtenomKvartalDto(
+    val kvartal: String,
+    val sendt: Long,
+    val beloep: BigDecimal,
+    val perType: Map<String, AntallBeloepDto>,
+    val perKilde: Map<String, Long>,
+    val feiletNoenGang: Long,
+    val manglendeInnbetaling: Long,
+)
+
+data class PeriodeDto(
+    val type: String,
+    val noekkel: String,
+    val sendt: Long,
+    val fakturert: BigDecimal,
+    val kreditert: BigDecimal,
+    val netto: BigDecimal,
+    val personer: Long,
+    val perType: Map<String, AntallBeloepDto>,
+    val perBestillingsmaate: Map<String, AntallBeloepDto>,
+    val perStatus: Map<String, Long>,
+    val feil: PeriodeFeilDto,
+    val manglendeInnbetaling: PeriodeManglendeInnbetalingDto,
+)
+
+data class PeriodeFeilDto(
+    val noenGang: Long,
+    val loest: Long,
+    val uloest: Long,
+)
+
+/**
+ * Gruppene summerer til [antall], som Melosys deler dem: ikke betalt når ubetalt = fakturabeløp, delvis betalt når
+ * beløpene er ulike (også ubetalt 0 eller større enn fakturabeløpet), og uten detaljer når ett av beløpene mangler i
+ * siste melding.
+ */
+data class PeriodeManglendeInnbetalingDto(
+    val antall: Long,
+    val ikkeBetalt: Long,
+    val delvisBetalt: Long,
+    val utenDetaljer: Long,
+    val ubetalt: BigDecimal,
+)
+
+data class FakturaserierDto(
+    val antall: Long,
+    val personer: Long,
+    val perKilde: Map<String, Long>,
+    val perStatus: Map<String, Long>,
+    val perIntervall: Map<String, Long>,
 )
 
 data class MeldingOmManglendeInnbetalingDto(
