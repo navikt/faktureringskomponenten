@@ -73,6 +73,10 @@ data class PeriodeFeilDto(
     val uloest: Long,
 )
 
+/**
+ * Gruppene summerer til [antall]: ikke betalt når ubetalt ≥ fakturabeløp, delvis betalt når ubetalt < fakturabeløp
+ * (også 0), og uten detaljer når ett av beløpene mangler i siste melding.
+ */
 data class PeriodeManglendeInnbetalingDto(
     val antall: Long,
     val ikkeBetalt: Long,

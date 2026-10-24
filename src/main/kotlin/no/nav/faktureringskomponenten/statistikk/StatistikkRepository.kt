@@ -255,7 +255,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
                COUNT(*) AS sendt,
                SUM(faktura_sum) AS beloep,
                ${TYPER.joinToString { antallOgBeloep("type_$it", "type = '$it'", "faktura_sum") }},
-               ${KILDER.joinToString { "COUNT(*) FILTER (WHERE kilde = '$it') AS kilde_$it" }},
+               ${antallPer("kilde", KILDER)},
                COUNT(*) FILTER (WHERE feilet) AS feilet,
                COUNT(*) FILTER (WHERE manglende) AS manglende
         FROM sendte
@@ -270,7 +270,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
             sendt = rs.getLong("sendt"),
             beloep = rs.getBigDecimal("beloep"),
             perType = TYPER.associateWith { rs.antallOgBeloep("type_$it") },
-            perKilde = KILDER.associateWith { rs.getLong("kilde_$it") },
+            perKilde = rs.antallPer("kilde", KILDER),
             feiletNoenGang = rs.getLong("feilet"),
             manglendeInnbetaling = rs.getLong("manglende"),
         )
@@ -301,12 +301,12 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
                COUNT(DISTINCT s.fodselsnummer) AS personer,
                ${TYPER.joinToString { antallOgBeloep("type_$it", "type = '$it'") }},
                ${BESTILLINGSMAATER.joinToString { antallOgBeloep("maate_$it", "maate = '$it'") }},
-               ${SENDT_STATUSER.joinToString { "COUNT(*) FILTER (WHERE status = '$it') AS status_$it" }},
+               ${antallPer("status", SENDT_STATUSER)},
                COUNT(*) FILTER (WHERE feilet) AS feil_noen_gang,
                COUNT(*) FILTER (WHERE status = 'FEIL') AS feil_uloest,
                COUNT(*) FILTER (WHERE manglende) AS manglende,
-               COUNT(*) FILTER (WHERE ubetalt = fakturert_oebs) AS ikke_betalt,
-               COUNT(*) FILTER (WHERE ubetalt > 0 AND ubetalt < fakturert_oebs) AS delvis_betalt,
+               COUNT(*) FILTER (WHERE ubetalt >= fakturert_oebs) AS ikke_betalt,
+               COUNT(*) FILTER (WHERE ubetalt < fakturert_oebs) AS delvis_betalt,
                COUNT(*) FILTER (WHERE manglende AND (ubetalt IS NULL OR fakturert_oebs IS NULL)) AS uten_detaljer,
                COALESCE(SUM(ubetalt), 0) AS ubetalt
         FROM perioder p
@@ -328,7 +328,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
             personer = rs.getLong("personer"),
             perType = TYPER.associateWith { rs.antallOgBeloep("type_$it") },
             perBestillingsmaate = BESTILLINGSMAATER.associateWith { rs.antallOgBeloep("maate_$it") },
-            perStatus = SENDT_STATUSER.associateWith { rs.getLong("status_$it") },
+            perStatus = rs.antallPer("status", SENDT_STATUSER),
             feil = PeriodeFeilDto(noenGang = feilNoenGang, loest = feilNoenGang - feilUloest, uloest = feilUloest),
             manglendeInnbetaling = PeriodeManglendeInnbetalingDto(
                 antall = rs.getLong("manglende"),
@@ -345,9 +345,9 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         """
         SELECT COUNT(*) AS antall,
                COUNT(DISTINCT fodselsnummer) AS personer,
-               ${KILDER.joinToString { "COUNT(*) FILTER (WHERE kilde = '$it') AS kilde_$it" }},
-               ${SERIESTATUSER.joinToString { "COUNT(*) FILTER (WHERE status = '$it') AS status_$it" }},
-               ${INTERVALLER.joinToString { "COUNT(*) FILTER (WHERE intervall = '$it') AS intervall_$it" }}
+               ${antallPer("kilde", KILDER)},
+               ${antallPer("status", SERIESTATUSER)},
+               ${antallPer("intervall", INTERVALLER)}
         FROM (SELECT fs.fodselsnummer, fs.status::text AS status, fs.intervall::text AS intervall, $KILDE AS kilde
               FROM fakturaserie fs) fs
         """,
@@ -356,9 +356,9 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         FakturaserierDto(
             antall = rs.getLong("antall"),
             personer = rs.getLong("personer"),
-            perKilde = KILDER.associateWith { rs.getLong("kilde_$it") },
-            perStatus = SERIESTATUSER.associateWith { rs.getLong("status_$it") },
-            perIntervall = INTERVALLER.associateWith { rs.getLong("intervall_$it") },
+            perKilde = rs.antallPer("kilde", KILDER),
+            perStatus = rs.antallPer("status", SERIESTATUSER),
+            perIntervall = rs.antallPer("intervall", INTERVALLER),
         )
     }
 
@@ -369,6 +369,13 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
 
     private fun ResultSet.antallOgBeloep(navn: String) =
         AntallBeloepDto(getLong("${navn}_antall"), getBigDecimal("${navn}_beloep"))
+
+    /** Én kolonne `<kolonne>_<verdi>` per verdi med antall rader der [kolonne] har verdien. */
+    private fun antallPer(kolonne: String, verdier: List<String>) =
+        verdier.joinToString { "COUNT(*) FILTER (WHERE $kolonne = '$it') AS ${kolonne}_$it" }
+
+    private fun ResultSet.antallPer(kolonne: String, verdier: List<String>) =
+        verdier.associateWith { getLong("${kolonne}_$it") }
 
     // Hibernate lagrer tidspunkter som UTC-veggtid i timestamp-kolonnene
     private fun ResultSet.getUtc(kolonne: String): Instant? =
@@ -408,7 +415,8 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
          *   FakturaGenerator.utledBestillingsdato.
          * - sendt: har gått til OEBS, altså bestilt eller senere status og ikke kobling.
          *
-         * fodselsnummer er bare med for å telle unike personer med COUNT(DISTINCT …).
+         * faktura_total inneholder fødselsnummer, som bare skal brukes til COUNT(DISTINCT …). Velg aldri `*`
+         * eller `ft.*` ut av den (eller CTE-er som bygger på den), så havner det ikke i svaret.
          */
         private const val FAKTURA = """
         faktura_beloep AS (
@@ -453,13 +461,13 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
             SELECT DISTINCT faktura_id FROM ekstern_faktura_status WHERE status = 'FEIL'
         ),
         manglende AS (
-            SELECT faktura_id,
-                   MIN(dato) AS foerste_dato,
-                   (ARRAY_AGG(ubetalt_belop ORDER BY dato DESC, id DESC))[1] AS ubetalt,
-                   (ARRAY_AGG(faktura_belop ORDER BY dato DESC, id DESC))[1] AS fakturert_oebs
+            SELECT DISTINCT ON (faktura_id) faktura_id,
+                   MIN(dato) OVER (PARTITION BY faktura_id) AS foerste_dato,
+                   ubetalt_belop AS ubetalt,
+                   faktura_belop AS fakturert_oebs
             FROM ekstern_faktura_status
             WHERE status = 'MANGLENDE_INNBETALING' AND feilmelding IS DISTINCT FROM :simulert
-            GROUP BY faktura_id
+            ORDER BY faktura_id, dato DESC, id DESC
         )
         """
 

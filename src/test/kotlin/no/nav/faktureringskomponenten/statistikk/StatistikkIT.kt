@@ -251,11 +251,12 @@ class StatistikkIT(
             )
             perStatus shouldBe mapOf("BESTILT" to 5L, "MANGLENDE_INNBETALING" to 1L, "FEIL" to 1L, "INNE_I_OEBS" to 1L)
             feil shouldBe PeriodeFeilDto(noenGang = 2, loest = 1, uloest = 1)
-            // Den simulerte meldingen på V1 er holdt utenfor
+            // Den simulerte meldingen på V1 er holdt utenfor. Ikke betalt: V2 og AAR (ubetalt over fakturabeløpet),
+            // delvis betalt: TILLEGG og SATS (ubetalt 0), uten detaljer: FRADRAG
             manglendeInnbetaling.copy(ubetalt = BigDecimal.ZERO) shouldBe PeriodeManglendeInnbetalingDto(
-                antall = 3, ikkeBetalt = 1, delvisBetalt = 1, utenDetaljer = 1, ubetalt = BigDecimal.ZERO
+                antall = 5, ikkeBetalt = 2, delvisBetalt = 2, utenDetaljer = 1, ubetalt = BigDecimal.ZERO
             )
-            manglendeInnbetaling.ubetalt shouldBeEqualComparingTo BigDecimal("2100")
+            manglendeInnbetaling.ubetalt shouldBeEqualComparingTo BigDecimal("3000")
         }
         assertSoftly(periode.getValue("KVARTAL 2026-K2")) {
             sendt shouldBe 2
@@ -284,6 +285,9 @@ class StatistikkIT(
             feil.uloest shouldBe 1
         }
         periode.getValue("GJELDER_AAR 2024").perType.getValue("AARSAVREGNING").antall shouldBe 1
+        bilde.perioder.forAll {
+            with(it.manglendeInnbetaling) { ikkeBetalt + delvisBetalt + utenDetaljer shouldBe antall }
+        }
 
         bilde.utenomPerKvartal.map { it.kvartal } shouldContainExactly listOf("2025-K4", "2026-K3")
         assertSoftly(bilde.utenomPerKvartal[1]) {
@@ -294,7 +298,7 @@ class StatistikkIT(
             )
             perKilde shouldBe mapOf("VEDTAK" to 4L, "EOS_PENSJONIST" to 0L, "SATSENDRING" to 1L, "AARSAVREGNING" to 0L, "ANNET" to 0L)
             feiletNoenGang shouldBe 2
-            manglendeInnbetaling shouldBe 2
+            manglendeInnbetaling shouldBe 3
         }
         bilde.utenomPerKvartal[0].perKilde.getValue("AARSAVREGNING") shouldBe 1
 
@@ -387,7 +391,9 @@ class StatistikkIT(
                 fakturaGjelderInnbetalingstype = Innbetalingstype.AARSAVREGNING
                 intervall = FakturaserieIntervall.SINGEL
                 status = FakturaserieStatus.FERDIG
-                leggTilFaktura(lagFaktura("AAR", FakturaStatus.BESTILT, LocalDate.of(2025, 11, 10), LocalDate.of(2024, 1, 1), 800))
+                leggTilFaktura(lagFaktura("AAR", FakturaStatus.BESTILT, LocalDate.of(2025, 11, 10), LocalDate.of(2024, 1, 1), 800) {
+                    leggTilEksternFakturaStatus(manglende(LocalDate.of(2026, 1, 5), ubetalt = 900, sendt = true, fakturabeloep = 800))
+                })
             }
         )
         fakturaserieRepository.saveAndFlush(
@@ -396,7 +402,9 @@ class StatistikkIT(
                 fodselsnummer = FNR_2
                 referanseBruker = "Faktura for årlig satsoppdatering 2026"
                 status = FakturaserieStatus.ERSTATTET
-                leggTilFaktura(lagFaktura("SATS", FakturaStatus.BESTILT, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 10, 1), 500))
+                leggTilFaktura(lagFaktura("SATS", FakturaStatus.BESTILT, LocalDate.of(2026, 9, 1), LocalDate.of(2026, 10, 1), 500) {
+                    leggTilEksternFakturaStatus(manglende(LocalDate.of(2026, 10, 1), ubetalt = 0, sendt = true, fakturabeloep = 500))
+                })
                 leggTilFaktura(lagFaktura("P-SENERE", FakturaStatus.OPPRETTET, LocalDate.of(2027, 3, 19), LocalDate.of(2027, 4, 1), 400))
             }
         )
