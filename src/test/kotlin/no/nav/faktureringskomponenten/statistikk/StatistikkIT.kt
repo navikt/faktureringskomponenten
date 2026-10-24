@@ -138,6 +138,7 @@ class StatistikkIT(
             .returnResult().responseBody!!
 
         svar shouldContain "\"sisteStatusmelding\":\"2026-10-14T06:30:03Z\""
+        svar shouldContain "\"mottatt\":\"2026-10-14T06:30:03Z\""
         svar shouldContain "\"sisteMottaksfeil\":\"2099-06-21T12:16:11Z\""
         svar shouldNotContain FNR_1
         svar shouldNotContain FNR_2
@@ -146,6 +147,43 @@ class StatistikkIT(
         svar shouldNotContain "Ola Nordmann"
         svar shouldNotContain "78901"
         svar shouldContain "\"feil\":{\"uloest\":2,\"eldsteFeilDato\":\"2026-06-25\"}"
+    }
+
+    @Test
+    fun `lister videresendte meldinger om manglende innbetaling til avstemming`() {
+        val (serieA, _) = lagTestdata()
+        val leggTilMelding = { faktura: String, sendt: Boolean?, feilmelding: String? ->
+            jdbc.update(
+                "INSERT INTO ekstern_faktura_status (faktura_id, dato, status, sendt, feilmelding, opprettet_tidspunkt) " +
+                    "SELECT id, '2026-10-02', 'MANGLENDE_INNBETALING', ?, ?, now() FROM faktura WHERE referanse_nr = ?",
+                sendt, feilmelding, faktura
+            )
+        }
+        leggTilMelding("K4", true, StatistikkRepository.SIMULERT_MANGLENDE_INNBETALING)
+        leggTilMelding("K4", null, null)
+        // K6 er mottatt før K2, selv om datoen fra OEBS er senere
+        jdbc.update(
+            "UPDATE ekstern_faktura_status SET opprettet_tidspunkt = CASE dato WHEN '2026-10-01' THEN ?::timestamp ELSE ?::timestamp END",
+            LocalDateTime.of(2026, 8, 1, 6, 30, 3), LocalDateTime.of(2026, 9, 1, 7, 0)
+        )
+
+        // Fakturanummeret blir tomt når en senere statusmelding mangler det
+        jdbc.update("UPDATE faktura SET eksternt_fakturanummer = '' WHERE referanse_nr = 'K6'")
+
+        statistikkService.hentOyeblikksbilde(NAA).meldingerOmManglendeInnbetaling shouldContainExactly listOf(
+            MeldingOmManglendeInnbetalingDto(null, serieA, LocalDate.of(2026, 10, 1), Instant.parse("2026-08-01T06:30:03Z")),
+            MeldingOmManglendeInnbetalingDto("EKSTERN-K2", serieA, LocalDate.of(2026, 8, 10), Instant.parse("2026-09-01T07:00:00Z")),
+        )
+
+        val svar = webClient.get()
+            .uri("/admin/statistikk/oyeblikksbilde")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token(mapOf("idtyp" to "app")))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<String>()
+            .returnResult().responseBody!!
+
+        svar shouldContain "\"fakturanummer\":null,\"fakturaserieReferanse\":\"$serieA\",\"datoFraOebs\":\"2026-10-01\""
     }
 
     @Test
