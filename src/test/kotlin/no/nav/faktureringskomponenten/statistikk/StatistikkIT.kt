@@ -249,12 +249,13 @@ class StatistikkIT(
             perBestillingsmaate.mapValues { (_, v) -> v.antall to v.beloep.toInt() } shouldBe mapOf(
                 "KVARTALSKJOERING" to (2L to 3000), "UTENOM" to (6L to 1900),
             )
+            // V1 står i MANGLENDE_INNBETALING bare etter en simulert melding og telles som BESTILT
             perStatus shouldBe mapOf("BESTILT" to 5L, "MANGLENDE_INNBETALING" to 1L, "FEIL" to 1L, "INNE_I_OEBS" to 1L)
             feil shouldBe PeriodeFeilDto(noenGang = 2, loest = 1, uloest = 1)
-            // Den simulerte meldingen på V1 er holdt utenfor. Ikke betalt: V2 og AAR (ubetalt over fakturabeløpet),
-            // delvis betalt: TILLEGG og SATS (ubetalt 0), uten detaljer: FRADRAG
+            // Den simulerte meldingen på V1 er holdt utenfor. Ikke betalt: V2 (ubetalt lik fakturabeløpet),
+            // delvis betalt: TILLEGG, SATS (ubetalt 0) og AAR (ubetalt over fakturabeløpet), uten detaljer: FRADRAG
             manglendeInnbetaling.copy(ubetalt = BigDecimal.ZERO) shouldBe PeriodeManglendeInnbetalingDto(
-                antall = 5, ikkeBetalt = 2, delvisBetalt = 2, utenDetaljer = 1, ubetalt = BigDecimal.ZERO
+                antall = 5, ikkeBetalt = 1, delvisBetalt = 3, utenDetaljer = 1, ubetalt = BigDecimal.ZERO
             )
             manglendeInnbetaling.ubetalt shouldBeEqualComparingTo BigDecimal("3000")
         }
@@ -348,7 +349,8 @@ class StatistikkIT(
                 fodselsnummer = FNR_1
                 referanseBruker = "Vedtak om medlemskap datert 01.06.2026"
                 status = FakturaserieStatus.UNDER_BESTILLING
-                leggTilFaktura(lagFaktura("V1", FakturaStatus.BESTILT, juni, juli, 1000) {
+                // Simulert i prod: fakturaen settes i MANGLENDE_INNBETALING, men meldingen er simulert
+                leggTilFaktura(lagFaktura("V1", FakturaStatus.MANGLENDE_INNBETALING, juni, juli, 1000) {
                     leggTilEksternFakturaStatus(manglende(LocalDate.of(2026, 7, 1), ubetalt = 1000, sendt = true, simulert = true))
                 })
                 leggTilFaktura(lagFaktura("V2", FakturaStatus.MANGLENDE_INNBETALING, juni, juli, 2000) {

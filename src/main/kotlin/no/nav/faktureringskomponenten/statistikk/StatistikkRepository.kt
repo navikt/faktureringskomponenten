@@ -305,8 +305,8 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
                COUNT(*) FILTER (WHERE feilet) AS feil_noen_gang,
                COUNT(*) FILTER (WHERE status = 'FEIL') AS feil_uloest,
                COUNT(*) FILTER (WHERE manglende) AS manglende,
-               COUNT(*) FILTER (WHERE ubetalt >= fakturert_oebs) AS ikke_betalt,
-               COUNT(*) FILTER (WHERE ubetalt < fakturert_oebs) AS delvis_betalt,
+               COUNT(*) FILTER (WHERE ubetalt = fakturert_oebs) AS ikke_betalt,
+               COUNT(*) FILTER (WHERE ubetalt <> fakturert_oebs) AS delvis_betalt,
                COUNT(*) FILTER (WHERE manglende AND (ubetalt IS NULL OR fakturert_oebs IS NULL)) AS uten_detaljer,
                COALESCE(SUM(ubetalt), 0) AS ubetalt
         FROM perioder p
@@ -473,13 +473,16 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
 
         /**
          * Sendte fakturaer med bestillingsmåte, feil og manglende innbetaling. En faktura sendt før
-         * bestillingsdatoen er ikke en del av noen kvartalskjøring ennå og regnes som UTENOM.
+         * bestillingsdatoen er ikke en del av noen kvartalskjøring ennå og regnes som UTENOM. En faktura som står
+         * i MANGLENDE_INNBETALING bare etter simulerte meldinger regnes som BESTILT.
          * Krever parameterne :idag og :simulert.
          */
         private const val SENDTE = """
         $FAKTURA, $FEILET_OG_MANGLENDE,
         sendte AS (
-            SELECT ft.id, ft.dato_bestilt, ft.beloep AS faktura_sum, ft.type, ft.kilde, ft.status, ft.fodselsnummer,
+            SELECT ft.id, ft.dato_bestilt, ft.beloep AS faktura_sum, ft.type, ft.kilde, ft.fodselsnummer,
+                   CASE WHEN ft.status = 'MANGLENDE_INNBETALING' AND m.faktura_id IS NULL THEN 'BESTILT'
+                        ELSE ft.status END AS status,
                    CASE WHEN ft.kvartalskjoering AND ft.dato_bestilt <= :idag THEN 'KVARTALSKJOERING' ELSE 'UTENOM' END AS maate,
                    ft.status = 'FEIL' OR fe.faktura_id IS NOT NULL AS feilet,
                    m.faktura_id IS NOT NULL AS manglende,

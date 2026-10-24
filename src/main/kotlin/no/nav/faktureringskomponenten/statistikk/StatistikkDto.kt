@@ -74,8 +74,9 @@ data class PeriodeFeilDto(
 )
 
 /**
- * Gruppene summerer til [antall]: ikke betalt når ubetalt ≥ fakturabeløp, delvis betalt når ubetalt < fakturabeløp
- * (også 0), og uten detaljer når ett av beløpene mangler i siste melding.
+ * Gruppene summerer til [antall], som Melosys deler dem: ikke betalt når ubetalt = fakturabeløp, delvis betalt når
+ * beløpene er ulike (også ubetalt 0 eller større enn fakturabeløpet), og uten detaljer når ett av beløpene mangler i
+ * siste melding.
  */
 data class PeriodeManglendeInnbetalingDto(
     val antall: Long,
