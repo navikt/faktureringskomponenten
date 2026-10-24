@@ -186,10 +186,13 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         emptyMap<String, Any>()
     ) { rs, _ -> MuligDobbeltfaktureringDto(rs.getString("referanser").split(",")) }
 
-    /** Meldinger om manglende innbetaling som er videresendt til Melosys, til avstemming mot prosessene der. */
+    /**
+     * Meldinger om manglende innbetaling som er videresendt til Melosys, til avstemming mot prosessene der.
+     * Fakturanummeret overskrives av hver statusmelding og blir tomt når meldingen mangler det, så det kan være null.
+     */
     fun meldingerOmManglendeInnbetaling(): List<MeldingOmManglendeInnbetalingDto> = jdbc.query(
         """
-        SELECT f.eksternt_fakturanummer, fs.referanse, e.dato, e.opprettet_tidspunkt
+        SELECT NULLIF(f.eksternt_fakturanummer, '') AS eksternt_fakturanummer, fs.referanse, e.dato, e.opprettet_tidspunkt
         FROM ekstern_faktura_status e
         JOIN faktura f ON f.id = e.faktura_id
         JOIN fakturaserie fs ON fs.id = f.fakturaserie_id

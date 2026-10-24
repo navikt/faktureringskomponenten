@@ -16,9 +16,9 @@ data class StatistikkOyeblikksbildeDto(
 )
 
 data class MeldingOmManglendeInnbetalingDto(
-    val fakturanummer: String,
+    val fakturanummer: String?,
     val fakturaserieReferanse: String,
-    val datoFraOebs: LocalDate,
+    val datoFraOebs: LocalDate?,
     val mottatt: Instant,
 )
 

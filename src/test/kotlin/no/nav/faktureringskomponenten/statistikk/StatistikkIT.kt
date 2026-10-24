@@ -167,10 +167,23 @@ class StatistikkIT(
             LocalDateTime.of(2026, 8, 1, 6, 30, 3), LocalDateTime.of(2026, 9, 1, 7, 0)
         )
 
+        // Fakturanummeret blir tomt når en senere statusmelding mangler det
+        jdbc.update("UPDATE faktura SET eksternt_fakturanummer = '' WHERE referanse_nr = 'K6'")
+
         statistikkService.hentOyeblikksbilde(NAA).meldingerOmManglendeInnbetaling shouldContainExactly listOf(
-            MeldingOmManglendeInnbetalingDto("EKSTERN-K6", serieA, LocalDate.of(2026, 10, 1), Instant.parse("2026-08-01T06:30:03Z")),
+            MeldingOmManglendeInnbetalingDto(null, serieA, LocalDate.of(2026, 10, 1), Instant.parse("2026-08-01T06:30:03Z")),
             MeldingOmManglendeInnbetalingDto("EKSTERN-K2", serieA, LocalDate.of(2026, 8, 10), Instant.parse("2026-09-01T07:00:00Z")),
         )
+
+        val svar = webClient.get()
+            .uri("/admin/statistikk/oyeblikksbilde")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token(mapOf("idtyp" to "app")))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<String>()
+            .returnResult().responseBody!!
+
+        svar shouldContain "\"fakturanummer\":null,\"fakturaserieReferanse\":\"$serieA\",\"datoFraOebs\":\"2026-10-01\""
     }
 
     @Test
