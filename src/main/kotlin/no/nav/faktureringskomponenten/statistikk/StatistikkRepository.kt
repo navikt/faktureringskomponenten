@@ -21,18 +21,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
 
     fun kjoeringer(idag: LocalDate): List<KjoeringDto> = jdbc.query(
         """
-        WITH $FAKTURA,
-        feilet AS (
-            SELECT DISTINCT faktura_id FROM ekstern_faktura_status WHERE status = 'FEIL'
-        ),
-        manglende AS (
-            SELECT faktura_id,
-                   MIN(dato) AS foerste_dato,
-                   (ARRAY_AGG(ubetalt_belop ORDER BY dato DESC, id DESC))[1] AS ubetalt
-            FROM ekstern_faktura_status
-            WHERE status = 'MANGLENDE_INNBETALING' AND feilmelding IS DISTINCT FROM :simulert
-            GROUP BY faktura_id
-        )
+        WITH $FAKTURA, $FEILET_OG_MANGLENDE
         SELECT ft.dato_bestilt AS dato,
                COUNT(*) FILTER (WHERE ft.sendt) AS sendt,
                COALESCE(SUM(ft.beloep) FILTER (WHERE ft.sendt), 0) AS beloep,
@@ -216,6 +205,171 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         Long::class.java
     )!!
 
+    /** Planlagte fakturaer (alle typer) fordelt rundt neste kvartalskjøring. */
+    fun planlagtFramover(idag: LocalDate, nesteKjoering: LocalDate): PlanlagtDto = jdbc.queryForObject(
+        """
+        WITH $FAKTURA
+        SELECT ${antallOgBeloep("forfalt", "dato_bestilt < :idag")},
+               ${antallOgBeloep("foer", "dato_bestilt >= :idag AND dato_bestilt < :neste")},
+               ${antallOgBeloep("neste", "dato_bestilt = :neste")},
+               ${antallOgBeloep("senere", "dato_bestilt > :neste")},
+               ${antallOgBeloep("totalt", "true")},
+               MAX(dato_bestilt) AS siste,
+               COUNT(DISTINCT fakturaserie_id) AS serier,
+               COUNT(DISTINCT fodselsnummer) AS personer
+        FROM faktura_total
+        WHERE status = 'OPPRETTET'
+        """,
+        mapOf("idag" to idag, "neste" to nesteKjoering)
+    ) { rs, _ ->
+        PlanlagtDto(
+            forfalt = rs.antallOgBeloep("forfalt"),
+            foerNesteKjoering = rs.antallOgBeloep("foer"),
+            iNesteKjoering = rs.antallOgBeloep("neste"),
+            senere = rs.antallOgBeloep("senere"),
+            totalt = rs.antallOgBeloep("totalt"),
+            sisteBestillingsdato = rs.getObject("siste", LocalDate::class.java),
+            serier = rs.getLong("serier"),
+            personer = rs.getLong("personer"),
+        )
+    }
+
+    /** Planlagte fakturaer per bestillingskvartal, fra inneværende kvartal og framover. */
+    fun planlagtPerKvartal(idag: LocalDate): List<PlanlagtKvartalDto> = jdbc.query(
+        """
+        WITH $FAKTURA
+        SELECT to_char(dato_bestilt, 'YYYY-"K"Q') AS kvartal, COUNT(*) AS antall, SUM(beloep) AS beloep
+        FROM faktura_total
+        WHERE status = 'OPPRETTET' AND dato_bestilt >= date_trunc('quarter', CAST(:idag AS date))
+        GROUP BY 1
+        ORDER BY 1
+        """,
+        mapOf("idag" to idag)
+    ) { rs, _ -> PlanlagtKvartalDto(rs.getString("kvartal"), rs.getLong("antall"), rs.getBigDecimal("beloep")) }
+
+    /** Sendte fakturaer utenom kvartalskjøringene, per bestillingskvartal, eldste først. */
+    fun utenomPerKvartal(idag: LocalDate): List<UtenomKvartalDto> = jdbc.query(
+        """
+        WITH $SENDTE
+        SELECT to_char(dato_bestilt, 'YYYY-"K"Q') AS kvartal,
+               COUNT(*) AS sendt,
+               SUM(faktura_sum) AS beloep,
+               ${TYPER.joinToString { antallOgBeloep("type_$it", "type = '$it'", "faktura_sum") }},
+               ${KILDER.joinToString { "COUNT(*) FILTER (WHERE kilde = '$it') AS kilde_$it" }},
+               COUNT(*) FILTER (WHERE feilet) AS feilet,
+               COUNT(*) FILTER (WHERE manglende) AS manglende
+        FROM sendte
+        WHERE maate = 'UTENOM'
+        GROUP BY 1
+        ORDER BY 1
+        """,
+        mapOf("idag" to idag, "simulert" to SIMULERT_MANGLENDE_INNBETALING)
+    ) { rs, _ ->
+        UtenomKvartalDto(
+            kvartal = rs.getString("kvartal"),
+            sendt = rs.getLong("sendt"),
+            beloep = rs.getBigDecimal("beloep"),
+            perType = TYPER.associateWith { rs.antallOgBeloep("type_$it") },
+            perKilde = KILDER.associateWith { rs.getLong("kilde_$it") },
+            feiletNoenGang = rs.getLong("feilet"),
+            manglendeInnbetaling = rs.getLong("manglende"),
+        )
+    }
+
+    /**
+     * Sendte fakturaer per kvartal og år (bestillingsdato), per år perioden gjelder og alt samlet. GJELDER_AAR
+     * regnes per fakturalinje: en faktura med linjer i to år telles i begge, med linjesummen for hvert år.
+     */
+    fun perioder(idag: LocalDate): List<PeriodeDto> = jdbc.query(
+        """
+        WITH $SENDTE,
+        perioder AS (
+            SELECT id, 'KVARTAL' AS periodetype, to_char(dato_bestilt, 'YYYY-"K"Q') AS noekkel, faktura_sum AS beloep FROM sendte
+            UNION ALL
+            SELECT id, 'AAR', to_char(dato_bestilt, 'YYYY'), faktura_sum FROM sendte
+            UNION ALL
+            SELECT faktura_id, 'GJELDER_AAR', to_char(periode_fra, 'YYYY'), SUM(belop)
+            FROM faktura_linje GROUP BY faktura_id, to_char(periode_fra, 'YYYY')
+            UNION ALL
+            SELECT id, 'ALT', 'alt', faktura_sum FROM sendte
+        )
+        SELECT p.periodetype, p.noekkel,
+               COUNT(*) AS sendt,
+               COALESCE(SUM(beloep) FILTER (WHERE beloep > 0), 0) AS fakturert,
+               COALESCE(SUM(beloep) FILTER (WHERE beloep < 0), 0) AS kreditert,
+               SUM(beloep) AS netto,
+               COUNT(DISTINCT s.fodselsnummer) AS personer,
+               ${TYPER.joinToString { antallOgBeloep("type_$it", "type = '$it'") }},
+               ${BESTILLINGSMAATER.joinToString { antallOgBeloep("maate_$it", "maate = '$it'") }},
+               ${SENDT_STATUSER.joinToString { "COUNT(*) FILTER (WHERE status = '$it') AS status_$it" }},
+               COUNT(*) FILTER (WHERE feilet) AS feil_noen_gang,
+               COUNT(*) FILTER (WHERE status = 'FEIL') AS feil_uloest,
+               COUNT(*) FILTER (WHERE manglende) AS manglende,
+               COUNT(*) FILTER (WHERE ubetalt = fakturert_oebs) AS ikke_betalt,
+               COUNT(*) FILTER (WHERE ubetalt > 0 AND ubetalt < fakturert_oebs) AS delvis_betalt,
+               COUNT(*) FILTER (WHERE manglende AND (ubetalt IS NULL OR fakturert_oebs IS NULL)) AS uten_detaljer,
+               COALESCE(SUM(ubetalt), 0) AS ubetalt
+        FROM perioder p
+        JOIN sendte s ON s.id = p.id
+        GROUP BY p.periodetype, p.noekkel
+        ORDER BY array_position(ARRAY['KVARTAL', 'AAR', 'GJELDER_AAR', 'ALT'], p.periodetype), p.noekkel DESC
+        """,
+        mapOf("idag" to idag, "simulert" to SIMULERT_MANGLENDE_INNBETALING)
+    ) { rs, _ ->
+        val feilNoenGang = rs.getLong("feil_noen_gang")
+        val feilUloest = rs.getLong("feil_uloest")
+        PeriodeDto(
+            type = rs.getString("periodetype"),
+            noekkel = rs.getString("noekkel"),
+            sendt = rs.getLong("sendt"),
+            fakturert = rs.getBigDecimal("fakturert"),
+            kreditert = rs.getBigDecimal("kreditert"),
+            netto = rs.getBigDecimal("netto"),
+            personer = rs.getLong("personer"),
+            perType = TYPER.associateWith { rs.antallOgBeloep("type_$it") },
+            perBestillingsmaate = BESTILLINGSMAATER.associateWith { rs.antallOgBeloep("maate_$it") },
+            perStatus = SENDT_STATUSER.associateWith { rs.getLong("status_$it") },
+            feil = PeriodeFeilDto(noenGang = feilNoenGang, loest = feilNoenGang - feilUloest, uloest = feilUloest),
+            manglendeInnbetaling = PeriodeManglendeInnbetalingDto(
+                antall = rs.getLong("manglende"),
+                ikkeBetalt = rs.getLong("ikke_betalt"),
+                delvisBetalt = rs.getLong("delvis_betalt"),
+                utenDetaljer = rs.getLong("uten_detaljer"),
+                ubetalt = rs.getBigDecimal("ubetalt"),
+            ),
+        )
+    }
+
+    /** Alle fakturaserier, uansett status. */
+    fun fakturaserier(): FakturaserierDto = jdbc.queryForObject(
+        """
+        SELECT COUNT(*) AS antall,
+               COUNT(DISTINCT fodselsnummer) AS personer,
+               ${KILDER.joinToString { "COUNT(*) FILTER (WHERE kilde = '$it') AS kilde_$it" }},
+               ${SERIESTATUSER.joinToString { "COUNT(*) FILTER (WHERE status = '$it') AS status_$it" }},
+               ${INTERVALLER.joinToString { "COUNT(*) FILTER (WHERE intervall = '$it') AS intervall_$it" }}
+        FROM (SELECT fs.fodselsnummer, fs.status::text AS status, fs.intervall::text AS intervall, $KILDE AS kilde
+              FROM fakturaserie fs) fs
+        """,
+        emptyMap<String, Any>()
+    ) { rs, _ ->
+        FakturaserierDto(
+            antall = rs.getLong("antall"),
+            personer = rs.getLong("personer"),
+            perKilde = KILDER.associateWith { rs.getLong("kilde_$it") },
+            perStatus = SERIESTATUSER.associateWith { rs.getLong("status_$it") },
+            perIntervall = INTERVALLER.associateWith { rs.getLong("intervall_$it") },
+        )
+    }
+
+    /** To kolonner, `<navn>_antall` og `<navn>_beloep`, for radene som oppfyller [betingelse]. */
+    private fun antallOgBeloep(navn: String, betingelse: String, beloep: String = "beloep") =
+        "COUNT(*) FILTER (WHERE $betingelse) AS ${navn}_antall, " +
+            "COALESCE(SUM($beloep) FILTER (WHERE $betingelse), 0) AS ${navn}_beloep"
+
+    private fun ResultSet.antallOgBeloep(navn: String) =
+        AntallBeloepDto(getLong("${navn}_antall"), getBigDecimal("${navn}_beloep"))
+
     // Hibernate lagrer tidspunkter som UTC-veggtid i timestamp-kolonnene
     private fun ResultSet.getUtc(kolonne: String): Instant? =
         getObject(kolonne, LocalDateTime::class.java)?.toInstant(ZoneOffset.UTC)
@@ -223,24 +377,57 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
     companion object {
         const val SIMULERT_MANGLENDE_INNBETALING = "Simulert manglende innbetaling"
 
+        private val TYPER = listOf("VANLIG", "AVREGNING_TILLEGG", "AVREGNING_FRADRAG", "AARSAVREGNING", "KREDITERING")
+        private val KILDER = listOf("VEDTAK", "EOS_PENSJONIST", "SATSENDRING", "AARSAVREGNING", "ANNET")
+        private val BESTILLINGSMAATER = listOf("KVARTALSKJOERING", "UTENOM")
+        private val SENDT_STATUSER = listOf("BESTILT", "MANGLENDE_INNBETALING", "FEIL", "INNE_I_OEBS")
+        private val SERIESTATUSER = listOf("OPPRETTET", "UNDER_BESTILLING", "ERSTATTET", "KANSELLERT", "FERDIG")
+        private val INTERVALLER = listOf("KVARTAL", "SINGEL", "MANEDLIG")
+
         /**
-         * Alle fakturaer med beløp (sum av linjene) og tre utledninger:
+         * Hvilken flyt i Melosys som opprettet serien, utledet fra referanse_bruker (teksten på fakturaen til
+         * bruker). Tekstene settes i melosys-api; ukjente tekster havner i ANNET.
+         */
+        private const val KILDE = """
+            CASE
+                WHEN fs.referanse_bruker LIKE 'Vedtak om medlemskap%' THEN 'VEDTAK'
+                WHEN fs.referanse_bruker LIKE 'Informasjon om trygdeavgift%' THEN 'EOS_PENSJONIST'
+                WHEN fs.referanse_bruker LIKE 'Faktura for årlig satsoppdatering%' THEN 'SATSENDRING'
+                WHEN fs.referanse_bruker LIKE 'Årsavregning%' THEN 'AARSAVREGNING'
+                ELSE 'ANNET'
+            END"""
+
+        /**
+         * Alle fakturaer med beløp (sum av linjene) og disse utledningene:
          * - kobling: avregningsfaktura med beløp 0. Får status BESTILT bare for å koble en tidligere faktura
          *   til avregningen, og sendes aldri til OEBS.
+         * - type: AARSAVREGNING etter seriens innbetalingstype; KREDITERING når beløpet er negativt og fakturaen
+         *   ikke er avregning (eller er kreditnota); ellers AVREGNING_FRADRAG/_TILLEGG etter fortegnet, eller VANLIG.
          * - kvartalskjoering: vanlig kvartalsfaktura for trygdeavgift (ikke avregning, ikke kreditering) med
          *   bestillingsdato den 19. i måneden før kvartalet til første linje, som i
          *   FakturaGenerator.utledBestillingsdato.
          * - sendt: har gått til OEBS, altså bestilt eller senere status og ikke kobling.
+         *
+         * fodselsnummer er bare med for å telle unike personer med COUNT(DISTINCT …).
          */
         private const val FAKTURA = """
         faktura_beloep AS (
             SELECT f.id,
                    f.referanse_nr,
+                   f.fakturaserie_id,
                    fs.referanse AS serie_referanse,
+                   fs.fodselsnummer,
+                   $KILDE AS kilde,
                    f.status::text AS status,
                    f.dato_bestilt,
                    COALESCE(l.sum, 0) AS beloep,
                    f.avregning_faktura_id IS NOT NULL AND COALESCE(l.sum, 0) = 0 AS kobling,
+                   CASE WHEN f.avregning_faktura_id IS NOT NULL AND COALESCE(l.sum, 0) = 0 THEN 'KOBLING'
+                        WHEN fs.faktura_gjelder_innbetalingstype::text = 'AARSAVREGNING' THEN 'AARSAVREGNING'
+                        WHEN COALESCE(l.sum, 0) < 0 AND (f.avregning_faktura_id IS NULL OR f.er_kreditnota) THEN 'KREDITERING'
+                        WHEN f.avregning_faktura_id IS NOT NULL AND l.sum < 0 THEN 'AVREGNING_FRADRAG'
+                        WHEN f.avregning_faktura_id IS NOT NULL THEN 'AVREGNING_TILLEGG'
+                        ELSE 'VANLIG' END AS type,
                    COALESCE(f.avregning_faktura_id IS NULL AND l.sum > 0
                        AND fs.faktura_gjelder_innbetalingstype::text = 'TRYGDEAVGIFT'
                        AND fs.intervall::text = 'KVARTAL'
@@ -254,6 +441,46 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         faktura_total AS (
             SELECT *, status IN ('BESTILT', 'FEIL', 'MANGLENDE_INNBETALING', 'INNE_I_OEBS') AND NOT kobling AS sendt
             FROM faktura_beloep
+        )
+        """
+
+        /**
+         * Fakturaer som har fått FEIL fra OEBS, og fakturaer med (ikke-simulert) melding om manglende innbetaling:
+         * første dato, og ubetalt beløp og fakturabeløp fra siste melding. Krever parameteren :simulert.
+         */
+        private const val FEILET_OG_MANGLENDE = """
+        feilet AS (
+            SELECT DISTINCT faktura_id FROM ekstern_faktura_status WHERE status = 'FEIL'
+        ),
+        manglende AS (
+            SELECT faktura_id,
+                   MIN(dato) AS foerste_dato,
+                   (ARRAY_AGG(ubetalt_belop ORDER BY dato DESC, id DESC))[1] AS ubetalt,
+                   (ARRAY_AGG(faktura_belop ORDER BY dato DESC, id DESC))[1] AS fakturert_oebs
+            FROM ekstern_faktura_status
+            WHERE status = 'MANGLENDE_INNBETALING' AND feilmelding IS DISTINCT FROM :simulert
+            GROUP BY faktura_id
+        )
+        """
+
+        /**
+         * Sendte fakturaer med bestillingsmåte, feil og manglende innbetaling. En faktura sendt før
+         * bestillingsdatoen er ikke en del av noen kvartalskjøring ennå og regnes som UTENOM.
+         * Krever parameterne :idag og :simulert.
+         */
+        private const val SENDTE = """
+        $FAKTURA, $FEILET_OG_MANGLENDE,
+        sendte AS (
+            SELECT ft.id, ft.dato_bestilt, ft.beloep AS faktura_sum, ft.type, ft.kilde, ft.status, ft.fodselsnummer,
+                   CASE WHEN ft.kvartalskjoering AND ft.dato_bestilt <= :idag THEN 'KVARTALSKJOERING' ELSE 'UTENOM' END AS maate,
+                   ft.status = 'FEIL' OR fe.faktura_id IS NOT NULL AS feilet,
+                   m.faktura_id IS NOT NULL AS manglende,
+                   m.ubetalt,
+                   m.fakturert_oebs
+            FROM faktura_total ft
+            LEFT JOIN feilet fe ON fe.faktura_id = ft.id
+            LEFT JOIN manglende m ON m.faktura_id = ft.id
+            WHERE ft.sendt
         )
         """
     }
