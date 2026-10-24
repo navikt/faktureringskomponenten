@@ -45,6 +45,7 @@ class StatistikkService(
             kjoeringer = kjoeringer,
             nesteKjoering = nesteKjoering,
             naa = naatilstand,
+            meldingerOmManglendeInnbetaling = statistikkRepository.meldingerOmManglendeInnbetaling(),
         )
     }
 
