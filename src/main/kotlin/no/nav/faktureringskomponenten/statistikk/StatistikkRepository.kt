@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.statistikk
 
+import no.nav.faktureringskomponenten.service.FakturaGenerator
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate
 import org.springframework.stereotype.Repository
 import java.sql.ResultSet
@@ -55,7 +56,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         GROUP BY ft.dato_bestilt
         ORDER BY ft.dato_bestilt
         """,
-        mapOf("idag" to idag, "simulert" to SIMULERT_MANGLENDE_INNBETALING)
+        parametre("idag" to idag, "simulert" to SIMULERT_MANGLENDE_INNBETALING)
     ) { rs, _ ->
         KjoeringDto(
             dato = rs.getObject("dato", LocalDate::class.java),
@@ -88,7 +89,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         FROM faktura_total
         WHERE status = 'OPPRETTET' AND dato_bestilt = :dato
         """,
-        mapOf("dato" to dato)
+        parametre("dato" to dato)
     ) { rs, _ -> NesteKjoeringDto(dato, rs.getLong("antall"), rs.getBigDecimal("beloep")) }
 
     fun forfaltIkkeBestilt(idag: LocalDate): ForfaltIkkeBestiltDto {
@@ -113,7 +114,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
             ORDER BY ft.dato_bestilt, ft.id
             LIMIT 20
             """,
-            mapOf("idag" to idag)
+            parametre("idag" to idag)
         ) { rs, _ ->
             antall = rs.getLong("antall")
             FakturaEksempelDto(
@@ -136,7 +137,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
                   JOIN faktura f ON f.id = e.faktura_id
                  WHERE f.status = 'FEIL' AND e.status = 'FEIL') AS eldste
         """,
-        emptyMap<String, Any>()
+        parametre()
     ) { rs, _ -> FeilDto(rs.getLong("uloest"), rs.getObject("eldste", LocalDate::class.java)) }
 
     fun mottak(lytterKjoerer: Boolean?): MottakDto = jdbc.queryForObject(
@@ -148,7 +149,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
                  WHERE status = 'MANGLENDE_INNBETALING' AND sendt IS NOT TRUE
                    AND feilmelding IS DISTINCT FROM :simulert) AS ikke_videresendt
         """,
-        mapOf("simulert" to SIMULERT_MANGLENDE_INNBETALING)
+        parametre("simulert" to SIMULERT_MANGLENDE_INNBETALING)
     ) { rs, _ ->
         MottakDto(
             lytterKjoerer = lytterKjoerer,
@@ -183,7 +184,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         GROUP BY x.fodselsnummer
         ORDER BY 1
         """,
-        emptyMap<String, Any>()
+        parametre()
     ) { rs, _ -> MuligDobbeltfaktureringDto(rs.getString("referanser").split(",")) }
 
     /**
@@ -212,9 +213,13 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
 
     fun antallKoblingsfakturaer(): Long = jdbc.queryForObject(
         "WITH $FAKTURA SELECT COUNT(*) FROM faktura_total WHERE kobling",
-        emptyMap<String, Any>(),
+        parametre(),
         Long::class.java
     )!!
+
+    /** Alle spørringer får bestillingsdagen, siden [FAKTURA] bruker den. */
+    private fun parametre(vararg parametre: Pair<String, Any>): Map<String, Any> =
+        mapOf("bestillingsdag" to BESTILLINGSDAG, *parametre)
 
     // Hibernate lagrer tidspunkter som UTC-veggtid i timestamp-kolonnene
     private fun ResultSet.getUtc(kolonne: String): Instant? =
@@ -224,11 +229,20 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         const val SIMULERT_MANGLENDE_INNBETALING = "Simulert manglende innbetaling"
 
         /**
+         * Dagen i måneden kvartalskjøringen bestiller, hentet fra FakturaGenerator så den bare bestemmes ett sted.
+         * `const val` inlines ved kompilering, så statistikk får ingen avhengighet til service (se ArkitekturTest).
+         *
+         * TODO: Endres bestillingsdagen, gjenkjennes ikke lenger historiske kvartalskjøringer med gammel dag – de
+         *  blir «utenom» kvartalskjøringene. Historikken må da løses, f.eks. med en regel per periode.
+         */
+        const val BESTILLINGSDAG = FakturaGenerator.BESTILLINGSDAG
+
+        /**
          * Alle fakturaer med beløp (sum av linjene) og tre utledninger:
          * - kobling: avregningsfaktura med beløp 0. Får status BESTILT bare for å koble en tidligere faktura
          *   til avregningen, og sendes aldri til OEBS.
          * - kvartalskjoering: vanlig kvartalsfaktura for trygdeavgift (ikke avregning, ikke kreditering) med
-         *   bestillingsdato den 19. i måneden før kvartalet til første linje, som i
+         *   bestillingsdato på [BESTILLINGSDAG] i måneden før kvartalet til første linje, som i
          *   FakturaGenerator.utledBestillingsdato.
          * - sendt: har gått til OEBS, altså bestilt eller senere status og ikke kobling.
          */
@@ -244,7 +258,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
                    COALESCE(f.avregning_faktura_id IS NULL AND l.sum > 0
                        AND fs.faktura_gjelder_innbetalingstype::text = 'TRYGDEAVGIFT'
                        AND fs.intervall::text = 'KVARTAL'
-                       AND f.dato_bestilt = (date_trunc('quarter', l.forste_fra::timestamp) - interval '1 month' + interval '18 days')::date,
+                       AND f.dato_bestilt = (date_trunc('quarter', l.forste_fra::timestamp) - interval '1 month')::date + (:bestillingsdag - 1),
                        false) AS kvartalskjoering
             FROM faktura f
             JOIN fakturaserie fs ON fs.id = f.fakturaserie_id

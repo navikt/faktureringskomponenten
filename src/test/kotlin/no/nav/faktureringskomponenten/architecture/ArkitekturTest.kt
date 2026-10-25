@@ -47,6 +47,8 @@ class ArkitekturTest {
         layeringRules.check(importedClasses)
     }
 
+    // Statistikk leser FakturaGenerator.BESTILLINGSDAG, men det er en const val som inlines ved kompilering
+    // og ikke gir noen avhengighet i bytekoden. Regelen er derfor uten unntak.
     @Test
     fun `Statistikk er isolert fra resten av appen i begge retninger`() {
         val statistikk = "$appPath.statistikk.."
