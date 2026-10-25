@@ -221,7 +221,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         FROM faktura_total
         WHERE status = 'OPPRETTET'
         """,
-        mapOf("idag" to idag, "neste" to nesteKjoering)
+        parametre("idag" to idag, "neste" to nesteKjoering)
     ) { rs, _ ->
         PlanlagtDto(
             forfalt = rs.antallOgBeloep("forfalt"),
@@ -245,7 +245,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         GROUP BY 1
         ORDER BY 1
         """,
-        mapOf("idag" to idag)
+        parametre("idag" to idag)
     ) { rs, _ -> PlanlagtKvartalDto(rs.getString("kvartal"), rs.getLong("antall"), rs.getBigDecimal("beloep")) }
 
     /** Sendte fakturaer utenom kvartalskjøringene, per bestillingskvartal, eldste først. */
@@ -264,7 +264,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         GROUP BY 1
         ORDER BY 1
         """,
-        mapOf("idag" to idag, "simulert" to SIMULERT_MANGLENDE_INNBETALING)
+        parametre("idag" to idag, "simulert" to SIMULERT_MANGLENDE_INNBETALING)
     ) { rs, _ ->
         UtenomKvartalDto(
             kvartal = rs.getString("kvartal"),
@@ -315,7 +315,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         GROUP BY p.periodetype, p.noekkel
         ORDER BY array_position(ARRAY['KVARTAL', 'AAR', 'GJELDER_AAR', 'ALT'], p.periodetype), p.noekkel DESC
         """,
-        mapOf("idag" to idag, "simulert" to SIMULERT_MANGLENDE_INNBETALING)
+        parametre("idag" to idag, "simulert" to SIMULERT_MANGLENDE_INNBETALING)
     ) { rs, _ ->
         val feilNoenGang = rs.getLong("feil_noen_gang")
         val feilUloest = rs.getLong("feil_uloest")
@@ -352,7 +352,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         FROM (SELECT fs.fodselsnummer, fs.status::text AS status, fs.intervall::text AS intervall, $KILDE AS kilde
               FROM fakturaserie fs) fs
         """,
-        emptyMap<String, Any>()
+        parametre()
     ) { rs, _ ->
         FakturaserierDto(
             antall = rs.getLong("antall"),
