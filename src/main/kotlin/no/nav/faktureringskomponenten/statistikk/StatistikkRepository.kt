@@ -201,7 +201,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
           AND e.feilmelding IS DISTINCT FROM :simulert
         ORDER BY e.opprettet_tidspunkt, e.id
         """,
-        mapOf("simulert" to SIMULERT_MANGLENDE_INNBETALING)
+        parametre("simulert" to SIMULERT_MANGLENDE_INNBETALING)
     ) { rs, _ ->
         MeldingOmManglendeInnbetalingDto(
             fakturanummer = rs.getString("eksternt_fakturanummer"),
