@@ -1,5 +1,6 @@
 package no.nav.faktureringskomponenten.statistikk
 
+import no.nav.faktureringskomponenten.statistikk.StatistikkRepository.Companion.BESTILLINGSDAG
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Isolation
@@ -64,11 +65,11 @@ class StatistikkService(
     private fun lytterKjoerer(): Boolean? =
         runCatching { kafkaListenerEndpointRegistry.getListenerContainer("fakturaMottatt")?.isRunning }.getOrNull()
 
-    private fun erKjoeringsdato(dato: LocalDate) = dato.dayOfMonth == 19 && dato.monthValue % 3 == 0
+    private fun erKjoeringsdato(dato: LocalDate) = dato.dayOfMonth == BESTILLINGSDAG && dato.monthValue % 3 == 0
 
-    /** Første 19.03, 19.06, 19.09 eller 19.12 etter [dato]. */
+    /** Første bestillingsdag i mars, juni, september eller desember etter [dato]. */
     private fun nesteKjoeringsdatoEtter(dato: LocalDate): LocalDate {
-        var neste = dato.withDayOfMonth(19)
+        var neste = dato.withDayOfMonth(BESTILLINGSDAG)
         if (neste <= dato) neste = neste.plusMonths(1)
         while (neste.monthValue % 3 != 0) neste = neste.plusMonths(1)
         return neste
