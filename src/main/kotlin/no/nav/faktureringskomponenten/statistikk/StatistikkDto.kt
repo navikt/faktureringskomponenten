@@ -12,6 +12,14 @@ data class StatistikkOyeblikksbildeDto(
     val kjoeringer: List<KjoeringDto>,
     val nesteKjoering: NesteKjoeringDto,
     val naa: NaatilstandDto,
+    val meldingerOmManglendeInnbetaling: List<MeldingOmManglendeInnbetalingDto>,
+)
+
+data class MeldingOmManglendeInnbetalingDto(
+    val fakturanummer: String?,
+    val fakturaserieReferanse: String,
+    val datoFraOebs: LocalDate?,
+    val mottatt: Instant,
 )
 
 data class KjoeringDto(

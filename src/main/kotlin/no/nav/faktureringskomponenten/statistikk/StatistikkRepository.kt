@@ -187,6 +187,30 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         parametre()
     ) { rs, _ -> MuligDobbeltfaktureringDto(rs.getString("referanser").split(",")) }
 
+    /**
+     * Meldinger om manglende innbetaling som er videresendt til Melosys, til avstemming mot prosessene der.
+     * Fakturanummeret overskrives av hver statusmelding og blir tomt når meldingen mangler det, så det kan være null.
+     */
+    fun meldingerOmManglendeInnbetaling(): List<MeldingOmManglendeInnbetalingDto> = jdbc.query(
+        """
+        SELECT NULLIF(f.eksternt_fakturanummer, '') AS eksternt_fakturanummer, fs.referanse, e.dato, e.opprettet_tidspunkt
+        FROM ekstern_faktura_status e
+        JOIN faktura f ON f.id = e.faktura_id
+        JOIN fakturaserie fs ON fs.id = f.fakturaserie_id
+        WHERE e.status = 'MANGLENDE_INNBETALING' AND e.sendt
+          AND e.feilmelding IS DISTINCT FROM :simulert
+        ORDER BY e.opprettet_tidspunkt, e.id
+        """,
+        parametre("simulert" to SIMULERT_MANGLENDE_INNBETALING)
+    ) { rs, _ ->
+        MeldingOmManglendeInnbetalingDto(
+            fakturanummer = rs.getString("eksternt_fakturanummer"),
+            fakturaserieReferanse = rs.getString("referanse"),
+            datoFraOebs = rs.getObject("dato", LocalDate::class.java),
+            mottatt = rs.getUtc("opprettet_tidspunkt")!!,
+        )
+    }
+
     fun antallKoblingsfakturaer(): Long = jdbc.queryForObject(
         "WITH $FAKTURA SELECT COUNT(*) FROM faktura_total WHERE kobling",
         parametre(),

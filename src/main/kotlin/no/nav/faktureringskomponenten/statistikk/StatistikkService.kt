@@ -38,6 +38,8 @@ class StatistikkService(
             koblingsfakturaer = statistikkRepository.antallKoblingsfakturaer(),
         )
 
+        val meldingerOmManglendeInnbetaling = statistikkRepository.meldingerOmManglendeInnbetaling()
+
         return StatistikkOyeblikksbildeDto(
             versjon = 1,
             beregnet = naa,
@@ -46,6 +48,7 @@ class StatistikkService(
             kjoeringer = kjoeringer,
             nesteKjoering = nesteKjoering,
             naa = naatilstand,
+            meldingerOmManglendeInnbetaling = meldingerOmManglendeInnbetaling,
         )
     }
 
