@@ -39,6 +39,11 @@ class StatistikkService(
         )
 
         val meldingerOmManglendeInnbetaling = statistikkRepository.meldingerOmManglendeInnbetaling()
+        val planlagt = statistikkRepository.planlagtFramover(idag, nesteKjoering.dato)
+        val planlagtPerKvartal = statistikkRepository.planlagtPerKvartal(idag)
+        val utenomPerKvartal = statistikkRepository.utenomPerKvartal(idag)
+        val perioder = statistikkRepository.perioder(idag)
+        val fakturaserier = statistikkRepository.fakturaserier()
 
         return StatistikkOyeblikksbildeDto(
             versjon = 1,
@@ -49,6 +54,11 @@ class StatistikkService(
             nesteKjoering = nesteKjoering,
             naa = naatilstand,
             meldingerOmManglendeInnbetaling = meldingerOmManglendeInnbetaling,
+            planlagt = planlagt,
+            planlagtPerKvartal = planlagtPerKvartal,
+            utenomPerKvartal = utenomPerKvartal,
+            perioder = perioder,
+            fakturaserier = fakturaserier,
         )
     }
 
