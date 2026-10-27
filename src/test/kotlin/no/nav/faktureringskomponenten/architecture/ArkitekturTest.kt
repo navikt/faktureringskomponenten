@@ -1,9 +1,12 @@
 package no.nav.faktureringskomponenten.architecture
 
+import com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage
+import com.tngtech.archunit.core.domain.JavaClass.Predicates.resideOutsideOfPackage
 import com.tngtech.archunit.core.domain.JavaClasses
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.core.importer.ImportOption.DoNotIncludeTests
 import com.tngtech.archunit.lang.ArchRule
+import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import com.tngtech.archunit.library.Architectures
 import org.junit.jupiter.api.Test
 class ArkitekturTest {
@@ -42,5 +45,20 @@ class ArkitekturTest {
             .whereLayer("Domain").mayOnlyBeAccessedByLayers("Controller", "Service")
 
         layeringRules.check(importedClasses)
+    }
+
+    // Statistikk leser FakturaGenerator.BESTILLINGSDAG, men det er en const val som inlines ved kompilering
+    // og ikke gir noen avhengighet i bytekoden. Regelen er derfor uten unntak.
+    @Test
+    fun `Statistikk er isolert fra resten av appen i begge retninger`() {
+        val statistikk = "$appPath.statistikk.."
+
+        noClasses().that().resideInAPackage(statistikk)
+            .should().dependOnClassesThat(resideInAPackage("$appPath..").and(resideOutsideOfPackage(statistikk)))
+            .check(importedClasses)
+
+        noClasses().that().resideOutsideOfPackage(statistikk)
+            .should().dependOnClassesThat().resideInAPackage(statistikk)
+            .check(importedClasses)
     }
 }

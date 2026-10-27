@@ -194,10 +194,10 @@ class FakturaGenerator(
             return dagensDato().plusDays(forsteFakturaOffsettMedDager)
         }
 
-        // Planlegg for den 19. i måneden før periodestart hvis intervall er MÅNEDLIG. Ellers 19. i måneden før kvartalet dersom intervall er KVARTAL
+        // Planlegg for bestillingsdagen i måneden før periodestart hvis intervall er MÅNEDLIG. Ellers bestillingsdagen i måneden før kvartalet dersom intervall er KVARTAL
         return when (intervall) {
-            FakturaserieIntervall.MANEDLIG -> fakturaStartDato.withDayOfMonth(1).minusMonths(1).withDayOfMonth(19)
-            FakturaserieIntervall.KVARTAL -> fakturaStartDato.withMonth(fakturaStartDato.month.firstMonthOfQuarter().value).withDayOfMonth(1).minusMonths(1).withDayOfMonth(19)
+            FakturaserieIntervall.MANEDLIG -> fakturaStartDato.withDayOfMonth(1).minusMonths(1).withDayOfMonth(BESTILLINGSDAG)
+            FakturaserieIntervall.KVARTAL -> fakturaStartDato.withMonth(fakturaStartDato.month.firstMonthOfQuarter().value).withDayOfMonth(1).minusMonths(1).withDayOfMonth(BESTILLINGSDAG)
             FakturaserieIntervall.SINGEL -> throw IllegalArgumentException("Singelintervall er ikke støttet")
         }
     }
@@ -209,13 +209,16 @@ class FakturaGenerator(
             FakturaserieIntervall.SINGEL -> throw IllegalArgumentException("Singelintervall er ikke støttet")
         }
 
-        val bestillingsDato = førsteIPerioden.minusMonths(1).withDayOfMonth(19)
+        val bestillingsDato = førsteIPerioden.minusMonths(1).withDayOfMonth(BESTILLINGSDAG)
         return dagensDato() >= bestillingsDato
     }
 
     protected fun dagensDato(): LocalDate = LocalDate.now()
 
     companion object {
+        /** Dagen i måneden fakturaer bestilles, før perioden (måned eller kvartal) de gjelder. */
+        const val BESTILLINGSDAG = 19
+
         private const val NAIS_CLUSTER_NAME_DEV = "dev-gcp"
     }
 }
