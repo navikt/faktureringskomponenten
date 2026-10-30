@@ -50,6 +50,12 @@ data class UtenomKvartalDto(
     val perKilde: Map<String, Long>,
     val feiletNoenGang: Long,
     val manglendeInnbetaling: Long,
+    val perSerie: List<SerieAntallDto>,
+)
+
+data class SerieAntallDto(
+    val fakturaserieReferanse: String,
+    val antall: Long,
 )
 
 data class PeriodeDto(
@@ -92,6 +98,7 @@ data class FakturaserierDto(
     val perKilde: Map<String, Long>,
     val perStatus: Map<String, Long>,
     val perIntervall: Map<String, Long>,
+    val referanser: List<String>,
 )
 
 data class MeldingOmManglendeInnbetalingDto(

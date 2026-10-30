@@ -224,7 +224,7 @@ class StatistikkIT(
 
     @Test
     fun `regner ut perioder, planlagt og fakturaserier`() {
-        lagTestdataForPerioder()
+        val referanser = lagTestdataForPerioder()
 
         val bilde = statistikkService.hentOyeblikksbilde(NAA)
 
@@ -300,8 +300,12 @@ class StatistikkIT(
             perKilde shouldBe mapOf("VEDTAK" to 4L, "EOS_PENSJONIST" to 0L, "SATSENDRING" to 1L, "AARSAVREGNING" to 0L, "ANNET" to 0L)
             feiletNoenGang shouldBe 2
             manglendeInnbetaling shouldBe 3
+            // U1, KRED, TILLEGG og FRADRAG i vedtaksserien, SATS i satsendringsserien
+            perSerie shouldContainExactlyInAnyOrder listOf(SerieAntallDto(referanser[0], 4), SerieAntallDto(referanser[2], 1))
         }
         bilde.utenomPerKvartal[0].perKilde.getValue("AARSAVREGNING") shouldBe 1
+        bilde.utenomPerKvartal[0].perSerie shouldBe listOf(SerieAntallDto(referanser[1], 1))
+        bilde.utenomPerKvartal.forAll { kvartal -> kvartal.perSerie.sumOf { it.antall } shouldBe kvartal.sendt }
 
         bilde.nesteKjoering.dato shouldBe LocalDate.of(2026, 12, 19)
         assertSoftly(bilde.planlagt) {
@@ -322,7 +326,9 @@ class StatistikkIT(
             perKilde = mapOf("VEDTAK" to 1L, "EOS_PENSJONIST" to 1L, "SATSENDRING" to 1L, "AARSAVREGNING" to 1L, "ANNET" to 1L),
             perStatus = mapOf("OPPRETTET" to 1L, "UNDER_BESTILLING" to 1L, "ERSTATTET" to 1L, "KANSELLERT" to 1L, "FERDIG" to 1L),
             perIntervall = mapOf("KVARTAL" to 3L, "SINGEL" to 1L, "MANEDLIG" to 1L),
+            referanser = referanser.sorted(),
         )
+        bilde.fakturaserier.referanser shouldHaveSize bilde.fakturaserier.antall.toInt()
 
         val svar = webClient.get()
             .uri("/admin/statistikk/oyeblikksbilde")
@@ -339,13 +345,14 @@ class StatistikkIT(
      * Sendt: V1 og V2 i kvartalskjøringen 19.06.2026, U1 (linjer i 2025 og 2026), KRED, TILLEGG, FRADRAG og SATS
      * utenom i 2026-K3, og AAR (årsavregning) i 2025-K4. Planlagt: én i hver bøtte rundt neste kjøring 19.12.2026.
      */
-    private fun lagTestdataForPerioder() {
+    private fun lagTestdataForPerioder(): List<String> {
         val juni = LocalDate.of(2026, 6, 19)
         val juli = LocalDate.of(2026, 7, 1)
         val august = LocalDate.of(2026, 8, 5)
+        val serier = List(5) { ULID.randomULID() }
         fakturaserieRepository.saveAndFlush(
             Fakturaserie.forTest {
-                referanse = ULID.randomULID()
+                referanse = serier[0]
                 fodselsnummer = FNR_1
                 referanseBruker = "Vedtak om medlemskap datert 01.06.2026"
                 status = FakturaserieStatus.UNDER_BESTILLING
@@ -387,7 +394,7 @@ class StatistikkIT(
         )
         fakturaserieRepository.saveAndFlush(
             Fakturaserie.forTest {
-                referanse = ULID.randomULID()
+                referanse = serier[1]
                 fodselsnummer = FNR_1
                 referanseBruker = "Årsavregning for 2024"
                 fakturaGjelderInnbetalingstype = Innbetalingstype.AARSAVREGNING
@@ -400,7 +407,7 @@ class StatistikkIT(
         )
         fakturaserieRepository.saveAndFlush(
             Fakturaserie.forTest {
-                referanse = ULID.randomULID()
+                referanse = serier[2]
                 fodselsnummer = FNR_2
                 referanseBruker = "Faktura for årlig satsoppdatering 2026"
                 status = FakturaserieStatus.ERSTATTET
@@ -412,7 +419,7 @@ class StatistikkIT(
         )
         fakturaserieRepository.saveAndFlush(
             Fakturaserie.forTest {
-                referanse = ULID.randomULID()
+                referanse = serier[3]
                 fodselsnummer = FNR_2
                 referanseBruker = "Informasjon om trygdeavgift"
                 status = FakturaserieStatus.KANSELLERT
@@ -420,7 +427,7 @@ class StatistikkIT(
         )
         fakturaserieRepository.saveAndFlush(
             Fakturaserie.forTest {
-                referanse = ULID.randomULID()
+                referanse = serier[4]
                 fodselsnummer = FNR_3
                 referanseBruker = "Noe helt annet"
                 intervall = FakturaserieIntervall.MANEDLIG
@@ -431,6 +438,7 @@ class StatistikkIT(
             "UPDATE faktura SET avregning_faktura_id = (SELECT id FROM faktura WHERE referanse_nr = 'V1') " +
                 "WHERE referanse_nr IN ('TILLEGG', 'FRADRAG', 'KOBLING')"
         )
+        return serier
     }
 
     /** Returnerer referansene til to overlappende serier for samme person. */
