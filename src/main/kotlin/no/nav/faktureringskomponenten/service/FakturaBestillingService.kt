@@ -30,13 +30,24 @@ class FakturaBestillingService(
     }
 
 
+    /**
+     * Bestiller fakturaen til OEBS. Raden låses, og fakturaen bestilles bare hvis den fortsatt har
+     * status OPPRETTET, slik at samtidige kall (cronjobb, adminendepunkter) ikke sender den to ganger.
+     *
+     * @return true hvis fakturaen ble bestilt, false hvis den allerede var bestilt eller avbrutt
+     */
     @Transactional
-    fun bestillFaktura(fakturaReferanseNr: String) {
+    fun bestillFaktura(fakturaReferanseNr: String): Boolean {
         log.info("Bestiller faktura med referanse nr $fakturaReferanseNr")
-        val faktura = fakturaRepository.findByReferanseNr(fakturaReferanseNr) ?: throw RessursIkkeFunnetException(
+        val faktura = fakturaRepository.findByReferanseNrForUpdate(fakturaReferanseNr) ?: throw RessursIkkeFunnetException(
             field = "fakturaReferanseNr",
             message = "Finner ikke faktura med faktura referanse nr $fakturaReferanseNr"
         )
+
+        if (faktura.status != FakturaStatus.OPPRETTET) {
+            log.warn("Faktura med referanse nr $fakturaReferanseNr har status ${faktura.status} og bestilles ikke")
+            return false
+        }
 
         val fakturaserieId = faktura.getFakturaserieId()
             ?: throw RessursIkkeFunnetException(
@@ -60,6 +71,7 @@ class FakturaBestillingService(
 
         fakturaBestiltProducer.produserBestillingsmelding(fakturaBestiltDto)
         Metrics.counter(MetrikkNavn.FAKTURA_BESTILT).increment()
+        return true
     }
 
     @Transactional

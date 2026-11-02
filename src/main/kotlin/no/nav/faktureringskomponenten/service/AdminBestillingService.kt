@@ -55,9 +55,13 @@ class AdminBestillingService(
      *
      * @return resultatet av endringen, eller null dersom låsen var opptatt
      */
-    fun endreBestillingsdato(fakturaReferanse: String, bestillingsDato: LocalDate): EndreBestillingsdatoResultat? =
-        medBestillingslås { adminService.endreBestillingsdato(fakturaReferanse, bestillingsDato) }
-            .also { if (it == null) log.info("Bestilling av fakturaer kjører allerede, endring av bestillingsdato på $fakturaReferanse hoppet over") }
+    fun endreBestillingsdato(fakturaReferanse: String, bestillingsDato: LocalDate): EndreBestillingsdatoResultat? {
+        val resultat = medBestillingslås { adminService.endreBestillingsdato(fakturaReferanse, bestillingsDato) }
+        if (resultat == null) {
+            log.info("Bestilling av fakturaer kjører allerede, endring av bestillingsdato på $fakturaReferanse hoppet over")
+        }
+        return resultat
+    }
 
     /**
      * Setter bestillingsdato til i dag og bestiller én faktura til OEBS med en gang.
@@ -67,9 +71,13 @@ class AdminBestillingService(
      *
      * @return resultatet av bestillingen, eller null dersom låsen var opptatt
      */
-    fun bestillUmiddelbart(fakturaReferanse: String): BestillFakturaResultat? =
-        medBestillingslås { adminService.bestillUmiddelbart(fakturaReferanse) }
-            .also { if (it == null) log.info("Bestilling av fakturaer kjører allerede, bestilling av $fakturaReferanse hoppet over") }
+    fun bestillUmiddelbart(fakturaReferanse: String): BestillFakturaResultat? {
+        val resultat = medBestillingslås { adminService.bestillUmiddelbart(fakturaReferanse) }
+        if (resultat == null) {
+            log.info("Bestilling av fakturaer kjører allerede, bestilling av $fakturaReferanse hoppet over")
+        }
+        return resultat
+    }
 
     private fun <T> medBestillingslås(oppgave: () -> T): T? {
         val resultat = lockingTaskExecutor.executeWithLock(
@@ -93,8 +101,9 @@ class AdminBestillingService(
 
         bestillingsklareFakturaer.forEach { faktura ->
             try {
-                fakturaBestillingService.bestillFaktura(faktura.referanseNr)
-                bestilte.add(faktura.referanseNr)
+                if (fakturaBestillingService.bestillFaktura(faktura.referanseNr)) {
+                    bestilte.add(faktura.referanseNr)
+                }
             } catch (e: Exception) {
                 log.error(e) { "Klarte ikke å bestille faktura med referanse nr ${faktura.referanseNr}" }
                 feilede.add(FeiletBestilling(faktura.referanseNr, e.message ?: e::class.simpleName.orEmpty()))

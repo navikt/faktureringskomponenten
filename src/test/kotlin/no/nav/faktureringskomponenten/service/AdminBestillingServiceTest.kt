@@ -24,6 +24,24 @@ class AdminBestillingServiceTest {
 
     private val adminBestillingService = AdminBestillingService(fakturaBestillingService, adminService, lockProvider)
 
+    init {
+        every { fakturaBestillingService.bestillFaktura(any()) } returns true
+    }
+
+    @Test
+    fun `teller ikke med fakturaer som ble bestilt av andre underveis`() {
+        gittAtLåsenErLedig()
+        val alleredeBestilt = Faktura.forTest { }
+        val bestilt = Faktura.forTest { }
+        every { fakturaBestillingService.hentBestillingsklareFaktura(any()) } returns listOf(alleredeBestilt, bestilt)
+        every { fakturaBestillingService.bestillFaktura(alleredeBestilt.referanseNr) } returns false
+
+        val resultat = adminBestillingService.bestillBestillingsklareFakturaer().shouldNotBeNull()
+
+        resultat.bestilte shouldBe listOf(bestilt.referanseNr)
+        resultat.feilede.shouldBeEmpty()
+    }
+
     @Test
     fun `bestiller faktura umiddelbart når låsen er ledig`() {
         gittAtLåsenErLedig()

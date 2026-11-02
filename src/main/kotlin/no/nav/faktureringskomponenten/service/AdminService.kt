@@ -5,6 +5,7 @@ import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
+import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
 import no.nav.faktureringskomponenten.service.avregning.AvregningsfakturaGenerator
@@ -24,20 +25,22 @@ class AdminService(
     private val fakturaserieRepository: FakturaserieRepository,
     private val fakturaBestiltProducer: FakturaBestiltProducer,
     private val fakturaBestillingService: FakturaBestillingService,
+    private val fakturaRepository: FakturaRepository,
 ) {
 
     /**
      * Setter ny bestillingsdato på en faktura som ikke er bestilt ennå. Fakturaen bestilles av
-     * cronjobben når datoen er nådd.
+     * cronjobben når datoen er nådd. Raden låses, så en samtidig erstatning eller kansellering
+     * ikke overskrives.
      */
     @Transactional
-    fun endreBestillingsdato(fakturaReferanse: String, nyBestillingsdato: LocalDate): EndreBestillingsdatoResultat {
-        val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return FakturaAvvist.FinnesIkke
+    fun endreBestillingsdato(fakturaReferanse: String, nyBestillingsDato: LocalDate): EndreBestillingsdatoResultat {
+        val faktura = fakturaRepository.findByReferanseNrForUpdate(fakturaReferanse) ?: return FakturaAvvist.FinnesIkke
         if (faktura.status != FakturaStatus.OPPRETTET) return FakturaAvvist.UgyldigStatus(faktura.status)
 
-        val forrigeBestillingsdato = settBestillingsdato(faktura, nyBestillingsdato)
+        val forrigeBestillingsDato = settBestillingsdato(faktura, nyBestillingsDato)
 
-        return EndreBestillingsdatoResultat.Endret(fakturaReferanse, forrigeBestillingsdato, nyBestillingsdato)
+        return EndreBestillingsdatoResultat.Endret(fakturaReferanse, forrigeBestillingsDato, nyBestillingsDato)
     }
 
     /**
@@ -45,22 +48,21 @@ class AdminService(
      */
     @Transactional
     fun bestillUmiddelbart(fakturaReferanse: String): BestillFakturaResultat {
-        val faktura = fakturaService.hentFaktura(fakturaReferanse) ?: return FakturaAvvist.FinnesIkke
+        val faktura = fakturaRepository.findByReferanseNrForUpdate(fakturaReferanse) ?: return FakturaAvvist.FinnesIkke
         if (faktura.status != FakturaStatus.OPPRETTET) return FakturaAvvist.UgyldigStatus(faktura.status)
 
-        val bestillingsdato = LocalDate.now()
-        val forrigeBestillingsdato = settBestillingsdato(faktura, bestillingsdato)
+        val bestillingsDato = LocalDate.now()
+        val forrigeBestillingsDato = settBestillingsdato(faktura, bestillingsDato)
         fakturaBestillingService.bestillFaktura(fakturaReferanse)
 
-        return BestillFakturaResultat.Bestilt(fakturaReferanse, forrigeBestillingsdato, bestillingsdato)
+        return BestillFakturaResultat.Bestilt(fakturaReferanse, forrigeBestillingsDato, bestillingsDato)
     }
 
-    private fun settBestillingsdato(faktura: Faktura, nyBestillingsdato: LocalDate): LocalDate {
-        val forrigeBestillingsdato = faktura.datoBestilt
-        faktura.datoBestilt = nyBestillingsdato
-        fakturaService.lagreFaktura(faktura)
-        log.info("Endret bestillingsdato på faktura ${faktura.referanseNr} fra $forrigeBestillingsdato til $nyBestillingsdato")
-        return forrigeBestillingsdato
+    private fun settBestillingsdato(faktura: Faktura, nyBestillingsDato: LocalDate): LocalDate {
+        val forrigeBestillingsDato = faktura.datoBestilt
+        faktura.datoBestilt = nyBestillingsDato
+        log.info("Endret bestillingsdato på faktura ${faktura.referanseNr} fra $forrigeBestillingsDato til $nyBestillingsDato")
+        return forrigeBestillingsDato
     }
 
     @Transactional
@@ -180,16 +182,16 @@ class AdminService(
 sealed interface EndreBestillingsdatoResultat {
     data class Endret(
         val fakturaReferanse: String,
-        val forrigeBestillingsdato: LocalDate,
-        val nyBestillingsdato: LocalDate
+        val forrigeBestillingsDato: LocalDate,
+        val nyBestillingsDato: LocalDate
     ) : EndreBestillingsdatoResultat
 }
 
 sealed interface BestillFakturaResultat {
     data class Bestilt(
         val fakturaReferanse: String,
-        val forrigeBestillingsdato: LocalDate,
-        val bestillingsdato: LocalDate
+        val forrigeBestillingsDato: LocalDate,
+        val bestillingsDato: LocalDate
     ) : BestillFakturaResultat
 }
 

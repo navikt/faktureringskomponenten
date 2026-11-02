@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import mu.KotlinLogging
+import no.nav.faktureringskomponenten.config.SubjectHandler
 import no.nav.faktureringskomponenten.controller.FakturaserieController.KanselleringRequestDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaAdminDto
 import no.nav.faktureringskomponenten.controller.dto.FakturaserieResponseDto
@@ -130,20 +131,32 @@ class AdminController(
         summary = "Bestiller én faktura til OEBS umiddelbart",
         description = "Tilgjengelig i alle miljøer. Gjelder kun fakturaer med status OPPRETTET (ellers 400). " +
             "Setter bestillingsdato til dagens dato og sender fakturaen til OEBS med en gang, uten å vente " +
-            "på cronjobben. Kjøringen tar samme lås som cronjobben; får den ikke låsen, svares det 409."
+            "på cronjobben. Kjøringen tar samme lås som cronjobben; får den ikke låsen, svares det 409. " +
+            "Feiler sendingen, rulles endringen tilbake og det svares 500."
     )
     @PostMapping("/faktura/{fakturaReferanse}/bestill")
     fun bestillFakturaUmiddelbart(@PathVariable fakturaReferanse: String): ResponseEntity<Any> {
-        log.info("Admin bestiller faktura $fakturaReferanse umiddelbart")
+        log.info("${innloggetBruker()} bestiller faktura $fakturaReferanse umiddelbart")
 
-        return when (val resultat = adminBestillingService.bestillUmiddelbart(fakturaReferanse)) {
+        val resultat = try {
+            adminBestillingService.bestillUmiddelbart(fakturaReferanse)
+        } catch (e: Exception) {
+            log.error(e) { "Umiddelbar bestilling av faktura $fakturaReferanse feilet" }
+            return ResponseEntity.status(500).body(
+                "Bestilling av faktura $fakturaReferanse feilet: ${e.message}. Endringen er rullet tilbake, " +
+                    "og fakturaen har fortsatt status OPPRETTET. Ved tidsavbrudd mot Kafka kan meldingen likevel " +
+                    "ha nådd OEBS, så sjekk OEBS før du prøver igjen."
+            )
+        }
+
+        return when (resultat) {
             null -> låsOpptatt()
             is FakturaAvvist -> avvist(fakturaReferanse, resultat)
             is BestillFakturaResultat.Bestilt -> ResponseEntity.ok(
                 BestillFakturaResponse(
                     fakturaReferanse = resultat.fakturaReferanse,
-                    forrigeBestillingsdato = resultat.forrigeBestillingsdato,
-                    bestillingsdato = resultat.bestillingsdato
+                    forrigeBestillingsDato = resultat.forrigeBestillingsDato,
+                    bestillingsDato = resultat.bestillingsDato
                 )
             )
         }
@@ -153,36 +166,40 @@ class AdminController(
         summary = "Endrer bestillingsdato på én faktura",
         description = "Tilgjengelig i alle miljøer. Gjelder kun fakturaer med status OPPRETTET (ellers 400). " +
             "Setter bare bestillingsdatoen; cronjobben bestiller fakturaen når datoen er nådd. " +
-            "bestillingsDato er som standard dagens dato og kan ikke være tilbake i tid. " +
+            "bestillingsDato må være frem i tid: cronjobben kjører kl. 04 i prod, så dagens dato ville gitt " +
+            "bestilling først i morgen med feil bestillingsdato. Bruk POST …/bestill for å bestille i dag. " +
             "Kjøringen tar samme lås som cronjobben; får den ikke låsen, svares det 409."
     )
     @PutMapping("/faktura/{fakturaReferanse}/bestillingsdato")
     fun endreBestillingsdato(
         @PathVariable fakturaReferanse: String,
-        @Parameter(description = "Ny bestillingsdato. Standard er dagens dato.")
-        @RequestParam(required = false)
+        @Parameter(description = "Ny bestillingsdato. Må være frem i tid.")
+        @RequestParam
         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-        bestillingsDato: LocalDate?
+        bestillingsDato: LocalDate
     ): ResponseEntity<Any> {
-        val dato = bestillingsDato ?: LocalDate.now()
-        if (dato.isBefore(LocalDate.now())) {
-            return ResponseEntity.status(400).body("Bestillingsdato kan ikke være tilbake i tid")
+        if (!bestillingsDato.isAfter(LocalDate.now())) {
+            return ResponseEntity.status(400).body(
+                "Bestillingsdato må være frem i tid. Bruk POST /admin/faktura/$fakturaReferanse/bestill for å bestille i dag"
+            )
         }
 
-        log.info("Admin endrer bestillingsdato på faktura $fakturaReferanse til $dato")
+        log.info("${innloggetBruker()} endrer bestillingsdato på faktura $fakturaReferanse til $bestillingsDato")
 
-        return when (val resultat = adminBestillingService.endreBestillingsdato(fakturaReferanse, dato)) {
+        return when (val resultat = adminBestillingService.endreBestillingsdato(fakturaReferanse, bestillingsDato)) {
             null -> låsOpptatt()
             is FakturaAvvist -> avvist(fakturaReferanse, resultat)
             is EndreBestillingsdatoResultat.Endret -> ResponseEntity.ok(
                 EndreBestillingsdatoResponse(
                     fakturaReferanse = resultat.fakturaReferanse,
-                    forrigeBestillingsdato = resultat.forrigeBestillingsdato,
-                    nyBestillingsdato = resultat.nyBestillingsdato
+                    forrigeBestillingsDato = resultat.forrigeBestillingsDato,
+                    nyBestillingsDato = resultat.nyBestillingsDato
                 )
             )
         }
     }
+
+    private fun innloggetBruker(): String = SubjectHandler.getInstance().getTokenUsername() ?: "Ukjent bruker"
 
     private fun låsOpptatt(): ResponseEntity<Any> =
         ResponseEntity.status(409).body("Bestilling av fakturaer kjører allerede, prøv igjen om litt")
@@ -513,14 +530,14 @@ data class BestillKlareFakturaerResponse(
 
 data class EndreBestillingsdatoResponse(
     val fakturaReferanse: String,
-    val forrigeBestillingsdato: LocalDate,
-    val nyBestillingsdato: LocalDate
+    val forrigeBestillingsDato: LocalDate,
+    val nyBestillingsDato: LocalDate
 )
 
 data class BestillFakturaResponse(
     val fakturaReferanse: String,
-    val forrigeBestillingsdato: LocalDate,
-    val bestillingsdato: LocalDate
+    val forrigeBestillingsDato: LocalDate,
+    val bestillingsDato: LocalDate
 )
 
 

@@ -1,10 +1,12 @@
 package no.nav.faktureringskomponenten.domain.repositories
 
+import jakarta.persistence.LockModeType
 import no.nav.faktureringskomponenten.domain.models.AvstemmingCsvProjection
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import java.time.LocalDate
@@ -18,6 +20,11 @@ interface FakturaRepository : JpaRepository<Faktura, String> {
     fun findByFakturaserieReferanse(fakturaserieRef: String): List<Faktura>
 
     fun findByReferanseNr(referanseNr: String): Faktura?
+
+    /** Henter fakturaen og låser raden (SELECT … FOR UPDATE) ut transaksjonen. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT f FROM Faktura f WHERE f.referanseNr = :referanseNr")
+    fun findByReferanseNrForUpdate(@Param("referanseNr") referanseNr: String): Faktura?
 
     @EntityGraph(attributePaths = ["eksternFakturaStatus", "fakturaserie"])
     fun findByStatus(status: FakturaStatus): List<Faktura>

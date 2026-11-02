@@ -43,7 +43,7 @@ class FakturaBestillingServiceTest {
         }
 
         every {
-            fakturaRepository.findByReferanseNr(faktura.referanseNr)
+            fakturaRepository.findByReferanseNrForUpdate(faktura.referanseNr)
         } returns faktura
 
         every {
@@ -61,7 +61,7 @@ class FakturaBestillingServiceTest {
         fakturaBestillingService.bestillFaktura(faktura.referanseNr)
 
         verifySequence {
-            fakturaRepository.findByReferanseNr(faktura.referanseNr)
+            fakturaRepository.findByReferanseNrForUpdate(faktura.referanseNr)
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
             fakturaserieRepository.save(faktura.fakturaserie!!)
             fakturaRepository.save(faktura)
@@ -97,7 +97,7 @@ class FakturaBestillingServiceTest {
         val sluttDatoFaktura = faktura.fakturaLinje.maxByOrNull { it.periodeFra }!!.periodeTil
 
         every {
-            fakturaRepository.findByReferanseNr(faktura.referanseNr)
+            fakturaRepository.findByReferanseNrForUpdate(faktura.referanseNr)
         } returns faktura
 
         every {
@@ -145,6 +145,20 @@ class FakturaBestillingServiceTest {
         }
 
         fakturaBestillingService.bestillFaktura(faktura.referanseNr)
+    }
+
+    @Test
+    fun `Bestiller ikke faktura som ikke lenger har status OPPRETTET`() {
+        val faktura = Faktura.forTest {
+            status = FakturaStatus.BESTILT
+            fakturaserie = Fakturaserie.forTest { id = 10 }
+        }
+        every { fakturaRepository.findByReferanseNrForUpdate(faktura.referanseNr) } returns faktura
+
+        fakturaBestillingService.bestillFaktura(faktura.referanseNr) shouldBe false
+
+        verify(exactly = 0) { fakturaBestiltProducer.produserBestillingsmelding(any()) }
+        verify(exactly = 0) { fakturaRepository.save(any()) }
     }
 
     @Test

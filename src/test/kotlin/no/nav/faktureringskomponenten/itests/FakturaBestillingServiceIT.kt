@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.faktureringskomponenten.PostgresTestContainerBase
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
@@ -12,6 +13,8 @@ import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.forTest
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
+import no.nav.faktureringskomponenten.service.AdminService
+import no.nav.faktureringskomponenten.service.BestillFakturaResultat
 import no.nav.faktureringskomponenten.service.FakturaBestillingService
 import no.nav.faktureringskomponenten.service.cronjob.FakturaBestillCronjob
 import no.nav.faktureringskomponenten.service.integration.kafka.FakturaBestiltProducer
@@ -41,6 +44,8 @@ class FakturaBestillingServiceIT(
     @Autowired private val fakturaRepository: FakturaRepository,
     @Autowired private val fakturaserieRepository: FakturaserieRepository,
     @Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
+    @Autowired private val fakturaBestillingService: FakturaBestillingService,
+    @Autowired private val adminService: AdminService,
 ) : PostgresTestContainerBase() {
 
     private var fakturaReferanseNr: String = ""
@@ -125,6 +130,41 @@ class FakturaBestillingServiceIT(
 
         fakturaRepository.findByReferanseNr(fakturaReferanseNr)!!.status
             .shouldBe(FakturaStatus.OPPRETTET)
+        TestQueue.fakturaBestiltMeldinger.shouldBeEmpty()
+    }
+
+    @Test
+    fun `faktura som allerede er bestilt sendes ikke på nytt`() {
+        fakturaBestillingService.bestillFaktura(fakturaReferanseNr) shouldBe true
+        fakturaBestillingService.bestillFaktura(fakturaReferanseNr) shouldBe false
+
+        TestQueue.fakturaBestiltMeldinger.shouldHaveSize(1)
+    }
+
+    @Test
+    fun `bestillUmiddelbart setter dagens dato og sender én melding`() {
+        adminService.bestillUmiddelbart(fakturaReferanseNr).shouldBeInstanceOf<BestillFakturaResultat.Bestilt>()
+
+        TestQueue.fakturaBestiltMeldinger.single().fakturaReferanseNr shouldBe fakturaReferanseNr
+        fakturaRepository.findByReferanseNr(fakturaReferanseNr)!!.run {
+            status shouldBe FakturaStatus.BESTILT
+            datoBestilt shouldBe LocalDate.now()
+        }
+    }
+
+    @Test
+    fun `bestillUmiddelbart ruller tilbake både dato og status når sending feiler`() {
+        val opprinneligDato = fakturaRepository.findByReferanseNr(fakturaReferanseNr)!!.datoBestilt
+        TestQueue.kastException = true
+
+        shouldThrow<IllegalStateException> {
+            adminService.bestillUmiddelbart(fakturaReferanseNr)
+        }
+
+        fakturaRepository.findByReferanseNr(fakturaReferanseNr)!!.run {
+            status shouldBe FakturaStatus.OPPRETTET
+            datoBestilt shouldBe opprinneligDato
+        }
         TestQueue.fakturaBestiltMeldinger.shouldBeEmpty()
     }
 }
