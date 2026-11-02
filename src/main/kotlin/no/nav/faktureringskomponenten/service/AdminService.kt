@@ -53,7 +53,9 @@ class AdminService(
 
         val bestillingsDato = LocalDate.now()
         val forrigeBestillingsDato = settBestillingsdato(faktura, bestillingsDato)
-        fakturaBestillingService.bestillFaktura(fakturaReferanse)
+        // bestillFaktura leser fakturaen på nytt fra databasen, så den nye datoen må skrives først
+        fakturaRepository.flush()
+        fakturaBestillingService.bestillFaktura(fakturaReferanse, bestillingsDato)
 
         return BestillFakturaResultat.Bestilt(fakturaReferanse, forrigeBestillingsDato, bestillingsDato)
     }

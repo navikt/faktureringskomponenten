@@ -25,7 +25,7 @@ class AdminBestillingServiceTest {
     private val adminBestillingService = AdminBestillingService(fakturaBestillingService, adminService, lockProvider)
 
     init {
-        every { fakturaBestillingService.bestillFaktura(any()) } returns true
+        every { fakturaBestillingService.bestillFaktura(any(), any()) } returns true
     }
 
     @Test
@@ -34,7 +34,7 @@ class AdminBestillingServiceTest {
         val alleredeBestilt = Faktura.forTest { }
         val bestilt = Faktura.forTest { }
         every { fakturaBestillingService.hentBestillingsklareFaktura(any()) } returns listOf(alleredeBestilt, bestilt)
-        every { fakturaBestillingService.bestillFaktura(alleredeBestilt.referanseNr) } returns false
+        every { fakturaBestillingService.bestillFaktura(alleredeBestilt.referanseNr, any()) } returns false
 
         val resultat = adminBestillingService.bestillBestillingsklareFakturaer().shouldNotBeNull()
 
@@ -90,7 +90,7 @@ class AdminBestillingServiceTest {
 
         resultat.bestilte shouldBe fakturaer.map { it.referanseNr }
         resultat.feilede.shouldBeEmpty()
-        fakturaer.forEach { verify(exactly = 1) { fakturaBestillingService.bestillFaktura(it.referanseNr) } }
+        fakturaer.forEach { verify(exactly = 1) { fakturaBestillingService.bestillFaktura(it.referanseNr, bestillingsDato) } }
     }
 
     @Test
@@ -106,7 +106,7 @@ class AdminBestillingServiceTest {
         val andreKjøring = adminBestillingService.bestillBestillingsklareFakturaer().shouldNotBeNull()
         andreKjøring.bestilte.shouldBeEmpty()
         andreKjøring.feilede.shouldBeEmpty()
-        verify(exactly = 1) { fakturaBestillingService.bestillFaktura(faktura.referanseNr) }
+        verify(exactly = 1) { fakturaBestillingService.bestillFaktura(faktura.referanseNr, any()) }
     }
 
     @Test
@@ -115,14 +115,14 @@ class AdminBestillingServiceTest {
         val feilende = Faktura.forTest { }
         val vellykket = Faktura.forTest { }
         every { fakturaBestillingService.hentBestillingsklareFaktura(any()) } returns listOf(feilende, vellykket)
-        every { fakturaBestillingService.bestillFaktura(feilende.referanseNr) } throws
+        every { fakturaBestillingService.bestillFaktura(feilende.referanseNr, any()) } throws
             RessursIkkeFunnetException(field = "fakturaReferanseNr", message = "Finner ikke faktura")
 
         val resultat = adminBestillingService.bestillBestillingsklareFakturaer().shouldNotBeNull()
 
         resultat.bestilte shouldBe listOf(vellykket.referanseNr)
         resultat.feilede.map { it.fakturaReferanse } shouldBe listOf(feilende.referanseNr)
-        verify(exactly = 1) { fakturaBestillingService.bestillFaktura(vellykket.referanseNr) }
+        verify(exactly = 1) { fakturaBestillingService.bestillFaktura(vellykket.referanseNr, any()) }
     }
 
     @Test
@@ -134,7 +134,7 @@ class AdminBestillingServiceTest {
 
         resultat.bestilte.shouldBeEmpty()
         resultat.feilede.shouldBeEmpty()
-        verify(exactly = 0) { fakturaBestillingService.bestillFaktura(any()) }
+        verify(exactly = 0) { fakturaBestillingService.bestillFaktura(any(), any()) }
     }
 
     @Test
@@ -144,7 +144,7 @@ class AdminBestillingServiceTest {
         adminBestillingService.bestillBestillingsklareFakturaer().shouldBeNull()
 
         verify(exactly = 0) { fakturaBestillingService.hentBestillingsklareFaktura(any()) }
-        verify(exactly = 0) { fakturaBestillingService.bestillFaktura(any()) }
+        verify(exactly = 0) { fakturaBestillingService.bestillFaktura(any(), any()) }
     }
 
     private fun gittAtLåsenErLedig() {

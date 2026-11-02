@@ -21,7 +21,11 @@ interface FakturaRepository : JpaRepository<Faktura, String> {
 
     fun findByReferanseNr(referanseNr: String): Faktura?
 
-    /** Henter fakturaen og låser raden (SELECT … FOR UPDATE) ut transaksjonen. */
+    /**
+     * Henter fakturaen og låser raden (SELECT … FOR UPDATE) ut transaksjonen. Ligger fakturaen allerede
+     * i persistenskonteksten, returneres den instansen uten å leses på nytt. Bruk da
+     * `EntityManager.refresh` med låsemodus i stedet.
+     */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT f FROM Faktura f WHERE f.referanseNr = :referanseNr")
     fun findByReferanseNrForUpdate(@Param("referanseNr") referanseNr: String): Faktura?

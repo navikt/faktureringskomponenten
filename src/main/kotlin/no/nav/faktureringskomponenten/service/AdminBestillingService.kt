@@ -101,7 +101,7 @@ class AdminBestillingService(
 
         bestillingsklareFakturaer.forEach { faktura ->
             try {
-                if (fakturaBestillingService.bestillFaktura(faktura.referanseNr)) {
+                if (fakturaBestillingService.bestillFaktura(faktura.referanseNr, bestillingsDato)) {
                     bestilte.add(faktura.referanseNr)
                 }
             } catch (e: Exception) {

@@ -6,11 +6,14 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import net.javacrumbs.shedlock.core.LockConfiguration
+import net.javacrumbs.shedlock.core.LockProvider
 import no.nav.faktureringskomponenten.controller.dto.*
 import no.nav.faktureringskomponenten.domain.models.Fakturaserie
 import no.nav.faktureringskomponenten.domain.models.FakturaserieIntervall
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
 import no.nav.faktureringskomponenten.domain.models.Innbetalingstype
+import no.nav.faktureringskomponenten.domain.models.forTest
 import no.nav.faktureringskomponenten.domain.repositories.FakturaRepository
 import no.nav.faktureringskomponenten.domain.repositories.FakturaserieRepository
 import no.nav.faktureringskomponenten.exceptions.RessursIkkeFunnetException
@@ -32,6 +35,8 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.testcontainers.junit.jupiter.Testcontainers
+import java.time.Duration
+import java.time.Instant
 import java.time.LocalDate
 
 @Testcontainers
@@ -47,6 +52,7 @@ class AdminControllerIT(
     @param:Autowired private val fakturaRepository: FakturaRepository,
     @param:Autowired private val fakturaBestillCronjob: FakturaBestillCronjob,
     @param:Autowired private val adminService: AdminService,
+    @param:Autowired private val lockProvider: LockProvider,
     @param:Value("\${admin.driftsgruppe}") private val driftsgruppeId: String,
     @param:Value("\${admin.console-klient-id}") private val consoleKlientId: String,
 ) : EmbeddedKafkaBase(fakturaserieRepository) {
@@ -358,6 +364,50 @@ class AdminControllerIT(
     fun `bestillFakturaUmiddelbart gir 404 når fakturaen ikke finnes`() {
         postBestillFakturaUmiddelbartRequest("finnes-ikke")
             .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `bestillFakturaUmiddelbart og endreBestillingsdato gir 409 når cronjobben holder låsen`() {
+        val fakturaReferanse = opprettFakturaMedBestillingsdatoFremITid()
+        val opprinneligDato = fakturaRepository.findByReferanseNr(fakturaReferanse)!!.datoBestilt
+        val lås = lockProvider.lock(
+            LockConfiguration(Instant.now(), FakturaBestillCronjob.BESTILL_FAKTURA_LOCK_NAME, Duration.ofMinutes(1), Duration.ZERO)
+        ).get()
+
+        try {
+            postBestillFakturaUmiddelbartRequest(fakturaReferanse)
+                .expectStatus().isEqualTo(409)
+            putEndreBestillingsdatoRequest(fakturaReferanse, LocalDate.now().plusDays(3))
+                .expectStatus().isEqualTo(409)
+        } finally {
+            lås.unlock()
+        }
+
+        fakturaRepository.findByReferanseNr(fakturaReferanse)!!.run {
+            status shouldBe FakturaStatus.OPPRETTET
+            datoBestilt shouldBe opprinneligDato
+        }
+    }
+
+    @Test
+    fun `bestillFakturaUmiddelbart gir 500 og ruller tilbake når bestillingen feiler`() {
+        val opprinneligDato = LocalDate.now().plusMonths(2)
+        // Faktura uten fakturalinjer får ikke laget beskrivelse, så bestillingen kaster etter at datoen er skrevet
+        val fakturaReferanse = fakturaserieRepository.saveAndFlush(
+            Fakturaserie.forTest {
+                faktura { datoBestilt = opprinneligDato }
+            }
+        ).faktura.single().referanseNr
+
+        postBestillFakturaUmiddelbartRequest(fakturaReferanse)
+            .expectStatus().isEqualTo(500)
+            .expectBody<String>()
+            .returnResult().responseBody!! shouldContain "Sjekk status på fakturaen"
+
+        fakturaRepository.findByReferanseNr(fakturaReferanse)!!.run {
+            status shouldBe FakturaStatus.OPPRETTET
+            datoBestilt shouldBe opprinneligDato
+        }
     }
 
     @Test

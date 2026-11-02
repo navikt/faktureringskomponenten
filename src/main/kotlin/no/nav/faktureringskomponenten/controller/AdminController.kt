@@ -143,9 +143,11 @@ class AdminController(
         } catch (e: Exception) {
             log.error(e) { "Umiddelbar bestilling av faktura $fakturaReferanse feilet" }
             return ResponseEntity.status(500).body(
-                "Bestilling av faktura $fakturaReferanse feilet: ${e.message}. Endringen er rullet tilbake, " +
-                    "og fakturaen har fortsatt status OPPRETTET. Ved tidsavbrudd mot Kafka kan meldingen likevel " +
-                    "ha nådd OEBS, så sjekk OEBS før du prøver igjen."
+                "Bestilling av faktura $fakturaReferanse feilet: ${e.message}. Sjekk status på fakturaen: står den " +
+                    "fortsatt som OPPRETTET, er endringen rullet tilbake. Ved tidsavbrudd mot Kafka kan meldingen " +
+                    "likevel ha nådd OEBS, og da sender cronjobben den på nytt når bestillingsdatoen er nådd. " +
+                    "Flytt i så fall bestillingsdatoen frem med PUT /admin/faktura/$fakturaReferanse/bestillingsdato " +
+                    "til det er avklart."
             )
         }
 
