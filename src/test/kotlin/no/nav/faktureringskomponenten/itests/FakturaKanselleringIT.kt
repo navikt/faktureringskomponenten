@@ -8,6 +8,7 @@ import io.kotest.matchers.string.shouldStartWith
 import io.mockk.every
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import jakarta.persistence.EntityManager
 import no.nav.faktureringskomponenten.PostgresTestContainerBase
 import no.nav.faktureringskomponenten.controller.FakturaserieRepositoryForTesting
 import no.nav.faktureringskomponenten.controller.dto.FakturaseriePeriodeDto
@@ -74,11 +75,14 @@ class FakturaKanselleringIT(
     class Config(
         @Autowired private val fakturaRepository: FakturaRepository,
         @Autowired private val fakturaserieRepository: FakturaserieRepository,
+        @Autowired private val entityManager: EntityManager,
     ) {
         @Bean
         @Primary
         fun testFakturaService(): FakturaBestillingService {
-            return FakturaBestillingService(fakturaRepository, fakturaserieRepository, TestQueue.fakturaBestiltProducer)
+            return FakturaBestillingService(
+                fakturaRepository, fakturaserieRepository, TestQueue.fakturaBestiltProducer, entityManager
+            )
         }
     }
 

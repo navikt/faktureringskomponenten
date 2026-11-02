@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Duration
+import java.time.LocalDate
 
 private val log = KotlinLogging.logger { }
 
@@ -18,12 +19,11 @@ class FakturaBestillCronjob(
     @Scheduled(cron = "\${cron.job.bestill-faktura}")
     @SchedulerLock(name = BESTILL_FAKTURA_LOCK_NAME, lockAtMostFor = LOCK_AT_MOST_FOR_ISO)
     fun bestillFaktura() {
-        val alleFaktura = fakturaBestillingService.hentBestillingsklareFaktura()
+        val bestillingsDato = LocalDate.now()
+        val alleFaktura = fakturaBestillingService.hentBestillingsklareFaktura(bestillingsDato)
         log.info("Kjører cronjob for å bestille ${alleFaktura.size} fakturaer")
         alleFaktura.forEach { faktura ->
-            faktura.let {
-                faktura.referanseNr.let { referanseNr -> fakturaBestillingService.bestillFaktura(referanseNr) }
-            }
+            fakturaBestillingService.bestillFaktura(faktura.referanseNr, bestillingsDato)
         }
     }
 

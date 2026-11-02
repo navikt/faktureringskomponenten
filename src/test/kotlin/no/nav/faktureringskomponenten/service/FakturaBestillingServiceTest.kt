@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.shouldBe
 import io.mockk.*
+import jakarta.persistence.EntityManager
 import no.nav.faktureringskomponenten.domain.models.Faktura
 import no.nav.faktureringskomponenten.domain.models.FakturaLinje
 import no.nav.faktureringskomponenten.domain.models.FakturaStatus
@@ -27,9 +28,10 @@ class FakturaBestillingServiceTest {
     private val fakturaRepository = mockk<FakturaRepository>(relaxed = true)
     private val fakturaserieRepository = mockk<FakturaserieRepository>(relaxed = true)
     private val fakturaBestiltProducer = mockk<FakturaBestiltProducer>(relaxed = true)
+    private val entityManager = mockk<EntityManager>(relaxed = true)
 
     private val fakturaBestillingService =
-        FakturaBestillingService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer)
+        FakturaBestillingService(fakturaRepository, fakturaserieRepository, fakturaBestiltProducer, entityManager)
 
     @Test
     fun `Bestiller bestillingsklare faktura og lagrer i databasen`() {
@@ -65,6 +67,7 @@ class FakturaBestillingServiceTest {
             fakturaserieRepository.findById(faktura.getFakturaserieId()!!)
             fakturaserieRepository.save(faktura.fakturaserie!!)
             fakturaRepository.save(faktura)
+            fakturaRepository.flush()
             fakturaBestiltProducer.produserBestillingsmelding(any())
         }
     }
@@ -145,6 +148,33 @@ class FakturaBestillingServiceTest {
         }
 
         fakturaBestillingService.bestillFaktura(faktura.referanseNr)
+    }
+
+    @Test
+    fun `Bestiller ikke faktura som ikke lenger har status OPPRETTET`() {
+        val faktura = Faktura.forTest {
+            status = FakturaStatus.BESTILT
+            fakturaserie = Fakturaserie.forTest { id = 10 }
+        }
+        every { fakturaRepository.findByReferanseNr(faktura.referanseNr) } returns faktura
+
+        fakturaBestillingService.bestillFaktura(faktura.referanseNr) shouldBe false
+
+        verify(exactly = 0) { fakturaBestiltProducer.produserBestillingsmelding(any()) }
+        verify(exactly = 0) { fakturaRepository.save(any()) }
+    }
+
+    @Test
+    fun `Bestiller ikke faktura med bestillingsdato etter angitt dato`() {
+        val faktura = Faktura.forTest {
+            datoBestilt = LocalDate.now().plusDays(7)
+            fakturaserie = Fakturaserie.forTest { id = 10 }
+        }
+        every { fakturaRepository.findByReferanseNr(faktura.referanseNr) } returns faktura
+
+        fakturaBestillingService.bestillFaktura(faktura.referanseNr, LocalDate.now()) shouldBe false
+
+        verify(exactly = 0) { fakturaBestiltProducer.produserBestillingsmelding(any()) }
     }
 
     @Test
