@@ -310,6 +310,156 @@ class AdminControllerIT(
             .forEach { it.status shouldBe FakturaStatus.OPPRETTET }
     }
 
+    @Test
+    fun `bestillFakturaUmiddelbart setter dagens dato og bestiller fakturaen med en gang`() {
+        val fakturaReferanse = opprettFakturaMedBestillingsdatoFremITid()
+
+        val respons = postBestillFakturaUmiddelbartRequest(fakturaReferanse)
+            .expectStatus().isOk
+            .expectBody<BestillFakturaResponse>()
+            .returnResult().responseBody!!
+
+        respons.bestillingsdato shouldBe LocalDate.now()
+        respons.forrigeBestillingsdato.isAfter(LocalDate.now()) shouldBe true
+        fakturaRepository.findByReferanseNr(fakturaReferanse)!!.run {
+            datoBestilt shouldBe LocalDate.now()
+            status shouldBe FakturaStatus.BESTILT
+        }
+    }
+
+    @Test
+    fun `bestillFakturaUmiddelbart avviser faktura som allerede er bestilt`() {
+        val fakturaReferanse = opprettFakturaMedBestillingsdatoFremITid()
+        postBestillFakturaUmiddelbartRequest(fakturaReferanse)
+            .expectStatus().isOk
+
+        postBestillFakturaUmiddelbartRequest(fakturaReferanse)
+            .expectStatus().isBadRequest
+            .expectBody<String>()
+            .returnResult().responseBody!! shouldContain "BESTILT"
+    }
+
+    @Test
+    fun `bestillFakturaUmiddelbart gir 404 når fakturaen ikke finnes`() {
+        postBestillFakturaUmiddelbartRequest("finnes-ikke")
+            .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `endreBestillingsdato setter dagens dato uten å bestille, og cronjobben bestiller ved neste kjøring`() {
+        val fakturaReferanse = opprettFakturaMedBestillingsdatoFremITid()
+
+        val respons = putEndreBestillingsdatoRequest(fakturaReferanse)
+            .expectStatus().isOk
+            .expectBody<EndreBestillingsdatoResponse>()
+            .returnResult().responseBody!!
+
+        respons.nyBestillingsdato shouldBe LocalDate.now()
+        fakturaRepository.findByReferanseNr(fakturaReferanse)!!.run {
+            datoBestilt shouldBe LocalDate.now()
+            status shouldBe FakturaStatus.OPPRETTET
+        }
+
+        fakturaBestillCronjob.bestillFaktura()
+
+        fakturaRepository.findByReferanseNr(fakturaReferanse)!!.status shouldBe FakturaStatus.BESTILT
+    }
+
+    @Test
+    fun `endreBestillingsdato setter dato frem i tid uten å bestille`() {
+        val fakturaReferanse = opprettFakturaMedBestillingsdatoFremITid()
+        val nyDato = LocalDate.now().plusDays(3)
+
+        putEndreBestillingsdatoRequest(fakturaReferanse, bestillingsDato = nyDato)
+            .expectStatus().isOk
+
+        fakturaRepository.findByReferanseNr(fakturaReferanse)!!.run {
+            datoBestilt shouldBe nyDato
+            status shouldBe FakturaStatus.OPPRETTET
+        }
+    }
+
+    @Test
+    fun `endreBestillingsdato avviser dato tilbake i tid`() {
+        val fakturaReferanse = opprettFakturaMedBestillingsdatoFremITid()
+        val opprinneligDato = fakturaRepository.findByReferanseNr(fakturaReferanse)!!.datoBestilt
+
+        putEndreBestillingsdatoRequest(fakturaReferanse, bestillingsDato = LocalDate.now().minusDays(1))
+            .expectStatus().isBadRequest
+
+        fakturaRepository.findByReferanseNr(fakturaReferanse)!!.datoBestilt shouldBe opprinneligDato
+    }
+
+    @Test
+    fun `endreBestillingsdato avviser faktura som allerede er bestilt`() {
+        val fakturaReferanse = opprettFakturaMedBestillingsdatoFremITid()
+        postBestillFakturaUmiddelbartRequest(fakturaReferanse)
+            .expectStatus().isOk
+
+        putEndreBestillingsdatoRequest(fakturaReferanse, bestillingsDato = LocalDate.now().plusDays(3))
+            .expectStatus().isBadRequest
+            .expectBody<String>()
+            .returnResult().responseBody!! shouldContain "BESTILT"
+
+        fakturaRepository.findByReferanseNr(fakturaReferanse)!!.datoBestilt shouldBe LocalDate.now()
+    }
+
+    @Test
+    fun `endreBestillingsdato gir 404 når fakturaen ikke finnes`() {
+        putEndreBestillingsdatoRequest("finnes-ikke")
+            .expectStatus().isNotFound
+    }
+
+    private fun opprettFakturaMedBestillingsdatoFremITid(): String {
+        val periodeStart = LocalDate.now().plusYears(1).withDayOfMonth(1)
+        val fakturaserieReferanse = postLagNyFakturaserieRequest(
+            lagFakturaserieDto(
+                intervall = FakturaserieIntervall.MANEDLIG,
+                fakturaseriePeriode = listOf(
+                    FakturaseriePeriodeDto.forTest {
+                        månedspris = 1000
+                        startDato = periodeStart
+                        sluttDato = periodeStart.plusMonths(1).minusDays(1)
+                        beskrivelse = "Test beskrivelse"
+                    }
+                )
+            )
+        )
+            .expectStatus().isOk
+            .expectBody<NyFakturaserieResponseDto>()
+            .returnResult().responseBody!!.fakturaserieReferanse
+
+        val faktura = fakturaRepository.findByFakturaserieReferanse(fakturaserieReferanse).single()
+        faktura.status shouldBe FakturaStatus.OPPRETTET
+        faktura.datoBestilt.isAfter(LocalDate.now()) shouldBe true
+        return faktura.referanseNr
+    }
+
+    private fun postBestillFakturaUmiddelbartRequest(fakturaReferanse: String): WebTestClient.ResponseSpec =
+        webClient.post()
+            .uri("/admin/faktura/$fakturaReferanse/bestill")
+            .header("Nav-User-Id", NAV_IDENT)
+            .headers {
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
+    private fun putEndreBestillingsdatoRequest(
+        fakturaReferanse: String,
+        bestillingsDato: LocalDate? = null
+    ): WebTestClient.ResponseSpec =
+        webClient.put()
+            .uri { builder ->
+                builder.path("/admin/faktura/$fakturaReferanse/bestillingsdato")
+                    .apply { bestillingsDato?.let { queryParam("bestillingsDato", it) } }
+                    .build()
+            }
+            .header("Nav-User-Id", NAV_IDENT)
+            .headers {
+                it.set(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+            }
+            .exchange()
+
     private fun postBestillKlareFakturaerRequest(): WebTestClient.ResponseSpec =
         webClient.post()
             .uri("/admin/faktura/bestill")

@@ -17,7 +17,7 @@ class Faktura(
     val referanseNr: String = "",
 
     @Column(name = "dato_bestilt", nullable = false)
-    val datoBestilt: LocalDate = LocalDate.now(),
+    var datoBestilt: LocalDate = LocalDate.now(),
 
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)

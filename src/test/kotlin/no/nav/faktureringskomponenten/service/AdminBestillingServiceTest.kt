@@ -19,9 +19,47 @@ import java.util.Optional
 class AdminBestillingServiceTest {
 
     private val fakturaBestillingService = mockk<FakturaBestillingService>(relaxed = true)
+    private val adminService = mockk<AdminService>()
     private val lockProvider = mockk<LockProvider>()
 
-    private val adminBestillingService = AdminBestillingService(fakturaBestillingService, lockProvider)
+    private val adminBestillingService = AdminBestillingService(fakturaBestillingService, adminService, lockProvider)
+
+    @Test
+    fun `bestiller faktura umiddelbart når låsen er ledig`() {
+        gittAtLåsenErLedig()
+        val bestilt = BestillFakturaResultat.Bestilt("ref", LocalDate.of(2026, 12, 19), LocalDate.now())
+        every { adminService.bestillUmiddelbart("ref") } returns bestilt
+
+        adminBestillingService.bestillUmiddelbart("ref") shouldBe bestilt
+    }
+
+    @Test
+    fun `bestiller ikke faktura umiddelbart når bestilling allerede kjører`() {
+        every { lockProvider.lock(any()) } returns Optional.empty()
+
+        adminBestillingService.bestillUmiddelbart("ref").shouldBeNull()
+
+        verify(exactly = 0) { adminService.bestillUmiddelbart(any()) }
+    }
+
+    @Test
+    fun `endrer bestillingsdato når låsen er ledig`() {
+        gittAtLåsenErLedig()
+        val dato = LocalDate.of(2026, 11, 20)
+        val endret = EndreBestillingsdatoResultat.Endret("ref", LocalDate.of(2026, 12, 19), dato)
+        every { adminService.endreBestillingsdato("ref", dato) } returns endret
+
+        adminBestillingService.endreBestillingsdato("ref", dato) shouldBe endret
+    }
+
+    @Test
+    fun `endrer ikke bestillingsdato når bestilling allerede kjører`() {
+        every { lockProvider.lock(any()) } returns Optional.empty()
+
+        adminBestillingService.endreBestillingsdato("ref", LocalDate.now()).shouldBeNull()
+
+        verify(exactly = 0) { adminService.endreBestillingsdato(any(), any()) }
+    }
 
     @Test
     fun `bestiller alle bestillingsklare fakturaer og returnerer referansenumrene`() {

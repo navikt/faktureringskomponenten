@@ -20,6 +20,7 @@ private val log = KotlinLogging.logger { }
 @Service
 class AdminBestillingService(
     private val fakturaBestillingService: FakturaBestillingService,
+    private val adminService: AdminService,
     lockProvider: LockProvider,
 ) {
 
@@ -38,8 +39,41 @@ class AdminBestillingService(
      * @return resultatet av kjøringen, eller null dersom låsen var opptatt
      */
     fun bestillBestillingsklareFakturaer(bestillingsDato: LocalDate = LocalDate.now()): Bestillingsresultat? {
+        val resultat = medBestillingslås { bestill(bestillingsDato) }
+        if (resultat == null) {
+            log.info("Bestilling av fakturaer kjører allerede, admin-trigging hoppet over")
+        }
+        return resultat
+    }
+
+    /**
+     * Endrer bestillingsdato på én faktura uten å bestille den. Cronjobben bestiller fakturaen
+     * når datoen er nådd.
+     *
+     * Tar samme ShedLock-lås som [FakturaBestillCronjob], slik at endringen aldri kjører samtidig
+     * som cronjobben bestiller den samme fakturaen.
+     *
+     * @return resultatet av endringen, eller null dersom låsen var opptatt
+     */
+    fun endreBestillingsdato(fakturaReferanse: String, bestillingsDato: LocalDate): EndreBestillingsdatoResultat? =
+        medBestillingslås { adminService.endreBestillingsdato(fakturaReferanse, bestillingsDato) }
+            .also { if (it == null) log.info("Bestilling av fakturaer kjører allerede, endring av bestillingsdato på $fakturaReferanse hoppet over") }
+
+    /**
+     * Setter bestillingsdato til i dag og bestiller én faktura til OEBS med en gang.
+     *
+     * Tar samme ShedLock-lås som [FakturaBestillCronjob], slik at fakturaen aldri bestilles
+     * samtidig av cronjobben.
+     *
+     * @return resultatet av bestillingen, eller null dersom låsen var opptatt
+     */
+    fun bestillUmiddelbart(fakturaReferanse: String): BestillFakturaResultat? =
+        medBestillingslås { adminService.bestillUmiddelbart(fakturaReferanse) }
+            .also { if (it == null) log.info("Bestilling av fakturaer kjører allerede, bestilling av $fakturaReferanse hoppet over") }
+
+    private fun <T> medBestillingslås(oppgave: () -> T): T? {
         val resultat = lockingTaskExecutor.executeWithLock(
-            LockingTaskExecutor.TaskWithResult { bestill(bestillingsDato) },
+            LockingTaskExecutor.TaskWithResult { oppgave() },
             LockConfiguration(
                 Instant.now(),
                 FakturaBestillCronjob.BESTILL_FAKTURA_LOCK_NAME,
@@ -47,13 +81,7 @@ class AdminBestillingService(
                 Duration.ZERO
             )
         )
-
-        if (!resultat.wasExecuted()) {
-            log.info("Bestilling av fakturaer kjører allerede, admin-trigging hoppet over")
-            return null
-        }
-
-        return resultat.result
+        return if (resultat.wasExecuted()) resultat.result else null
     }
 
     private fun bestill(bestillingsDato: LocalDate): Bestillingsresultat {
