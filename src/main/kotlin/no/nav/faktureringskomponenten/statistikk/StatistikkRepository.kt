@@ -248,20 +248,36 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         parametre("idag" to idag)
     ) { rs, _ -> PlanlagtKvartalDto(rs.getString("kvartal"), rs.getLong("antall"), rs.getBigDecimal("beloep")) }
 
-    /** Sendte fakturaer utenom kvartalskjøringene, per bestillingskvartal, eldste først. */
+    /**
+     * Sendte fakturaer utenom kvartalskjøringene, per bestillingskvartal, eldste først. perSerie gir antallet per
+     * fakturaserie, så Console kan slå opp saken i Melosys.
+     */
     fun utenomPerKvartal(idag: LocalDate): List<UtenomKvartalDto> = jdbc.query(
         """
-        WITH $SENDTE
-        SELECT to_char(dato_bestilt, 'YYYY-"K"Q') AS kvartal,
+        WITH $SENDTE,
+        utenom AS (
+            SELECT to_char(dato_bestilt, 'YYYY-"K"Q') AS kvartal, serie_referanse, faktura_sum, type, kilde, feilet, manglende
+            FROM sendte
+            WHERE maate = 'UTENOM'
+        ),
+        per_serie AS (
+            SELECT kvartal, array_agg(serie_referanse ORDER BY serie_referanse) AS serier,
+                   array_agg(antall ORDER BY serie_referanse) AS antall_per_serie
+            FROM (SELECT kvartal, serie_referanse, COUNT(*) AS antall FROM utenom GROUP BY 1, 2) s
+            GROUP BY kvartal
+        )
+        SELECT u.kvartal,
                COUNT(*) AS sendt,
                SUM(faktura_sum) AS beloep,
                ${TYPER.joinToString { antallOgBeloep("type_$it", "type = '$it'", "faktura_sum") }},
                ${antallPer("kilde", KILDER)},
                COUNT(*) FILTER (WHERE feilet) AS feilet,
-               COUNT(*) FILTER (WHERE manglende) AS manglende
-        FROM sendte
-        WHERE maate = 'UTENOM'
-        GROUP BY 1
+               COUNT(*) FILTER (WHERE manglende) AS manglende,
+               p.serier,
+               p.antall_per_serie
+        FROM utenom u
+        JOIN per_serie p ON p.kvartal = u.kvartal
+        GROUP BY u.kvartal, p.serier, p.antall_per_serie
         ORDER BY 1
         """,
         parametre("idag" to idag, "simulert" to SIMULERT_MANGLENDE_INNBETALING)
@@ -274,6 +290,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
             perKilde = rs.antallPer("kilde", KILDER),
             feiletNoenGang = rs.getLong("feilet"),
             manglendeInnbetaling = rs.getLong("manglende"),
+            perSerie = rs.liste<String>("serier").zip(rs.liste<Long>("antall_per_serie"), ::SerieAntallDto),
         )
     }
 
@@ -348,8 +365,9 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
                COUNT(DISTINCT fodselsnummer) AS personer,
                ${antallPer("kilde", KILDER)},
                ${antallPer("status", SERIESTATUSER)},
-               ${antallPer("intervall", INTERVALLER)}
-        FROM (SELECT fs.fodselsnummer, fs.status::text AS status, fs.intervall::text AS intervall, $KILDE AS kilde
+               ${antallPer("intervall", INTERVALLER)},
+               array_agg(referanse ORDER BY referanse) AS referanser
+        FROM (SELECT fs.referanse, fs.fodselsnummer, fs.status::text AS status, fs.intervall::text AS intervall, $KILDE AS kilde
               FROM fakturaserie fs) fs
         """,
         parametre()
@@ -360,6 +378,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
             perKilde = rs.antallPer("kilde", KILDER),
             perStatus = rs.antallPer("status", SERIESTATUSER),
             perIntervall = rs.antallPer("intervall", INTERVALLER),
+            referanser = rs.liste("referanser"),
         )
     }
 
@@ -377,6 +396,11 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
 
     private fun ResultSet.antallPer(kolonne: String, verdier: List<String>) =
         verdier.associateWith { getLong("${kolonne}_$it") }
+
+    /** En SQL-array som liste; tom når arrayen er null (array_agg over ingen rader). */
+    @Suppress("UNCHECKED_CAST")
+    private fun <T> ResultSet.liste(kolonne: String): List<T> =
+        (getArray(kolonne)?.array as Array<T>?)?.toList() ?: emptyList()
 
     /** Alle spørringer får bestillingsdagen, siden [FAKTURA] bruker den. */
     private fun parametre(vararg parametre: Pair<String, Any>): Map<String, Any> =
@@ -494,7 +518,7 @@ class StatistikkRepository(private val jdbc: NamedParameterJdbcTemplate) {
         private const val SENDTE = """
         $FAKTURA, $FEILET_OG_MANGLENDE,
         sendte AS (
-            SELECT ft.id, ft.dato_bestilt, ft.beloep AS faktura_sum, ft.type, ft.kilde, ft.fodselsnummer,
+            SELECT ft.id, ft.dato_bestilt, ft.beloep AS faktura_sum, ft.type, ft.kilde, ft.serie_referanse, ft.fodselsnummer,
                    CASE WHEN ft.status = 'MANGLENDE_INNBETALING' AND m.faktura_id IS NULL THEN 'BESTILT'
                         ELSE ft.status END AS status,
                    CASE WHEN ft.kvartalskjoering AND ft.dato_bestilt <= :idag THEN 'KVARTALSKJOERING' ELSE 'UTENOM' END AS maate,
