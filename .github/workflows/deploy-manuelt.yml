@@ -64,7 +64,7 @@ jobs:
       - name: Build
         run: ./gradlew clean build -x test
       - name: Build and publish Docker image
-        uses: nais/docker-build-push@v0
+        uses: nais/docker-build-push@v1
         with:
           team: teammelosys
           tag: |
